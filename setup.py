@@ -7,8 +7,8 @@ with open(Path(__file__).parent.joinpath('active_learning/version.json')) as f:
     version = json.load(f)
 
 version_str = '.'.join(map(str, [version['major'], version['minor'], version['micro']]))
-if version['local'] != '':
-    version_str += '+' + version['local']
+if version['pre_release'] != '':
+    version_str += '.' + version['pre_release']
 
 
 PYTORCH_DEPENDENCIES = ['torch>=1.6.0', 'torchtext>=0.7.0']
