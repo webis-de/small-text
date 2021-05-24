@@ -1,7 +1,7 @@
 
-<center>
-<img src="./docs/_static/small-text-logo.png" alt="small-text logo" />
-</center>
+<p align="center">
+<img width="372" height="80" src="./docs/_static/small-text-logo.png" alt="small-text logo" />
+</p>
 
 > Active Learning for Text Classifcation in Python.
 <hr>
