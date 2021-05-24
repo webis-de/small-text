@@ -1,0 +1,2 @@
+from active_learning.integrations.pytorch.classifiers.base import PytorchClassifier
+from active_learning.integrations.pytorch.classifiers.factories import KimCNNFactory

@@ -1,0 +1,68 @@
+import tempfile
+import unittest
+
+import pytest
+
+from pathlib import Path
+
+from active_learning.integrations.pytorch.exceptions import PytorchNotFoundError
+
+
+try:
+    import torch
+    from active_learning.integrations.pytorch.models.kimcnn import KimCNN
+    from active_learning.integrations.pytorch.model_selection import Metric, PytorchModelSelection
+except (ImportError, PytorchNotFoundError):
+    pass
+
+
+class ModelSelectionTest(unittest.TestCase):
+
+    def test_metric_init(self):
+        metric = Metric('valid_loss', lower_is_better=True)
+        self.assertEqual('valid_loss', metric)
+        self.assertTrue(metric.lower_is_better)
+
+        metric = Metric('valid_acc', lower_is_better=False)
+        self.assertEqual('valid_acc', metric)
+        self.assertFalse(metric.lower_is_better)
+
+
+@pytest.mark.pytorch
+class ModelSelectionTest(unittest.TestCase):
+
+    def test_model_selection_init(self):
+        with tempfile.TemporaryDirectory() as tmp_dir_name:
+            metrics = [Metric('valid_loss', lower_is_better=True),
+                       Metric('valid_acc', lower_is_better=False),
+                       Metric('train_loss', lower_is_better=True)]
+            model_selection = PytorchModelSelection(Path(tmp_dir_name), metrics)
+
+            self.assertEqual(model_selection.save_directory.absolute(),
+                             Path(tmp_dir_name).absolute())
+
+            self.assertIsNotNone(model_selection.metrics)
+            self.assertEqual(3, len(model_selection.metrics))
+            self.assertIsNotNone(model_selection.models)
+            self.assertEqual(0, len(model_selection.models))
+
+    def test_model_selection_init_invalid_type(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with self.assertRaises(ValueError):
+                PytorchModelSelection(tmpdir, 'INVALID_ARG')
+
+    def test_model_selection_init_invalid_metric(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with self.assertRaises(ValueError):
+                PytorchModelSelection(tmpdir, [Metric('valid_loss', lower_is_better=True),
+                                               'INVALID_ARG'])
+
+    def test_model_selection_add_model_missing_kwargs(self):
+        with tempfile.TemporaryDirectory() as tmp_dir_name:
+            metrics = [Metric('valid_loss', lower_is_better=True),
+                       Metric('valid_acc', lower_is_better=False),
+                       Metric('train_loss', lower_is_better=True)]
+            model_selection = PytorchModelSelection(Path(tmp_dir_name), metrics)
+
+            with self.assertRaises(ValueError):
+                model_selection.add_model(KimCNN(10, 20), 1)

@@ -1,0 +1,3 @@
+class PytorchNotFoundError(ImportError):
+    """"""
+    pass
