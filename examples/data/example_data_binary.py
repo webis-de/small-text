@@ -1,7 +1,7 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import normalize
 
-from active_learning.data import SklearnDataSet
+from small_text.data import SklearnDataSet
 
 from examples.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 

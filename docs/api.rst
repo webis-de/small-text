@@ -2,7 +2,7 @@
 ActiveLearner
 =============
 
-.. py:currentmodule:: active_learning.active_learner
+.. py:currentmodule:: small_text.active_learner
 
 .. autoclass:: PoolBasedActiveLearner
 
@@ -19,7 +19,7 @@ ActiveLearner
 DataSet
 =======
 
-.. py:currentmodule:: active_learning.data
+.. py:currentmodule:: small_text.data
 
 .. autoclass:: SklearnDataSet
 

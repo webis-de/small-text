@@ -7,12 +7,12 @@ import numpy as np
 
 from pathlib import Path
 
-from active_learning.active_learner import PoolBasedActiveLearner
-from active_learning.exceptions import ActiveLearnerException
-from active_learning.initialization import random_initialization_stratified
-from active_learning.integrations.pytorch.classifiers.factories import KimCNNFactory
-from active_learning.integrations.pytorch.query_strategies import ExpectedGradientLength
-from active_learning.query_strategies import PoolExhaustedException, EmptyPoolException
+from small_text.active_learner import PoolBasedActiveLearner
+from small_text.exceptions import ActiveLearnerException
+from small_text.initialization import random_initialization_stratified
+from small_text.integrations.pytorch.classifiers.factories import KimCNNFactory
+from small_text.integrations.pytorch.query_strategies import ExpectedGradientLength
+from small_text.query_strategies import PoolExhaustedException, EmptyPoolException
 
 from examples.data.example_data_multiclass import get_train_test
 from examples.shared import evaluate
@@ -99,5 +99,5 @@ def _load_gensim_embedding(vocab, min_freq=1):
 
 
 if __name__ == '__main__':
-    logging.getLogger('active_learning').setLevel(logging.INFO)
+    logging.getLogger('small_text').setLevel(logging.INFO)
     main()

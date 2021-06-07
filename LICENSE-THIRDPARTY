@@ -3,7 +3,7 @@ Third-Party Code
 
 1. KimCNN Model
 
-  The KimCNN model (`active_learning/integrations/pytorch/models/kimcnn.py`) is based on
+  The KimCNN model (`small_text/integrations/pytorch/models/kimcnn.py`) is based on
   John Lingi's implementation (https://github.com/Johnxjp/cnn_text_classification).
 
   License: MIT License

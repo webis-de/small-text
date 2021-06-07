@@ -1,4 +1,4 @@
-.. py:currentmodule:: active_learning.stopping_criteria
+.. py:currentmodule:: small_text.stopping_criteria
 
 =================
 Stopping Criteria

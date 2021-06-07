@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from setuptools import setup, find_packages
 
-with open(Path(__file__).parent.joinpath('active_learning/version.json')) as f:
+with open(Path(__file__).parent.joinpath('small_text/version.json')) as f:
     version = json.load(f)
 
 version_str = '.'.join(map(str, [version['major'], version['minor'], version['micro']]))
@@ -33,7 +33,7 @@ setup(name='small-text',
             'Programming Language :: Python :: 3.9',
             'Programming Language :: Python :: 3.10',
       ],
-      packages=find_packages(where='active-learning'),
+      packages=find_packages(),
       include_package_data=True,
       python_requires='>=3.6',
       install_requires=[

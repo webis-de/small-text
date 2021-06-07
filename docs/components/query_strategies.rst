@@ -1,4 +1,4 @@
-.. py:currentmodule:: active_learning.query_strategies
+.. py:currentmodule:: small_text.query_strategies
 
 ================
 Query Strategies
@@ -30,7 +30,7 @@ Pytorch
 Classes
 -------
 
-.. py:module:: active_learning.query_strategies
+.. py:module:: small_text.query_strategies
 
 .. autoclass:: LeastConfidence
     :inherited-members:
@@ -38,7 +38,7 @@ Classes
 .. autoclass:: RandomSampling
     :inherited-members:
 
-.. py:module:: active_learning.integrations.pytorch.query_strategies
+.. py:module:: small_text.integrations.pytorch.query_strategies
 
 .. autoclass:: ExpectedGradientLength
     :inherited-members:

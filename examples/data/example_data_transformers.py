@@ -1,4 +1,4 @@
-from active_learning.integrations.transformers.datasets import TransformersDataset
+from small_text.integrations.transformers.datasets import TransformersDataset
 
 
 def preprocess_data(tokenizer, data, labels, max_length=500):

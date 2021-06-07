@@ -2,11 +2,11 @@
 """
 import numpy as np
 
-from active_learning.active_learner import PoolBasedActiveLearner
-from active_learning.classifiers import ConfidenceEnhancedLinearSVC
-from active_learning.classifiers.factories import SklearnClassifierFactory
-from active_learning.query_strategies import PoolExhaustedException, EmptyPoolException
-from active_learning.query_strategies import RandomSampling
+from small_text.active_learner import PoolBasedActiveLearner
+from small_text.classifiers import ConfidenceEnhancedLinearSVC
+from small_text.classifiers.factories import SklearnClassifierFactory
+from small_text.query_strategies import PoolExhaustedException, EmptyPoolException
+from small_text.query_strategies import RandomSampling
 
 from examples.data.example_data_binary import get_train_test, preprocess_data
 from examples.shared import evaluate

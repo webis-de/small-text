@@ -1,9 +1,9 @@
-graft active_learning
+graft small_text
 graft docs
 graft tests
 prune examples
 
-include active_learning/version.json
+include small_text/version.json
 
 include LICENSE
 include LICENSE-THIRDPARTY

@@ -1,0 +1,1 @@
+from small_text.version import __version__

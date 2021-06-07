@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 
-from active_learning.integrations.pytorch.datasets import PytorchTextClassificationDataset
+from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
 
 from examples.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 from torchtext import data

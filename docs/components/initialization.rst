@@ -1,4 +1,4 @@
-.. py:currentmodule:: active_learning.initialization.strategies
+.. py:currentmodule:: small_text.initialization.strategies
 
 ==============
 Initialization

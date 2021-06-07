@@ -3,12 +3,12 @@ import numpy as np
 from scipy import sparse
 from sklearn.datasets import fetch_20newsgroups
 
-from active_learning.data.datasets import SklearnDataSet
+from small_text.data.datasets import SklearnDataSet
 
 try:
     import torch
-    from active_learning.integrations.pytorch.datasets import PytorchTextClassificationDataset
-    from active_learning.integrations.transformers.datasets import TransformersDataset
+    from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
+    from small_text.integrations.transformers.datasets import TransformersDataset
 except ImportError as e:
     pass
 

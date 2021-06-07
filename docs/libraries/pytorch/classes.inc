@@ -1,14 +1,14 @@
-.. py:currentmodule:: active_learning.integrations.pytorch
+.. py:currentmodule:: small_text.integrations.pytorch
 
 Dataset Classes
 ===============
-.. autoclass:: active_learning.integrations.pytorch.datasets.PytorchTextClassificationDataset
+.. autoclass:: small_text.integrations.pytorch.datasets.PytorchTextClassificationDataset
     :inherited-members:
     :special-members: __init__
 
 Models
 ======
-.. autoclass:: active_learning.integrations.pytorch.models.kimcnn.KimCNN
+.. autoclass:: small_text.integrations.pytorch.models.kimcnn.KimCNN
     :members:
 
 Classification

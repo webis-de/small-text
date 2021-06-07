@@ -6,12 +6,12 @@ import numpy as np
 
 from transformers import AutoTokenizer
 
-from active_learning.active_learner import PoolBasedActiveLearner
-from active_learning.initialization import random_initialization_balanced
-from active_learning.integrations.transformers import TransformerModelArguments
-from active_learning.integrations.transformers.classifiers.factories import TransformerBasedClassificationFactory
-from active_learning.query_strategies import PoolExhaustedException, EmptyPoolException
-from active_learning.query_strategies import RandomSampling
+from small_text.active_learner import PoolBasedActiveLearner
+from small_text.initialization import random_initialization_balanced
+from small_text.integrations.transformers import TransformerModelArguments
+from small_text.integrations.transformers.classifiers.factories import TransformerBasedClassificationFactory
+from small_text.query_strategies import PoolExhaustedException, EmptyPoolException
+from small_text.query_strategies import RandomSampling
 
 from examples.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 from examples.data.example_data_transformers import preprocess_data
@@ -82,7 +82,7 @@ def initialize_active_learner(active_learner, y_train):
 
 
 if __name__ == '__main__':
-    logging.getLogger('active_learning').setLevel(logging.INFO)
+    logging.getLogger('small_text').setLevel(logging.INFO)
     logging.getLogger('transformers.modeling_utils').setLevel(logging.ERROR)
 
     main()

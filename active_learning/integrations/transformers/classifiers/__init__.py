@@ -1,2 +1,0 @@
-from active_learning.integrations.transformers.classifiers.classification import TransformerBasedClassification
-from active_learning.integrations.transformers.classifiers.factories import TransformerBasedClassificationFactory

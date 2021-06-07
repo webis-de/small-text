@@ -3,7 +3,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
-from active_learning.version import __version__ as version
+from small_text.version import __version__ as version
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -66,8 +66,6 @@ html_static_path = ['_static']
 autodoc_member_order = 'bysource'
 
 # -- Document variables------ -------------------------------------------------
-
-
 
 rst_prolog = """
 .. |LIBRARY_VERSION| replace:: """ + version + """

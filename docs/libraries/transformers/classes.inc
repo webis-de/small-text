@@ -1,6 +1,6 @@
-.. py:currentmodule:: active_learning.integrations.transformers
+.. py:currentmodule:: small_text.integrations.transformers
 
 Classification
 ==============
-.. autoclass:: active_learning.integrations.transformers.classifiers.classification.FineTuningArguments
+.. autoclass:: small_text.integrations.transformers.classifiers.classification.FineTuningArguments
     :members:

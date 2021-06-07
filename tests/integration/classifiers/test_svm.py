@@ -3,7 +3,7 @@ import unittest
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import CountVectorizer
 
-from active_learning.classifiers import ConfidenceEnhancedLinearSVC
+from small_text.classifiers import ConfidenceEnhancedLinearSVC
 
 
 class ConfidenceEnhancedLinearSVCIntegrationTest(unittest.TestCase):

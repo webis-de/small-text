@@ -1,0 +1,2 @@
+from small_text.integrations.pytorch.classifiers.base import PytorchClassifier
+from small_text.integrations.pytorch.classifiers.factories import KimCNNFactory
