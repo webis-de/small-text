@@ -11,14 +11,13 @@
 <br>
 Active Learning allows you to efficiently label training data in a small-data scenario.
 
-This library provides state-of-the-art **active learning** for text classification, 
-built with modularity and extensibility in mind.
-
-
+This library provides state-of-the-art **active learning** for text classification 
+which allows to easily mix and match many classifiers and query strategies 
+to build active learning experiments or applications.
 
 ## Features
 
-- Provides unified interfaces for Active Learning so that you can easily use any classifier provided by Integrates [sklearn](https://scikit-learn.org/).
+- Provides unified interfaces for Active Learning so that you can easily use any classifier provided by [sklearn](https://scikit-learn.org/).
 - (Optionally) As an optional feature, you can also use [pytorch](https://pytorch.org/) classifiers, including [transformers](https://github.com/huggingface/transformers) models.
 - Multiple scientifically-proven strategies re-implemented: Query Strategies, Initialization Strategies
 
