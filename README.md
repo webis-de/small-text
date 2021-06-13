@@ -1,3 +1,7 @@
+[![PyPI](https://img.shields.io/pypi/v/small-text)](https://pypi.org/project/small-text/)
+[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=latest)](https://small-text.readthedocs.io/en/latest/?badge=latest) 
+![GitHub](https://img.shields.io/github/license/webis-de/small-text)
+
 
 <p align="center">
 <img width="372" height="80" src="./docs/_static/small-text-logo.png" alt="small-text logo" />
