@@ -7,7 +7,7 @@ from small_text.query_strategies.strategies import (QueryStrategy,
                                                     PredictionEntropy,
                                                     SubsamplingQueryStrategy,
                                                     lightweight_coreset,
-                                                    EmbeddingeBasedQueryStrategy,
+                                                    EmbeddingBasedQueryStrategy,
                                                     EmbeddingKMeans)
 from small_text.query_strategies.exceptions import (QueryException, EmptyPoolException,
                                                     PoolExhaustedException)

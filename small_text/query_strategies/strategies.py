@@ -297,7 +297,7 @@ class SubsamplingQueryStrategy(QueryStrategy):
                f'subsample_size={self.subsample_size})'
 
 
-class EmbeddingeBasedQueryStrategy(QueryStrategy):
+class EmbeddingBasedQueryStrategy(QueryStrategy):
     """A base class for embedding-based querying. To use this class, create a subclass and
      implement `get_confidence()`.
     """
@@ -343,10 +343,10 @@ class EmbeddingeBasedQueryStrategy(QueryStrategy):
         pass
 
     def __str__(self):
-        return 'EmbeddingeBasedQueryStrategy()'
+        return 'EmbeddingBasedQueryStrategy()'
 
 
-class EmbeddingKMeans(EmbeddingeBasedQueryStrategy):
+class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
 
     def __init__(self, normalize=True):
         self.normalize = normalize
