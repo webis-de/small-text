@@ -21,13 +21,12 @@ try:
     import gensim.downloader as api
 except ImportError:
     raise ActiveLearnerException('This example requires the gensim library. '
-                                 'Please install gensim to run this example.')
+                                 'Please install gensim 3.8.x to run this example.')
 
 
 def main():
 
-    device = 'cuda:0'
-
+    device = 'cuda'
     path = Path('.data/')
 
     if not path.exists():
@@ -38,9 +37,8 @@ def main():
     num_classes = len(np.unique(train.y))
 
     # Active learning parameters
-    classifier_kwargs = dict({ 'embedding_matrix': _load_gensim_embedding(train.vocab),
-                               'device': device,
-                               'initial_model_selection': (3,3) })
+    classifier_kwargs = dict({'embedding_matrix': _load_gensim_embedding(train.vocab),
+                              'device': device})
 
     clf_factory = KimCNNFactory('kimcnn', classifier_kwargs)
     query_strategy = ExpectedGradientLength(num_classes, device=device)

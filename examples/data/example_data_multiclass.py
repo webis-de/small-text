@@ -4,14 +4,21 @@ import numpy as np
 from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
 
 from examples.data.corpus_twenty_news import get_twenty_newsgroups_corpus
-from torchtext import data
 
 
 def get_train_test():
     train, test = get_twenty_newsgroups_corpus()
 
-    text_field = data.Field(lower=True)
-    label_field = data.Field(sequential=False, unk_token=None, pad_token=None)
+    try:
+        from torchtext import data
+        text_field = data.Field(lower=True)
+        label_field = data.Field(sequential=False, unk_token=None, pad_token=None)
+
+    except AttributeError:
+        # torchtext >= 0.8.0
+        from torchtext.legacy import data
+        text_field = data.Field(lower=True)
+        label_field = data.Field(sequential=False, unk_token=None)
 
     fields = [('text', text_field), ('label', label_field)]
 
