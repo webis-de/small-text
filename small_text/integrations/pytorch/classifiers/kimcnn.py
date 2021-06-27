@@ -14,9 +14,7 @@ from small_text.integrations.pytorch.models.kimcnn import KimCNN
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import list_length
 from small_text.utils.datetime import format_timedelta
-
-
-logger = logging.getLogger(__name__)
+from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
 
 
 try:
@@ -116,9 +114,13 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
     def __init__(self, embedding_matrix=None, device=None, num_epochs=10, mini_batch_size=25, criterion=None, optimizer=None,
                  lr=0.001, max_seq_len=60, out_channels=100, dropout=0.5, validation_set_size=0.1,
                  padding_idx=0, kernel_heights=[3, 4, 5], early_stopping=5,
-                 early_stopping_acc=0.98):
+                 early_stopping_acc=0.98, verbosity=VERBOSITY_MORE_VERBOSE):
 
         super().__init__(device=device)
+
+        with verbosity_logger():
+            self.logger = logging.getLogger(__name__)
+            self.logger.verbosity = verbosity
 
         if embedding_matrix is None:
             raise ValueError('This implementation requires an embedding matrix.')
@@ -223,10 +225,11 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
             timedelta = datetime.datetime.now() - start_time
 
-            logger.info(f'Epoch: {epoch+1} | {format_timedelta(timedelta)}')
-            logger.info(f'\tTrain Set Size: {len(sub_train)}')
-            logger.info(f'\tLoss: {train_loss:.4f}(train)\t|\tAcc: {train_acc * 100:.1f}% (train)')
-            logger.info(f'\tLoss: {valid_loss:.4f}(valid)\t|\tAcc: {valid_acc * 100:.1f}% (valid)')
+            self.logger.info(f'Epoch: {epoch+1} | {format_timedelta(timedelta)}\n'
+                             f'\tTrain Set Size: {len(sub_train)}\n'
+                             f'\tLoss: {train_loss:.4f}(train)\t|\tAcc: {train_acc * 100:.1f}% (train)\n'
+                             f'\tLoss: {valid_loss:.4f}(valid)\t|\tAcc: {valid_acc * 100:.1f}% (valid)',
+                             verbosity=VERBOSITY_MORE_VERBOSE)
 
             if self.early_stopping > 0:
                 if valid_loss < min_loss:

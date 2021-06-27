@@ -13,10 +13,8 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import list_length
 from small_text.utils.datetime import format_timedelta
+from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
 from small_text.utils.system import get_tmp_dir_base
-
-
-logger = logging.getLogger(__name__)
 
 
 try:
@@ -165,9 +163,11 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
     def __init__(self, transformer_model, num_classes=None, num_epochs=10, lr=2e-5,
                  mini_batch_size=12, criterion=None, optimizer=None, scheduler='linear',
-                 validation_set_size=0.1, initial_model_selection=None, early_stopping_no_improvement=5, early_stopping_acc=-1,
-                 model_selection=True, fine_tuning_arguments=None, device=None, memory_fix=1,
-                 no_validation_set_action='sample', cache_dir='.active_learning_lib_cache/'):
+                 validation_set_size=0.1, initial_model_selection=None,
+                 early_stopping_no_improvement=5, early_stopping_acc=-1, model_selection=True,
+                 fine_tuning_arguments=None, device=None, memory_fix=1,
+                 no_validation_set_action='sample', verbosity=VERBOSITY_MORE_VERBOSE,
+                 cache_dir='.active_learning_lib_cache/'):
         """
         Parameters
         ----------
@@ -202,6 +202,10 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         """
         super().__init__(device=device)
 
+        with verbosity_logger():
+            self.logger = logging.getLogger(__name__)
+            self.logger.verbosity = verbosity
+
         # Training parameters
         self.num_classes = num_classes
         self.num_epochs = num_epochs
@@ -227,6 +231,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.fine_tuning_arguments = fine_tuning_arguments
 
         self.memory_fix = memory_fix
+        self.verbosity = verbosity
         self.cache_dir = cache_dir
 
         self.model = None
@@ -287,11 +292,11 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         if optimizer is None or scheduler is None:
             if optimizer is not None:
-                logger.warning('Overridering optimizer since optimizer in kwargs needs to be '
+                self.logger.warning('Overridering optimizer since optimizer in kwargs needs to be '
                                'passed in combination with scheduler')
             if scheduler is not None:
-                logger.warning('Overridering scheduler since optimizer in kwargs needs to be '
-                               'passed in combination with scheduler')
+                self.logger.warning('Overridering scheduler since optimizer in kwargs needs to be '
+                                    'passed in combination with scheduler')
 
             optimizer, scheduler = self._initialize_optimizer_and_scheduler(optimizer,
                                                                             scheduler,
@@ -474,11 +479,12 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
             timedelta = datetime.datetime.now() - start_time
 
-            logger.info(f'Epoch: {epoch + 1} | {format_timedelta(timedelta)}')
-            logger.info(f'\tTrain Set Size: {len(sub_train)}')
-            logger.info(f'\tLoss: {train_loss:.4f}(train)\t|\tAcc: {train_acc * 100:.1f}%(train)')
-            if sub_valid is not None:
-                logger.info(f'\tLoss: {valid_loss:.4f}(valid)\t|\tAcc: {valid_acc * 100:.1f}%(valid)')
+            if self.verbosity >= VERBOSITY_MORE_VERBOSE:
+                self.logger.info(f'Epoch: {epoch + 1} | {format_timedelta(timedelta)}')
+                self.logger.info(f'\tTrain Set Size: {len(sub_train)}')
+                self.logger.info(f'\tLoss: {train_loss:.4f}(train)\t|\tAcc: {train_acc * 100:.1f}%(train)')
+            if self.verbosity >= VERBOSITY_MORE_VERBOSE and sub_valid is not None:
+                self.logger.info(f'\tLoss: {valid_loss:.4f}(valid)\t|\tAcc: {valid_acc * 100:.1f}%(valid)')
 
                 # TODO: early stopping via fit_kwargs
                 # TODO: early stopping configurable
