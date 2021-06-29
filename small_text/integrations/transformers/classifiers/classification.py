@@ -479,12 +479,13 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
             timedelta = datetime.datetime.now() - start_time
 
-            if self.verbosity >= VERBOSITY_MORE_VERBOSE:
-                self.logger.info(f'Epoch: {epoch + 1} | {format_timedelta(timedelta)}')
-                self.logger.info(f'\tTrain Set Size: {len(sub_train)}')
-                self.logger.info(f'\tLoss: {train_loss:.4f}(train)\t|\tAcc: {train_acc * 100:.1f}%(train)')
-            if self.verbosity >= VERBOSITY_MORE_VERBOSE and sub_valid is not None:
-                self.logger.info(f'\tLoss: {valid_loss:.4f}(valid)\t|\tAcc: {valid_acc * 100:.1f}%(valid)')
+            self.logger.info(f'Epoch: {epoch + 1} | {format_timedelta(timedelta)}\n'
+                             f'\tTrain Set Size: {len(sub_train)}\n'
+                             f'\tLoss: {train_loss:.4f}(train)\t|\tAcc: {train_acc * 100:.1f}%(train)',
+                             verbosity=VERBOSITY_MORE_VERBOSE)
+            if sub_valid is not None:
+                self.logger.info(f'\tLoss: {valid_loss:.4f}(valid)\t|\tAcc: {valid_acc * 100:.1f}%(valid)',
+                                 verbosity=VERBOSITY_MORE_VERBOSE)
 
                 # TODO: early stopping via fit_kwargs
                 # TODO: early stopping configurable
