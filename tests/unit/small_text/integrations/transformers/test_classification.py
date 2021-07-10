@@ -9,7 +9,7 @@ try:
         FineTuningArguments, TransformerModelArguments, TransformerBasedClassification
     from small_text.integrations.transformers.datasets import TransformersDataset
     from tests.utils.datasets import random_transformer_dataset
-except PytorchNotFoundError:
+except (ModuleNotFoundError, PytorchNotFoundError):
     pass
 
 
