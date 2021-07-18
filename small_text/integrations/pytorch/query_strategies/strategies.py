@@ -39,6 +39,9 @@ class ExpectedGradientLength(QueryStrategy):
     def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10, pbar=None):
         self._validate_query_input(x_indices_unlabeled, n)
 
+        if len(x_indices_unlabeled) == n:
+            return np.array(x_indices_unlabeled)
+
         criterion = torch.nn.CrossEntropyLoss(reduction='none').to(self.device)
 
         collate_fn = clf._create_collate_fn()
