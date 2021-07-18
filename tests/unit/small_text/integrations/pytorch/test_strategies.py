@@ -5,10 +5,27 @@ import pytest
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
-    from small_text.integrations.pytorch.query_strategies import (
+    from small_text.integrations.pytorch.query_strategies import (BADGE,
         ExpectedGradientLength, ExpectedGradientLengthMaxWord)
 except PytorchNotFoundError:
     pass
+
+
+@pytest.mark.pytorch
+class BADGETest(unittest.TestCase):
+
+    def test_init_default(self):
+        strategy = BADGE(2)
+        self.assertEqual(2, strategy.num_classes)
+
+    def test_init(self):
+        strategy = BADGE(4)
+        self.assertEqual(4, strategy.num_classes)
+
+    def test_badge_str(self):
+        strategy = BADGE(2)
+        expected_str = 'BADGE(num_classes=2)'
+        self.assertEqual(expected_str, str(strategy))
 
 
 @pytest.mark.pytorch
@@ -28,6 +45,10 @@ class ExpectedGradientLengthTest(unittest.TestCase):
         self.assertEqual(100, strategy.batch_size)
         self.assertEqual('cpu', strategy.device)
 
+    def test_expected_gradient_length_str(self):
+        strategy = ExpectedGradientLength(2)
+        expected_str = 'ExpectedGradientLength()'
+        self.assertEqual(expected_str, str(strategy))
 
 @pytest.mark.pytorch
 class ExpectedGradientLengthMaxWordTest(unittest.TestCase):

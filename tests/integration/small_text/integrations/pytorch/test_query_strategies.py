@@ -35,7 +35,11 @@ class QueryStrategiesTest(unittest.TestCase):
         self._simple_active_learning_test(query_strategy)
 
     def test_badge(self):
-        query_strategy = BADGE()
+        query_strategy = BADGE(2)
+        self._simple_active_learning_test(query_strategy)
+
+    def test_badge_multiclass(self):
+        query_strategy = BADGE(6)
         self._simple_active_learning_test(query_strategy)
 
     def _simple_active_learning_test(self, query_strategy, query_size=10, num_initial=10):

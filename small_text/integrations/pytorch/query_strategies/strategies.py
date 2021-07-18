@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.cluster import kmeans_plusplus
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.query_strategies import QueryStrategy
+from small_text.query_strategies import QueryStrategy, EmbeddingBasedQueryStrategy
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import list_length
 
@@ -252,7 +252,7 @@ class ExpectedGradientLengthLayer(ExpectedGradientLength):
         return 'ExpectedGradientLengthLayer()'
 
 
-class BADGE(QueryStrategy):
+class BADGE(EmbeddingBasedQueryStrategy):
     """
     Implements "Batch Active learning by Diverse Gradient Embedding" (BADGE) _[AZK20].
 
@@ -262,17 +262,36 @@ class BADGE(QueryStrategy):
                 Deep Batch Active Learning by Diverse, Uncertain Gradient Lower Bounds.
                 International Conference on Learning Representations 2020 (ICLR 2020).
     """
-    def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10, pbar=None,
-              embed_kwargs=None):
+    def __init__(self, num_classes):
+        self.num_classes = num_classes
 
-        embed_kwargs = dict() if embed_kwargs is None else embed_kwargs
-        embeddings = clf.embed(x[x_indices_unlabeled], pbar=pbar, **embed_kwargs)
+    def sample(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings):
+        proba = clf.predict_proba(x[x_indices_unlabeled])
+
+        embeddings = self.get_badge_embeddings(embeddings[x_indices_unlabeled], proba)
 
         _, indices = kmeans_plusplus(embeddings,
                                      n,
                                      x_squared_norms=np.linalg.norm(embeddings, axis=1),
                                      random_state=np.random.RandomState())
-        return np.array([x_indices_unlabeled[i] for i in indices])
+        return indices
+
+    def get_badge_embeddings(self, embeddings, proba):
+
+        proba_argmax = np.argmax(proba, axis=1)
+        scale = -1 * proba
+        scale[proba_argmax] = -1 * proba[proba_argmax]
+
+        if self.num_classes > 2:
+            embedding_size = embeddings.shape[1]
+            badge_embeddings = np.zeros((embeddings.shape[0], embedding_size * self.num_classes))
+            for c in range(self.num_classes):
+                badge_embeddings[:, c * embedding_size:(c + 1) * embedding_size] = (
+                            scale[:, c] * np.copy(embeddings).T).T
+        else:
+            badge_embeddings = embeddings
+
+        return badge_embeddings
 
     def __str__(self):
-        return 'BADGE()'
+        return f'BADGE(num_classes={self.num_classes})'
