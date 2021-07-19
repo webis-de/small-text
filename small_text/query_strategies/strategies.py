@@ -373,8 +373,8 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
 
         Returns
         -------
-        confidence : ndarray
-            A 2D numpy array (of type float) in the shape (n_samples, n_classes).
+        indices : ndarray
+            A numpy array of selected indices (relative to `x_indices_unlabeled`).
         """
         from sklearn.cluster import KMeans
 
