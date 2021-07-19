@@ -299,7 +299,7 @@ class SubsamplingQueryStrategy(QueryStrategy):
 
 class EmbeddingBasedQueryStrategy(QueryStrategy):
     """A base class for embedding-based querying. To use this class, create a subclass and
-     implement `get_confidence()`.
+     implement `sample()`.
     """
     def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10, pbar='tqdm',
               embed_kwargs=dict()):
@@ -337,8 +337,8 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
 
         Returns
         -------
-        confidence : ndarray
-            A 2D numpy array (of type float) in the shape (n_samples, n_classes).
+        indices : ndarray
+            A numpy array of selected indices (relative to `x_indices_unlabeled`).
         """
         pass
 
