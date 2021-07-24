@@ -4,6 +4,7 @@ from sklearn.cluster import kmeans_plusplus
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.query_strategies import QueryStrategy, EmbeddingBasedQueryStrategy
+from small_text.utils.clustering import init_kmeans_plusplus_safe
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import list_length
 
@@ -273,10 +274,10 @@ class BADGE(EmbeddingBasedQueryStrategy):
 
         embeddings = self.get_badge_embeddings(embeddings[x_indices_unlabeled], proba)
 
-        _, indices = kmeans_plusplus(embeddings,
-                                     n,
-                                     x_squared_norms=np.linalg.norm(embeddings, axis=1),
-                                     random_state=np.random.RandomState())
+        _, indices = init_kmeans_plusplus_safe(embeddings,
+                                               n,
+                                               x_squared_norms=np.linalg.norm(embeddings, axis=1),
+                                               random_state=np.random.RandomState())
         return indices
 
     def get_badge_embeddings(self, embeddings, proba):
