@@ -65,7 +65,22 @@ Contributions are welcome. Details can be found in [CONTRIBUTING.md](CONTRIBUTIN
 
 This software was created by [@chschroeder](https://github.com/chschroeder) at Leipzig University's [NLP group](http://asv.informatik.uni-leipzig.de/) which is a part of the [Webis](https://webis.de/) research network. The encompassing project was funded by the Development Bank of Saxony (SAB) under project number 100335729.
 
+## Citation
+
+A preprint which introduces small-text is available here:  
+[Small-text: Active Learning for Text Classification in Python](https://arxiv.org/abs/2107.10314). 
+
+```
+@misc{schroeder2021smalltext,
+    title={Small-text: Active Learning for Text Classification in Python}, 
+    author={Christopher Schröder and Lydia Müller and Andreas Niekler and Martin Potthast},
+    year={2021},
+    eprint={2107.10314},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG}
+}
+```
+
 ## License
 
 [MIT License](LICENSE)
-
