@@ -19,6 +19,7 @@ Getting Started
    active_learning
    data_structures
 
+For now, the best way to get started is the `examples/ <https://github.com/webis-de/small-text/tree/master/examples>`_ folder in the github directory.
 
 Active Learning Components
 ==========================
@@ -31,6 +32,9 @@ Active Learning Components
    components/initialization
    components/query_strategies
    components/stopping_criteria
+
+All components are based around the `ActiveLearner <https://github.com/webis-de/small-text/blob/master/small_text/active_learner.py>`_ class.
+You can mix and match different many Initialization Strategies, Query Strategies and Classifiers.
 
 
 Integrations
@@ -52,7 +56,8 @@ Optional Integrations allow you to use models from other libraries such as pytor
 Common Patterns
 ===============
 
-Patterns to common challenges when building experiments and/or applications.
+We provide patterns to common challenges when building experiments and/or applications,
+such as :doc:`patterns/pool` and :doc:`patterns/serialization`.
 
 .. toctree::
    :caption: Common Patterns
@@ -62,17 +67,23 @@ Patterns to common challenges when building experiments and/or applications.
    patterns/pool
    patterns/serialization
 
-API
-===
 
-.. toctree::
-   :caption: API
-   :maxdepth: 2
-   :hidden:
+Citation
+========
 
-   api
+A preprint which introduces small-text is available here:
+`Small-text: Active Learning for Text Classification in Python <https://arxiv.org/abs/2107.10314>`_.
 
-:doc:`api`
+.. code-block:: text
+
+    @misc{schroeder2021smalltext,
+        title={Small-text: Active Learning for Text Classification in Python},
+        author={Christopher Schröder and Lydia Müller and Andreas Niekler and Martin Potthast},
+        year={2021},
+        eprint={2107.10314},
+        archivePrefix={arXiv},
+        primaryClass={cs.LG}
+    }
 
 ----
 :ref:`genindex` | :ref:`modindex` | :ref:`search`

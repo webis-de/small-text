@@ -4,14 +4,13 @@
 Installation
 ============
 
-Active Learning Library is not public yet. You can install the library directly from git using:
+Small-text can be easily installed via:
 
 .. code-block:: console
 
     pip install small-text
 
-In the future there will be a pypi package available.
-
+This install a minimal setup **without** any integrations.
 
 .. _installation-optional-dependencies:
 
