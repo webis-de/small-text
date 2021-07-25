@@ -28,11 +28,21 @@ to build active learning experiments or applications.
 
 ## Installation
 
+Small-text can be easily installed via pip:
+
 ```bash
 pip install small-text
 ```
 
-Requires Python 3.7 or newer. For using the GPU, CUDA 10.1 or newer is required.
+For a full installation include the transformers extra requirement:
+
+```bash
+pip install small-text[transformers]
+```
+
+Requires Python 3.7 or newer. For using the GPU, CUDA 10.1 or newer is required. 
+More information regarding the installation can be found in the 
+[documentation](https://small-text.readthedocs.io/en/latest/install.html).
 
 
 ## Quick Start
