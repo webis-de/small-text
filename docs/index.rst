@@ -68,6 +68,21 @@ such as :doc:`patterns/pool` and :doc:`patterns/serialization`.
    patterns/serialization
 
 
+API
+===
+
+.. toctree::
+   :caption: Common Patterns
+   :maxdepth: 1
+   :hidden:
+
+   api/active_learner
+   api/data_set
+
+:doc:`api/active_learner`
+:doc:`api/data_set`
+
+
 Citation
 ========
 

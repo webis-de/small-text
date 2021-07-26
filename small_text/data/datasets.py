@@ -33,18 +33,20 @@ class Dataset(ABC):
 
 
 class SklearnDataSet(Dataset):
+    """A dataset representations which is usable in combination with scikit-learn classifiers.
+
+    Parameters
+    ----------
+    x : numpy.ndarray or scipy.sparse.csr_matrix
+        Dense or sparse feature matrix.
+    y : list of int
+        List of labels where each label belongs to the features of the respective row.
+    target_labels : list of int or None
+        List of possible labels. Will be inferred from `y` if `None` is passed.
+    """
 
     def __init__(self, x, y, target_labels=None):
-        """
-        Parameters
-        ----------
-        x : numpy.ndarray or scipy.sparse.csr_matrix
-            Dense or sparse feature matrix.
-        y : list of int
-            List of labels where each label belongs to the features of the respective row.
-        target_labels : list of int or None
-            List of target_labels. Will be inferred from `y` if None is passed.
-        """
+
         self._x = x
         self._y = np.array(y)
 
@@ -60,6 +62,13 @@ class SklearnDataSet(Dataset):
 
     @property
     def x(self):
+        """Returns the features.
+
+        Returns
+        -------
+        x : numpy.ndarray or scipy.sparse.csr_matrix
+            Dense or sparse feature matrix.
+        """
         return self._x
 
     @x.setter
@@ -68,6 +77,13 @@ class SklearnDataSet(Dataset):
 
     @property
     def y(self):
+        """Returns the labels.
+
+        Returns
+        -------
+        y : numpy.ndarray
+            List of labels.
+        """
         return self._y
 
     @y.setter
@@ -78,6 +94,13 @@ class SklearnDataSet(Dataset):
 
     @property
     def target_labels(self):
+        """Returns a list of possible labels.
+
+        Returns
+        -------
+        target_labels : numpy.ndarray
+            List of possible labels.
+        """
         return self._target_labels
 
     @target_labels.setter

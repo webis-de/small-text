@@ -13,16 +13,3 @@ ActiveLearner
   .. automethod:: remove_label_at
   .. automethod:: save
   .. automethod:: load
-
-
-=======
-DataSet
-=======
-
-.. py:currentmodule:: small_text.data
-
-.. autoclass:: SklearnDataSet
-
-  .. autoattribute:: x
-  .. autoattribute:: y
-  .. autoattribute:: target_labels
