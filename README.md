@@ -51,15 +51,9 @@ For a quick start, see the provided examples for [binary classification](example
 [pytorch multi-class classification](examples/pytorch_multiclass_classification.py), or 
 [transformer-based multi-class classification](examples/transformers_multiclass_classification.py)
 
-## Docs
+## Documentation
 
-The API docs (currently work in progress) can be generated using sphinx:
-
-```bash
-pip install sphinx sphinx-rtd-theme
-cd docs/
-make
-```
+Read the latest documentation (currently work in progress) [here](https://small-text.readthedocs.io/en/latest/).
 
 ## Alternatives
 

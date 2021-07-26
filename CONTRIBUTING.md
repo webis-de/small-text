@@ -4,6 +4,18 @@
     By contributing you agree to license your contributions under this license as well.
 2. All contributions are subject to the [Developer Certificate of Origin](DCO.md).
 
+## Development
+
+### Building the Documentation
+
+The documentation (currently work in progress) can be generated using sphinx:
+
+```bash
+pip install sphinx sphinx-rtd-theme
+cd docs/
+make
+```
+
 ## Contributors
 
 Thanks goes to...
