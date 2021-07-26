@@ -158,7 +158,7 @@ class LeastConfidence(ConfidenceBasedQueryStrategy):
 
 
 class PredictionEntropy(ConfidenceBasedQueryStrategy):
-    """Selects instances with the largest prediction entropy.
+    """Selects instances with the largest prediction entropy [HOL08]_.
 
     References
     ----------

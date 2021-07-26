@@ -15,6 +15,7 @@ General
 * :py:class:`LeastConfidence`
 * :py:class:`PredictionEntropy`
 * :py:class:`BreakingTies`
+* :py:class:`EmbeddingKMeans`
 * :py:class:`RandomSampling`
 
 .. py:currentmodule:: active_learning.integrations.pytorch.query_strategies
@@ -33,6 +34,12 @@ Classes
 .. py:module:: small_text.query_strategies
 
 .. autoclass:: LeastConfidence
+    :inherited-members:
+
+.. autoclass:: PredictionEntropy
+    :inherited-members:
+
+.. autoclass:: EmbeddingKMeans
     :inherited-members:
 
 .. autoclass:: RandomSampling
