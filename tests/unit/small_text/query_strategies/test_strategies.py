@@ -3,7 +3,8 @@ import unittest
 import numpy as np
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from unittest.mock import Mock
+from sklearn.preprocessing import normalize
+from unittest.mock import patch, Mock
 
 from small_text.classifiers import ConfidenceEnhancedLinearSVC
 from small_text.query_strategies import EmptyPoolException, PoolExhaustedException
@@ -13,7 +14,8 @@ from small_text.query_strategies import (RandomSampling,
                                          LeastConfidence,
                                          PredictionEntropy,
                                          lightweight_coreset,
-                                         LightweightCoreset)
+                                         LightweightCoreset,
+                                         EmbeddingKMeans)
 
 
 DEFAULT_QUERY_SIZE = 10
@@ -281,49 +283,6 @@ class PredictionEntropyTest(unittest.TestCase,SamplingStrategiesTests):
                                   strategy.scores_)
 
 
-class SubSamplingTest(unittest.TestCase,SamplingStrategiesTests):
-
-    def _get_clf(self):
-        return ConfidenceEnhancedLinearSVC()
-
-    def _get_query_strategy(self):
-        return SubsamplingQueryStrategy(RandomSampling(), 20)
-
-    def test_subsampling_str(self):
-        strategy = SubsamplingQueryStrategy(RandomSampling(), subsample_size=20)
-        expected_str = 'SubsamplingQueryStrategy(base_query_strategy=RandomSampling(), ' \
-                       'subsample_size=20)'
-        self.assertEqual(expected_str, str(strategy))
-
-    def test_subsampling_query_default(self):
-        indices = query_random_data(self._get_query_strategy())
-        self.assertEqual(10, len(indices))
-
-    def test_subsampling_empty_pool(self, num_samples=20, n=10):
-        strategy = self._get_query_strategy()
-
-        x = np.random.rand(num_samples, 10)
-
-        x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
-        x_indices_unlabeled = []
-        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
-
-        with self.assertRaises(EmptyPoolException):
-            strategy.query(None, x, x_indices_unlabeled, x_indices_labeled, y, n=n)
-
-    def test_scores_property(self):
-        num_samples = 20
-        scores = np.random.rand(num_samples, 1)
-
-        strategy = self._get_query_strategy()
-
-        strategy.base_query_strategy.scores_ = scores
-        assert_array_equal(scores, strategy.scores_)
-
-        strategy = self._get_query_strategy()
-        self.assertIsNone(strategy.scores_)
-
-
 class LightweightCoresetBaseTest(unittest.TestCase):
 
     def test_lightweight_coreset(self, num_samples=20, num_features=100, n=10):
@@ -394,3 +353,133 @@ class LightweightCoresetTest(unittest.TestCase,SamplingStrategiesTests):
 
         with self.assertRaises(EmptyPoolException):
             strategy.query(None, x, x_indices_unlabeled, x_indices_labeled, y, n=n)
+
+
+class SubSamplingTest(unittest.TestCase,SamplingStrategiesTests):
+
+    def _get_clf(self):
+        return ConfidenceEnhancedLinearSVC()
+
+    def _get_query_strategy(self):
+        return SubsamplingQueryStrategy(RandomSampling(), 20)
+
+    def test_subsampling_str(self):
+        strategy = SubsamplingQueryStrategy(RandomSampling(), subsample_size=20)
+        expected_str = 'SubsamplingQueryStrategy(base_query_strategy=RandomSampling(), ' \
+                       'subsample_size=20)'
+        self.assertEqual(expected_str, str(strategy))
+
+    def test_subsampling_query_default(self):
+        indices = query_random_data(self._get_query_strategy())
+        self.assertEqual(10, len(indices))
+
+    def test_subsampling_empty_pool(self, num_samples=20, n=10):
+        strategy = self._get_query_strategy()
+
+        x = np.random.rand(num_samples, 10)
+
+        x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        x_indices_unlabeled = []
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        with self.assertRaises(EmptyPoolException):
+            strategy.query(None, x, x_indices_unlabeled, x_indices_labeled, y, n=n)
+
+    def test_scores_property(self):
+        num_samples = 20
+        scores = np.random.rand(num_samples, 1)
+
+        strategy = self._get_query_strategy()
+
+        strategy.base_query_strategy.scores_ = scores
+        assert_array_equal(scores, strategy.scores_)
+
+        strategy = self._get_query_strategy()
+        self.assertIsNone(strategy.scores_)
+
+
+class EmbeddingKMeansTest(unittest.TestCase):
+
+    def test_str(self):
+        query_strategy = EmbeddingKMeans()
+        self.assertEqual('EmbeddingKMeans(normalize=True)', str(query_strategy))
+
+    def test_str_with_normalize_false(self):
+        query_strategy = EmbeddingKMeans(normalize=False)
+        self.assertEqual('EmbeddingKMeans(normalize=False)', str(query_strategy))
+
+    @patch('sklearn.preprocessing.normalize', wraps=normalize)
+    def test_sample(self, normalize_mock, n=10, num_samples=100, embedding_dim=60):
+        query_strategy = EmbeddingKMeans()
+        query_strategy._get_nearest_to_centers_iterative = Mock(
+            wraps=query_strategy._get_nearest_to_centers_iterative)
+        # currently does not support embed, but is not used here anyways
+        clf = ConfidenceEnhancedLinearSVC()
+
+        x = np.random.rand(num_samples, 100)
+
+        x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        x_indices_unlabeled = np.array([i for i in np.arange(100) if i not in set(x_indices_labeled)])
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        embeddings = np.random.rand(num_samples, embedding_dim)
+
+        # make sure we hit the "default" case
+        query_strategy._get_nearest_to_centers = Mock(
+            return_value=np.random.choice(x_indices_unlabeled, 10, replace=False))
+        indices = query_strategy.sample(clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings)
+        self.assertIsNotNone(indices)
+        self.assertEqual(n, indices.shape[0])
+
+        normalize_mock.assert_called()
+        np.testing.assert_array_equal(embeddings, normalize_mock.call_args[0][0])
+        query_strategy._get_nearest_to_centers_iterative.assert_not_called()
+
+    @patch('sklearn.preprocessing.normalize', wraps=normalize)
+    def test_sample_with_normalize_false(self, normalize_mock, n=10, num_samples=100,
+                                         embedding_dim=20):
+        query_strategy = EmbeddingKMeans(normalize=False)
+        query_strategy._get_nearest_to_centers_iterative = Mock(
+            wraps=query_strategy._get_nearest_to_centers_iterative)
+        # currently does not support embed, but is not used here anyways
+        clf = ConfidenceEnhancedLinearSVC()
+
+        x = np.random.rand(num_samples, 10)
+
+        x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        x_indices_unlabeled = np.array([i for i in np.arange(100) if i not in set(x_indices_labeled)])
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        embeddings = np.random.rand(num_samples, embedding_dim)
+
+        indices = query_strategy.sample(clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings)
+        self.assertIsNotNone(indices)
+        self.assertEqual(n, indices.shape[0])
+
+        normalize_mock.assert_not_called()
+        query_strategy._get_nearest_to_centers_iterative.assert_called()
+
+    def test_sample_with_fallback(self, n=10, num_samples=100, embedding_dim=20):
+        query_strategy = EmbeddingKMeans()
+        query_strategy._get_nearest_to_centers = Mock(return_value=np.zeros(n))
+        query_strategy._get_nearest_to_centers_iterative = Mock(
+            wraps=query_strategy._get_nearest_to_centers_iterative)
+
+        # currently does not support embed, but is not used here anyways
+        clf = ConfidenceEnhancedLinearSVC()
+
+        x = np.random.rand(num_samples, 10)
+
+        x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        x_indices_unlabeled = np.array(
+            [i for i in np.arange(100) if i not in set(x_indices_labeled)])
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        embeddings = np.random.rand(num_samples, embedding_dim)
+
+        indices = query_strategy.sample(clf, x, x_indices_unlabeled, x_indices_labeled, y, n,
+                                        embeddings)
+        self.assertIsNotNone(indices)
+        self.assertEqual(n, indices.shape[0])
+
+        query_strategy._get_nearest_to_centers_iterative.assert_called()

@@ -253,8 +253,7 @@ class LightweightCoreset(QueryStrategy):
 
 
 class SubsamplingQueryStrategy(QueryStrategy):
-    """
-    A decorator that first subsamples randomly from the unlabeled pool and then applies
+    """A decorator that first subsamples randomly from the unlabeled pool and then applies
     the `base_query_strategy` on the sampled subset.
 
     Parameters
@@ -347,6 +346,16 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
 
 
 class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
+    """This is a generalized version of BERT-K-Means  [YLB20]_, which is now applicable
+    to any kind of dense embedding.
+
+    References
+    ----------
+    .. [YLB20] Michelle Yuan, Hsuan-Tien Lin, and Jordan Boyd-Graber. 2020.
+       Cold-start Active Learning through Self-supervised Language Modeling
+       In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)
+       Association for Computational Linguistics, 7935–-7948.
+    """
 
     def __init__(self, normalize=True):
         self.normalize = normalize
@@ -385,44 +394,43 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
         km = KMeans(n_clusters=n)
         km.fit(embeddings)
 
-        indices = self._get_most_similar_indices(km.cluster_centers_,
-                                                 embeddings[x_indices_unlabeled],
-                                                 normalized=self.normalize)
+        indices = self._get_nearest_to_centers(km.cluster_centers_,
+                                               embeddings[x_indices_unlabeled],
+                                               normalized=self.normalize)
 
         # fall back to an iterative version if one or more vectors are most similar
         # to multiple cluster centers
         if np.unique(indices).shape[0] < n:
-            indices = self._get_most_similar_indices_iterative(km.cluster_centers_,
-                                                               embeddings[x_indices_unlabeled],
-                                                               normalized=self.normalize)
+            indices = self._get_nearest_to_centers_iterative(km.cluster_centers_,
+                                                             embeddings[x_indices_unlabeled],
+                                                             normalized=self.normalize)
 
         return indices
 
     @staticmethod
-    def _get_most_similar_indices(v, w, normalized=True):
+    def _get_nearest_to_centers(centers, vectors, normalized=True):
+        sim = EmbeddingKMeans._similarity(centers, vectors, normalized)
+        return sim.argmin(axis=1)
+
+    @staticmethod
+    def _similarity(centers, vectors, normalized):
         if normalized:
-            sim = np.matmul(v, w.T)
+            sim = np.matmul(centers, vectors.T)
         else:
-            sim = np.matmul(v, w.T)
-            sim = sim / np.dot(np.linalg.norm(v, axis=1)[:, np.newaxis],
-                               np.linalg.norm(w.T, axis=1)[np.newaxis, :])
-        indices = np.argmax(sim, axis=1)
-
-        return indices
+            sim = np.matmul(centers, vectors.T)
+            sim = sim / np.dot(np.linalg.norm(centers, axis=1)[:, np.newaxis],
+                               np.linalg.norm(vectors, axis=1)[np.newaxis, :])
+        return sim
 
     @staticmethod
-    def _get_most_similar_indices_iterative(v, w, normalized=True):
+    def _get_nearest_to_centers_iterative(cluster_centers, vectors, normalized=True):
 
-        indices = np.zeros(v.shape[0], dtype=int)
-        mask = np.array([True] * w.shape[0], dtype=bool)
-        all_indices = np.arange(w.shape[0])
+        indices = np.empty(cluster_centers.shape[0], dtype=int)
 
-        for i in range(v.shape[0]):
-            most_sim_index = EmbeddingKMeans._get_most_similar_indices(v[i,:][np.newaxis, :],
-                                                                       w[mask],
-                                                                       normalized=normalized)
-            mask[all_indices[mask][most_sim_index]] = False
-            indices[i] = all_indices[mask][most_sim_index]
+        for i in range(cluster_centers.shape[0]):
+            sim = EmbeddingKMeans._similarity(cluster_centers[None, i], vectors, normalized)
+            sim[0, indices[0:i]] = np.inf
+            indices[i] = sim.argmin()
 
         return indices
 
