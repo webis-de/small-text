@@ -7,7 +7,7 @@ from sklearn.svm import LinearSVC
 
 
 class Classifier(ABC):
-    """Abstract base blass for classifiers that can be used with the active learning components."""
+    """Abstract base class for classifiers that can be used with the active learning components."""
 
     @abstractmethod
     def fit(self, train_set):
