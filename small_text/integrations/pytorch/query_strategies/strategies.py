@@ -1,7 +1,5 @@
 import numpy as np
 
-from sklearn.cluster import kmeans_plusplus
-
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.query_strategies import QueryStrategy, EmbeddingBasedQueryStrategy
 from small_text.utils.clustering import init_kmeans_plusplus_safe
