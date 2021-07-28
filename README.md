@@ -11,7 +11,7 @@
 > Active Learning for Text Classifcation in Python.
 <hr>
 
-[Installation](#installation) | [Quick Start](#quick-start) | [Docs](#docs)
+[Installation](#installation) | [Quick Start](#quick-start) | [Docs](https://small-text.readthedocs.io/en/latest/)
 
 <br>
 Active Learning allows you to efficiently label training data in a small-data scenario.
