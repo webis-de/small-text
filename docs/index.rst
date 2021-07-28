@@ -72,7 +72,7 @@ API
 ===
 
 .. toctree::
-   :caption: Common Patterns
+   :caption: API
    :maxdepth: 1
    :hidden:
 
