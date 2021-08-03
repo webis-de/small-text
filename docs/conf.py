@@ -71,3 +71,13 @@ rst_prolog = """
 .. |LIBRARY_VERSION| replace:: """ + version + """
 .. |CUDA_VERSION| replace:: 10.1
 """
+
+# -- Layout------------------- ------------------------------------------------
+
+html_context = {
+    'github_url': 'https://github.com/webis-de/small-text'
+}
+
+html_css_files = [
+    'css/custom.css',
+]
