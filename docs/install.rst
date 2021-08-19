@@ -10,7 +10,7 @@ Small-text can be easily installed via:
 
     pip install small-text
 
-This install a minimal setup **without** any integrations.
+This installs a minimal setup **without** any integrations.
 
 .. _installation-optional-dependencies:
 
