@@ -132,7 +132,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         self._label_to_position = self._build_label_to_position_index()
         self.y = y_initial
 
-        if x_indices_ignored:
+        if x_indices_ignored is not None:
             self.x_indices_ignored = x_indices_ignored
         else:
             self.x_indices_ignored = np.empty(shape=(0), dtype=int)

@@ -65,7 +65,7 @@ class PoolBasedActiveLearnerTest(unittest.TestCase):
         self._test_initialize_data(x_indices_initial, retrain=False)
 
     def test_initialize_data_with_indices_ignored(self):
-        x_indices_random = np.random.choice(np.arange(100), size=10, replace=False)
+        x_indices_random = np.random.choice(np.arange(100), size=15, replace=False)
         self._test_initialize_data(x_indices_random[:10], x_indices_ignored=x_indices_random[10:15], retrain=True)
         self._test_initialize_data(x_indices_random[:10], x_indices_ignored=x_indices_random[10:15], retrain=False)
 
@@ -99,7 +99,7 @@ class PoolBasedActiveLearnerTest(unittest.TestCase):
         self.assertIsNotNone(active_learner._label_to_position)
         assert_array_equal(y_initial, active_learner.y)
         assert_array_equal(x_indices_initial, active_learner.x_indices_labeled)
-        if x_indices_ignored:
+        if x_indices_ignored is not None:
             assert_array_equal(x_indices_ignored, active_learner.x_indices_ignored)
         else:
             assert_array_equal(np.array([]), active_learner.x_indices_ignored)
