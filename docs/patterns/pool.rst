@@ -5,13 +5,19 @@ Data Management
 
 In order to decouple the :py:class:`~small_text.active_learner.PoolBasedActiveLearner`
 from your application logic, most of its methods operate solely on indices.
-This also means, if data within your data source changes, e.g.,
-examples are added or removed, or labels have been changed, you will need to keep this information updated.
+This also means if your data changes, i.e.,
+examples are added, replaced or removed, or labels have been changed, you will need to keep this information updated.
 
 .. note:: The following methods are more relevant to Active Learning applications
           than to the experimental scenario.
 
 .. note:: Whenever the labeled data changes your current model might need retraining to reflect the updated data.
+
+Updating Labels
+===============
+
+In case you want to revise or undo a past labeling, previous labels can be updated (:py:meth:`~small_text.active_learner.PoolBasedActiveLearner.update_label_at`)
+or removed (:py:meth:`~small_text.active_learner.PoolBasedActiveLearner.remove_label_at`).
 
 Adding / Removing Data
 ======================
@@ -22,12 +28,6 @@ Whenever the dataset changes, previous indices might be invalid and as a consequ
 
 By default, this also triggers a re-training of the model, which can be suppressed
 by passing :code:`retrain=True`.
-
-Updating Labels
-===============
-
-In case you want to revise or undo a past labeling, previous labels can be updated (:py:meth:`~small_text.active_learner.PoolBasedActiveLearner.update_label_at`)
-or removed (:py:meth:`~small_text.active_learner.PoolBasedActiveLearner.remove_label_at`).
 
 Ignoring Data
 =============
