@@ -36,6 +36,7 @@ author = 'Christopher Schröder'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
     'sphinx.ext.napoleon',
     'sphinx_rtd_theme'
 ]
