@@ -120,7 +120,31 @@ def _get_layer_params(model, base_lr, fine_tuning_arguments):
 
 class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
-    def embed(self, data_set, pbar='tqdm', embedding_method='avg', **kwargs):
+    EMBEDDING_METHOD_AVG = 'avg'
+    EMBEDDING_METHOD_CLS_TOKEN = 'cls'
+
+    def embed(self, data_set, embedding_method=EMBEDDING_METHOD_AVG, hidden_layer_index=-1,
+              pbar='tqdm'):
+        """
+        Embeds each sample in the given `data_set`.
+
+        The embedding is created by using hidden representation from the transformer model's
+        representation in the hidden layer at the given `hidden_layer_index`.
+
+        Parameters
+        ----------
+        embedding_method : str
+            Embedding method to use [avg, cls].
+        hidden_layer_index : int
+            Index of the hidden layer.
+        pbar : str or None
+            The progress bar to use, or None otherwise.
+
+        Returns
+        -------
+        embeddings : np.ndarray
+            Embeddings in the shape (N, hidden_layer_dimensionality).
+        """
 
         if self.model is None:
             raise ValueError('Model is not trained. Please call fit() first.')
@@ -132,27 +156,34 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
         with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
             for batch in train_iter:
-                batch_len = self.create_embeddings(tensors, batch,
-                                                   embedding_method=embedding_method)
+                batch_len = self._create_embeddings(tensors, batch,
+                                                    embedding_method=embedding_method,
+                                                    hidden_layer_index=hidden_layer_index)
                 pbar.update(batch_len)
 
         return np.array(tensors)
 
-    def create_embeddings(self, tensors, batch, embedding_method='avg'):
+    def _create_embeddings(self, tensors, batch, embedding_method='avg', hidden_layer_index=-1):
 
         text, masks, _ = batch
-        text, masks = text.to(self.device, non_blocking=True),\
-                           masks.to(self.device, non_blocking=True)
+        text, masks = text.to(self.device, non_blocking=True), \
+                      masks.to(self.device, non_blocking=True)
 
-        outputs = self.model(text, token_type_ids=None, attention_mask=masks,
+        base_model = getattr(self.model, self.model.base_model_prefix)
+        outputs = base_model(text,
+                             token_type_ids=None,
+                             attention_mask=masks,
                              output_hidden_states=True)
 
-        if embedding_method == 'pooled':
-            representation = outputs.hidden_states[-1][:, 0]
-        elif embedding_method == 'avg':
-            representation = torch.mean(outputs.hidden_states[-1][:, 1:], dim=1)
+        # only use states of hidden layers, excluding the token embeddings
+        hidden_states = outputs.hidden_states[1:]
+
+        if embedding_method == self.EMBEDDING_METHOD_CLS_TOKEN:
+            representation = hidden_states[hidden_layer_index][:, 0]
+        elif embedding_method == self.EMBEDDING_METHOD_AVG:
+            representation = torch.mean(hidden_states[hidden_layer_index][:, 1:], dim=1)
         else:
-            raise ValueError('Invalid embedding_method: ' + embedding_method)
+            raise ValueError(f'Invalid embedding_method: {embedding_method}')
 
         tensors.extend(representation.detach().to('cpu', non_blocking=True).numpy())
 

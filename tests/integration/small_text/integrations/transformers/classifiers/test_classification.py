@@ -7,6 +7,7 @@ from parameterized import parameterized_class
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from tests.utils.datasets import twenty_news_transformers
+from tests.utils.testing import assert_array_not_equal
 
 try:
     import torch
@@ -19,7 +20,10 @@ except (ImportError, PytorchNotFoundError):
 
 
 @pytest.mark.pytorch
-@parameterized_class([{'num_classes': 2}, {'num_classes': 2}])
+@parameterized_class([{'embedding_method': 'avg', 'num_classes': 2},
+                      {'embedding_method': 'cls', 'num_classes': 2},
+                      {'embedding_method': 'avg', 'num_classes': 3},
+                      {'embedding_method': 'cls', 'num_classes': 3}])
 class EmbeddingTest(unittest.TestCase):
 
     def test_embed_model_not_fitted(self):
@@ -36,7 +40,7 @@ class EmbeddingTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             clf.embed(train_set)
 
-    def test_embed_avg(self):
+    def test_embed(self):
         classifier_kwargs = {
             'num_classes': self.num_classes, 'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
         }
@@ -49,12 +53,12 @@ class EmbeddingTest(unittest.TestCase):
         clf = clf_factory.new()
         clf.fit(train_set)
 
-        embeddings = clf.embed(train_set)
+        embeddings = clf.embed(train_set, embedding_method=self.embedding_method)
         self.assertEqual(2, len(embeddings.shape))
         self.assertEqual(20, embeddings.shape[0])
         self.assertEqual(clf.model.config.hidden_size, embeddings.shape[1])
 
-    def test_embed_pooled(self):
+    def test_embed_with_layer_index(self):
         classifier_kwargs = {
             'num_classes': self.num_classes, 'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
         }
@@ -67,10 +71,18 @@ class EmbeddingTest(unittest.TestCase):
         clf = clf_factory.new()
         clf.fit(train_set)
 
-        embeddings = clf.embed(train_set, embedding_method='pooled')
-        self.assertEqual(2, len(embeddings.shape))
-        self.assertEqual(20, embeddings.shape[0])
-        self.assertEqual(clf.model.config.hidden_size, embeddings.shape[1])
+        embedding_one = clf.embed(train_set, embedding_method=self.embedding_method)
+        embedding_two = clf.embed(train_set, embedding_method=self.embedding_method,
+                                  hidden_layer_index=0)
+
+        assert_array_not_equal(embedding_one, embedding_two)
+
+        self.assertEqual(2, len(embedding_one.shape))
+        self.assertEqual(2, len(embedding_two.shape))
+        self.assertEqual(20, embedding_one.shape[0])
+        self.assertEqual(20, embedding_two.shape[0])
+        self.assertEqual(clf.model.config.hidden_size, embedding_one.shape[1])
+        self.assertEqual(clf.model.config.hidden_size, embedding_two.shape[1])
 
 
 @pytest.mark.pytorch
