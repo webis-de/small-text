@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 from scipy.stats import entropy
 
-from small_text.data.datasets import Dataset
 from small_text.query_strategies.exceptions import EmptyPoolException, PoolExhaustedException
 
 
@@ -19,7 +18,7 @@ class QueryStrategy(ABC):
         ----------
         clf : small_text.classifiers.Classifier
             A classifier.
-        x : Dataset
+        x : small_text.data.datasets.Dataset
             A dataset.
         x_indices_unlabeled : list of int
             Indices (relative to `x`) for the unlabeled data.

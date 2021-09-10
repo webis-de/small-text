@@ -1,2 +1,5 @@
-from small_text.initialization.strategies import random_initialization, \
-    random_initialization_stratified, random_initialization_balanced
+from small_text.initialization.strategies import (  # noqa:F401
+    random_initialization,
+    random_initialization_balanced,
+    random_initialization_stratified
+)

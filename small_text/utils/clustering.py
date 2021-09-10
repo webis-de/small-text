@@ -50,7 +50,7 @@ def init_kmeans_plusplus_safe(x, n_clusters, *, x_squared_norms=None, random_sta
 
     if unique_indices.shape[0] != n_clusters:
         if not suppress_warning:
-            warnings.warn(f'kmeans_plusplus returned identical cluster centers.')
+            warnings.warn('kmeans_plusplus returned identical cluster centers.')
 
         remaining_indices = np.arange(x.shape[0])
         remaining_indices = np.delete(remaining_indices, unique_indices)

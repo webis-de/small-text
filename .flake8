@@ -1,4 +1,4 @@
 [flake8]
-exclude = .git,build,dist
+exclude = .git,build,dist,docs/conf.py
 max-complexity = 10
 max-line-length = 120
