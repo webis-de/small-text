@@ -6,6 +6,14 @@
 
 ## Development
 
+### Conventions
+
+1. Code style should adhere to the [.flake8 config](.flake8) (except in justified cases).
+
+```bash
+flake8
+```
+
 ### Building the Documentation
 
 The documentation (currently work in progress) can be generated using sphinx:

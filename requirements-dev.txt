@@ -3,3 +3,4 @@ pytest-cov
 parameterized==0.8.1
 sphinx>=3.0.0
 sphinx-rtd-theme==0.5.2
+flake8
