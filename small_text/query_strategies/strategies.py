@@ -339,10 +339,9 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
 
     @staticmethod
     def _similarity(centers, vectors, normalized):
-        if normalized:
-            sim = np.matmul(centers, vectors.T)
-        else:
-            sim = np.matmul(centers, vectors.T)
+        sim = np.matmul(centers, vectors.T)
+
+        if not normalized:
             sim = sim / np.dot(np.linalg.norm(centers, axis=1)[:, np.newaxis],
                                np.linalg.norm(vectors, axis=1)[np.newaxis, :])
         return sim

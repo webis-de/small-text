@@ -383,7 +383,6 @@ class EmbeddingKMeansTest(unittest.TestCase):
         self.assertEqual(n, indices.shape[0])
 
         normalize_mock.assert_not_called()
-        query_strategy._get_nearest_to_centers_iterative.assert_called()
 
     def test_sample_with_fallback(self, n=10, num_samples=100, embedding_dim=20):
         query_strategy = EmbeddingKMeans()

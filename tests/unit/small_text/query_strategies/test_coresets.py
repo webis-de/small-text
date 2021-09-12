@@ -1,6 +1,8 @@
 import unittest
 import numpy as np
 
+from parameterized import parameterized_class
+
 from small_text.classifiers import ConfidenceEnhancedLinearSVC
 from small_text.query_strategies import (EmptyPoolException,
                                          lightweight_coreset,
@@ -29,13 +31,21 @@ class LightweightCoresetBaseTest(unittest.TestCase):
             lightweight_coreset(num_samples+1, x, np.mean(x, axis=0))
 
 
+@parameterized_class([{'normalize': True}])
 class LightweightCoresetTest(unittest.TestCase,SamplingStrategiesTests):
+
+    # https://github.com/wolever/parameterized/issues/119
+    @classmethod
+    def setUpClass(cls):
+        if cls == LightweightCoresetTest:
+            raise unittest.SkipTest('parameterized_class bug')
+        super().setUpClass()
 
     def _get_clf(self):
         return ConfidenceEnhancedLinearSVC()
 
     def _get_query_strategy(self):
-        return LightweightCoreset()
+        return LightweightCoreset(self.normalize)
 
     # overrides test from SamplingStrategiesTests (to use embeddings)
     def test_simple_query(self, embedding_dim=100):
@@ -63,7 +73,7 @@ class LightweightCoresetTest(unittest.TestCase,SamplingStrategiesTests):
 
     def test_lightweight_coreset_str(self):
         strategy = self._get_query_strategy()
-        expected_str = 'LightweightCoreset()'
+        expected_str = f'LightweightCoreset(normalize={str(self.normalize)})'
         self.assertEqual(expected_str, str(strategy))
 
     def test_lightweight_coreset_query_default(self):
