@@ -23,7 +23,7 @@ to build active learning experiments or applications.
 ## Features
 
 - Provides unified interfaces for Active Learning so that you can easily use any classifier provided by [sklearn](https://scikit-learn.org/).
-- (Optionally) As an optional feature, you can also use [pytorch](https://pytorch.org/) classifiers, including [transformers](https://github.com/huggingface/transformers) models.
+- (Optionally) As an optional feature, you can also use [pytorch](https://pytorch.org/) classifiers, including [transformer](https://github.com/huggingface/transformers) models.
 - Multiple scientifically-proven strategies re-implemented: Query Strategies, Initialization Strategies
 
 ## Installation
