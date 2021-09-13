@@ -5,6 +5,8 @@ from parameterized import parameterized_class
 
 from small_text.classifiers import ConfidenceEnhancedLinearSVC
 from small_text.query_strategies import (EmptyPoolException,
+                                         greedy_coreset,
+                                         GreedyCoreset,
                                          lightweight_coreset,
                                          LightweightCoreset)
 
@@ -13,25 +15,25 @@ from tests.unit.small_text.query_strategies.test_strategies import (DEFAULT_QUER
                                                                     query_random_data)
 
 
-class LightweightCoresetBaseTest(unittest.TestCase):
+class GreedyCoresetMethodTest(unittest.TestCase):
 
-    def test_lightweight_coreset(self, num_samples=20, num_features=100, n=10):
+    def test_query_with_overlarge_n(self, num_samples=20, num_features=100):
         x = np.random.rand(num_samples, num_features)
-        indices = lightweight_coreset(n, x, np.mean(x, axis=0))
-        self.assertEqual(n, indices.shape[0])
-        self.assertEqual(n, np.unique(indices).shape[0])
+        indices = np.arange(num_samples)
+        indices_mid = int(num_samples / 2)
+        with self.assertRaises(ValueError):
+            greedy_coreset(x, indices[:indices_mid], indices[indices_mid:], num_samples+1)
 
-    def test_lightweight_coreset_query_remaining(self, num_samples=20, num_features=100):
-        x = np.random.rand(num_samples, num_features)
-        lightweight_coreset(num_samples, x, np.mean(x, axis=0))
 
-    def test_lightweight_coreset_query_with_overlarge_n(self, num_samples=20, num_features=100):
+class LightweightCoresetMethodTest(unittest.TestCase):
+
+    def test_query_with_overlarge_n(self, num_samples=20, num_features=100):
         x = np.random.rand(num_samples, num_features)
         with self.assertRaises(ValueError):
-            lightweight_coreset(num_samples+1, x, np.mean(x, axis=0))
+            lightweight_coreset(x, np.mean(x, axis=0), num_samples+1)
 
 
-@parameterized_class([{'normalize': True}])
+@parameterized_class([{'normalize': True}, {'normalize': False}])
 class LightweightCoresetTest(unittest.TestCase,SamplingStrategiesTests):
 
     # https://github.com/wolever/parameterized/issues/119
