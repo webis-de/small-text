@@ -226,13 +226,13 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
      implement `sample()`.
     """
     def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10, pbar='tqdm',
-              embed_kwargs=dict()):
+              embeddings=None, embed_kwargs=dict()):
         self._validate_query_input(x_indices_unlabeled, n)
 
         if len(x_indices_unlabeled) == n:
             return np.array(x_indices_unlabeled)
 
-        embeddings = clf.embed(x, pbar=pbar, **embed_kwargs)
+        embeddings = clf.embed(x, pbar=pbar, **embed_kwargs) if embeddings is None else embeddings
         sampled_indices = self.sample(clf, x, x_indices_unlabeled, x_indices_labeled, y, n,
                                       embeddings)
 

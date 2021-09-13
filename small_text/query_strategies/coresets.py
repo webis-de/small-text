@@ -1,6 +1,6 @@
 import numpy as np
 
-from small_text.query_strategies.strategies import QueryStrategy, EmbeddingBasedQueryStrategy
+from small_text.query_strategies.strategies import EmbeddingBasedQueryStrategy
 
 
 def _check_coreset_size(x, n):
@@ -75,7 +75,10 @@ class GreedyCoreset(EmbeddingBasedQueryStrategy):
             from sklearn.preprocessing import normalize
             embeddings = normalize(embeddings, axis=1)
         return greedy_coreset(embeddings, x_indices_unlabeled, x_indices_labeled, n,
-                              normalized=normalize)
+                              normalized=self.normalize)
+
+    def __str__(self):
+        return f'GreedyCoreset(normalize={self.normalize}, batch_size={self.batch_size})'
 
 
 def lightweight_coreset(x, x_mean, n, normalized=False, proba=None):
@@ -130,7 +133,7 @@ def lightweight_coreset(x, x_mean, n, normalized=False, proba=None):
     return np.random.choice(np.arange(x.shape[0]), n, replace=False, p=proba)
 
 
-class LightweightCoreset(QueryStrategy):
+class LightweightCoreset(EmbeddingBasedQueryStrategy):
     """Selects instances using the lightweight coreset method _[BAC18].
 
     Parameters
@@ -139,13 +142,9 @@ class LightweightCoreset(QueryStrategy):
     def __init__(self, normalize=True):
         self.normalize = normalize
 
-    def query(self, clf, x, x_indices_unlabeled, _x_indices_labeled, y, n=10, pbar=None, embed_kwargs=None,
-              embeddings=None):
-        self._validate_query_input(x_indices_unlabeled, n)
+    def sample(self, clf, x, x_indices_unlabeled, _x_indices_labeled, _y, n, embeddings):
 
-        embed_kwargs = dict() if embed_kwargs is None else embed_kwargs
-        embeddings = embeddings[x_indices_unlabeled] if embeddings is not None \
-            else clf.embed(x[x_indices_unlabeled], pbar=pbar, **embed_kwargs)
+        embeddings = embeddings[x_indices_unlabeled]
 
         embeddings_mean = np.mean(embeddings, axis=0)
         if self.normalize:
@@ -155,9 +154,7 @@ class LightweightCoreset(QueryStrategy):
 
         embeddings_mean = embeddings_mean.ravel()
 
-        indices = lightweight_coreset(embeddings, embeddings_mean, n, normalized=self.normalize)
-
-        return np.array([x_indices_unlabeled[i] for i in indices])
+        return lightweight_coreset(embeddings, embeddings_mean, n, normalized=self.normalize)
 
     def __str__(self):
         return f'LightweightCoreset(normalize={self.normalize})'

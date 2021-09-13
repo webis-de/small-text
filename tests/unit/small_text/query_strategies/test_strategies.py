@@ -13,6 +13,7 @@ from small_text.query_strategies import (RandomSampling,
                                          BreakingTies,
                                          LeastConfidence,
                                          PredictionEntropy,
+                                         EmbeddingBasedQueryStrategy,
                                          EmbeddingKMeans)
 
 
@@ -29,7 +30,8 @@ def query_random_data(strategy, num_samples=100, n=10, use_embeddings=False, emb
                                               embedding_dim)
 
     x_indices_labeled = np.random.choice(np.arange(num_samples), size=10, replace=False)
-    x_indices_unlabeled = [i for i in range(x.shape[0]) if i not in set(x_indices_labeled)]
+    x_indices_unlabeled = np.array([i for i in range(x.shape[0])
+                                    if i not in set(x_indices_labeled)])
     y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
 
     return strategy.query(None,
@@ -79,7 +81,8 @@ class SamplingStrategiesTests(object):
         x = np.random.rand(num_samples, 10)
 
         x_indices_labeled = np.random.choice(np.arange(num_samples), size=10, replace=False)
-        x_indices_unlabeled = [i for i in range(x.shape[0]) if i not in set(x_indices_labeled)]
+        x_indices_unlabeled = np.array([i for i in range(x.shape[0])
+                                        if i not in set(x_indices_labeled)])
 
         clf_mock = self._get_clf()
         if clf_mock is not None:
