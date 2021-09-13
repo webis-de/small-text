@@ -83,7 +83,7 @@ class SamplingStrategiesTests(object):
 
         clf_mock = self._get_clf()
         if clf_mock is not None:
-            proba = np.random.random_sample((num_samples,2))
+            proba = np.random.random_sample((num_samples, 2))
             clf_mock.predict_proba = Mock(return_value=proba)
 
         # TODO: must be of size `num_samples`
@@ -92,7 +92,7 @@ class SamplingStrategiesTests(object):
         return strategy.query(clf_mock, x, x_indices_unlabeled, x_indices_labeled, y, n=n, **kwargs)
 
 
-class RandomSamplingTest(unittest.TestCase,SamplingStrategiesTests):
+class RandomSamplingTest(unittest.TestCase, SamplingStrategiesTests):
 
     def _get_clf(self):
         return None
@@ -121,7 +121,7 @@ class RandomSamplingTest(unittest.TestCase,SamplingStrategiesTests):
             strategy.query(None, x, x_indices_unlabeled, x_indices_labeled, y, n=n)
 
 
-class BreakingTiesTest(unittest.TestCase,SamplingStrategiesTests):
+class BreakingTiesTest(unittest.TestCase, SamplingStrategiesTests):
 
     def _get_clf(self):
         return ConfidenceEnhancedLinearSVC()
@@ -174,7 +174,7 @@ class BreakingTiesTest(unittest.TestCase,SamplingStrategiesTests):
         assert_array_almost_equal(np.array([0.6, 0.05, 0.7, 0.55]), strategy.scores_)
 
 
-class LeastConfidenceTest(unittest.TestCase,SamplingStrategiesTests):
+class LeastConfidenceTest(unittest.TestCase, SamplingStrategiesTests):
 
     def _get_clf(self):
         return ConfidenceEnhancedLinearSVC()
@@ -227,7 +227,7 @@ class LeastConfidenceTest(unittest.TestCase,SamplingStrategiesTests):
         assert_array_almost_equal(np.array([0.75, 0.5, 0.8, 0.7]), strategy.scores_)
 
 
-class PredictionEntropyTest(unittest.TestCase,SamplingStrategiesTests):
+class PredictionEntropyTest(unittest.TestCase, SamplingStrategiesTests):
 
     def _get_clf(self):
         return ConfidenceEnhancedLinearSVC()
@@ -281,7 +281,7 @@ class PredictionEntropyTest(unittest.TestCase,SamplingStrategiesTests):
                                   strategy.scores_)
 
 
-class SubSamplingTest(unittest.TestCase,SamplingStrategiesTests):
+class SubSamplingTest(unittest.TestCase, SamplingStrategiesTests):
 
     def _get_clf(self):
         return ConfidenceEnhancedLinearSVC()
