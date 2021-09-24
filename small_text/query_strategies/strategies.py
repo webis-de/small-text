@@ -257,7 +257,7 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
         x : ndarray
             Instances for which the score should be computed.
         embeddings : ndarray
-            Embeddings for each sample.
+            Embeddings for each sample in x.
 
         Returns
         -------
@@ -271,8 +271,8 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
 
 
 class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
-    """This is a generalized version of BERT-K-Means  [YLB20]_, which is now applicable
-    to any kind of dense embedding.
+    """This is a generalized version of BERT-K-Means  [YLB20]_, which applicable to any kind
+    of dense embedding, regardless of the classifier..
 
     References
     ----------
@@ -303,7 +303,7 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
         x : ndarray
             Instances for which the score should be computed.
         embeddings : ndarray
-            Embeddings for each sample.
+            Embeddings for each sample in x.
 
         Returns
         -------
@@ -317,7 +317,7 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
             embeddings = normalize(embeddings, axis=1)
 
         km = KMeans(n_clusters=n)
-        km.fit(embeddings)
+        km.fit(embeddings[x_indices_unlabeled])
 
         indices = self._get_nearest_to_centers(km.cluster_centers_,
                                                embeddings[x_indices_unlabeled],
