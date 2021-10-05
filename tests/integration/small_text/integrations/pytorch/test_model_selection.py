@@ -9,22 +9,21 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 
 try:
-    import torch
     from small_text.integrations.pytorch.models.kimcnn import KimCNN
     from small_text.integrations.pytorch.model_selection import Metric, PytorchModelSelection
 except (ImportError, PytorchNotFoundError):
     pass
 
 
-class ModelSelectionTest(unittest.TestCase):
+class MetricTest(unittest.TestCase):
 
     def test_metric_init(self):
         metric = Metric('valid_loss', lower_is_better=True)
-        self.assertEqual('valid_loss', metric)
+        self.assertEqual('valid_loss', metric.name)
         self.assertTrue(metric.lower_is_better)
 
         metric = Metric('valid_acc', lower_is_better=False)
-        self.assertEqual('valid_acc', metric)
+        self.assertEqual('valid_acc', metric.name)
         self.assertFalse(metric.lower_is_better)
 
 
