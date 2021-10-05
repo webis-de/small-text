@@ -61,6 +61,10 @@ class SklearnClassifier(Classifier):
         probas : np.ndarray[float] (optional)
             List of probabilities (or confidence estimates) if `return_proba` is True.
         """
+        if len(test_set) == 0:
+            if return_proba:
+                return np.array([], dtype=int), np.array([], dtype=float)
+            return np.array([], dtype=int)
 
         proba = self.predict_proba(test_set)
         predictions = np.argmax(proba, axis=1)
@@ -71,6 +75,9 @@ class SklearnClassifier(Classifier):
         return predictions
 
     def predict_proba(self, test_set):
+        if len(test_set) == 0:
+            return np.array([], dtype=int), np.array([], dtype=float)
+
         return self.clf.predict_proba(test_set.x)
 
 

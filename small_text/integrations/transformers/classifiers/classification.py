@@ -615,6 +615,10 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         return valid_loss / len(validation_set), acc / len(validation_set)
 
     def predict(self, test_set, return_proba=False):
+        if len(test_set) == 0:
+            if return_proba:
+                return np.array([], dtype=int), np.array([], dtype=float)
+            return np.array([], dtype=int)
 
         proba = self.predict_proba(test_set)
         predictions = np.argmax(proba, axis=1)
@@ -625,6 +629,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         return predictions
 
     def predict_proba(self, test_set):
+        if len(test_set) == 0:
+            return np.array([], dtype=int), np.array([], dtype=float)
 
         self.model.eval()
         test_iter = dataloader(test_set, self.mini_batch_size, self._create_collate_fn(),

@@ -334,6 +334,10 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         test_set : small_text.integrations.pytorch.PytorchTextClassificationDataset
             Test set.
         """
+        if len(test_set) == 0:
+            if return_proba:
+                return np.array([], dtype=int), np.array([], dtype=float)
+            return np.array([], dtype=int)
 
         proba = self.predict_proba(test_set)
         predictions = np.argmax(proba, axis=1)
@@ -344,6 +348,9 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         return predictions
 
     def predict_proba(self, test_set):
+        if len(test_set) == 0:
+            return np.array([], dtype=int), np.array([], dtype=float)
+
         self.model.eval()
         test_iter = dataloader(test_set, self.mini_batch_size, self._create_collate_fn(),
                                train=False)

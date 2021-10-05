@@ -1,5 +1,6 @@
 import numpy as np
 
+from collections import Counter
 from scipy import sparse
 from sklearn.datasets import fetch_20newsgroups
 
@@ -7,6 +8,8 @@ from small_text.data.datasets import SklearnDataSet
 
 try:
     import torch
+    from torchtext.vocab import Vocab
+
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.transformers.datasets import TransformersDataset
 except ImportError as e:
@@ -75,18 +78,17 @@ def _dataset_to_text_classification_dataset(dataset):
     return PytorchTextClassificationDataset(data, vocab)
 
 
-def random_text_classification_dataset(num_samples, max_length=60, num_classes=2):
+def random_text_classification_dataset(num_samples, max_length=60, num_classes=2, dtype=torch.long):
 
-    # TODO: might need to provide a real vocab object here
-    vocab = None
-    vocab_size = 100
+    vocab = Vocab(Counter(['test', 'features']))
+    vocab_size = len(vocab)
 
     data = []
     for i in range(num_samples):
         sample_length = np.random.randint(1, max_length)
         text = torch.cat([
-            torch.randint(vocab_size, (sample_length,), dtype=torch.int) + 1,
-            torch.tensor([0] * (max_length - sample_length), dtype=torch.int)
+            torch.randint(vocab_size, (sample_length,), dtype=dtype) + 1,
+            torch.tensor([0] * (max_length - sample_length), dtype=dtype)
         ])
         label = np.random.randint(num_classes)
 
