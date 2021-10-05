@@ -25,7 +25,7 @@ TWENTY_NEWS_SUBCATEGORIES = ['rec.sport.baseball', 'sci.med', 'rec.autos']
 
 def main():
     # Active learning parameters
-    classifier_kwargs = dict({ 'device': 'cuda' })
+    classifier_kwargs = dict({'device': 'cuda'})
     clf_factory = TransformerBasedClassificationFactory(TRANSFORMER_MODEL, kwargs=classifier_kwargs)
     query_strategy = RandomSampling()
 
@@ -37,7 +37,6 @@ def main():
     y_train = train.target
 
     x_test = preprocess_data(tokenizer, test.data, test.target)
-    y_test = test.target
 
     # Active learner
     active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, x_train)
@@ -46,9 +45,9 @@ def main():
     try:
         perform_active_learning(active_learner, x_train, labeled_indices, x_test)
 
-    except PoolExhaustedException as e:
+    except PoolExhaustedException:
         print('Error! Not enough samples left to handle the query.')
-    except EmptyPoolException as e:
+    except EmptyPoolException:
         print('Error! No more samples left. (Unlabeled pool is empty)')
 
 
@@ -67,7 +66,7 @@ def perform_active_learning(active_learner, train, labeled_indices, test):
         labeled_indices = np.concatenate([q_indices, labeled_indices])
 
         print('Iteration #{:d} ({} samples)'.format(i, len(labeled_indices)))
-        evaluate(active_learner,train[labeled_indices], test)
+        evaluate(active_learner, train[labeled_indices], test)
 
 
 def initialize_active_learner(active_learner, y_train):

@@ -68,9 +68,9 @@ def main():
             print('Iteration #{:d} ({} samples)'.format(i, len(labeled_indices)))
             evaluate(active_learner, train[labeled_indices], test)
 
-    except PoolExhaustedException as e:
+    except PoolExhaustedException:
         print('Error! Not enough samples left to handle the query.')
-    except EmptyPoolException as e:
+    except EmptyPoolException:
         print('Error! No more samples left. (Unlabeled pool is empty)')
 
 

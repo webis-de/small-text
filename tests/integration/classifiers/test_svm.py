@@ -11,52 +11,52 @@ class ConfidenceEnhancedLinearSVCIntegrationTest(unittest.TestCase):
     def _get_20news_vectors(self, categories=None):
         train = fetch_20newsgroups(subset='train', categories=categories)
         vectorizer = CountVectorizer()
-        X = vectorizer.fit_transform(train.data)
+        x = vectorizer.fit_transform(train.data)
 
-        return X, train.target
+        return x, train.target
 
     def test_predict_binary(self):
 
         clf = ConfidenceEnhancedLinearSVC()
-        X, y = self._get_20news_vectors(categories=['comp.graphics', 'sci.med'])
+        x, y = self._get_20news_vectors(categories=['comp.graphics', 'sci.med'])
 
-        clf.fit(X, y)
+        clf.fit(x, y)
 
-        y_pred = clf.predict(X)
+        y_pred = clf.predict(x)
 
         self.assertEqual(1, len(y_pred.shape))
-        self.assertEqual(X.shape[0], y_pred.shape[0])
+        self.assertEqual(x.shape[0], y_pred.shape[0])
         self.assertTrue(all((y_pred == 0) | (y_pred == 1)))
 
     def test_predict_binary_with_probas(self):
 
         clf = ConfidenceEnhancedLinearSVC()
-        X, y = self._get_20news_vectors(categories=['comp.graphics', 'sci.med'])
+        x, y = self._get_20news_vectors(categories=['comp.graphics', 'sci.med'])
 
-        clf.fit(X, y)
+        clf.fit(x, y)
 
-        y_pred, proba = clf.predict(X, return_proba=True)
+        y_pred, proba = clf.predict(x, return_proba=True)
 
         self.assertEqual(1, len(y_pred.shape))
-        self.assertEqual(X.shape[0], y_pred.shape[0])
+        self.assertEqual(x.shape[0], y_pred.shape[0])
         self.assertTrue(all((y_pred == 0) | (y_pred == 1)))
 
         self.assertEqual(2, len(proba.shape))
-        self.assertEqual(X.shape[0], proba.shape[0])
+        self.assertEqual(x.shape[0], proba.shape[0])
         self.assertEqual(2, proba.shape[1])
         self.assertTrue(all((proba.flatten() >= 0) & (proba.flatten() <= 1)))
 
     def test_predict_multiclass(self):
         clf = ConfidenceEnhancedLinearSVC()
         categories = ['alt.atheism', 'comp.graphics', 'sci.med']
-        X, y = self._get_20news_vectors(categories=categories)
+        x, y = self._get_20news_vectors(categories=categories)
 
-        clf.fit(X, y)
+        clf.fit(x, y)
 
-        y_pred = clf.predict(X)
+        y_pred = clf.predict(x)
 
         self.assertEqual(1, len(y_pred.shape))
-        self.assertEqual(X.shape[0], y_pred.shape[0])
+        self.assertEqual(x.shape[0], y_pred.shape[0])
         self.assertTrue(all((y_pred >= 0) & (y_pred <= 2)))
 
     def test_predict_multiclass_with_probas(self):
@@ -80,14 +80,14 @@ class ConfidenceEnhancedLinearSVCIntegrationTest(unittest.TestCase):
     def test_predict_proba_binary(self):
 
         clf = ConfidenceEnhancedLinearSVC()
-        X, y = self._get_20news_vectors(categories=['comp.graphics', 'sci.med'])
+        x, y = self._get_20news_vectors(categories=['comp.graphics', 'sci.med'])
 
-        clf.fit(X, y)
+        clf.fit(x, y)
 
-        proba = clf.predict_proba(X)
+        proba = clf.predict_proba(x)
 
         self.assertEqual(2, len(proba.shape))
-        self.assertEqual(X.shape[0], proba.shape[0])
+        self.assertEqual(x.shape[0], proba.shape[0])
         self.assertEqual(2, proba.shape[1])
         self.assertTrue(all((proba.flatten() >= 0) & (proba.flatten() <= 1)))
 
@@ -95,13 +95,13 @@ class ConfidenceEnhancedLinearSVCIntegrationTest(unittest.TestCase):
 
         clf = ConfidenceEnhancedLinearSVC()
         categories = ['alt.atheism', 'comp.graphics', 'sci.med']
-        X, y = self._get_20news_vectors(categories=categories)
+        x, y = self._get_20news_vectors(categories=categories)
 
-        clf.fit(X, y)
+        clf.fit(x, y)
 
-        proba = clf.predict_proba(X)
+        proba = clf.predict_proba(x)
 
         self.assertEqual(2, len(proba.shape))
-        self.assertEqual(X.shape[0], proba.shape[0])
+        self.assertEqual(x.shape[0], proba.shape[0])
         self.assertEqual(len(categories), proba.shape[1])
         self.assertTrue(all((proba.flatten() >= 0) & (proba.flatten() <= 1)))
