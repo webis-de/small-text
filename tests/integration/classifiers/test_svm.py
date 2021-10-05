@@ -62,18 +62,18 @@ class ConfidenceEnhancedLinearSVCIntegrationTest(unittest.TestCase):
     def test_predict_multiclass_with_probas(self):
         clf = ConfidenceEnhancedLinearSVC()
         categories = ['alt.atheism', 'comp.graphics', 'sci.med']
-        X, y = self._get_20news_vectors(categories=categories)
+        x, y = self._get_20news_vectors(categories=categories)
 
-        clf.fit(X, y)
+        clf.fit(x, y)
 
-        y_pred, proba = clf.predict(X, return_proba=True)
+        y_pred, proba = clf.predict(x, return_proba=True)
 
         self.assertEqual(1, len(y_pred.shape))
-        self.assertEqual(X.shape[0], y_pred.shape[0])
+        self.assertEqual(x.shape[0], y_pred.shape[0])
         self.assertTrue(all((y_pred >= 0) & (y_pred <= 2)))
 
         self.assertEqual(2, len(proba.shape))
-        self.assertEqual(X.shape[0], proba.shape[0])
+        self.assertEqual(x.shape[0], proba.shape[0])
         self.assertEqual(len(categories), proba.shape[1])
         self.assertTrue(all((proba.flatten() >= 0) & (proba.flatten() <= 1)))
 
