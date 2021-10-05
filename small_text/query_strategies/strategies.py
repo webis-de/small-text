@@ -271,8 +271,8 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
 
 
 class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
-    """This is a generalized version of BERT-K-Means  [YLB20]_, which applicable to any kind
-    of dense embedding, regardless of the classifier..
+    """This is a generalized version of BERT-K-Means  [YLB20]_, which is applicable to any kind
+    of dense embedding, regardless of the classifier.
 
     References
     ----------
