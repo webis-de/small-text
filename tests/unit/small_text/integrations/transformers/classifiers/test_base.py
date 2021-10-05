@@ -4,7 +4,6 @@ import unittest
 import numpy as np
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from tests.utils.datasets import random_transformer_dataset
 
 try:
     import torch
@@ -12,7 +11,7 @@ try:
     from small_text.integrations.transformers.datasets import TransformersDataset
     from small_text.integrations.transformers.classifiers import TransformerBasedClassification
     from small_text.integrations.transformers.classifiers.classification import TransformerModelArguments
-except PytorchNotFoundError:
+except (ModuleNotFoundError, PytorchNotFoundError):
     pass
 
 
@@ -44,6 +43,7 @@ class _TransformerClassifierBaseFunctionalityTest(object):
         self.assertTrue(np.issubdtype(proba.dtype, np.float))
 
 
+@pytest.mark.pytorch
 class TransformerBasedClassificationBaseFunctionalityTest(unittest.TestCase,_TransformerClassifierBaseFunctionalityTest):
 
     def _get_clf(self):
