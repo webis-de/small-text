@@ -75,7 +75,7 @@ def initialize_active_learner(active_learner, y_train):
     y_initial = np.array([y_train[i] for i in x_indices_initial])
 
     num_classes = len(TWENTY_NEWS_SUBCATEGORIES)
-    active_learner.initialize_data(x_indices_initial, y_initial, num_classes)
+    active_learner.initialize_data(x_indices_initial, y_initial)
 
     return x_indices_initial
 
