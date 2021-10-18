@@ -6,7 +6,9 @@ import numpy as np
 from numpy.testing import assert_array_equal
 from parameterized import parameterized_class
 
+from small_text.integrations.pytorch.datasets import PytorchDatasetView
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from tests.utils.testing import assert_list_of_tensors_equal
 
 try:
     import torch
@@ -46,7 +48,7 @@ class TransformersDatasetTest(unittest.TestCase):
         self.assertEqual(self.NUM_SAMPLES, len(ds.x))
         ds_new = self._random_data()
         ds.x = ds_new.x
-        self.assertTrue(ds.x == ds_new.x)
+        assert_list_of_tensors_equal(self, ds.x, ds_new.x)
 
     def test_get_labels(self):
         ds = self._random_data()
@@ -68,22 +70,29 @@ class TransformersDatasetTest(unittest.TestCase):
         ds.target_labels = new_target_labels
         assert_array_equal(new_target_labels, ds.target_labels)
 
+    def test_get_data(self):
+        ds = self._random_data(num_samples=self.NUM_SAMPLES)
+        assert_array_equal(len(ds), len(ds.data))
+
     def test_indexing_single_index(self, index=42):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
 
         result = ds[index]
         self.assertEqual(1, len(result))
+        self.assertTrue(isinstance(result, PytorchDatasetView))
 
-        self.assertEqual(ds._data[index], result._data[0])
+        self.assertTrue(torch.equal(ds.x[index], result.x[0]))
 
     def test_indexing_list_index(self):
         index = [1, 42, 56, 99]
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
 
         result = ds[index]
-        self.assertEqual(len(index), len(result))
+        self.assertEqual(4, len(result))
+        self.assertTrue(isinstance(result, PytorchDatasetView))
 
-        self.assertEqual([ds._data[i] for i in index], result._data)
+        expected = [ds.x[i] for i in index]
+        assert_list_of_tensors_equal(self, expected, result.x)
 
     def test_indexing_slicing(self):
         index = np.s_[10:20]
@@ -91,6 +100,7 @@ class TransformersDatasetTest(unittest.TestCase):
 
         result = ds[index]
         self.assertEqual(10, len(result))
+        self.assertTrue(isinstance(result, PytorchDatasetView))
 
-        self.assertEqual([ds._data[i] for i in np.arange(self.NUM_SAMPLES)[index]],
-                         result._data)
+        expected = [ds.x[i] for i in np.arange(self.NUM_SAMPLES)[index]]
+        assert_list_of_tensors_equal(self, expected, result.x)

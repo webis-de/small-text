@@ -6,12 +6,15 @@ try:
     import torch
 
     from small_text.integrations.pytorch.datasets import PytorchDataset
+    from small_text.integrations.pytorch.datasets import PytorchDatasetView
 except ModuleNotFoundError:
     raise PytorchNotFoundError('Could not import torchtext')
 
 
 class TransformersDataset(PytorchDataset):
-
+    """
+    Dataset class for classifiers from Transformers Integration.
+    """
     INDEX_TEXT = 0
     INDEX_MASK = 1
     INDEX_LABEL = 2
@@ -51,7 +54,7 @@ class TransformersDataset(PytorchDataset):
     @x.setter
     def x(self, x):
         for i, _x in enumerate(x):
-            self._data[i]= (_x, self._data[i][self.INDEX_MASK], self._data[i][self.INDEX_LABEL])
+            self._data[i] = (_x, self._data[i][self.INDEX_MASK], self._data[i][self.INDEX_LABEL])
 
     @property
     def y(self):
@@ -68,6 +71,10 @@ class TransformersDataset(PytorchDataset):
         self._infer_target_labels(self._data)
 
     @property
+    def data(self):
+        return self._data
+
+    @property
     def target_labels(self):
         return self._target_labels
 
@@ -78,11 +85,9 @@ class TransformersDataset(PytorchDataset):
 
     def to(self, other, non_blocking=False, copy=False):
 
-        data = [(d[self.INDEX_TEXT].to(other, non_blocking=non_blocking,
-                                       copy=copy),
-                 d[self.INDEX_MASK].to(other, non_blocking=non_blocking,
-                                       copy=copy),
-                 d[self.INDEX_LABEL]) for d in self._data]
+        data = np.array([(d[self.INDEX_TEXT].to(other, non_blocking=non_blocking, copy=copy),
+                         d[self.INDEX_MASK].to(other, non_blocking=non_blocking, copy=copy),
+                         d[self.INDEX_LABEL]) for d in self._data])
 
         if copy is True:
             target_labels = None if self.track_target_labels else self._target_labels
@@ -108,16 +113,7 @@ class TransformersDataset(PytorchDataset):
             return self
 
     def __getitem__(self, item):
-        if isinstance(item, list) or isinstance(item, np.ndarray):
-            data = [self._data[i] for i in item]
-        elif isinstance(item, slice):
-            indices = np.arange(len(self))[item]
-            data = [self._data[i] for i in indices]
-        else:
-            data = [self._data[item]]
-
-        # TODO: test if target_labels is passed correctly
-        return TransformersDataset(data, target_labels=self._target_labels)
+        return PytorchDatasetView(self, item)
 
     def __iter__(self):
         return self._data.__iter__()

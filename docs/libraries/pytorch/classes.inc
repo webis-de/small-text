@@ -4,6 +4,7 @@ Dataset Classes
 ===============
 .. autoclass:: small_text.integrations.pytorch.datasets.PytorchTextClassificationDataset
     :inherited-members:
+    :noindex:
     :special-members: __init__
 
 Models

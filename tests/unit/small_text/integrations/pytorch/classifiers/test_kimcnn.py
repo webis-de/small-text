@@ -8,7 +8,7 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
-    from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
+    from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset, PytorchDatasetView
     from tests.utils.datasets import random_text_classification_dataset
 except PytorchNotFoundError:
     pass
@@ -118,8 +118,8 @@ class KimCNNInitTest(unittest.TestCase):
             fit_main_mock.assert_called()
 
             call_args = fit_main_mock.call_args[0]
-            self.assertTrue(isinstance(call_args[0], PytorchTextClassificationDataset))
-            self.assertTrue(isinstance(call_args[1], PytorchTextClassificationDataset))
+            self.assertTrue(isinstance(call_args[0], PytorchDatasetView))
+            self.assertTrue(isinstance(call_args[1], PytorchDatasetView))
 
             self.assertEqual(len(dataset), len(call_args[0]) + len(call_args[1]))
 

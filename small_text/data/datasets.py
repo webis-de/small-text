@@ -1,14 +1,24 @@
 import numpy as np
 
 from abc import ABC
+from scipy.sparse import issparse
 
+from small_text.data.exceptions import UnsupportedOperationException
 from small_text.data.sampling import stratified_sampling, balanced_sampling
 
 
 class Dataset(ABC):
+    """Abstract class for all datasets."""
 
     @property
     def x(self):
+        """Returns the features.
+
+        Returns
+        -------
+        x : object
+            Feature representation.
+        """
         pass
 
     @x.setter
@@ -17,6 +27,13 @@ class Dataset(ABC):
 
     @property
     def y(self):
+        """Returns the labels.
+
+        Returns
+        -------
+        y : object
+            Label representation.
+        """
         pass
 
     @y.setter
@@ -25,6 +42,13 @@ class Dataset(ABC):
 
     @property
     def target_labels(self):
+        """Returns a list of possible labels.
+
+        Returns
+        -------
+        target_labels : numpy.ndarray
+            List of possible labels.
+        """
         pass
 
     @target_labels.setter
@@ -32,7 +56,81 @@ class Dataset(ABC):
         pass
 
 
-class SklearnDataSet(Dataset):
+class DatasetView(Dataset):
+    """An immutable view on a Dataset or a subset thereof.
+
+    Parameters
+    ----------
+    dataset : Dataset
+        The base dataset.
+    selection : int or list or slice or np.ndarray
+        Selects the subset for this view.
+    """
+    def __init__(self, dataset, selection):
+        self.obj_class = type(self)
+        self._dataset = dataset
+
+        if isinstance(selection, int):
+            if issparse(dataset.x):
+                self.selection = selection
+            else:
+                self.selection = np.s_[np.newaxis, selection]
+        else:
+            self.selection = selection
+
+    @property
+    def x(self):
+        """Returns the features.
+
+        Returns
+        -------
+        x : numpy.ndarray or scipy.sparse.csr_matrix
+            Dense or sparse feature matrix.
+        """
+        return self._dataset.x[self.selection]
+
+    @x.setter
+    def x(self, x):
+        raise UnsupportedOperationException('Cannot set x on a DatasetView')
+
+    @property
+    def y(self):
+        """Returns the labels.
+
+        Returns
+        -------
+        y : numpy.ndarray
+            List of labels.
+        """
+        return self._dataset.y[self.selection]
+
+    @y.setter
+    def y(self, y):
+        raise UnsupportedOperationException('Cannot set y on a DatasetView')
+
+    @property
+    def target_labels(self):
+        """Returns a list of possible labels.
+
+        Returns
+        -------
+        target_labels : numpy.ndarray
+            List of possible labels.
+        """
+        return self._dataset.target_labels
+
+    @target_labels.setter
+    def target_labels(self, target_labels):
+        raise UnsupportedOperationException('Cannot set target_labels on a DatasetView')
+
+    def __getitem__(self, item):
+        return self.obj_class(self, item)
+
+    def __len__(self):
+        return self._dataset.x[self.selection].shape[0]
+
+
+class SklearnDataset(Dataset):
     """A dataset representations which is usable in combination with scikit-learn classifiers.
 
     Parameters
@@ -109,14 +207,7 @@ class SklearnDataSet(Dataset):
         self._target_labels = target_labels
 
     def __getitem__(self, item):
-        if isinstance(item, list) or isinstance(item, np.ndarray) or isinstance(item, slice):
-            return SklearnDataSet(self._x[item], np.array(self._y)[item])
-
-        ds = SklearnDataSet(self._x[item], self._y[item])
-        if len(ds._x.shape) == 1:
-            ds._x = ds._x[np.newaxis, :]
-
-        return ds
+        return DatasetView(self, item)
 
     def __len__(self):
         return self._x.shape[0]

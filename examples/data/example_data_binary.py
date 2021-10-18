@@ -1,7 +1,7 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import normalize
 
-from small_text.data import SklearnDataSet
+from small_text.data import SklearnDataset
 
 from examples.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 
@@ -18,4 +18,4 @@ def preprocess_data(train, test):
     x_train = normalize(vectorizer.fit_transform(train.data))
     x_test = normalize(vectorizer.transform(test.data))
 
-    return SklearnDataSet(x_train, train.target), SklearnDataSet(x_test, test.target)
+    return SklearnDataset(x_train, train.target), SklearnDataset(x_test, test.target)

@@ -7,6 +7,7 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 try:
     from small_text.integrations.transformers.classifiers.classification import \
         FineTuningArguments, TransformerModelArguments, TransformerBasedClassification
+    from small_text.integrations.pytorch.datasets import PytorchDatasetView
     from small_text.integrations.transformers.datasets import TransformersDataset
     from tests.utils.datasets import random_transformer_dataset
 except (ModuleNotFoundError, PytorchNotFoundError):
@@ -69,8 +70,8 @@ class TestTransformerBasedClassification(unittest.TestCase):
             fit_main_mock.assert_called()
 
             call_args = fit_main_mock.call_args[0]
-            self.assertTrue(isinstance(call_args[0], TransformersDataset))
-            self.assertTrue(isinstance(call_args[1], TransformersDataset))
+            self.assertTrue(isinstance(call_args[0], PytorchDatasetView))
+            self.assertTrue(isinstance(call_args[1], PytorchDatasetView))
 
             self.assertEqual(len(dataset), len(call_args[0]) + len(call_args[1]))
 

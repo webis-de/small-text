@@ -40,7 +40,7 @@ class SklearnClassifier(Classifier):
 
         Parameters
         ----------
-        train_set : SklearnDataSet
+        train_set : SklearnDataset
             The dataset used for training the model.
 
         Returns
@@ -134,7 +134,7 @@ class EmbeddingMixin(ABC):
         """
         Parameters
         ----------
-        data_set : DataSet
+        data_set : Dataset
             A dataset for which each instance is used to compute its embedding vector.
         """
         pass

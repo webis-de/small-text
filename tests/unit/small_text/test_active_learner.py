@@ -9,7 +9,7 @@ from small_text.active_learner import (PoolBasedActiveLearner,
 from small_text.exceptions import LearnerNotInitializedException
 from small_text.classifiers import ConfidenceEnhancedLinearSVC
 from small_text.classifiers.factories import SklearnClassifierFactory
-from small_text.data import SklearnDataSet
+from small_text.data import SklearnDataset
 from small_text.query_strategies import RandomSampling
 
 from tests.utils.datasets import random_matrix_data
@@ -39,7 +39,7 @@ class PoolBasedActiveLearnerTest(unittest.TestCase):
     def _set_up_active_learner(self):
         clf_factory = self._get_classifier_factory()
         query_strategy = RandomSampling()
-        x = SklearnDataSet(*random_matrix_data('dense', self.dataset_num_samples))
+        x = SklearnDataset(*random_matrix_data('dense', self.dataset_num_samples))
         active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, x)
         x_indices_initial = np.random.choice(np.arange(100), size=10)
         y_initial = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
@@ -127,7 +127,7 @@ class PoolBasedActiveLearnerTest(unittest.TestCase):
 
         clf_factory = self._get_classifier_factory()
         query_strategy_mock = Mock()
-        x = SklearnDataSet(*random_matrix_data('dense', self.dataset_num_samples))
+        x = SklearnDataset(*random_matrix_data('dense', self.dataset_num_samples))
 
         active_learner = PoolBasedActiveLearner(clf_factory, query_strategy_mock, x)
 
@@ -144,7 +144,7 @@ class PoolBasedActiveLearnerTest(unittest.TestCase):
 
         clf_factory = self._get_classifier_factory()
         query_strategy_mock = Mock()
-        x = SklearnDataSet(*random_matrix_data('dense', self.dataset_num_samples))
+        x = SklearnDataset(*random_matrix_data('dense', self.dataset_num_samples))
 
         active_learner = PoolBasedActiveLearner(clf_factory, query_strategy_mock, x)
 
@@ -162,7 +162,7 @@ class PoolBasedActiveLearnerTest(unittest.TestCase):
 
         clf_factory = self._get_classifier_factory()
         query_strategy_mock = Mock()
-        x = SklearnDataSet(*random_matrix_data('dense', self.dataset_num_samples))
+        x = SklearnDataset(*random_matrix_data('dense', self.dataset_num_samples))
 
         active_learner = PoolBasedActiveLearner(clf_factory, query_strategy_mock, x)
 
@@ -183,7 +183,7 @@ class PoolBasedActiveLearnerTest(unittest.TestCase):
 
         clf_factory = self._get_classifier_factory()
         query_strategy_mock = Mock()
-        x = SklearnDataSet(*random_matrix_data('dense', self.dataset_num_samples))
+        x = SklearnDataset(*random_matrix_data('dense', self.dataset_num_samples))
 
         active_learner = PoolBasedActiveLearner(clf_factory, query_strategy_mock, x)
 

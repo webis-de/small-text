@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from small_text.classifiers.classification import ConfidenceEnhancedLinearSVC, SklearnClassifier
-from small_text.data.datasets import SklearnDataSet
+from small_text.data.datasets import SklearnDataset
 from tests.utils.datasets import random_sklearn_dataset
 
 
@@ -14,7 +14,7 @@ class _ClassifierBaseFunctionalityTest(object):
 
     def test_predict_on_empty_data(self):
         train_set = random_sklearn_dataset(10)
-        test_set = SklearnDataSet(np.array([], dtype=int), np.array([], dtype=int))
+        test_set = SklearnDataset(np.array([], dtype=int), np.array([], dtype=int))
 
         clf = self._get_clf()
         clf.fit(train_set)
@@ -25,7 +25,7 @@ class _ClassifierBaseFunctionalityTest(object):
 
     def test_predict_proba_on_empty_data(self):
         train_set = random_sklearn_dataset(10)
-        test_set = SklearnDataSet(np.array([], dtype=int), np.array([], dtype=int))
+        test_set = SklearnDataset(np.array([], dtype=int), np.array([], dtype=int))
 
         clf = self._get_clf()
         clf.fit(train_set)

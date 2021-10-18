@@ -39,7 +39,7 @@ class _PytorchClassifierBaseFunctionalityTest(object):
 
     def test_predict_on_empty_data(self):
         train_set = random_text_classification_dataset(10)
-        test_set = PytorchTextClassificationDataset([], None)
+        test_set = PytorchTextClassificationDataset(np.array([]), None)
 
         clf = self._get_clf()
         clf.fit(train_set)
@@ -50,7 +50,7 @@ class _PytorchClassifierBaseFunctionalityTest(object):
 
     def test_predict_proba_on_empty_data(self):
         train_set = random_text_classification_dataset(10)
-        test_set = PytorchTextClassificationDataset([], None)
+        test_set = PytorchTextClassificationDataset(np.array([]), None)
 
         clf = self._get_clf()
         clf.fit(train_set)
@@ -65,9 +65,22 @@ class _PytorchClassifierBaseFunctionalityTest(object):
 @pytest.mark.pytorch
 class KimCNNBaseFunctionalityTest(unittest.TestCase, _PytorchClassifierBaseFunctionalityTest):
 
+    def test_predict_on_empty_data(self):
+        train_set = random_text_classification_dataset(10)
+        test_set = PytorchTextClassificationDataset(np.array([]), None)
+
+        clf = self._get_clf()
+        clf.fit(train_set)
+
+        predictions = clf.predict(test_set)
+        self.assertEqual(0, predictions.shape[0])
+        self.assertTrue(np.issubdtype(predictions.dtype, np.integer))
+
     def _get_clf(self):
-        embedding_matrix = torch.rand(5, 60)
-        return KimCNNClassifier(embedding_matrix=embedding_matrix, device='cpu')
+        embedding_matrix = torch.rand(5, 20)
+        return KimCNNClassifier(embedding_matrix=embedding_matrix, num_epochs=2,
+                                out_channels=15, max_seq_len=20, kernel_heights=[2,3],
+                                device='cpu')
 
 
 @pytest.mark.pytorch

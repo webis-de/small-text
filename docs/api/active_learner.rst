@@ -1,6 +1,6 @@
-=============
-ActiveLearner
-=============
+=================
+ActiveLearner API
+=================
 
 .. py:currentmodule:: small_text.active_learner
 

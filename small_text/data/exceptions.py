@@ -1,0 +1,2 @@
+class UnsupportedOperationException(Exception):
+    pass

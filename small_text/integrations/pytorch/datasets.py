@@ -1,6 +1,7 @@
 import numpy as np
 
-from small_text.data import Dataset
+from small_text.data import Dataset, DatasetView
+from small_text.data.exceptions import UnsupportedOperationException
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 
@@ -23,8 +24,65 @@ class PytorchDataset(Dataset):
         raise NotImplementedError()
 
 
-class PytorchTextClassificationDataset(PytorchDataset):
+class PytorchDatasetView(DatasetView):
 
+    def __init__(self, dataset, selection):
+        self.obj_class = type(self)
+        self._dataset = dataset
+
+        self.selection = selection
+
+    @property
+    def x(self):
+        """Returns the features.
+
+        Returns
+        -------
+        x :
+        """
+        selection = self.selection
+        if isinstance(self.selection, slice):
+            indices = np.arange(len(self._dataset))
+            selection = indices[self.selection]
+        elif isinstance(self.selection, int):
+            selection = [self.selection]
+
+        return [self._dataset.x[i] for i in selection]
+
+    @x.setter
+    def x(self, x):
+        raise UnsupportedOperationException('Cannot set x on a DatasetView')
+
+    @property
+    def data(self):
+        selection = self.selection
+        if isinstance(self.selection, slice):
+            indices = np.arange(len(self._dataset))
+            selection = indices[self.selection]
+        elif isinstance(self.selection, int):
+            selection [self.selection]
+        return [self._dataset.data[i] for i in selection]
+
+    @property
+    def vocab(self):
+        return self._dataset.vocab
+
+    def __iter__(self):
+        return self.data.__iter__()
+
+    def __len__(self):
+        if isinstance(self.selection, slice):
+            indices = np.arange(len(self._dataset))
+            return indices[self.selection].shape[0]
+        elif isinstance(self.selection, int):
+            return 1
+        return len(self.selection)
+
+
+class PytorchTextClassificationDataset(PytorchDataset):
+    """
+    Dataset class for classifiers from Pytorch Integration.
+    """
     INDEX_TEXT = 0
     INDEX_LABEL = 1
 
@@ -51,7 +109,7 @@ class PytorchTextClassificationDataset(PytorchDataset):
             self._infer_target_labels()
 
         if device is None:
-            self.device = None if len(data) == 0 else next(iter(data))[self.INDEX_TEXT].device
+            self.device = None if len(data) == 0 else data[0][self.INDEX_TEXT].device
         else:
             self.device = device
 
@@ -68,7 +126,7 @@ class PytorchTextClassificationDataset(PytorchDataset):
     @x.setter
     def x(self, x):
         for i, _x in enumerate(x):
-            self._data[i]= (_x, self._data[i][self.INDEX_LABEL])
+            self._data[i] = (_x, self._data[i][self.INDEX_LABEL])
 
     @property
     def y(self):
@@ -84,7 +142,25 @@ class PytorchTextClassificationDataset(PytorchDataset):
         self._infer_target_labels()
 
     @property
+    def data(self):
+        """Returns the internal list of tuples storing the data.
+
+        Returns
+        -------
+        data : list of tuples (text data [Tensor], label)
+            Vocab object.
+        """
+        return self._data
+
+    @property
     def vocab(self):
+        """Returns the vocab.
+
+        Returns
+        -------
+        vocab : torchtext.vocab.Vocab
+            Vocab object.
+        """
         return self._vocab
 
     @property
@@ -97,7 +173,17 @@ class PytorchTextClassificationDataset(PytorchDataset):
         self._target_labels = target_labels
 
     def to(self, other, non_blocking=False, copy=False):
+        """Calls `torch.Tensor.to` on all Tensors in `data`.
 
+        Returns
+        -------
+        self : PytorchTextClassificationDataset
+            The object with `to` having been called on all Tensors in `data`.
+
+        See also
+        --------
+        `PyTorch Docs - torch.Tensor.to <https://pytorch.org/docs/stable/generated/torch.Tensor.to.html>`_
+        """
         data = [(d[self.INDEX_TEXT].to(other, non_blocking=non_blocking, copy=copy),
                  d[self.INDEX_LABEL]) for d in self._data]
 
@@ -113,7 +199,17 @@ class PytorchTextClassificationDataset(PytorchDataset):
 
     def to(self, device=None, dtype=None, non_blocking=False, copy=False,
            memory_format=torch.preserve_format):
+        """Calls `torch.Tensor.to` on all Tensors in `data`.
 
+        Returns
+        -------
+        self : PytorchTextClassificationDataset
+            The object with `to` having been called on all Tensors in `data`.
+
+        See also
+        --------
+        `PyTorch Docs - torch.Tensor.to <https://pytorch.org/docs/stable/generated/torch.Tensor.to.html>`_
+        """
         data = [(d[self.INDEX_TEXT].to(device=device, dtype=dtype, non_blocking=non_blocking,
                                        copy=copy, memory_format=memory_format),
                  d[self.INDEX_LABEL]) for d in self._data]
@@ -129,17 +225,7 @@ class PytorchTextClassificationDataset(PytorchDataset):
             return self
 
     def __getitem__(self, item):
-        if isinstance(item, (list, np.ndarray)):
-            data = [self._data[i] for i in item]
-        elif isinstance(item, slice):
-            indices = np.arange(len(self))[item]
-            data = [self._data[i] for i in indices]
-        else:
-            data = [self._data[item]]
-
-        ds = PytorchTextClassificationDataset(data, self._vocab, target_labels=self._target_labels)
-
-        return ds
+        return PytorchDatasetView(self, item)
 
     def __iter__(self):
         return self._data.__iter__()

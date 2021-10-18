@@ -4,7 +4,7 @@ from collections import Counter
 from scipy import sparse
 from sklearn.datasets import fetch_20newsgroups
 
-from small_text.data.datasets import SklearnDataSet
+from small_text.data.datasets import SklearnDataset
 
 try:
     import torch
@@ -36,7 +36,7 @@ def random_sklearn_dataset(num_samples, vocab_size=60, num_classes=2):
     x = sparse.random(num_samples, vocab_size, density=0.15, format='csr')
     y = np.random.randint(0, high=num_classes, size=x.shape[0])
 
-    return SklearnDataSet(x, y)
+    return SklearnDataset(x, y)
 
 
 def trec_dataset():
