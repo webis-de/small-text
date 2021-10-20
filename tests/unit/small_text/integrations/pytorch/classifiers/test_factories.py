@@ -9,7 +9,6 @@ try:
     import torch
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
     from small_text.integrations.pytorch.classifiers.factories import KimCNNFactory
-    from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from tests.utils.datasets import trec_dataset
 except PytorchNotFoundError:
     pass
@@ -18,7 +17,7 @@ except PytorchNotFoundError:
 @pytest.mark.pytorch
 class KimCNNFactoryTest(unittest.TestCase):
 
-    def test_embed_model_not_trained(self):
+    def test_factory_new(self):
         vocab_length = 10
         embedding_matrix = torch.Tensor(np.random.rand(vocab_length, 100))
         factory = KimCNNFactory('kimcnn', 6, {'embedding_matrix': embedding_matrix})

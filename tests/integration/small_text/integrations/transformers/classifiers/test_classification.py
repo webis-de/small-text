@@ -28,10 +28,12 @@ class EmbeddingTest(unittest.TestCase):
 
     def test_embed_model_not_fitted(self):
         classifier_kwargs = {
-            'num_classes': self.num_classes, 'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
+            'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
         }
         clf_factory = TransformerBasedClassificationFactory(
-            'sshleifer/tiny-distilroberta-base', kwargs=classifier_kwargs)
+            'sshleifer/tiny-distilroberta-base',
+            self.num_classes,
+            kwargs=classifier_kwargs)
 
         train_set = twenty_news_transformers(20, num_labels=self.num_classes)
 
@@ -42,10 +44,11 @@ class EmbeddingTest(unittest.TestCase):
 
     def test_embed(self):
         classifier_kwargs = {
-            'num_classes': self.num_classes, 'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
+            'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
         }
         clf_factory = TransformerBasedClassificationFactory(
             TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
+            self.num_classes,
             kwargs=classifier_kwargs)
 
         train_set = twenty_news_transformers(20, num_labels=self.num_classes)
@@ -60,10 +63,11 @@ class EmbeddingTest(unittest.TestCase):
 
     def test_embed_with_layer_index(self):
         classifier_kwargs = {
-            'num_classes': self.num_classes, 'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
+            'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
         }
         clf_factory = TransformerBasedClassificationFactory(
             TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
+            self.num_classes,
             kwargs=classifier_kwargs)
 
         train_set = twenty_news_transformers(20, num_labels=self.num_classes)
@@ -92,10 +96,11 @@ class ClassificationTest(unittest.TestCase):
     @patch.object(TransformerBasedClassification, '_select_best_model')
     def test_fit_distilroberta(self, select_best_model_mock, fake_train):
         classifier_kwargs = {
-            'num_classes': 2, 'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
+            'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
         }
         clf_factory = TransformerBasedClassificationFactory(
             TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
+            2,
             kwargs=classifier_kwargs)
 
         x = twenty_news_transformers(20, num_labels=2)
@@ -112,10 +117,11 @@ class ClassificationTest(unittest.TestCase):
     @patch.object(TransformerBasedClassification, '_select_best_model')
     def test_test_fit_distilbert(self, select_best_model_mock, fake_train):
         classifier_kwargs = {
-            'num_classes': 2, 'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
+            'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
         }
         clf_factory = TransformerBasedClassificationFactory(
             TransformerModelArguments('distilbert-base-cased'),
+            2,
             kwargs=classifier_kwargs)
 
         x = twenty_news_transformers(20, num_labels=2)
