@@ -47,4 +47,5 @@ class _TransformerClassifierBaseFunctionalityTest(object):
 class TransformerBasedClassificationBaseFunctionalityTest(unittest.TestCase,_TransformerClassifierBaseFunctionalityTest):
 
     def _get_clf(self):
-        return TransformerBasedClassification(TransformerModelArguments('sshleifer/tiny-distilroberta-base'))
+        return TransformerBasedClassification(TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
+                                              2)
