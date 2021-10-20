@@ -25,8 +25,9 @@ TWENTY_NEWS_SUBCATEGORIES = ['rec.sport.baseball', 'sci.med', 'rec.autos']
 
 def main():
     # Active learning parameters
-    classifier_kwargs = dict({'device': 'cuda'})
-    clf_factory = TransformerBasedClassificationFactory(TRANSFORMER_MODEL, kwargs=classifier_kwargs)
+    clf_factory = TransformerBasedClassificationFactory(TRANSFORMER_MODEL,
+                                                        len(TWENTY_NEWS_SUBCATEGORIES),
+                                                        kwargs=dict({'device': 'cuda'}))
     query_strategy = RandomSampling()
 
     # Prepare some data

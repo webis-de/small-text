@@ -5,9 +5,10 @@ from abc import abstractmethod
 from small_text.classifiers.classification import Classifier
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
-
 try:
     import torch
+
+    from torch.nn.modules import CrossEntropyLoss, BCEWithLogitsLoss
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
@@ -67,3 +68,9 @@ class PytorchClassifier(Classifier):
             Distribution of confidence scores over all classes.
         """
         pass
+
+    def get_default_criterion(self):
+        if self.num_classes == 2:
+            return BCEWithLogitsLoss(pos_weight=self.class_weights_)
+        else:
+            return CrossEntropyLoss(weight=self.class_weights_)

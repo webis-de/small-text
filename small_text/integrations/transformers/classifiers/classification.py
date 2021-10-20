@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import tempfile
+import warnings
 
 import numpy as np
 
@@ -27,7 +28,7 @@ try:
 
     from small_text.integrations.pytorch.classifiers.base import PytorchClassifier
     from small_text.integrations.pytorch.model_selection import Metric, PytorchModelSelection
-    from small_text.integrations.pytorch.utils.data import dataloader
+    from small_text.integrations.pytorch.utils.data import dataloader, get_class_weights
     from small_text.integrations.transformers.datasets import TransformersDataset
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
@@ -192,11 +193,11 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
 class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClassifier):
 
-    def __init__(self, transformer_model, num_classes=None, num_epochs=10, lr=2e-5,
+    def __init__(self, transformer_model, num_classes, num_epochs=10, lr=2e-5,
                  mini_batch_size=12, criterion=None, optimizer=None, scheduler='linear',
                  validation_set_size=0.1, initial_model_selection=None,
                  early_stopping_no_improvement=5, early_stopping_acc=-1, model_selection=True,
-                 fine_tuning_arguments=None, device=None, memory_fix=1,
+                 fine_tuning_arguments=None, device=None, memory_fix=1, class_weight=None,
                  no_validation_set_action='sample', verbosity=VERBOSITY_MORE_VERBOSE,
                  cache_dir='.active_learning_lib_cache/'):
         """
@@ -229,9 +230,18 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         device :
 
-        memory_fix :
+        memory_fix : int
+            If this value if greater zero, every `memory_fix`-many epochs the cuda cache will be
+            emptied to force unused GPU memory being released.
+
+        class_weight : string or None
+
         """
         super().__init__(device=device)
+
+        if criterion is not None and class_weight is not None:
+            warnings.warn('Class weighting will have no effect with a non-default criterion',
+                          RuntimeWarning)
 
         with verbosity_logger():
             self.logger = logging.getLogger(__name__)
@@ -257,6 +267,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         # Other
         self.early_stopping_no_improvement = early_stopping_no_improvement
         self.early_stopping_acc = early_stopping_acc
+        self.class_weight = class_weight
 
         self.model_selection = model_selection
         self.fine_tuning_arguments = fine_tuning_arguments
@@ -297,6 +308,12 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         fit_scheduler = scheduler if scheduler is not None else self.scheduler
         fit_optimizer = optimizer if optimizer is not None else self.optimizer
+
+        if self.class_weight == 'balanced':
+            self.class_weights_ = get_class_weights(sub_train.y, self.num_classes)
+            self.class_weights_ = self.class_weights_.to(self.device)
+        else:
+            self.class_weights_ = None
 
         return self._fit_main(sub_train, sub_valid, fit_optimizer, fit_scheduler)
 
@@ -348,12 +365,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                     self._select_last_model()
 
         return res
-
-    def get_default_criterion(self):
-        if self.num_classes == 2:
-            return BCEWithLogitsLoss()
-        else:
-            return CrossEntropyLoss()
 
     def _select_best_model(self):
         model_path, _ = self.model_selection_manager.select_best()

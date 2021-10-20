@@ -1,5 +1,5 @@
+from small_text.data.sampling import _get_class_histogram
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-
 
 try:
     import torch
@@ -45,3 +45,16 @@ def dataloader(data_set, batch_size, collate_fn, train=True):
                       batch_size=None,
                       collate_fn=collate_fn,
                       sampler=sampler)
+
+
+def get_class_weights(y, num_classes, eps=1e-8):
+    label_counter = _get_class_histogram(y, num_classes, normalize=False)
+    pos_weight = torch.ones(num_classes, dtype=torch.float)
+    num_samples = len(y)
+    for c in range(num_classes):
+        pos_weight[c] = (num_samples - label_counter[c]) / (label_counter[c] + eps)
+
+    if num_classes == 2:
+        pos_weight[pos_weight.argmin()] = 1.0
+
+    return pos_weight

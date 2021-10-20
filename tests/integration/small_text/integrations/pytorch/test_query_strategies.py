@@ -48,6 +48,7 @@ class QueryStrategiesTest(unittest.TestCase):
 
         self.assertFalse(dataset[0].x[PytorchTextClassificationDataset.INDEX_TEXT].is_cuda)
         clf_factory = KimCNNFactory('kimcnn',
+                                    6,
                                     {'embedding_matrix': torch.rand(len(dataset.vocab), 20),
                                      'num_epochs': 2})
 

@@ -22,7 +22,7 @@ class KimCNNEmbeddingTest(unittest.TestCase):
         _, train = trec_dataset()  # use small test set as train
 
         embedding_matrix = torch.Tensor(np.random.rand(len(train.vocab), 100))
-        classifier = KimCNNClassifier(embedding_matrix=embedding_matrix)
+        classifier = KimCNNClassifier(6, embedding_matrix=embedding_matrix)
 
         module_selector = lambda m: m['fc']
         with self.assertRaises(ValueError):
@@ -33,7 +33,7 @@ class KimCNNEmbeddingTest(unittest.TestCase):
         _, train = trec_dataset()  # use small test set as train
 
         embedding_matrix = torch.Tensor(np.random.rand(len(train.vocab), 100))
-        classifier = KimCNNClassifier(embedding_matrix=embedding_matrix)
+        classifier = KimCNNClassifier(6, embedding_matrix=embedding_matrix)
 
         classifier.fit(train)
 

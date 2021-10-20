@@ -9,6 +9,7 @@ from tests.utils.datasets import random_text_classification_dataset
 
 try:
     import torch
+    from torch.nn.modules import CrossEntropyLoss, BCEWithLogitsLoss
 
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.pytorch.classifiers import PytorchClassifier
@@ -16,6 +17,10 @@ try:
 
     class SimplePytorchClassifier(PytorchClassifier):
         """Simple subclass to allow instantiation."""
+
+        def __init__(self, num_classes, device=None):
+            self.num_classes = num_classes
+            super().__init__(device=device)
 
         def fit(self, train_set, _=None, *args, **kwargs):
             pass
@@ -78,9 +83,8 @@ class KimCNNBaseFunctionalityTest(unittest.TestCase, _PytorchClassifierBaseFunct
 
     def _get_clf(self):
         embedding_matrix = torch.rand(5, 20)
-        return KimCNNClassifier(embedding_matrix=embedding_matrix, num_epochs=2,
-                                out_channels=15, max_seq_len=20, kernel_heights=[2,3],
-                                device='cpu')
+        return KimCNNClassifier(2, embedding_matrix=embedding_matrix, num_epochs=2, out_channels=15,
+                                max_seq_len=20, kernel_heights=[2, 3], device='cpu')
 
 
 @pytest.mark.pytorch
@@ -90,7 +94,7 @@ class SimplePytorchClassifierTest(unittest.TestCase):
     def test_default_init(self, mock_is_available):
         mock_is_available.return_value = False
 
-        clf = SimplePytorchClassifier()
+        clf = SimplePytorchClassifier(2)
         self.assertEqual('cpu', clf.device)
         mock_is_available.assert_called_with()
 
@@ -100,7 +104,7 @@ class SimplePytorchClassifierTest(unittest.TestCase):
         mock_current_device.return_value = '0'
         mock_is_available.return_value = True
 
-        clf = SimplePytorchClassifier(device='cuda')
+        clf = SimplePytorchClassifier(2, device='cuda')
         self.assertEqual('cuda', clf.device)
         mock_is_available.assert_called_with()
 
@@ -110,6 +114,28 @@ class SimplePytorchClassifierTest(unittest.TestCase):
         mock_current_device.return_value = '0'
         mock_is_available.return_value = True
 
-        clf = SimplePytorchClassifier()
+        clf = SimplePytorchClassifier(2)
         self.assertEqual('cuda', clf.device)
         mock_is_available.assert_called_with()
+
+    @patch('torch.cuda.is_available')
+    @patch('torch.cuda.current_device')
+    def test_get_default_criterion_binary(self, mock_current_device, mock_is_available):
+        mock_current_device.return_value = '0'
+        mock_is_available.return_value = True
+
+        clf = SimplePytorchClassifier(2)
+        clf.class_weights_ = torch.ones(2)
+        loss = clf.get_default_criterion()
+        self.assertTrue(isinstance(loss, BCEWithLogitsLoss))
+
+    @patch('torch.cuda.is_available')
+    @patch('torch.cuda.current_device')
+    def test_get_default_criterion_multiclass(self, mock_current_device, mock_is_available):
+        mock_current_device.return_value = '0'
+        mock_is_available.return_value = True
+
+        clf = SimplePytorchClassifier(3)
+        clf.class_weights_ = torch.ones(3)
+        loss = clf.get_default_criterion()
+        self.assertTrue(isinstance(loss, CrossEntropyLoss))

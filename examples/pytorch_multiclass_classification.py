@@ -40,7 +40,7 @@ def main():
     classifier_kwargs = dict({'embedding_matrix': _load_gensim_embedding(train.vocab),
                               'device': device})
 
-    clf_factory = KimCNNFactory('kimcnn', classifier_kwargs)
+    clf_factory = KimCNNFactory('kimcnn', num_classes, classifier_kwargs)
     query_strategy = ExpectedGradientLength(num_classes, device=device)
 
     # Active learner

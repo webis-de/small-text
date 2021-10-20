@@ -1,6 +1,7 @@
 import datetime
 import logging
 import tempfile
+import warnings
 
 import numpy as np
 
@@ -25,7 +26,7 @@ try:
 
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.pytorch.model_selection import Metric, PytorchModelSelection
-    from small_text.integrations.pytorch.utils.data import dataloader
+    from small_text.integrations.pytorch.utils.data import dataloader, get_class_weights
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
@@ -111,10 +112,10 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
 class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
-    def __init__(self, embedding_matrix=None, device=None, num_epochs=10, mini_batch_size=25, criterion=None, optimizer=None,
+    def __init__(self, num_classes, embedding_matrix=None, device=None, num_epochs=10, mini_batch_size=25, criterion=None, optimizer=None,
                  lr=0.001, max_seq_len=60, out_channels=100, dropout=0.5, validation_set_size=0.1,
-                 padding_idx=0, kernel_heights=[3, 4, 5], early_stopping=5,
-                 early_stopping_acc=0.98, verbosity=VERBOSITY_MORE_VERBOSE):
+                 padding_idx=0, kernel_heights=[3, 4, 5], early_stopping=5, early_stopping_acc=0.98,
+                 class_weight=None, verbosity=VERBOSITY_MORE_VERBOSE):
 
         super().__init__(device=device)
 
@@ -125,12 +126,18 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         if embedding_matrix is None:
             raise ValueError('This implementation requires an embedding matrix.')
 
+        if criterion is not None and class_weight is not None:
+            warnings.warn('Class weighting will have no effect with a non-default criterion',
+                          RuntimeWarning)
+
         # Training parameters
+        self.num_classes = num_classes
         self.num_epochs = num_epochs
         self.mini_batch_size = mini_batch_size
         self.criterion = criterion
         self.optimizer = optimizer
         self.lr = lr
+        self.class_weight = class_weight
 
         # KimCNN (pytorch model) parameters
         self.max_seq_len = max_seq_len
@@ -172,6 +179,12 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                                               validation_set_size=self.validation_set_size)
         else:
             sub_train, sub_valid = train_set, validation_set
+
+        if self.class_weight == 'balanced':
+            self.class_weights_ = get_class_weights(sub_train.y, self.num_classes)
+            self.class_weights_ = self.class_weights_.to(self.device)
+        else:
+            self.class_weights_ = None
 
         return self._fit_main(sub_train, sub_valid)
 

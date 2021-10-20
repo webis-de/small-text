@@ -1,5 +1,6 @@
 import unittest
 import pytest
+import warnings
 
 import numpy as np
 from unittest.mock import patch
@@ -7,6 +8,8 @@ from unittest.mock import patch
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
+    from torch.nn.modules import BCEWithLogitsLoss
+
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset, PytorchDatasetView
     from tests.utils.datasets import random_text_classification_dataset
@@ -18,9 +21,11 @@ except PytorchNotFoundError:
 class KimCNNInitTest(unittest.TestCase):
 
     def test_init_default_parameters(self):
+        num_classes = 2
         embedding_matrix = np.random.rand(10, 100)
-        classifier = KimCNNClassifier(embedding_matrix=embedding_matrix)
+        classifier = KimCNNClassifier(num_classes, embedding_matrix=embedding_matrix)
 
+        self.assertEqual(num_classes, classifier.num_classes)
         self.assertIsNotNone(classifier.device)
         self.assertEqual(10, classifier.num_epochs)
         self.assertEqual(25, classifier.mini_batch_size)
@@ -39,7 +44,7 @@ class KimCNNInitTest(unittest.TestCase):
         self.assertIsNone(classifier.model)
 
     def test_init_parameters(self):
-
+        num_classes = 2
         device = 'cpu'
         num_epochs = 5
         mini_batch_size = 30
@@ -52,7 +57,7 @@ class KimCNNInitTest(unittest.TestCase):
         early_stopping = 10
         early_stopping_acc = 0.95
 
-        classifier = KimCNNClassifier(device='cpu', num_epochs=num_epochs,
+        classifier = KimCNNClassifier(num_classes, device='cpu', num_epochs=num_epochs,
                                       mini_batch_size=mini_batch_size,
                                       max_seq_len=max_seq_len, out_channels=out_channels,
                                       dropout=dropout, validation_set_size=validation_set_size,
@@ -60,6 +65,7 @@ class KimCNNInitTest(unittest.TestCase):
                                       early_stopping=early_stopping,
                                       early_stopping_acc=early_stopping_acc)
 
+        self.assertEqual(num_classes, classifier.num_classes)
         self.assertEqual(device, classifier.device)
         self.assertEqual(num_epochs, classifier.num_epochs)
         self.assertEqual(mini_batch_size, classifier.mini_batch_size)
@@ -76,6 +82,7 @@ class KimCNNInitTest(unittest.TestCase):
         self.assertIsNone(classifier.model)
 
     def test_init_without_embedding_matrix(self):
+        num_classes = 2
         num_epochs = 5
         mini_batch_size = 30
         max_seq_len = 100
@@ -88,12 +95,25 @@ class KimCNNInitTest(unittest.TestCase):
         early_stopping_acc = 0.95
 
         with self.assertRaises(ValueError):
-            KimCNNClassifier(embedding_matrix=embedding_matrix, device='cpu',
+            KimCNNClassifier(num_classes, embedding_matrix=embedding_matrix, device='cpu',
                              num_epochs=num_epochs, mini_batch_size=mini_batch_size,
                              max_seq_len=max_seq_len, out_channels=out_channels,
                              dropout=dropout, validation_set_size=validation_set_size,
                              padding_idx=padding_idx, early_stopping=early_stopping,
                              early_stopping_acc=early_stopping_acc)
+
+    def test_init_with_non_default_criterion_and_class_weighting(self):
+
+        num_classes = 2
+        embedding_matrix = np.random.rand(5, 10)
+        criterion = BCEWithLogitsLoss()
+
+        with warnings.catch_warnings(record=True) as w:
+            KimCNNClassifier(num_classes, embedding_matrix=embedding_matrix, device='cpu',
+                             criterion=criterion, class_weight='balanced')
+
+            self.assertEqual(1, len(w))
+            self.assertTrue(issubclass(w[0].category, RuntimeWarning))
 
     @pytest.mark.skip(reason='should probably be removed')
     def test_fit_where_labels_is_none(self):
@@ -110,8 +130,9 @@ class KimCNNInitTest(unittest.TestCase):
     def test_fit_without_validation_set(self):
         dataset = random_text_classification_dataset(10)
 
+        num_classes = 2
         embedding_matrix = np.random.rand(5, 10)
-        classifier = KimCNNClassifier(device='cpu', embedding_matrix=embedding_matrix)
+        classifier = KimCNNClassifier(num_classes, device='cpu', embedding_matrix=embedding_matrix)
 
         with patch.object(classifier, '_fit_main') as fit_main_mock:
             classifier.fit(dataset)
@@ -127,8 +148,9 @@ class KimCNNInitTest(unittest.TestCase):
         train = random_text_classification_dataset(8)
         valid = random_text_classification_dataset(2)
 
+        num_classes = 2
         embedding_matrix = np.random.rand(5, 10)
-        classifier = KimCNNClassifier(device='cpu', embedding_matrix=embedding_matrix)
+        classifier = KimCNNClassifier(num_classes, device='cpu', embedding_matrix=embedding_matrix)
 
         with patch.object(classifier, '_fit_main') as fit_main_mock:
             classifier.fit(train, validation_set=valid)
