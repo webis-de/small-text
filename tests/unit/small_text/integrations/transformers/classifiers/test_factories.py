@@ -1,8 +1,6 @@
 import unittest
 import pytest
 
-import numpy as np
-
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
@@ -11,7 +9,7 @@ try:
         TransformerBasedClassification, TransformerModelArguments
     from small_text.integrations.transformers.classifiers.factories import TransformerBasedClassificationFactory
     from tests.utils.datasets import trec_dataset
-except PytorchNotFoundError:
+except (PytorchNotFoundError, ModuleNotFoundError):
     pass
 
 
