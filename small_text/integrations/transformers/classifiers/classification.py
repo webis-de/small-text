@@ -124,8 +124,8 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
     EMBEDDING_METHOD_AVG = 'avg'
     EMBEDDING_METHOD_CLS_TOKEN = 'cls'
 
-    def embed(self, data_set, embedding_method=EMBEDDING_METHOD_AVG, hidden_layer_index=-1,
-              pbar='tqdm'):
+    def embed(self, data_set, return_predictions=False, embedding_method=EMBEDDING_METHOD_AVG,
+              hidden_layer_index=-1, pbar='tqdm'):
         """
         Embeds each sample in the given `data_set`.
 
@@ -134,6 +134,8 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
         Parameters
         ----------
+        return_predictions : bool
+            Also return the predictions for `data_set`.
         embedding_method : str
             Embedding method to use [avg, cls].
         hidden_layer_index : int
@@ -145,33 +147,42 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
         -------
         embeddings : np.ndarray
             Embeddings in the shape (N, hidden_layer_dimensionality).
+        predictions : np.ndarray
+            Predictions for `data_set` (only if `return_predictions` is `True`).
         """
 
         if self.model is None:
             raise ValueError('Model is not trained. Please call fit() first.')
 
+        self.model.eval()
+
         train_iter = dataloader(data_set, self.mini_batch_size, self._create_collate_fn(),
                                 train=False)
 
         tensors = []
+        predictions = []
 
         with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
             for batch in train_iter:
-                batch_len = self._create_embeddings(tensors, batch,
-                                                    embedding_method=embedding_method,
-                                                    hidden_layer_index=hidden_layer_index)
+                batch_len, logits = self._create_embeddings(tensors,batch,
+                                                            embedding_method=embedding_method,
+                                                            hidden_layer_index=hidden_layer_index)
                 pbar.update(batch_len)
+                if return_predictions:
+                    predictions.extend(F.softmax(logits, dim=1).detach().to('cpu').tolist())
+
+        if return_predictions:
+            return np.array(tensors), np.array(predictions)
 
         return np.array(tensors)
 
     def _create_embeddings(self, tensors, batch, embedding_method='avg', hidden_layer_index=-1):
 
         text, masks, _ = batch
-        text, masks = text.to(self.device, non_blocking=True), \
-                      masks.to(self.device, non_blocking=True)
+        text = text.to(self.device, non_blocking=True)
+        masks = masks.to(self.device, non_blocking=True)
 
-        base_model = getattr(self.model, self.model.base_model_prefix)
-        outputs = base_model(text,
+        outputs = self.model(text,
                              token_type_ids=None,
                              attention_mask=masks,
                              output_hidden_states=True)
@@ -188,7 +199,7 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
         tensors.extend(representation.detach().to('cpu', non_blocking=True).numpy())
 
-        return text.size(0)
+        return text.size(0), outputs.logits
 
 
 class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClassifier):
