@@ -50,38 +50,52 @@ def kimcnn_collate_fn(batch, max_seq_len=60, padding_idx=0, filter_padding=0):
 
 class KimCNNEmbeddingMixin(EmbeddingMixin):
 
-    def embed(self, data_set, module_selector=lambda x: x['fc'], pbar='tqdm', **kwargs):
+    def embed(self, data_set, return_predictions=False, module_selector=lambda x: x['fc'], pbar='tqdm', **kwargs):
 
         if self.model is None:
             raise ValueError('Model is not trained. Please call fit() first.')
+
+        self.model.eval()
 
         dataset_iter = dataloader(data_set, self.mini_batch_size, self._create_collate_fn(),
                                   train=False)
 
         tensors = []
+        predictions = []
         with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
             for text, _ in dataset_iter:
-                batch_len = self.create_embedding(module_selector, tensors, text)
+                batch_len = text.size(0)
+                best_label, sm = self.get_best_and_softmax(predictions, text)
+                self.create_embedding(best_label, sm, module_selector, tensors, text)
                 pbar.update(batch_len)
+
+        if return_predictions:
+            return np.array(tensors), np.array(predictions)
 
         return np.array(tensors)
 
-    def create_embedding(self, module_selector, tensors, text):
+    def get_best_and_softmax(self, predictions, text):
 
         text = text.to(self.device, non_blocking=True)
 
         self.model.zero_grad()
-        batch_len = text.size(0)
 
         output = self.model(text)
 
         sm = F.softmax(output, dim=1)
         with torch.no_grad():
             best_label = torch.argmax(sm, dim=1)
+        predictions.extend(best_label.detach().to('cpu', non_blocking=True).numpy())
 
+        return best_label, sm
+
+    def create_embedding(self, best_label, sm, module_selector, tensors, text):
+
+        batch_len = text.size(0)
         sm_t = torch.t(sm)
 
-        criterion = torch.nn.CrossEntropyLoss(reduction='none')
+        reduction_tmp = self.criterion.reduction
+        self.criterion.reduction = 'none'
 
         modules = dict({name: module for name, module in self.model.named_modules()})
         grad = module_selector(modules).weight.grad
@@ -89,7 +103,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
         arr = torch.empty(batch_len, grad_size * self.num_class)
         for c in range(self.num_class):
-            loss = criterion(sm, torch.LongTensor([c] * batch_len).to(self.device))
+            loss = self.criterion(sm, torch.LongTensor([c] * batch_len).to(self.device))
 
             for k in range(batch_len):
                 self.model.zero_grad()
@@ -106,6 +120,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
                         arr[k, grad_size*c:grad_size*(c+1)] = -1*sm_prob*params
 
         tensors.extend(arr.detach().to('cpu', non_blocking=True).numpy())
+        self.criterion.reduction = reduction_tmp
 
         return batch_len
 
