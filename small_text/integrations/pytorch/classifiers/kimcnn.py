@@ -50,7 +50,7 @@ def kimcnn_collate_fn(batch, max_seq_len=60, padding_idx=0, filter_padding=0):
 
 class KimCNNEmbeddingMixin(EmbeddingMixin):
 
-    def embed(self, data_set, return_predictions=False, module_selector=lambda x: x['fc'], pbar='tqdm', **kwargs):
+    def embed(self, data_set, return_proba=False, module_selector=lambda x: x['fc'], pbar='tqdm'):
 
         if self.model is None:
             raise ValueError('Model is not trained. Please call fit() first.')
@@ -61,20 +61,20 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
                                   train=False)
 
         tensors = []
-        predictions = []
+        proba = []
         with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
             for text, _ in dataset_iter:
                 batch_len = text.size(0)
-                best_label, sm = self.get_best_and_softmax(predictions, text)
+                best_label, sm = self.get_best_and_softmax(proba, text)
                 self.create_embedding(best_label, sm, module_selector, tensors, text)
                 pbar.update(batch_len)
 
-        if return_predictions:
-            return np.array(tensors), np.array(predictions)
+        if return_proba:
+            return np.array(tensors), np.array(proba)
 
         return np.array(tensors)
 
-    def get_best_and_softmax(self, predictions, text):
+    def get_best_and_softmax(self, proba, text):
 
         text = text.to(self.device, non_blocking=True)
 
@@ -85,7 +85,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
         sm = F.softmax(output, dim=1)
         with torch.no_grad():
             best_label = torch.argmax(sm, dim=1)
-        predictions.extend(best_label.detach().to('cpu', non_blocking=True).numpy())
+        proba.extend(sm.detach().to('cpu', non_blocking=True).numpy())
 
         return best_label, sm
 

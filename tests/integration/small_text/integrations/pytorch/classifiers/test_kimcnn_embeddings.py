@@ -68,7 +68,7 @@ class KimCNNEmbeddingTest(unittest.TestCase):
 
             module_selector = lambda m: m['fc']
             embeddings, predictions = classifier.embed(train,
-                                                       return_predictions=True,
+                                                       return_proba=True,
                                                        module_selector=module_selector)
 
             self.assertFalse(classifier.model.training)

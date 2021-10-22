@@ -232,14 +232,29 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
         if len(x_indices_unlabeled) == n:
             return np.array(x_indices_unlabeled)
 
-        embeddings = clf.embed(x, pbar=pbar, **embed_kwargs) if embeddings is None else embeddings
-        sampled_indices = self.sample(clf, x, x_indices_unlabeled, x_indices_labeled, y, n,
-                                      embeddings)
+        if embeddings is not None:
+            sampled_indices = self.sample(clf, x, x_indices_unlabeled, x_indices_labeled, y, n,
+                                          embeddings)
+        else:
+            try:
+                embeddings, proba = clf.embed(x, return_proba=True, pbar=pbar, **embed_kwargs) \
+                    if embeddings is None else embeddings
+                sampled_indices = self.sample(clf, x, x_indices_unlabeled, x_indices_labeled,
+                                              y, n, embeddings, embeddings_proba=proba)
+            except TypeError as e:
+                if 'got an unexpected keyword argument \'return_proba\'' in e.args[0]:
+                    embeddings = clf.embed(x, pbar=pbar,
+                                           **embed_kwargs) if embeddings is None else embeddings
+                    sampled_indices = self.sample(clf, x, x_indices_unlabeled, x_indices_labeled, y,
+                                                  n, embeddings)
+                else:
+                    raise e
 
         return x_indices_unlabeled[sampled_indices]
 
     @abstractmethod
-    def sample(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings):
+    def sample(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings,
+               embeddings_proba=None):
         """Samples from the given embeddings.
 
         Parameters
@@ -258,6 +273,8 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
             Instances for which the score should be computed.
         embeddings : ndarray
             Embeddings for each sample in x.
+        embeddings_proba : ndarray or None
+            Class probabilities for each embedding in embeddings.
 
         Returns
         -------

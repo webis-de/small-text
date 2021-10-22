@@ -118,7 +118,7 @@ class EmbeddingTest(unittest.TestCase):
         clf = clf_factory.new()
         clf.fit(train_set)
 
-        embeddings, predictions = clf.embed(train_set, return_predictions=True, embedding_method=self.embedding_method)
+        embeddings, predictions = clf.embed(train_set, return_proba=True, embedding_method=self.embedding_method)
         self.assertEqual(2, len(embeddings.shape))
         self.assertEqual(len(train_set), embeddings.shape[0])
         self.assertEqual(clf.model.config.hidden_size, embeddings.shape[1])

@@ -6,7 +6,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from sklearn.preprocessing import normalize
 from unittest.mock import patch, Mock
 
-from small_text.classifiers import ConfidenceEnhancedLinearSVC
+from small_text.classifiers import ConfidenceEnhancedLinearSVC, SklearnClassifier
 from small_text.query_strategies import EmptyPoolException, PoolExhaustedException
 from small_text.query_strategies import (RandomSampling,
                                          SubsamplingQueryStrategy,
@@ -325,6 +325,132 @@ class SubSamplingTest(unittest.TestCase, SamplingStrategiesTests):
 
         strategy = self._get_query_strategy()
         self.assertIsNone(strategy.scores_)
+
+
+class EmbeddingBasedQueryStrategyImplementation(EmbeddingBasedQueryStrategy):
+
+    def sample(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings,
+               embeddings_proba=None):
+        pass
+
+
+class SklearnClassifierWithRandomEmbeddings(SklearnClassifier):
+
+    # TODO: add pbar to the interface or handle it correctly
+    def embed(self, dataset, embed_dim=5, pbar=None):
+        self.embeddings_ = np.random.rand(len(dataset), embed_dim)
+        return self.embeddings_
+
+
+class SklearnClassifierWithRandomEmbeddingsAndProba(SklearnClassifier):
+
+    # TODO: add pbar to the interface or handle it correctly
+    def embed(self, dataset, return_proba=False, embed_dim=5, pbar=None):
+
+        self.embeddings_ = np.random.rand(len(dataset), embed_dim)
+        if return_proba:
+            self.proba_ = np.random.rand(len(dataset))
+            return self.embeddings_, self.proba_
+
+        return self.embeddings_
+
+
+class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
+
+    def test_str(self):
+        query_strategy = EmbeddingBasedQueryStrategyImplementation()
+        self.assertEqual('EmbeddingBasedQueryStrategy()', str(query_strategy))
+
+    def test_query_with_precomputed_embeddings(self, num_samples=20):
+        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC)
+        x = np.random.rand(num_samples, 10)
+        x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices = np.arange(num_samples)
+        mask = np.isin(indices, x_indices_labeled)
+        x_indices_unlabeled = indices[~mask]
+        y = np.random.randint(0, 2, size=num_samples)
+        n = 10
+        embeddings = None
+
+        query_strategy = EmbeddingBasedQueryStrategyImplementation()
+
+        with patch.object(query_strategy, 'sample', wraps=query_strategy.sample) as sample_spy:
+            query_strategy.query(clf, x, x_indices_unlabeled, x_indices_labeled, y,
+                                 n=n, embeddings=embeddings)
+
+            sample_spy.assert_called()
+
+    def test_query_with_return_proba(self, num_samples=20):
+        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC)
+        x = np.random.rand(num_samples, 10)
+        x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices = np.arange(num_samples)
+        mask = np.isin(indices, x_indices_labeled)
+        x_indices_unlabeled = indices[~mask]
+        y = np.random.randint(0, 2, size=num_samples)
+        n = 10
+        embeddings = None
+
+        query_strategy = EmbeddingBasedQueryStrategyImplementation()
+
+        with patch.object(query_strategy, 'sample', wraps=query_strategy.sample) as sample_spy:
+            query_strategy.query(clf, x, x_indices_unlabeled, x_indices_labeled, y,
+                                 n=n, embeddings=embeddings)
+            sample_spy.assert_called_once_with(clf, x, x_indices_unlabeled, x_indices_labeled, y,
+                                               n, clf.embeddings_, embeddings_proba=clf.proba_)
+
+    def test_query_without_return_proba(self, num_samples=20):
+        clf = SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC)
+        x = np.random.rand(num_samples, 10)
+        x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices = np.arange(num_samples)
+        mask = np.isin(indices, x_indices_labeled)
+        x_indices_unlabeled = indices[~mask]
+        y = np.random.randint(0, 2, size=num_samples)
+        n = 10
+        embeddings = None
+
+        query_strategy = EmbeddingBasedQueryStrategyImplementation()
+
+        with patch.object(query_strategy, 'sample', wraps=query_strategy.sample) as sample_spy:
+            query_strategy.query(clf, x, x_indices_unlabeled, x_indices_labeled, y,
+                                 n=n, embeddings=embeddings)
+            sample_spy.assert_called_once_with(clf, x, x_indices_unlabeled, x_indices_labeled, y,
+                                               n, clf.embeddings_)
+
+    def test_query_with_nonexistent_embed_kwargs_and_no_return_proba(self, num_samples=20):
+        clf = SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC)
+        x = np.random.rand(num_samples, 10)
+        x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices = np.arange(num_samples)
+        mask = np.isin(indices, x_indices_labeled)
+        x_indices_unlabeled = indices[~mask]
+        y = np.random.randint(0, 2, size=num_samples)
+        n = 10
+        embeddings = None
+
+        query_strategy = EmbeddingBasedQueryStrategyImplementation()
+
+        with self.assertRaises(TypeError):
+            query_strategy.query(clf, x, x_indices_unlabeled, x_indices_labeled, y,
+                                 n=n, embeddings=embeddings, embed_kwargs={'does': 'not exist'})
+
+    def test_query_with_nonexistent_embed_kwargs_and_return_proba(self, num_samples=20):
+        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC)
+        x = np.random.rand(num_samples, 10)
+        x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices = np.arange(num_samples)
+        mask = np.isin(indices, x_indices_labeled)
+        x_indices_unlabeled = indices[~mask]
+        y = np.random.randint(0, 2, size=num_samples)
+        n = 10
+        embeddings = None
+
+        query_strategy = EmbeddingBasedQueryStrategyImplementation()
+
+        with self.assertRaises(TypeError):
+            query_strategy.query(clf, x, x_indices_unlabeled, x_indices_labeled, y,
+                                 n=n, embeddings=embeddings, embed_kwargs={'does': 'not exist'})
 
 
 class EmbeddingKMeansTest(unittest.TestCase):

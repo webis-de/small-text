@@ -4,6 +4,7 @@ import pytest
 
 import numpy as np
 
+from unittest import mock
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 from tests.utils.datasets import trec_dataset
@@ -12,6 +13,7 @@ from tests.utils.object_factory import get_initialized_active_learner
 try:
     import torch
     from small_text.integrations.pytorch.classifiers import KimCNNFactory
+    from small_text.integrations.pytorch.classifiers.factories import KimCNNClassifier
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.pytorch.query_strategies import ExpectedGradientLength, \
         ExpectedGradientLengthMaxWord, ExpectedGradientLengthLayer, BADGE
@@ -39,8 +41,21 @@ class QueryStrategiesTest(unittest.TestCase):
         self._simple_exhaustive_active_learning_test(query_strategy)
 
     def test_badge_multiclass(self):
+
         query_strategy = BADGE(6)
         self._simple_exhaustive_active_learning_test(query_strategy)
+
+    def test_badge_with_classifier_that_does_not_return_embeddings_proba(self):
+        # fake_embed return random embeddings and does not return probabilities
+        def fake_embed(data_set, module_selector=lambda x: x['fc'], pbar='tqdm'):
+            return np.random.rand(len(data_set), 10)
+
+        query_strategy = BADGE(6)
+        with mock.patch.object(KimCNNClassifier,
+                               'embed',
+                               wraps=fake_embed):
+
+            self._simple_exhaustive_active_learning_test(query_strategy)
 
     def _simple_exhaustive_active_learning_test(self, query_strategy, query_size=10, num_initial=10):
         dataset, _ = trec_dataset()

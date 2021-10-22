@@ -267,10 +267,16 @@ class BADGE(EmbeddingBasedQueryStrategy):
     def __init__(self, num_classes):
         self.num_classes = num_classes
 
-    def sample(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings):
-        proba = clf.predict_proba(x[x_indices_unlabeled])
+    def sample(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings,
+               embeddings_proba=None):
 
-        embeddings = self.get_badge_embeddings(embeddings[x_indices_unlabeled], proba)
+        if embeddings_proba is None:
+            proba = clf.predict_proba(x[x_indices_unlabeled])
+            embeddings = self.get_badge_embeddings(embeddings[x_indices_unlabeled],
+                                                   proba)
+        else:
+            embeddings = self.get_badge_embeddings(embeddings[x_indices_unlabeled],
+                                                   embeddings_proba[x_indices_unlabeled])
 
         _, indices = init_kmeans_plusplus_safe(embeddings,
                                                n,

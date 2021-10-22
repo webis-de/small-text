@@ -124,7 +124,7 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
     EMBEDDING_METHOD_AVG = 'avg'
     EMBEDDING_METHOD_CLS_TOKEN = 'cls'
 
-    def embed(self, data_set, return_predictions=False, embedding_method=EMBEDDING_METHOD_AVG,
+    def embed(self, data_set, return_proba=False, embedding_method=EMBEDDING_METHOD_AVG,
               hidden_layer_index=-1, pbar='tqdm'):
         """
         Embeds each sample in the given `data_set`.
@@ -134,8 +134,8 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
         Parameters
         ----------
-        return_predictions : bool
-            Also return the predictions for `data_set`.
+        return_proba : bool
+            Also return the class probabilities for `data_set`.
         embedding_method : str
             Embedding method to use [avg, cls].
         hidden_layer_index : int
@@ -147,8 +147,8 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
         -------
         embeddings : np.ndarray
             Embeddings in the shape (N, hidden_layer_dimensionality).
-        predictions : np.ndarray
-            Predictions for `data_set` (only if `return_predictions` is `True`).
+        proba : np.ndarray
+            Class probabilities for `data_set` (only if `return_predictions` is `True`).
         """
 
         if self.model is None:
@@ -168,10 +168,10 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
                                                             embedding_method=embedding_method,
                                                             hidden_layer_index=hidden_layer_index)
                 pbar.update(batch_len)
-                if return_predictions:
+                if return_proba:
                     predictions.extend(F.softmax(logits, dim=1).detach().to('cpu').tolist())
 
-        if return_predictions:
+        if return_proba:
             return np.array(tensors), np.array(predictions)
 
         return np.array(tensors)
