@@ -114,10 +114,10 @@ def lightweight_coreset(x, x_mean, n, normalized=False, proba=None):
     """
     _check_coreset_size(x, n)
 
-    dists = x.dot(x_mean)
+    sim = x.dot(x_mean)
     if not normalized:
-        dists = dists / (np.linalg.norm(x, axis=1) * np.linalg.norm(x_mean))
-    dists = 1 - dists
+        sim = sim / (np.linalg.norm(x, axis=1) * np.linalg.norm(x_mean))
+    dists = 1 - sim
     dists = np.square(dists)
 
     sum_dists = dists.sum()
