@@ -352,7 +352,7 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
     @staticmethod
     def _get_nearest_to_centers(centers, vectors, normalized=True):
         sim = EmbeddingKMeans._similarity(centers, vectors, normalized)
-        return sim.argmin(axis=1)
+        return sim.argmax(axis=1)
 
     @staticmethod
     def _similarity(centers, vectors, normalized):
@@ -370,8 +370,8 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
 
         for i in range(cluster_centers.shape[0]):
             sim = EmbeddingKMeans._similarity(cluster_centers[None, i], vectors, normalized)
-            sim[0, indices[0:i]] = np.inf
-            indices[i] = sim.argmin()
+            sim[0, indices[0:i]] = -np.inf
+            indices[i] = sim.argmax()
 
         return indices
 
