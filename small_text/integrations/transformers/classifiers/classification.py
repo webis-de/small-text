@@ -223,7 +223,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         lr : float
             Learning rate.
         mini_batch_size : int
-
+            Size of mini batches during training.
         criterion :
 
         optimizer :
@@ -233,14 +233,18 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         validation_set_size : float
             The sizes of the validation as a fraction of the training set if no validation set
             is passed and `no_validation_set_action` is set to 'sample'.
+        initial_model_selection :
+
         early_stopping_no_improvement :
 
         early_stopping_acc :
 
+        model_selection :
+
         fine_tuning_arguments : FineTuningArguments
 
-        device :
-
+        device : str or torch.device
+            Torch device on which the computation will be performed.
         memory_fix : int
             If this value if greater zero, every `memory_fix`-many epochs the cuda cache will be
             emptied to force unused GPU memory being released.
@@ -290,8 +294,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.model = None
         self.model_selection_manager = None
 
-    def fit(self, train_set, validation_set=None, optimizer=None,
-            scheduler=None):
+    def fit(self, train_set, validation_set=None, optimizer=None, scheduler=None):
         """
         Parameters
         ----------
@@ -320,13 +323,17 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         fit_scheduler = scheduler if scheduler is not None else self.scheduler
         fit_optimizer = optimizer if optimizer is not None else self.optimizer
 
-        if self.class_weight == 'balanced':
-            self.class_weights_ = get_class_weights(sub_train.y, self.num_classes)
-            self.class_weights_ = self.class_weights_.to(self.device)
-        else:
-            self.class_weights_ = None
+        self.class_weights_ = self.initialize_class_weights(sub_train)
 
         return self._fit_main(sub_train, sub_valid, fit_optimizer, fit_scheduler)
+
+    def initialize_class_weights(self, sub_train):
+        if self.class_weight == 'balanced':
+            class_weights_ = get_class_weights(sub_train.y, self.num_classes)
+            class_weights_ = class_weights_.to(self.device)
+        else:
+            class_weights_ = None
+        return class_weights_
 
     def _fit_main(self, sub_train, sub_valid, optimizer, scheduler):
         if self.model is None:
