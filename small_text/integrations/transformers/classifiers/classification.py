@@ -23,6 +23,7 @@ try:
     import torch.nn.functional as F
 
     from torch import randperm
+    from torch.optim.lr_scheduler import _LRScheduler
     from torch.nn.modules import CrossEntropyLoss, BCEWithLogitsLoss
     from torch.utils.data import DataLoader
 
@@ -419,17 +420,19 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         if params is None:
             params = [param for param in model.parameters() if param.requires_grad]
 
-        # TOOD: dont override if optimizer is set
-        optimizer = AdamW(params, lr=base_lr, eps=1e-8)
+        optimizer = self._default_optimizer(params, base_lr) if optimizer is None else optimizer
 
         if scheduler == 'linear':
             scheduler = get_linear_schedule_with_warmup(optimizer,
                                                         num_warmup_steps=0,
                                                         num_training_steps=steps*self.num_epochs)
-        else:
+        elif not isinstance(scheduler, _LRScheduler):
             raise ValueError(f'Invalid scheduler: {scheduler}')
 
         return optimizer, scheduler
+
+    def _default_optimizer(self, params, base_lr):
+        return AdamW(params, lr=base_lr, eps=1e-8)
 
     def _train(self, sub_train, sub_valid, tmp_dir, optimizer, scheduler):
 
