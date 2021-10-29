@@ -532,15 +532,18 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
             timedelta = datetime.datetime.now() - start_time
 
+            if sub_valid is not None:
+                valid_loss_txt = f'\n\tLoss: {valid_loss:.4f}(valid)\t|\tAcc: {valid_acc * 100:.1f}%(valid)'
+            else:
+                valid_loss_txt = ''
+
             self.logger.info(f'Epoch: {epoch + 1} | {format_timedelta(timedelta)}\n'
                              f'\tTrain Set Size: {len(sub_train)}\n'
-                             f'\tLoss: {train_loss:.4f}(train)\t|\tAcc: {train_acc * 100:.1f}%(train)',
+                             f'\tLoss: {train_loss:.4f}(train)\t|\tAcc: {train_acc * 100:.1f}%(train)'
+                             f'{valid_loss_txt}',
                              verbosity=VERBOSITY_MORE_VERBOSE)
-            if sub_valid is not None:
-                self.logger.info(f'\tLoss: {valid_loss:.4f}(valid)\t|\tAcc: {valid_acc * 100:.1f}%(valid)',
-                                 verbosity=VERBOSITY_MORE_VERBOSE)
 
-                # TODO: early stopping via fit_kwargs
+            if sub_valid is not None:
                 # TODO: early stopping configurable
                 if self.early_stopping_no_improvement > 0:
                     if valid_loss < min_loss:
