@@ -383,12 +383,9 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         else:
             indices = np.arange(self.x_indices_labeled.shape[0])
             mask = np.isin(indices, x_indices_validation)
-            if isinstance(self.x_train, list):
-                x_train = [x[i] for i in indices[~mask]]
-                x_valid = [x[i] for i in indices[mask]]
-            else:
-                x_train = x[indices[~mask]]
-                x_valid = x[indices[mask]]
+
+            x_train = x[indices[~mask]]
+            x_valid = x[indices[mask]]
 
             self._clf.fit(x_train, validation_set=x_valid)
 

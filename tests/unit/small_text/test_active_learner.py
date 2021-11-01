@@ -295,7 +295,7 @@ class PoolBasedActiveLearnerTest(unittest.TestCase):
         retrain_mock.assert_has_calls([call(x_indices_validation=x_indices_validation),
                                        call(x_indices_validation=x_indices_validation)])
 
-    def test_update_incremental_lerner(self):
+    def test_update_incremental_training(self):
         query_strategy = RandomSampling()
         x = np.random.rand(100, 10)
 
