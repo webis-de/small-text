@@ -1,5 +1,6 @@
 import unittest
 
+import numpy as np
 import pytest
 import torch
 
@@ -20,17 +21,19 @@ class DataloaderTest(unittest.TestCase):
 
     def test_dataloader_train(self):
         ds = random_text_classification_dataset(10)
-        iter = dataloader(ds, 3, kimcnn_collate_fn)
+        loader = dataloader(ds, 3, kimcnn_collate_fn)
 
-        self.assertTrue(isinstance(iter.sampler, BatchSampler))
-        self.assertTrue(isinstance(iter.sampler.sampler, RandomSampler))
+        self.assertTrue(isinstance(loader.sampler, BatchSampler))
+        self.assertTrue(isinstance(loader.sampler.sampler, RandomSampler))
+        self.assertTrue(isinstance(loader.dataset, np.ndarray))
 
     def test_dataloader_test(self):
         ds = random_text_classification_dataset(10)
-        iter = dataloader(ds, 3, kimcnn_collate_fn, train=False)
+        loader = dataloader(ds, 3, kimcnn_collate_fn, train=False)
 
-        self.assertTrue(isinstance(iter.sampler, BatchSampler))
-        self.assertTrue(isinstance(iter.sampler.sampler, SequentialSampler))
+        self.assertTrue(isinstance(loader.sampler, BatchSampler))
+        self.assertTrue(isinstance(loader.sampler.sampler, SequentialSampler))
+        self.assertTrue(isinstance(loader.dataset, np.ndarray))
 
 
 @pytest.mark.pytorch

@@ -78,7 +78,8 @@ def _dataset_to_text_classification_dataset(dataset):
     return PytorchTextClassificationDataset(data, vocab)
 
 
-def random_text_classification_dataset(num_samples, max_length=60, num_classes=2, dtype=torch.long):
+def random_text_classification_dataset(num_samples, max_length=60, num_classes=2,
+                                       device='cpu', dtype=torch.long):
 
     vocab = Vocab(Counter(['test', 'features']))
     vocab_size = len(vocab)
@@ -87,8 +88,8 @@ def random_text_classification_dataset(num_samples, max_length=60, num_classes=2
     for i in range(num_samples):
         sample_length = np.random.randint(1, max_length)
         text = torch.cat([
-            torch.randint(vocab_size, (sample_length,), dtype=dtype) + 1,
-            torch.tensor([0] * (max_length - sample_length), dtype=dtype)
+            torch.randint(vocab_size, (sample_length,), dtype=dtype, device=device) + 1,
+            torch.tensor([0] * (max_length - sample_length), dtype=dtype, device=device)
         ])
         label = np.random.randint(num_classes)
 
@@ -122,7 +123,7 @@ def random_transformer_dataset(num_samples, max_length=60, num_classes=2, num_to
     return TransformersDataset(data, target_labels=target_labels)
 
 
-def twenty_news_transformers(n, num_labels=10, subset='train'):
+def twenty_news_transformers(n, num_labels=10, subset='train', device='cpu'):
     train = fetch_20newsgroups(subset=subset)
     train_x = train.data[:n]
     train_y = np.random.randint(0, num_labels, size=n)
@@ -140,6 +141,7 @@ def twenty_news_transformers(n, num_labels=10, subset='train'):
             return_tensors='pt',
             truncation='longest_first'
         )
+        encoded_dict = encoded_dict.to(device)
         data.append((encoded_dict['input_ids'], encoded_dict['attention_mask'], train_y[i]))
 
     return TransformersDataset(data)

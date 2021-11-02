@@ -57,7 +57,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
         self.model.eval()
 
-        dataset_iter = dataloader(data_set, self.mini_batch_size, self._create_collate_fn(),
+        dataset_iter = dataloader(data_set.data, self.mini_batch_size, self._create_collate_fn(),
                                   train=False)
 
         tensors = []
@@ -286,7 +286,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         train_loss = 0.
         train_acc = 0.
 
-        train_iter = dataloader(sub_train_, self.mini_batch_size, self._create_collate_fn())
+        train_iter = dataloader(sub_train_.data, self.mini_batch_size, self._create_collate_fn())
 
         for i, (text, cls) in enumerate(train_iter):
             loss, acc = self._train_single_batch(text, cls, self.optimizer, self.criterion)
@@ -340,7 +340,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         valid_loss = 0.
         acc = 0.
 
-        valid_iter = dataloader(validation_set, self.mini_batch_size, self._create_collate_fn(),
+        valid_iter = dataloader(validation_set.data, self.mini_batch_size, self._create_collate_fn(),
                                 train=False)
 
         for x, cls in valid_iter:
@@ -380,7 +380,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             return np.array([], dtype=int), np.array([], dtype=float)
 
         self.model.eval()
-        test_iter = dataloader(test_set, self.mini_batch_size, self._create_collate_fn(),
+        test_iter = dataloader(test_set.data, self.mini_batch_size, self._create_collate_fn(),
                                train=False)
 
         predictions = []

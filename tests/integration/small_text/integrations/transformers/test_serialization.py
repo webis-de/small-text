@@ -6,13 +6,10 @@ import pytest
 import numpy as np
 
 from numpy.testing import assert_array_equal
-from transformers import AutoTokenizer
 
 from small_text.active_learner import PoolBasedActiveLearner
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.query_strategies import RandomSampling
-
-from sklearn.datasets import fetch_20newsgroups
 
 from small_text.integrations.transformers import TransformersDataset
 from tests.utils.object_factory import get_initialized_active_learner
@@ -21,6 +18,7 @@ try:
     import torch
     from small_text.integrations.transformers import TransformerModelArguments
     from small_text.integrations.transformers.classifiers import TransformerBasedClassificationFactory
+    from tests.utils.datasets import twenty_news_transformers
 except (ImportError, PytorchNotFoundError):
     pass
 
@@ -29,31 +27,13 @@ except (ImportError, PytorchNotFoundError):
 class SerializationTest(unittest.TestCase):
 
     def test_and_load_with_file_str(self):
-        train = fetch_20newsgroups(subset='train')
-        train_x = train.data[:20]
-        train_y = np.random.randint(0, 2, size=20)
+        num_labels = 2
 
-        tokenizer = AutoTokenizer.from_pretrained('sshleifer/tiny-distilroberta-base')
+        dataset = twenty_news_transformers(20, num_labels=num_labels)
+        self.assertFalse(dataset.x[TransformersDataset.INDEX_TEXT].is_cuda)
 
-        data = []
-        for i, doc in enumerate(train_x):
-            encoded_dict = tokenizer.encode_plus(
-                doc,
-                add_special_tokens=True,
-                max_length=20,
-                padding=True,
-                return_attention_mask=True,
-                return_tensors='pt',
-                truncation='longest_first'
-            )
-
-            data.append((encoded_dict['input_ids'], encoded_dict['attention_mask'], train_y[i]))
-
-        dataset = TransformersDataset(data)
-        # TODO: reconsider if this makes sense
-        # self.assertFalse(dataset.x[TransformersDataset.INDEX_TEXT].is_cuda)
         clf_factory = TransformerBasedClassificationFactory(TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
-                                                            2,
+                                                            num_labels,
                                                             kwargs={'device': 'cuda'})
         query_strategy = RandomSampling()
 

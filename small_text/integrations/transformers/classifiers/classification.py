@@ -157,7 +157,7 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
         self.model.eval()
 
-        train_iter = dataloader(data_set, self.mini_batch_size, self._create_collate_fn(),
+        train_iter = dataloader(data_set.data, self.mini_batch_size, self._create_collate_fn(),
                                 train=False)
 
         tensors = []
@@ -441,7 +441,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                 raise ValueError('Error! Initial model selection requires a validation set')
 
             with tempfile.TemporaryDirectory(dir=get_tmp_dir_base()) as mselection_tmp_dir:
-                self._perform_initial_mode_selection(sub_train, sub_valid, mselection_tmp_dir)
+                self._perform_initial_model_selection(sub_train, sub_valid, mselection_tmp_dir)
             start_epoch = self.initial_model_selection[1]
         else:
             start_epoch = 0
@@ -456,7 +456,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         return self
 
     # TODO: uses default optimizer and scheduler for now
-    def _perform_initial_mode_selection(self, sub_train, sub_valid, tmp_dir):
+    def _perform_initial_model_selection(self, sub_train, sub_valid, tmp_dir):
 
         num_models = self.initial_model_selection[0]
         num_epochs = self.initial_model_selection[1]
@@ -536,7 +536,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
             train_loss, train_acc = self._train_loop_process_batches(sub_train, optimizer, scheduler)
 
-            self.model.eval()
             if sub_valid is not None:
                 valid_loss, valid_acc = self.validate(sub_valid)
 
@@ -583,7 +582,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         train_loss = 0.
         train_acc = 0.
 
-        train_iter = dataloader(sub_train_, self.mini_batch_size, self._create_collate_fn())
+        train_iter = dataloader(sub_train_.data, self.mini_batch_size, self._create_collate_fn())
 
         for i, (text, masks, cls) in enumerate(train_iter):
             loss, acc = self._train_single_batch(text, masks, cls, optimizer)
@@ -634,7 +633,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         valid_loss = 0.
         acc = 0.
 
-        valid_iter = dataloader(validation_set, self.mini_batch_size, self._create_collate_fn(),
+        self.model.eval()
+        valid_iter = dataloader(validation_set.data, self.mini_batch_size, self._create_collate_fn(),
                                 train=False)
 
         for x, masks, cls in valid_iter:
@@ -668,7 +668,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             return np.array([], dtype=int), np.array([], dtype=float)
 
         self.model.eval()
-        test_iter = dataloader(test_set, self.mini_batch_size, self._create_collate_fn(),
+        test_iter = dataloader(test_set.data, self.mini_batch_size, self._create_collate_fn(),
                                train=False)
 
         predictions = []

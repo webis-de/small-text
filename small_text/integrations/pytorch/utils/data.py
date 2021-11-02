@@ -1,3 +1,5 @@
+import numpy as np
+
 from small_text.data.sampling import _get_class_histogram
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
@@ -15,7 +17,7 @@ def dataloader(data_set, batch_size, collate_fn, train=True):
 
     Parameters
     ----------
-    data_set : DataLoader
+    data_set : small_text.data.Dataset
         The target dataset.
     batch_size : int
         Batch size.
@@ -30,6 +32,7 @@ def dataloader(data_set, batch_size, collate_fn, train=True):
     iter : DataLoader
         A DataLoader for the given `data_set`.
     """
+    data_set = np.array(data_set, dtype=object, copy=False)
 
     if train:
         base_sampler = RandomSampler(data_set)
