@@ -207,11 +207,11 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
     def __init__(self, transformer_model, num_classes, num_epochs=10, lr=2e-5,
                  mini_batch_size=12, criterion=None, optimizer=None, scheduler='linear',
-                 validation_set_size=0.1, initial_model_selection=None,
-                 early_stopping_no_improvement=5, early_stopping_acc=-1, model_selection=True,
-                 fine_tuning_arguments=None, device=None, memory_fix=1, class_weight=None,
-                 no_validation_set_action='sample', verbosity=VERBOSITY_MORE_VERBOSE,
-                 cache_dir='.active_learning_lib_cache/'):
+                 validation_set_size=0.1, validations_per_epoch=1, no_validation_set_action='sample',
+                 initial_model_selection=None, early_stopping_no_improvement=5,
+                 early_stopping_acc=-1, model_selection=True, fine_tuning_arguments=None,
+                 device=None, memory_fix=1, class_weight=None,
+                 verbosity=VERBOSITY_MORE_VERBOSE, cache_dir='.active_learning_lib_cache/'):
         """
         Parameters
         ----------
@@ -234,6 +234,10 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         validation_set_size : float
             The sizes of the validation as a fraction of the training set if no validation set
             is passed and `no_validation_set_action` is set to 'sample'.
+        validations_per_epoch : int
+            Defines how of the validation set is evaluated during the training of a single epoch.
+        no_validation_set_action : {'sample', 'none}
+            Defines what should be done of no validation set is given.
         initial_model_selection :
 
         early_stopping_no_improvement :
@@ -250,7 +254,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             If this value if greater zero, every `memory_fix`-many epochs the cuda cache will be
             emptied to force unused GPU memory being released.
 
-        class_weight : string or None
+        class_weight : 'balanced' or None
 
         """
         super().__init__(device=device)
@@ -273,9 +277,10 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.scheduler = scheduler
 
         self.validation_set_size = validation_set_size
-        self.initial_model_selection = initial_model_selection
+        self.validations_per_epoch = validations_per_epoch
         # 'sample' or 'none'
         self.no_validation_set_action = no_validation_set_action
+        self.initial_model_selection = initial_model_selection
 
         # Huggingface
         self.transformer_model = transformer_model
@@ -377,21 +382,9 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         with tempfile.TemporaryDirectory(dir=get_tmp_dir_base()) as tmp_dir:
             res = self._train(sub_train, sub_valid, tmp_dir, optimizer, scheduler)
-            if sub_valid is not None:
-                if self.model_selection:
-                    self._select_best_model()
-                else:
-                    self._select_last_model()
+            self._perform_model_selection(sub_valid)
 
         return res
-
-    def _select_best_model(self):
-        model_path, _ = self.model_selection_manager.select_best()
-        self.model.load_state_dict(torch.load(model_path))
-
-    def _select_last_model(self):
-        model_path, _ = self.model_selection_manager.select_last()
-        self.model.load_state_dict(torch.load(model_path))
 
     def initialize_transformer(self, cache_dir):
 
@@ -534,23 +527,38 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
             self.model.train()
 
-            train_loss, train_acc = self._train_loop_process_batches(sub_train, optimizer, scheduler)
+            # TODO: extract this block after introducing a shared return type
+            if self.validations_per_epoch > 1:
+                num_batches = len(sub_train) // self.mini_batch_size \
+                              + int(len(sub_train) % self.mini_batch_size > 0)
+                if self.validations_per_epoch > num_batches:
+                    warnings.warn(
+                        f'validations_per_epoch={self.validations_per_epoch} is greater than '
+                        f'the maximum possible batches of {num_batches}',
+                        RuntimeWarning)
+                    validate_every = 1
+                else:
+                    validate_every = int(num_batches / self.validations_per_epoch)
 
-            if sub_valid is not None:
-                valid_loss, valid_acc = self.validate(sub_valid)
+                train_loss, train_acc, valid_loss, valid_acc = self._train_loop_process_batches(
+                    sub_train,
+                    optimizer,
+                    scheduler,
+                    validate_every=validate_every,
+                    validation_set=sub_valid)
+            else:
+                train_loss, train_acc = self._train_loop_process_batches(
+                    sub_train,
+                    optimizer,
+                    scheduler)
+
+                if sub_valid is not None:
+                    valid_loss, valid_acc = self.validate(sub_valid)
 
             timedelta = datetime.datetime.now() - start_time
 
-            if sub_valid is not None:
-                valid_loss_txt = f'\n\tLoss: {valid_loss:.4f}(valid)\t|\tAcc: {valid_acc * 100:.1f}%(valid)'
-            else:
-                valid_loss_txt = ''
-
-            self.logger.info(f'Epoch: {epoch + 1} | {format_timedelta(timedelta)}\n'
-                             f'\tTrain Set Size: {len(sub_train)}\n'
-                             f'\tLoss: {train_loss:.4f}(train)\t|\tAcc: {train_acc * 100:.1f}%(train)'
-                             f'{valid_loss_txt}',
-                             verbosity=VERBOSITY_MORE_VERBOSE)
+            self._log_epoch(epoch, timedelta, sub_train, sub_valid, train_acc, train_loss,
+                            valid_acc, valid_loss)
 
             if sub_valid is not None:
                 # TODO: early stopping configurable
@@ -577,10 +585,13 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             if stopped:
                 break
 
-    def _train_loop_process_batches(self, sub_train_, optimizer, scheduler):
+    def _train_loop_process_batches(self, sub_train_, optimizer, scheduler, validate_every=None,
+                                    validation_set=None):
 
         train_loss = 0.
         train_acc = 0.
+        valid_losses = []
+        valid_accs = []
 
         train_iter = dataloader(sub_train_.data, self.mini_batch_size, self._create_collate_fn())
 
@@ -591,7 +602,16 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             train_loss += loss
             train_acc += acc
 
-        return train_loss / len(sub_train_), train_acc / len(sub_train_)
+            if validate_every and i % validate_every == 0:
+                valid_loss, valid_acc = self.validate(validation_set)
+                valid_losses.append(valid_loss)
+                valid_accs.append(valid_acc)
+
+        if validate_every:
+            return train_loss / len(sub_train_), train_acc / len(sub_train_), \
+                   np.mean(valid_losses), np.mean(valid_accs)
+        else:
+            return train_loss / len(sub_train_), train_acc / len(sub_train_)
 
     def _create_collate_fn(self):
         return transformers_collate_fn
@@ -627,6 +647,32 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         del text, masks, cls, loss, outputs
 
         return train_loss, train_acc
+
+    def _perform_model_selection(self, sub_valid):
+        if sub_valid is not None:
+            if self.model_selection:
+                self._select_best_model()
+            else:
+                self._select_last_model()
+
+    def _select_best_model(self):
+        model_path, _ = self.model_selection_manager.select_best()
+        self.model.load_state_dict(torch.load(model_path))
+
+    def _select_last_model(self):
+        model_path, _ = self.model_selection_manager.select_last()
+        self.model.load_state_dict(torch.load(model_path))
+
+    def _log_epoch(self, epoch, timedelta, sub_train, sub_valid, train_acc, train_loss, valid_loss, valid_acc):
+        if sub_valid is not None:
+            valid_loss_txt = f'\n\tLoss: {valid_loss:.4f}(valid)\t|\tAcc: {valid_acc * 100:.1f}%(valid)'
+        else:
+            valid_loss_txt = ''
+        self.logger.info(f'Epoch: {epoch + 1} | {format_timedelta(timedelta)}\n'
+                         f'\tTrain Set Size: {len(sub_train)}\n'
+                         f'\tLoss: {train_loss:.4f}(train)\t|\tAcc: {train_acc * 100:.1f}%(train)'
+                         f'{valid_loss_txt}',
+                         verbosity=VERBOSITY_MORE_VERBOSE)
 
     def validate(self, validation_set):
 

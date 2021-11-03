@@ -1,5 +1,8 @@
 import unittest
 import pytest
+import warnings
+
+import numpy as np
 
 from unittest import mock
 from unittest.mock import patch
@@ -139,14 +142,10 @@ class ClassificationTest(unittest.TestCase):
 
     @patch.object(TransformerBasedClassification, '_train')
     @patch.object(TransformerBasedClassification, '_select_best_model')
-    def test_fit_distilroberta(self, select_best_model_mock, fake_train):
-        classifier_kwargs = {
-            'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
-        }
+    def test_fit(self, select_best_model_mock, fake_train):
         clf_factory = TransformerBasedClassificationFactory(
             TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
-            2,
-            kwargs=classifier_kwargs)
+            2)
 
         x = twenty_news_transformers(20, num_labels=2)
 
@@ -158,26 +157,17 @@ class ClassificationTest(unittest.TestCase):
         fake_train.assert_called()
         select_best_model_mock.assert_called()
 
-    @patch.object(TransformerBasedClassification, '_train')
-    @patch.object(TransformerBasedClassification, '_select_best_model')
-    def test_test_fit_distilbert(self, select_best_model_mock, fake_train):
-        classifier_kwargs = {
-            'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
-        }
-        clf_factory = TransformerBasedClassificationFactory(
-            TransformerModelArguments('distilbert-base-cased'),
-            2,
-            kwargs=classifier_kwargs)
+    def test_fit_with_class_weight(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        clf = TransformerBasedClassification(model_args,
+                                             2,
+                                             class_weight='balanced',
+                                             num_epochs=1)
 
-        x = twenty_news_transformers(20, num_labels=2)
-
-        clf = clf_factory.new()
-        clf.fit(x)
-
-        # basically tests _get_layer_params for now
-
-        fake_train.assert_called()
-        select_best_model_mock.assert_called()
+        train_set = twenty_news_transformers(20, num_labels=2)
+        clf.fit(train_set)
+        self.assertIsNotNone(clf.class_weights_)
+        self.assertIsNotNone(clf.model)
 
     def test_initialize_optimizer_and_scheduler_default(self):
         sub_train = random_transformer_dataset(10)
@@ -244,3 +234,65 @@ class ClassificationTest(unittest.TestCase):
 
         self.assertEqual(optimizer, optimizer_arg)
         self.assertEqual(scheduler, scheduler_arg)
+
+    def test_predict_and_validate(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        clf = TransformerBasedClassification(model_args,
+                                             2,
+                                             class_weight='balanced',
+                                             num_epochs=1)
+
+        train_set = twenty_news_transformers(20, num_labels=2)
+        test_set = twenty_news_transformers(10, num_labels=2)
+        valid_set = twenty_news_transformers(5, num_labels=2)
+
+        clf.fit(train_set)
+        y_pred = clf.predict(test_set)
+        self.assertTrue(isinstance(y_pred, np.ndarray))
+        self.assertTrue(np.all([isinstance(y, np.int64) for y in y_pred]))
+        self.assertTrue(np.logical_or(y_pred.all() == 0, y_pred.all() == 1))
+
+        valid_loss, valid_acc = clf.validate(valid_set)
+        self.assertTrue(valid_loss >= 0)
+        self.assertTrue(0.0 <= valid_acc <= 1.0)
+
+    def test_validate_with_validations_per_epoch(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        clf = TransformerBasedClassification(model_args,
+                                             2,
+                                             num_epochs=1,
+                                             mini_batch_size=10,
+                                             validations_per_epoch=2)
+
+        train_set = twenty_news_transformers(20, num_labels=2)
+
+        with patch.object(clf, 'validate', wraps=clf.validate) as validate_spy:
+            clf.fit(train_set)
+            self.assertIsNotNone(clf.model)
+
+            self.assertEqual(2, validate_spy.call_count)
+
+    def test_validate_with_validations_per_epoch_too_large(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        clf = TransformerBasedClassification(model_args,
+                                             2,
+                                             num_epochs=1,
+                                             mini_batch_size=20,
+                                             validations_per_epoch=2)
+
+        train_set = twenty_news_transformers(20, num_labels=2)
+
+        with patch.object(clf, 'validate', wraps=clf.validate) as validate_spy, \
+                warnings.catch_warnings(record=True) as w:
+            clf.fit(train_set)
+            self.assertIsNotNone(clf.model)
+
+            self.assertEqual(1, validate_spy.call_count)
+
+            expected_warning = 'validations_per_epoch=2 is greater than the maximum ' \
+                               'possible batches of 1'
+            found_warning = np.any([
+                str(w_.message) == expected_warning and w_.category == RuntimeWarning
+                for w_ in w])
+            self.assertTrue(found_warning)
+            self.assertTrue(issubclass(w[0].category, RuntimeWarning))
