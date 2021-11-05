@@ -46,5 +46,4 @@ setup(name='small-text',
       extras_require={
             'pytorch': PYTORCH_DEPENDENCIES,
             'transformers': PYTORCH_DEPENDENCIES + ['transformers>=4.0.0']
-      }
-)
+      })

@@ -330,7 +330,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
             Serialized output file to be written.
         """
         if isinstance(file, (str, Path)):
-           with open(file, 'wb+') as f:
+            with open(file, 'wb+') as f:
                 self._save(f)
         else:
             self._save(file)

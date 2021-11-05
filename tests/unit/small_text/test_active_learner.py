@@ -513,4 +513,3 @@ class PoolBasedActiveLearnerTest(unittest.TestCase):
             self.assertEqual(2, retrain_mock.call_count)
             retrain_mock.assert_has_calls([call(x_indices_validation=x_indices_validation),
                                            call(x_indices_validation=x_indices_validation)])
-

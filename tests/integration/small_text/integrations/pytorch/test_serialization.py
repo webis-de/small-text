@@ -16,7 +16,7 @@ from tests.utils.object_factory import get_initialized_active_learner
 
 try:
     import torch
-    from small_text.integrations.pytorch.classifiers import PytorchClassifier, KimCNNFactory
+    from small_text.integrations.pytorch.classifiers import KimCNNFactory
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
 except (ImportError, PytorchNotFoundError):
     pass
