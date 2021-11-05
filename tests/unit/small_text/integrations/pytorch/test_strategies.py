@@ -5,8 +5,10 @@ import pytest
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
-    from small_text.integrations.pytorch.query_strategies import (BADGE,
-        ExpectedGradientLength, ExpectedGradientLengthMaxWord)
+    from small_text.integrations.pytorch.query_strategies import (
+        BADGE,
+        ExpectedGradientLength,
+        ExpectedGradientLengthMaxWord)
 except PytorchNotFoundError:
     pass
 

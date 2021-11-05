@@ -11,8 +11,6 @@ try:
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from tests.utils.datasets import trec_dataset
-
-    from torch.nn.modules import module
 except PytorchNotFoundError:
     pass
 

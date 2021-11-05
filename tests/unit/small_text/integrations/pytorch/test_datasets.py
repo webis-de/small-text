@@ -88,7 +88,7 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
         assert_array_equal(len(ds), len(ds.data))
 
-    def test_indexing_single_index(self, index = 42):
+    def test_indexing_single_index(self, index=42):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
 
         result = ds[index]
