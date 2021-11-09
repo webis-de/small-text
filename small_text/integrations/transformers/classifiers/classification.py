@@ -663,7 +663,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         model_path, _ = self.model_selection_manager.select_last()
         self.model.load_state_dict(torch.load(model_path))
 
-    def _log_epoch(self, epoch, timedelta, sub_train, sub_valid, train_acc, train_loss, valid_loss, valid_acc):
+    def _log_epoch(self, epoch, timedelta, sub_train, sub_valid, train_acc, train_loss, valid_acc, valid_loss):
         if sub_valid is not None:
             valid_loss_txt = f'\n\tLoss: {valid_loss:.4f}(valid)\t|\tAcc: {valid_acc * 100:.1f}%(valid)'
         else:
