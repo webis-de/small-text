@@ -13,15 +13,9 @@
 
 [Installation](#installation) | [Quick Start](#quick-start) | [Docs](https://small-text.readthedocs.io/en/latest/)
 
-<<<<<<< HEAD
+
 Small-Text provides state-of-the-art **Active Learning** for Text Classification. 
 This allows you to easily mix and match many classifiers and query strategies 
-=======
-<br>
-Active Learning allows you to efficiently label training data in a small-data scenario.
-This library provides state-of-the-art **active learning** for text classification 
-which allows to easily mix and match many classifiers and query strategies 
->>>>>>> 5bc79c8... Update README.md and docs with new example paths
 to build active learning experiments or applications.
 
 **What is Active Learning?**
