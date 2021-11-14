@@ -13,7 +13,6 @@
 
 [Installation](#installation) | [Quick Start](#quick-start) | [Docs](https://small-text.readthedocs.io/en/latest/)
 
-
 Small-Text provides state-of-the-art **Active Learning** for Text Classification. 
 This allows you to easily mix and match many classifiers and query strategies 
 to build active learning experiments or applications.
@@ -51,8 +50,8 @@ More information regarding the installation can be found in the
 ## Quick Start
 
 For a quick start, see the provided examples for [binary classification](examples/code/binary_classification.py), 
-[pytorch multi-class classification](examples/code/pytorch_multiclass_classification.py), and 
-[transformer-based multi-class classification](examples/code/transformers_multiclass_classification.py), 
+[pytorch multi-class classification](examples/code/pytorch_multiclass_classification.py), and
+[transformer-based multi-class classification](examples/code/transformers_multiclass_classification.py),
 or check out the notebooks.
 
 ### Notebooks
