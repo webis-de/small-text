@@ -8,8 +8,8 @@ from small_text.classifiers.factories import SklearnClassifierFactory
 from small_text.query_strategies import PoolExhaustedException, EmptyPoolException
 from small_text.query_strategies import RandomSampling
 
-from examples.data.example_data_binary import get_train_test, preprocess_data
-from examples.shared import evaluate
+from examplecode.data.example_data_binary import get_train_test, preprocess_data
+from examplecode.shared import evaluate
 
 
 def main():

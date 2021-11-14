@@ -13,9 +13,9 @@ from small_text.integrations.transformers.classifiers.factories import Transform
 from small_text.query_strategies import PoolExhaustedException, EmptyPoolException
 from small_text.query_strategies import RandomSampling
 
-from examples.data.corpus_twenty_news import get_twenty_newsgroups_corpus
-from examples.data.example_data_transformers import preprocess_data
-from examples.shared import evaluate
+from examplecode.data.corpus_twenty_news import get_twenty_newsgroups_corpus
+from examplecode.data.example_data_transformers import preprocess_data
+from examplecode.shared import evaluate
 
 
 TRANSFORMER_MODEL = TransformerModelArguments('distilroberta-base')

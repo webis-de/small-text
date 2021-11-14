@@ -14,8 +14,8 @@ from small_text.integrations.pytorch.classifiers.factories import KimCNNFactory
 from small_text.integrations.pytorch.query_strategies import ExpectedGradientLength
 from small_text.query_strategies import PoolExhaustedException, EmptyPoolException
 
-from examples.data.example_data_multiclass import get_train_test
-from examples.shared import evaluate
+from examplecode.data.example_data_multiclass import get_train_test
+from examplecode.shared import evaluate
 
 try:
     import gensim.downloader as api

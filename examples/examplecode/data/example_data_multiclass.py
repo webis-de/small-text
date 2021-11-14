@@ -3,7 +3,7 @@ import numpy as np
 
 from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
 
-from examples.data.corpus_twenty_news import get_twenty_newsgroups_corpus
+from examplecode.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 
 
 def get_train_test():

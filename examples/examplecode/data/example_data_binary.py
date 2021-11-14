@@ -3,7 +3,7 @@ from sklearn.preprocessing import normalize
 
 from small_text.data import SklearnDataset
 
-from examples.data.corpus_twenty_news import get_twenty_newsgroups_corpus
+from examplecode.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 
 
 def get_train_test():
