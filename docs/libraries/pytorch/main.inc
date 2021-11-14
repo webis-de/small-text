@@ -12,4 +12,4 @@ For list of query strategies included in pytorch integration see :doc:`Query Str
 Example
 =======
 
-A code example showing a pytorch multiclass classification is given in :file:`examples/pytorch_multiclass_classification.py`.
+A code example showing a pytorch multiclass classification is given in :file:`examples/code/pytorch_multiclass_classification.py`.

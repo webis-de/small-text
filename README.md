@@ -15,7 +15,6 @@
 
 <br>
 Active Learning allows you to efficiently label training data in a small-data scenario.
-
 This library provides state-of-the-art **active learning** for text classification 
 which allows to easily mix and match many classifiers and query strategies 
 to build active learning experiments or applications.
@@ -47,9 +46,15 @@ More information regarding the installation can be found in the
 
 ## Quick Start
 
-For a quick start, see the provided examples for [binary classification](examples/binary_classification.py), 
-[pytorch multi-class classification](examples/pytorch_multiclass_classification.py), or 
-[transformer-based multi-class classification](examples/transformers_multiclass_classification.py)
+For a quick start, see the provided examples for [binary classification](examples/code/binary_classification.py), 
+[pytorch multi-class classification](examples/code/pytorch_multiclass_classification.py), or 
+[transformer-based multi-class classification](examples/code/transformers_multiclass_classification.py).
+
+### Notebooks
+
+| # | Notebook | |
+| --- | -------- | --- |
+| 1 | [Intro: Active Learning for Text Classification with Small-Text](examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/master/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
 
 ## Documentation
 
