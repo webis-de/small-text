@@ -52,7 +52,11 @@ class SerializationTest(unittest.TestCase):
         ind_initial = active_learner.x_indices_labeled
         ind_queried = active_learner.query()
 
-        active_learner.update(np.random.randint(2, size=10))
+        labels = np.random.randint(2, size=10)
+        # fix the first two labels to guarantee the existence of both classes
+        labels[0:2] = [0, 1]
+
+        active_learner.update(labels)
         active_learner.save(file)
 
         return active_learner, ind_initial, ind_queried

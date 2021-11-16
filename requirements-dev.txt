@@ -4,3 +4,4 @@ parameterized==0.8.1
 sphinx>=3.0.0
 sphinx-rtd-theme==0.5.2
 flake8
+pytest-srcpaths==1.2.1

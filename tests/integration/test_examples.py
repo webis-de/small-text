@@ -1,4 +1,4 @@
-from examples.binary_classification import main as binary_classification_main
+from examplecode.binary_classification import main as binary_classification_main
 
 
 def test_binary_classification():
