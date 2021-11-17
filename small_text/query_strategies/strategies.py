@@ -302,7 +302,8 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
     def __init__(self, normalize=True):
         self.normalize = normalize
 
-    def sample(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings):
+    def sample(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings,
+               embeddings_proba=None):
         """Samples from the given embeddings.
 
         Parameters

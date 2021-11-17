@@ -380,7 +380,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
 
             sample_spy.assert_called()
 
-    def test_query_with_return_proba(self, num_samples=20):
+    def test_query_when_embed_has_return_proba(self, num_samples=20):
         clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC)
         x = np.random.rand(num_samples, 10)
         x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
@@ -399,7 +399,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
             sample_spy.assert_called_once_with(clf, x, x_indices_unlabeled, x_indices_labeled, y,
                                                n, clf.embeddings_, embeddings_proba=clf.proba_)
 
-    def test_query_without_return_proba(self, num_samples=20):
+    def test_query_when_embed_has_no_return_proba(self, num_samples=20):
         clf = SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC)
         x = np.random.rand(num_samples, 10)
         x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
@@ -455,13 +455,21 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
 
 class EmbeddingKMeansTest(unittest.TestCase):
 
-    def test_str(self):
+    def test_query(self, n=10, num_samples=100, embedding_dim=60):
         query_strategy = EmbeddingKMeans()
-        self.assertEqual('EmbeddingKMeans(normalize=True)', str(query_strategy))
+        # currently does not support embed, but is not used here anyways
+        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC)
 
-    def test_str_with_normalize_false(self):
-        query_strategy = EmbeddingKMeans(normalize=False)
-        self.assertEqual('EmbeddingKMeans(normalize=False)', str(query_strategy))
+        x = np.random.rand(num_samples, 100)
+
+        x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        x_indices_unlabeled = np.array([i for i in np.arange(100) if i not in set(x_indices_labeled)])
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        indices = query_strategy.query(clf, x, x_indices_unlabeled, x_indices_labeled, y, n)
+
+        self.assertIsNotNone(indices)
+        self.assertEqual(n, indices.shape[0])
 
     @patch('sklearn.preprocessing.normalize', wraps=normalize)
     def test_sample(self, normalize_mock, n=10, num_samples=100, embedding_dim=60):
@@ -537,3 +545,11 @@ class EmbeddingKMeansTest(unittest.TestCase):
         self.assertEqual(n, indices.shape[0])
 
         query_strategy._get_nearest_to_centers_iterative.assert_called()
+
+    def test_str(self):
+        query_strategy = EmbeddingKMeans()
+        self.assertEqual('EmbeddingKMeans(normalize=True)', str(query_strategy))
+
+    def test_str_with_normalize_false(self):
+        query_strategy = EmbeddingKMeans(normalize=False)
+        self.assertEqual('EmbeddingKMeans(normalize=False)', str(query_strategy))
