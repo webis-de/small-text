@@ -11,14 +11,14 @@ except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
 
-def dataloader(data_set, batch_size, collate_fn, train=True):
+def dataloader(data, batch_size, collate_fn, train=True):
     """
     Convenience method to obtain a `DataLoader`.
 
     Parameters
     ----------
-    data_set : small_text.data.Dataset
-        The target dataset.
+    data : list of tuples
+        The data to be loaded.
     batch_size : int
         Batch size.
     collate_fn : func
@@ -32,19 +32,20 @@ def dataloader(data_set, batch_size, collate_fn, train=True):
     iter : DataLoader
         A DataLoader for the given `data_set`.
     """
-    data_set = np.array(data_set, dtype=object, copy=False)
+    data_source = np.empty(len(data), dtype=object)
+    data_source[:] = data
 
     if train:
-        base_sampler = RandomSampler(data_set)
+        base_sampler = RandomSampler(data_source)
     else:
-        base_sampler = SequentialSampler(data_set)
+        base_sampler = SequentialSampler(data_source)
 
     sampler = BatchSampler(
         base_sampler,
         batch_size=batch_size,
         drop_last=False)
 
-    return DataLoader(data_set,
+    return DataLoader(data_source,
                       batch_size=None,
                       collate_fn=collate_fn,
                       sampler=sampler)
