@@ -50,7 +50,11 @@ def kimcnn_collate_fn(batch, max_seq_len=60, padding_idx=0, filter_padding=0):
 
 class KimCNNEmbeddingMixin(EmbeddingMixin):
 
-    def embed(self, data_set, return_proba=False, module_selector=lambda x: x['fc'], pbar='tqdm'):
+    EMBEDDING_METHOD_POOLED = 'pooled'
+    EMBEDDING_METHOD_GRADIENT = 'gradient'
+
+    def embed(self, data_set, return_proba=False, embedding_method=EMBEDDING_METHOD_POOLED,
+              module_selector=lambda x: x['fc'], pbar='tqdm'):
 
         if self.model is None:
             raise ValueError('Model is not trained. Please call fit() first.')
@@ -65,9 +69,23 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
         with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
             for text, _ in dataset_iter:
                 batch_len = text.size(0)
-                best_label, sm = self.get_best_and_softmax(proba, text)
-                self.create_embedding(best_label, sm, module_selector, tensors, text)
-                pbar.update(batch_len)
+                text = text.to(self.device, non_blocking=True)
+
+                if embedding_method == self.EMBEDDING_METHOD_POOLED:
+                    embedded = self.model._forward_pooled(text)
+                    tensors.extend(embedded.detach().to('cpu', non_blocking=True).numpy())
+
+                    if return_proba:
+                        sm = F.softmax(self.model._dropout_and_fc(embedded), dim=1)
+                        proba.extend(sm.detach().to('cpu').tolist())
+                    pbar.update(batch_len)
+
+                elif embedding_method == self.EMBEDDING_METHOD_GRADIENT:
+                    best_label, sm = self.get_best_and_softmax(proba, text)
+                    self.create_embedding(best_label, sm, module_selector, tensors, text)
+                    pbar.update(batch_len)
+                else:
+                    raise ValueError(f'Invalid embedding method: {embedding_method}')
 
         if return_proba:
             return np.array(tensors), np.array(proba)
@@ -75,8 +93,6 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
         return np.array(tensors)
 
     def get_best_and_softmax(self, proba, text):
-
-        text = text.to(self.device, non_blocking=True)
 
         self.model.zero_grad()
 

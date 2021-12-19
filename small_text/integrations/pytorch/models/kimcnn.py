@@ -113,6 +113,10 @@ class KimCNN(nn.Module):
         x : torch.LongTensor or torch.cuda.LongTensor
             input tensor (batch_size, max_sequence_length) with padded sequences of word ids
         """
+        x = self._forward_pooled(x)
+        return self._dropout_and_fc(x)
+
+    def _forward_pooled(self, x):
         assert x.size(1) == self.max_seq_length
 
         x = self.embedding(x)
@@ -124,9 +128,8 @@ class KimCNN(nn.Module):
             out_tensors.append(activation)
 
         x = torch.cat(out_tensors, dim=1)
+        return x.view(x.size(0), -1)
 
-        batch_size = x.size(0)
-        x = x.view(batch_size, -1)
+    def _dropout_and_fc(self, x):
         x = self.dropout(x)
-
         return self.fc(x)
