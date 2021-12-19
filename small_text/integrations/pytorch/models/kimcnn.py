@@ -1,9 +1,29 @@
-"""KimCNN implementation using pytorch.
-
-This implementation is based on:
+#
+# MIT License
+#
+# Copyright (c) 2019 John Lingi
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+"""
+KimCNN implementation is based on:
 https://github.com/Johnxjp/cnn_text_classification/tree/d05e8ede5bbfd2a4de3c2df92ea705cab0e803f2
-by John Lingi (Johnxjp)
-(MIT-licensed)
+by John Lingi (@Johnxjp, MIT-licensed)
 """
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
@@ -16,23 +36,34 @@ except ImportError as e:
 
 
 class KimCNN(nn.Module):
-    """
 
-    Parameters
-    ----------
-    vocabulary_size : int
-
-    max_seq_length : int
-
-    num_classes : int
-        Number of output classes.
-
-    embedding_matrix : 2D FloatTensor
-
-    """
     def __init__(self, vocabulary_size, max_seq_length, num_classes=2, out_channels=100,
                  embed_dim=300, padding_idx=0, kernel_heights=[3, 4, 5], dropout=0.5,
                  embedding_matrix=None, freeze_embedding_layer=False):
+        """
+        Parameters
+        ----------
+        vocabulary_size : int
+            Number of tokens contained in of the vocabulary.
+        max_seq_length : int
+            Maximum sequence length.
+        num_classes : int
+            Number of output classes.
+        out_channels : int
+            Number of output channels.
+        embed_dim : int
+            Number of dimensions of a single embedding.
+        padding_idx : int
+            Padding index (passed to the embedding layer).
+        kernel_heights : list of int
+            Kernels heights for the convolutions.
+        dropout : float
+            Dropout Probability.
+        embedding_matrix : FloatTensor
+            Embedding matrix in the shape (vocabulary_size, embed_dim).
+        freeze_embedding_layer : bool
+            Training adapts the embedding matrix if `True`, otherwise the embeddings are frozen.
+        """
         super().__init__()
 
         self.out_channels = out_channels
@@ -82,7 +113,6 @@ class KimCNN(nn.Module):
         x : torch.LongTensor or torch.cuda.LongTensor
             input tensor (batch_size, max_sequence_length) with padded sequences of word ids
         """
-        batch_size = x.size(0)
         assert x.size(1) == self.max_seq_length
 
         x = self.embedding(x)
@@ -93,9 +123,9 @@ class KimCNN(nn.Module):
             activation = pool(F.relu(conv(x)))
             out_tensors.append(activation)
 
-        # (batch_size, out * n_kernels, 1, 1)
         x = torch.cat(out_tensors, dim=1)
 
+        batch_size = x.size(0)
         x = x.view(batch_size, -1)
         x = self.dropout(x)
 
