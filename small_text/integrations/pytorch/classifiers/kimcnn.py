@@ -171,7 +171,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
         self.criterion = None
         self.optimizer = None
-        self.scheduler = 'linear'
+        self.scheduler = None
 
         self.class_weight = class_weight
 
