@@ -7,7 +7,7 @@ try:
     from torch.nn.modules import BCEWithLogitsLoss
 
     from torch.optim import Adadelta, AdamW
-    from transformers import get_linear_schedule_with_warmup
+    from torch.optim.lr_scheduler import ExponentialLR
 
     from small_text.integrations.pytorch.classifiers.base import PytorchClassifier
     from small_text.integrations.pytorch.models.kimcnn import KimCNN
@@ -46,7 +46,7 @@ class PytorchClassifierTest(unittest.TestCase):
         classifier.model = KimCNN(10, 60)
 
         optimizer = None
-        scheduler = 'linear'
+        scheduler = None
         params = None
         num_epochs = 2
         base_lr = 2e-5
@@ -75,9 +75,8 @@ class PytorchClassifierTest(unittest.TestCase):
 
         optimizer_params = [param for param in classifier.model.parameters() if param.requires_grad]
         optimizer_arg = Adadelta(optimizer_params)
-        scheduler_arg = get_linear_schedule_with_warmup(optimizer_arg,
-                                                        num_warmup_steps=10,
-                                                        num_training_steps=100)
+        scheduler_arg = ExponentialLR(optimizer_arg, 0.99)
+
         params = None
         num_epochs = 2
         base_lr = 2e-5
