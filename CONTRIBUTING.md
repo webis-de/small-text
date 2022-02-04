@@ -37,9 +37,10 @@ make
 
 ### Raising the Version
 
-- small_text/version.json
+- Update small_text/version.json
 - README.md
-  - Documentation Badge should link to the version of the latest release
+  - Documentation Badge should link to the version of the most recent release
+  - Link references at the bottom should point to the most recent release
 
 ## Contributors
 
