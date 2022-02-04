@@ -60,7 +60,7 @@ class PytorchModelSelection(object):
         model_path = Path(self.save_directory).joinpath('model_epoch_{}.pt'.format(epoch))
         torch.save(model.state_dict(), model_path)
         model_id = tuple(kwargs[metric.name] for metric in self.metrics.values()) \
-                   + (epoch,len(self.models))
+            + (epoch, len(self.models))
         self.models[model_id] = model_path
 
     def select_best(self):
@@ -80,7 +80,7 @@ class PytorchModelSelection(object):
 
         logger.info('Using last model {}'.format(model_number))
         self.selected_model = model_number
-        # TODO: is "last_model_key" right?
+
         return self.models[last_model_key], last_model_key
 
     def _get_sort_key(self, x):

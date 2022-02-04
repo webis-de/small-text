@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from sklearn.base import BaseEstimator
+from sklearn.base import clone
 
 from small_text.classifiers.classification import SklearnClassifier
 
@@ -13,15 +14,17 @@ class AbstractClassifierFactory(ABC):
 
 class SklearnClassifierFactory(AbstractClassifierFactory):
 
-    def __init__(self, clf_template, kwargs={}):
-        if not issubclass(type(clf_template), BaseEstimator):
-            raise ValueError('Given classifier template must be a subclass of '
-                             'sklearn.base.BaseEstimator. Encountered class was: {}.'.format(
-                str(clf_template.__class__)
-            ))
+    def __init__(self, base_estimator, num_classes, kwargs={}):
+        if not issubclass(type(base_estimator), BaseEstimator):
+            raise ValueError(
+                'Given classifier template must be a subclass of '
+                'sklearn.base.BaseEstimator. Encountered class was: {}.'
+                .format(str(base_estimator.__class__))
+            )
 
-        self.base_estimator_class = clf_template.__class__
+        self.base_estimator = base_estimator
+        self.num_classes = num_classes
         self.kwargs = kwargs
 
     def new(self):
-        return SklearnClassifier(self.base_estimator_class(**self.kwargs))
+        return SklearnClassifier(clone(self.base_estimator), self.num_classes, **self.kwargs)

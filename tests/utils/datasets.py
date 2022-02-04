@@ -5,6 +5,7 @@ from scipy import sparse
 from sklearn.datasets import fetch_20newsgroups
 
 from small_text.data.datasets import SklearnDataset
+from small_text.data.sampling import _get_class_histogram
 
 try:
     import torch
@@ -12,29 +13,55 @@ try:
 
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.transformers.datasets import TransformersDataset
-except ImportError as e:
+except ImportError:
     pass
 
 try:
     from transformers import AutoTokenizer
-except ImportError as e:
+except ImportError:
     pass
 
 
-def random_matrix_data(matrix_type, num_samples=100, num_dimension=40, num_labels=2):
+def random_matrix_data(matrix_type, label_type, num_samples=100, num_dimension=40, num_labels=2):
     if matrix_type == 'dense':
         x = np.random.rand(num_samples, num_dimension)
-    else:
+    elif matrix_type == 'sparse':
         x = sparse.random(num_samples, num_dimension, density=0.15, format='csr')
+    else:
+        raise ValueError(f'Invalid matrix_type: {matrix_type}')
 
-    y = np.random.randint(0, high=num_labels, size=x.shape[0])
+    if label_type == 'dense':
+        y = np.random.randint(0, high=num_labels, size=x.shape[0])
+    elif label_type == 'sparse':
+        y = sparse.random(num_samples, num_labels, density=0.5, format='csr')
+        y.data[np.s_[:]] = 1
+        y = y.astype(int)
+    else:
+        raise ValueError(f'Invalid label_type: {label_type}')
+
     return x, y
 
 
-def random_sklearn_dataset(num_samples, vocab_size=60, num_classes=2):
+def random_labels(num_classes, multi_label=False):
+    label_values = np.arange(num_classes)
+    if multi_label:
+        num_labels = np.random.randint(num_classes)
+        label = np.random.choice(label_values, num_labels, replace=False)
+    else:
+        label = np.random.randint(num_classes)
+    return label
+
+
+def random_sklearn_dataset(num_samples, vocab_size=60, num_classes=2, multi_label=False):
 
     x = sparse.random(num_samples, vocab_size, density=0.15, format='csr')
-    y = np.random.randint(0, high=num_classes, size=x.shape[0])
+
+    if multi_label:
+        y = sparse.random(num_samples, num_classes, density=0.5, format='csr')
+        y.data[np.s_[:]] = 1
+        y = y.astype(int)
+    else:
+        y = np.random.randint(0, high=num_classes, size=x.shape[0])
 
     return SklearnDataset(x, y)
 
@@ -78,49 +105,88 @@ def _dataset_to_text_classification_dataset(dataset):
     return PytorchTextClassificationDataset(data, vocab)
 
 
-def random_text_classification_dataset(num_samples, max_length=60, num_classes=2,
-                                       device='cpu', dtype=torch.long):
+def random_text_classification_dataset(num_samples=10, max_length=60, num_classes=2,
+                                       multi_label=False, vocab_size=10,
+                                       device='cpu', target_labels='inferred', dtype=torch.long):
 
-    vocab = Vocab(Counter(['test', 'features']))
-    vocab_size = len(vocab)
+    if target_labels not in ['explicit', 'inferred']:
+        raise ValueError(f'Invalid test parameter value for target_labels: {str(target_labels)}')
+    if num_classes > num_samples:
+        raise ValueError('When num_classes is greater than num_samples the occurrence of each '
+                         'class cannot be guaranteed')
+
+    vocab = Vocab(Counter([f'word_{i}' for i in range(vocab_size)]))
+
+    if multi_label:
+        data = [(torch.randint(vocab_size, (max_length,), dtype=dtype, device=device),
+                 np.sort(random_labels(num_classes, multi_label)))
+                for _ in range(num_samples)]
+    else:
+        data = [
+            (torch.randint(10, (max_length,), dtype=dtype, device=device),
+             random_labels(num_classes, multi_label))
+            for _ in range(num_samples)]
+
+    data = assure_all_labels_occur(data, num_classes, multi_label=multi_label)
+
+    target_labels = None if target_labels == 'inferred' else np.arange(num_classes)
+    return PytorchTextClassificationDataset(data, vocab, multi_label=multi_label,
+                                            target_labels=target_labels)
+
+
+def assure_all_labels_occur(data, num_classes, multi_label=False):
+    """Enforces that all labels occur in the data."""
+    label_list = [labels for *_, labels in data
+                  if isinstance(labels, int) or len(labels) > 0]
+    if len(label_list) == 0:
+        return data
+
+    if not np.all([isinstance(element, int) for element in label_list]):
+        all_labels = np.concatenate(label_list, dtype=int)
+        all_labels = all_labels.flatten()
+    else:
+        all_labels = np.array(label_list)
+
+    hist = _get_class_histogram(all_labels, num_classes)
+    missing_labels = np.arange(hist.shape[0])[hist == 0]
+
+    for i, label_idx in enumerate(missing_labels):
+        if multi_label:
+            data[i] = data[i][:-1] + (np.sort(np.array(data[i][-1] + label_idx)),)
+        else:
+            data[i] = data[i][:-1] + (label_idx,)
+
+    return data
+
+
+def random_transformer_dataset(num_samples, max_length=60, num_classes=2, multi_label=False,
+                               num_tokens=1000, target_labels='inferred', dtype=torch.long):
+
+    if target_labels not in ['explicit', 'inferred']:
+        raise ValueError(f'Invalid test parameter value for target_labels: {str(target_labels)}')
 
     data = []
     for i in range(num_samples):
         sample_length = np.random.randint(1, max_length)
         text = torch.cat([
-            torch.randint(vocab_size, (sample_length,), dtype=dtype, device=device) + 1,
-            torch.tensor([0] * (max_length - sample_length), dtype=dtype, device=device)
-        ])
-        label = np.random.randint(num_classes)
-
-        data.append((text, label))
-
-    return PytorchTextClassificationDataset(data, vocab)
-
-
-def random_transformer_dataset(num_samples, max_length=60, num_classes=2, num_tokens=1000,
-                               infer_labels=False):
-    data = []
-    for i in range(num_samples):
-        sample_length = np.random.randint(1, max_length)
-        text = torch.cat([
-            torch.randint(num_tokens, (sample_length,), dtype=torch.int) + 1,
-            torch.tensor([0] * (max_length - sample_length), dtype=torch.int)
-        ])
+            torch.randint(num_tokens, (sample_length,), dtype=dtype) + 1,
+            torch.tensor([0] * (max_length - sample_length), dtype=dtype)
+        ]).unsqueeze(0)
         mask = torch.cat([
-            torch.tensor([1] * sample_length, dtype=torch.int),
-            torch.tensor([0] * (max_length - sample_length), dtype=torch.int)
-        ])
-        label = np.random.randint(num_classes)
+            torch.tensor([1] * sample_length, dtype=dtype),
+            torch.tensor([0] * (max_length - sample_length), dtype=dtype)
+        ]).unsqueeze(0)
+        if multi_label:
+            labels = np.sort(random_labels(num_classes, multi_label))
+        else:
+            labels = random_labels(num_classes, multi_label)
 
-        data.append((text, mask, label))
+        data.append((text, mask, labels))
 
-    y = [d[TransformersDataset.INDEX_LABEL] if d[TransformersDataset.INDEX_LABEL] is not None
-         else TransformersDataset.NO_LABEL
-         for d in data]
-    target_labels = None if infer_labels else np.unique(y)
+    data = assure_all_labels_occur(data, num_classes)
 
-    return TransformersDataset(data, target_labels=target_labels)
+    target_labels = None if target_labels == 'inferred' else np.arange(num_classes)
+    return TransformersDataset(data, multi_label=multi_label, target_labels=target_labels)
 
 
 def twenty_news_transformers(n, num_labels=10, subset='train', device='cpu'):

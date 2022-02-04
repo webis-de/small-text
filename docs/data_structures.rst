@@ -2,9 +2,10 @@
 Data Structures
 ===============
 
+
 In order to make the integrated libraries and all extensions accessible in the same way,
-classifiers (and more specialized query strategies as well) rely on dataset abstractions based on
-the interface :py:class:`~small_text.data.datasets.Dataset`.
+classifiers and query strategies rely on dataset abstractions based on
+the :py:class:`~small_text.data.datasets.Dataset` interface.
 
 Basic Data Structures
 =====================

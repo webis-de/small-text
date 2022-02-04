@@ -28,8 +28,23 @@ Pytorch
 * :py:class:`BADGE`
 
 
+Helpers
+=======
+
+Constraints
+-----------
+
+.. testcode::
+
+    from small_text.query_strategies import constraints, QueryStrategy
+
+    @constraints(classification_type='single-label')
+    class MyQueryStrategy(QueryStrategy):
+        pass
+
+
 Classes
--------
+=======
 
 .. py:module:: small_text.query_strategies
 

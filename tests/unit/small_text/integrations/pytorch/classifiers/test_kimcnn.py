@@ -1,6 +1,5 @@
 import unittest
 import pytest
-import warnings
 
 import numpy as np
 from unittest.mock import patch
@@ -8,17 +7,24 @@ from unittest.mock import patch
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
+    import torch
     from torch.nn.modules import BCEWithLogitsLoss
 
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
-    from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset, PytorchDatasetView
+    from small_text.integrations.pytorch.datasets import PytorchDatasetView
+    from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from tests.utils.datasets import random_text_classification_dataset
 except PytorchNotFoundError:
     pass
 
 
 @pytest.mark.pytorch
-class KimCNNInitTest(unittest.TestCase):
+class KimCNNTest(unittest.TestCase):
+
+    def _get_clf(self, num_classes=2):
+        embedding_matrix = torch.rand(10, 20)
+        return KimCNNClassifier(num_classes, embedding_matrix=embedding_matrix, num_epochs=2, out_channels=15,
+                                max_seq_len=20, kernel_heights=[2, 3], device='cpu')
 
     def test_init_default_parameters(self):
         num_classes = 2
@@ -26,6 +32,7 @@ class KimCNNInitTest(unittest.TestCase):
         classifier = KimCNNClassifier(num_classes, embedding_matrix=embedding_matrix)
 
         self.assertEqual(num_classes, classifier.num_classes)
+        self.assertFalse(classifier.multi_label)
         self.assertIsNotNone(classifier.device)
         self.assertEqual(10, classifier.num_epochs)
         self.assertEqual(25, classifier.mini_batch_size)
@@ -45,6 +52,7 @@ class KimCNNInitTest(unittest.TestCase):
 
     def test_init_parameters(self):
         num_classes = 2
+        multi_label = True
         device = 'cpu'
         num_epochs = 5
         mini_batch_size = 30
@@ -57,8 +65,8 @@ class KimCNNInitTest(unittest.TestCase):
         early_stopping = 10
         early_stopping_acc = 0.95
 
-        classifier = KimCNNClassifier(num_classes, device='cpu', num_epochs=num_epochs,
-                                      mini_batch_size=mini_batch_size,
+        classifier = KimCNNClassifier(num_classes, multi_label=multi_label, device='cpu',
+                                      num_epochs=num_epochs, mini_batch_size=mini_batch_size,
                                       max_seq_len=max_seq_len, out_channels=out_channels,
                                       dropout=dropout, validation_set_size=validation_set_size,
                                       embedding_matrix=embedding_matrix, padding_idx=padding_idx,
@@ -66,6 +74,7 @@ class KimCNNInitTest(unittest.TestCase):
                                       early_stopping_acc=early_stopping_acc)
 
         self.assertEqual(num_classes, classifier.num_classes)
+        self.assertEqual(multi_label, classifier.multi_label)
         self.assertEqual(device, classifier.device)
         self.assertEqual(num_epochs, classifier.num_epochs)
         self.assertEqual(mini_batch_size, classifier.mini_batch_size)
@@ -102,37 +111,9 @@ class KimCNNInitTest(unittest.TestCase):
                              padding_idx=padding_idx, early_stopping=early_stopping,
                              early_stopping_acc=early_stopping_acc)
 
-    def test_init_with_non_default_criterion_and_class_weighting(self):
-
-        num_classes = 2
-        embedding_matrix = np.random.rand(5, 10)
-        criterion = BCEWithLogitsLoss()
-
-        with warnings.catch_warnings(record=True) as w:
-            KimCNNClassifier(num_classes, embedding_matrix=embedding_matrix, device='cpu',
-                             criterion=criterion, class_weight='balanced')
-
-            self.assertEqual(1, len(w))
-            self.assertTrue(issubclass(w[0].category, RuntimeWarning))
-
-    @pytest.mark.skip(reason='should probably be removed')
-    def test_fit_where_labels_is_none(self):
-
-        dataset = random_text_classification_dataset(10)
-        dataset.y = [None] * 10
-
-        embedding_matrix = np.random.rand(5, 10)
-        classifier = KimCNNClassifier(device='cpu', embedding_matrix=embedding_matrix)
-
-        with self.assertRaises(ValueError):
-            classifier.fit(dataset)
-
     def test_fit_without_validation_set(self):
         dataset = random_text_classification_dataset(10)
-
-        num_classes = 2
-        embedding_matrix = np.random.rand(5, 10)
-        classifier = KimCNNClassifier(num_classes, device='cpu', embedding_matrix=embedding_matrix)
+        classifier = self._get_clf()
 
         with patch.object(classifier, '_fit_main') as fit_main_mock:
             classifier.fit(dataset)
@@ -148,9 +129,7 @@ class KimCNNInitTest(unittest.TestCase):
         train = random_text_classification_dataset(8)
         valid = random_text_classification_dataset(2)
 
-        num_classes = 2
-        embedding_matrix = np.random.rand(5, 10)
-        classifier = KimCNNClassifier(num_classes, device='cpu', embedding_matrix=embedding_matrix)
+        classifier = self._get_clf()
 
         with patch.object(classifier, '_fit_main') as fit_main_mock:
             classifier.fit(train, validation_set=valid)
@@ -163,14 +142,57 @@ class KimCNNInitTest(unittest.TestCase):
             self.assertEqual(len(train), len(call_args[0]))
             self.assertEqual(len(valid), len(call_args[1]))
 
-    @pytest.mark.skip(reason='should probably be removed')
-    def test_fit_with_validation_set_but_missing_labels(self):
-        train = random_text_classification_dataset(8)
-        valid = random_text_classification_dataset(2)
-        valid.y = [None] * len(valid)
+    def test_fit_where_y_train_is_negative(self):
+        train_set = random_text_classification_dataset(10)
+        train_set.y = [-1] * 10
 
-        embedding_matrix = np.random.rand(5, 10)
-        classifier = KimCNNClassifier(device='cpu', embedding_matrix=embedding_matrix)
+        classifier = self._get_clf()
 
-        with self.assertRaises(ValueError):
-            classifier.fit(train, validation_set=valid)
+        with self.assertRaisesRegex(ValueError, 'Training set labels must be labeled'):
+            classifier.fit(train_set)
+
+    def test_fit_where_y_valid_is_negative(self):
+        train_set = random_text_classification_dataset(8)
+        validation_set = random_text_classification_dataset(8)
+        validation_set.y = [-1] * 8
+
+        classifier = self._get_clf()
+
+        with self.assertRaisesRegex(ValueError, 'Validation set labels must be labeled'):
+            classifier.fit(train_set, validation_set=validation_set)
+
+    def test_fit_with_label_information_mismatch(self):
+        num_classes_configured = 3
+        num_classes_to_be_encountered = 2
+
+        train_set = random_text_classification_dataset(8, num_classes=num_classes_to_be_encountered)
+        validation_set = random_text_classification_dataset(2, num_classes=num_classes_to_be_encountered)
+
+        classifier = self._get_clf(num_classes=num_classes_configured)
+
+        with self.assertRaisesRegex(ValueError,
+                                    'Conflicting information about the number of classes: '
+                                    'expected: 3, encountered: 2'):
+            classifier.fit(train_set, validation_set=validation_set)
+
+    def test_predict_on_empty_data(self):
+        train_set = random_text_classification_dataset(10)
+        test_set = PytorchTextClassificationDataset(np.array([]), None)
+
+        clf = self._get_clf()
+        clf.fit(train_set)
+
+        predictions = clf.predict(test_set)
+        self.assertEqual(0, predictions.shape[0])
+        self.assertTrue(np.issubdtype(predictions.dtype, np.integer))
+
+    def test_predict_proba_on_empty_data(self):
+        train_set = random_text_classification_dataset(10)
+        test_set = PytorchTextClassificationDataset(np.array([]), None)
+
+        clf = self._get_clf()
+        clf.fit(train_set)
+
+        proba = clf.predict_proba(test_set)
+        self.assertEqual(0, proba.shape[0])
+        self.assertTrue(np.issubdtype(proba.dtype, np.float))

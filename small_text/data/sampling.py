@@ -1,14 +1,51 @@
 import numpy as np
 
+from scipy.sparse import csr_matrix
+from sklearn.preprocessing import LabelEncoder
 
-def stratified_sampling(y, n_samples=10):
+
+def multilabel_stratified_subsets_sampling(y, n_samples=10):
+    """Provides stratified sampling for multi-label data using the subsets sampling
+    approach [STV11]_.
+
+    Parameters
+    ----------
+    y : scipy.sparse.csr_matrix
+        List of labels.
+
+    Returns
+    -------
+    indices : numpy.ndarray
+        Indices of the stratified subset.
+
+    References
+    ----------
+    .. [STV11] Konstantinos Sechidis, Grigorios Tsoumakas, and Ioannis Vlahavas.
+       On the stratification of multi-label data.
+       In: Proceedings of the 2011 European Conference on Machine Learning and Knowledge Discovery
+          in Databases - Volume Part III (ECML PKDD'11).
+       Springer-Verlag, Berlin, Heidelberg, 145--158.
+    """
+    y = y.toarray()
+    y = np.apply_along_axis(np.array2string, 1, y)
+
+    le = LabelEncoder()
+    y_labelsets = le.fit_transform(y)
+
+    return stratified_sampling(y_labelsets, n_samples=n_samples)
+
+
+def stratified_sampling(y, n_samples=10, enforce_min_occurrence=True):
     """
     Performs a stratified random sampling.
 
     Parameters
     ----------
-    y : list of int or numpy.ndarray
+    y : numpy.ndarray or scipy.sparse.csr_matrix
         List of labels.
+    n_samples : int
+        Number of indices to sample.
+    enforce_min_occurrence : bool
 
     Returns
     -------
@@ -19,15 +56,34 @@ def stratified_sampling(y, n_samples=10):
     -----
     Only useful for experimental simulations (Requires label knowledge).
     """
+    # TODO: prevent other types? warn?
+    # if not isinstance(y, np.ndarray):
+    #    y = np.array(y)
     _assert_sample_size(y, n_samples)
-    if not isinstance(y, np.ndarray):
-        y = np.array(y)
 
     # num classes according to the labels
     num_classes = np.max(y) + 1
 
     counts = _get_class_histogram(y, num_classes)
     expected_samples_per_class = np.floor(counts * (float(n_samples) / counts.sum())).astype(int)
+
+    if enforce_min_occurrence and expected_samples_per_class.min() == 0:
+        if n_samples > num_classes and np.unique(y).shape[0] == num_classes:  # feasibility check
+            expected_samples_per_class += 1
+
+            num_excessive_samples = expected_samples_per_class.sum() - n_samples
+            class_indices = np.arange(counts.shape[0])[expected_samples_per_class > 1]
+            round_robin_index = 0
+            for i in range(num_excessive_samples):
+
+                while expected_samples_per_class[class_indices[round_robin_index]] <= 1:
+                    round_robin_index += 1
+                    round_robin_index %= class_indices.shape[0]
+
+                expected_samples_per_class[class_indices[round_robin_index]] -= 1
+
+                class_indices = np.arange(counts.shape[0])[expected_samples_per_class > 1]
+                assert expected_samples_per_class[class_indices].sum() > 0
 
     return _random_sampling(n_samples, num_classes, expected_samples_per_class, counts, y)
 
@@ -36,7 +92,7 @@ def balanced_sampling(y, n_samples=10):
     """
     Performs a class-balanced random sampling.
 
-    If `n_samples` is not divisble by the number of classes, a number of samples equal to the
+    If `n_samples` is not divisible by the number of classes, a number of samples equal to the
     remainder will be sampled randomly among the classes.
 
     Parameters
@@ -111,7 +167,10 @@ def _random_sampling(n_samples, num_classes, expected_samples_per_class, counts,
 
 
 def _get_class_histogram(y, num_classes, normalize=False):
-    ind, counts = np.unique(y, return_counts=True)
+    if isinstance(y, csr_matrix):
+        ind, counts = np.unique(y.indices, return_counts=True)
+    else:
+        ind, counts = np.unique(y, return_counts=True)
     ind = set(ind)
 
     histogram = np.zeros(num_classes)

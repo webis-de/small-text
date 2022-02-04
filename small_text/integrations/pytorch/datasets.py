@@ -1,9 +1,10 @@
 import numpy as np
 
+from small_text.base import LABEL_UNLABELED
 from small_text.data import Dataset, DatasetView
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-
+from small_text.utils.labels import list_to_csr
 
 try:
     import torch
@@ -54,13 +55,17 @@ class PytorchDatasetView(DatasetView):
         raise UnsupportedOperationException('Cannot set x on a DatasetView')
 
     @property
+    def is_multi_label(self):
+        return self._dataset.is_multi_label
+
+    @property
     def data(self):
         selection = self.selection
         if isinstance(self.selection, slice):
             indices = np.arange(len(self._dataset))
             selection = indices[self.selection]
         elif isinstance(self.selection, int):
-            selection [self.selection]
+            selection = [self.selection]
         return [self._dataset.data[i] for i in selection]
 
     @property
@@ -86,9 +91,7 @@ class PytorchTextClassificationDataset(PytorchDataset):
     INDEX_TEXT = 0
     INDEX_LABEL = 1
 
-    NO_LABEL = -1
-
-    def __init__(self, data, vocab, target_labels=None, device=None):
+    def __init__(self, data, vocab, multi_label=False, target_labels=None, device=None):
         """
         Parameters
         ----------
@@ -97,8 +100,10 @@ class PytorchTextClassificationDataset(PytorchDataset):
         vocab : torchtext.vocab.vocab
             Vocabulary object.
         """
+        # TODO: assert label indices are sorted
         self._data = data
         self._vocab = vocab
+        self.multi_label = multi_label
 
         self._target_labels = None
         if target_labels is not None:
@@ -116,7 +121,14 @@ class PytorchTextClassificationDataset(PytorchDataset):
         super().__init__(device=device)
 
     def _infer_target_labels(self):
-        inferred_target_labels = np.unique([d[self.INDEX_LABEL] for d in self._data])
+        if self.multi_label:
+            # TODO: test "and len(d[self.INDEX_LABEL]) > 0"
+            inferred_target_labels = np.concatenate([d[self.INDEX_LABEL] for d in self._data
+                                                     if d[self.INDEX_LABEL] is not None
+                                                     and len(d[self.INDEX_LABEL]) > 0])
+            inferred_target_labels = np.unique(inferred_target_labels)
+        else:
+            inferred_target_labels = np.unique([d[self.INDEX_LABEL] for d in self._data])
         self.target_labels = inferred_target_labels
 
     @property
@@ -130,15 +142,24 @@ class PytorchTextClassificationDataset(PytorchDataset):
 
     @property
     def y(self):
-        # TODO: document that None is mapped to -1
-        return np.array([d[self.INDEX_LABEL] if d[self.INDEX_LABEL] is not None else self.NO_LABEL
-                         for d in self._data], dtype=int)
+        if self.multi_label:
+            label_list = [d[self.INDEX_LABEL] if d[self.INDEX_LABEL] is not None else []
+                          for d in self._data]
+            return list_to_csr(label_list, shape=(len(self.data), len(self.target_labels)))
+        else:
+            # TODO: document that None is mapped to -1
+            return np.array([d[self.INDEX_LABEL] if d[self.INDEX_LABEL] is not None else LABEL_UNLABELED
+                             for d in self._data], dtype=int)
 
     @y.setter
     def y(self, y):
         # TODO: check same length
-        for i, _y in enumerate(y):
-            self._data[i] = (self._data[i][self.INDEX_TEXT], _y)
+        if self.multi_label:
+            for i, p in enumerate(range(y.indptr.shape[0])):
+                self._data[i] = (self._data[i][self.INDEX_TEXT], y.indices[p:(p+1)])
+        else:
+            for i, _y in enumerate(y):
+                self._data[i] = (self._data[i][self.INDEX_TEXT], _y)
         self._infer_target_labels()
 
     @property
@@ -164,12 +185,16 @@ class PytorchTextClassificationDataset(PytorchDataset):
         return self._vocab
 
     @property
+    def is_multi_label(self):
+        return self.multi_label
+
+    @property
     def target_labels(self):
         return self._target_labels
 
     @target_labels.setter
     def target_labels(self, target_labels):
-        # TODO: how to handle existing labels that outside this set
+        # TODO: how to handle existing labels that are outside of this set
         self._target_labels = target_labels
 
     def to(self, other, non_blocking=False, copy=False):

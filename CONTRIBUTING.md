@@ -6,7 +6,7 @@
 
 ## Development
 
-### Conventions
+### Code Conventions
 
 1. Code style should adhere to the [.flake8 config](.flake8) (except in justified cases).
 
@@ -24,10 +24,27 @@ cd docs/
 make
 ```
 
+
+## Documentation Conventions
+
+### Spellings
+
+- multi-label instead of multi label (analogous: multi-class)
+- dataset instead of data set (but: train set, test set)
+
+
+## Release Checklist
+
+### Raising the Version
+
+- small_text/version.json
+- README.md
+  - Documentation Badge should link to the version of the latest release
+
 ## Contributors
 
 Thanks goes to...
 
-- Erik Körner (@Querela), for the help with packaging and CI.
+- Erik Körner ([@Querela](https://github.com/querela)), for the help with packaging and CI.
 
 And to the many testers who gave their feedback.

@@ -1,7 +1,10 @@
 import numpy as np
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.query_strategies import QueryStrategy, EmbeddingBasedQueryStrategy
+from small_text.query_strategies import (
+    constraints,
+    QueryStrategy,
+    EmbeddingBasedQueryStrategy)
 from small_text.utils.clustering import init_kmeans_plusplus_safe
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import list_length
@@ -17,6 +20,7 @@ except ImportError as e:
     raise PytorchNotFoundError('Could not import pytorch')
 
 
+@constraints(classification_type='single-label')
 class ExpectedGradientLength(QueryStrategy):
     """Selects instances by expected gradient length [Set07]_.
 
@@ -127,10 +131,11 @@ class ExpectedGradientLength(QueryStrategy):
         return 'ExpectedGradientLength()'
 
 
+@constraints(classification_type='single-label')
 class ExpectedGradientLengthMaxWord(ExpectedGradientLength):
-    """Selects instances using the EGL-word model [ZLW17]_.
+    """Selects instances using the EGL-word strategy [ZLW17]_.
 
-    The EGL-word model works as follows:
+    The EGL-word strategy works as follows:
 
     1. For every instance and class the gradient norm is computed per word.
        The score for each (instance, class) pair is the norm of the word with the
@@ -231,6 +236,7 @@ class ExpectedGradientLengthMaxWord(ExpectedGradientLength):
         return 'ExpectedGradientLengthMaxWord()'
 
 
+@constraints(classification_type='single-label')
 class ExpectedGradientLengthLayer(ExpectedGradientLength):
 
     def __init__(self, num_classes, layer_name, batch_size=50):
@@ -254,6 +260,7 @@ class ExpectedGradientLengthLayer(ExpectedGradientLength):
         return 'ExpectedGradientLengthLayer()'
 
 
+@constraints(classification_type='single-label')
 class BADGE(EmbeddingBasedQueryStrategy):
     """
     Implements "Batch Active learning by Diverse Gradient Embedding" (BADGE) _[AZK20].

@@ -2,3 +2,15 @@
 exclude = .git,build,dist,docs/conf.py
 max-complexity = 10
 max-line-length = 120
+per-file-ignores =
+    small_text/classifiers/__init__.py:F401
+    small_text/data/__init__.py:F401
+    small_text/initialization/__init__.py:F401
+    small_text/integrations/__init__.py:F401
+    small_text/integrations/pytorch/__init__.py:F401
+    small_text/integrations/pytorch/query_strategies/__init__.py:F401
+    small_text/integrations/transformers/__init__.py:F401
+    small_text/integrations/transformers/classifiers/__init__.py:F401
+    small_text/query_strategies/__init__.py:F401
+    small_text/stopping_criteria/__init__.py:F401
+    small_text/__init__.py:F401

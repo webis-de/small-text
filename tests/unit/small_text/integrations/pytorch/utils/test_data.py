@@ -4,6 +4,8 @@ import numpy as np
 import pytest
 import torch
 
+from numpy.testing import assert_array_almost_equal
+from scipy.sparse import csr_matrix
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
@@ -40,11 +42,27 @@ class DataloaderTest(unittest.TestCase):
 class ClassWeightsTest(unittest.TestCase):
 
     def test_get_class_weights_binary(self):
-        y = [0, 1, 1, 1, 1]
+        y = np.array([0, 1, 1, 1, 1])
         class_weights = get_class_weights(y, 2)
         self.assertTrue(torch.equal(torch.tensor([4., 1.0]), class_weights))
 
     def test_get_class_weights_multiclass(self):
-        y = [0, 1, 1, 1, 1, 2, 3, 3]
+        y = np.array([0, 1, 1, 1, 1, 2, 3, 3])
         class_weights = get_class_weights(y, 4)
         self.assertTrue(torch.equal(torch.tensor([7.0, 1.0, 7.0, 3.0]), class_weights))
+
+    def test_get_class_weights_multi_label(self):
+        num_classes = 4
+
+        y = np.array([[1, 0, 1, 0],
+                      [1, 1, 0, 0],
+                      [0, 1, 1, 0],
+                      [0, 1, 0, 0],
+                      [1, 1, 0, 0],
+                      [0, 0, 1, 0],
+                      [0, 1, 1, 1],
+                      [1, 1, 0, 1]])
+        y = csr_matrix(y, shape=(y.shape[0], num_classes))
+
+        class_weights = get_class_weights(y, num_classes)
+        assert_array_almost_equal(np.array([3.0, 10/6, 3.0, 7.0]), class_weights.cpu().numpy())

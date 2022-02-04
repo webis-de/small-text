@@ -15,7 +15,6 @@ from small_text.integrations.transformers import TransformersDataset
 from tests.utils.object_factory import get_initialized_active_learner
 
 try:
-    import torch
     from small_text.integrations.transformers import TransformerModelArguments
     from small_text.integrations.transformers.classifiers import TransformerBasedClassificationFactory
     from tests.utils.datasets import twenty_news_transformers
@@ -45,7 +44,7 @@ class SerializationTest(unittest.TestCase):
             ind = active_learner.query(num_samples=5)
 
             self.assertTrue(next(active_learner.classifier.model.parameters()).is_cuda)
- 
+
             active_learner.update(np.random.randint(2, size=5))
             weights_before = list(active_learner.classifier.model.parameters())
 

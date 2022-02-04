@@ -6,7 +6,11 @@ from parameterized import parameterized_class
 from unittest import mock
 
 from numpy.testing import assert_array_equal
+from scipy.sparse import csr_matrix
 
+from small_text.base import LABEL_UNLABELED
+
+from small_text.data.datasets import is_multi_label
 from small_text.data.datasets import SklearnDataset, DatasetView
 from small_text.data.datasets import split_data
 from small_text.data.exceptions import UnsupportedOperationException
@@ -14,22 +18,41 @@ from small_text.data import balanced_sampling, stratified_sampling
 
 from tests.utils.datasets import random_matrix_data
 from tests.utils.testing import assert_array_not_equal
+from tests.utils.testing import assert_labels_equal
 
 
-@parameterized_class([{'matrix_type': 'sparse', 'target_labels': 'explicit'},
-                      {'matrix_type': 'sparse', 'target_labels': 'inferred'},
-                      {'matrix_type': 'dense', 'target_labels': 'explicit'},
-                      {'matrix_type': 'dense', 'target_labels': 'inferred'}])
+class IsMultiLabelTest(unittest.TestCase):
+
+    def test_is_multi_label_csr(self):
+        _, y = random_matrix_data('dense', 'sparse', num_samples=10)
+        self.assertTrue(is_multi_label(y))
+
+    def test_is_multi_label_ndarray(self):
+        _, y = random_matrix_data('dense', 'dense', num_samples=10)
+        self.assertFalse(is_multi_label(y))
+
+
+@parameterized_class([{'matrix_type': 'sparse', 'labels_type': 'dense', 'target_labels': 'explicit'},
+                      {'matrix_type': 'sparse', 'labels_type': 'sparse', 'target_labels': 'explicit'},
+                      {'matrix_type': 'sparse', 'labels_type': 'dense', 'target_labels': 'inferred'},
+                      {'matrix_type': 'sparse', 'labels_type': 'sparse', 'target_labels': 'inferred'},
+                      {'matrix_type': 'dense', 'labels_type': 'dense', 'target_labels': 'explicit'},
+                      {'matrix_type': 'dense', 'labels_type': 'sparse', 'target_labels': 'explicit'},
+                      {'matrix_type': 'dense', 'labels_type': 'dense', 'target_labels': 'inferred'},
+                      {'matrix_type': 'dense', 'labels_type': 'sparse', 'target_labels': 'inferred'}])
 class SklearnDatasetTest(unittest.TestCase):
 
     NUM_SAMPLES = 100
 
     def _dataset(self, num_samples=100, return_data=False):
-        x, y = random_matrix_data(self.matrix_type, num_samples=num_samples)
+        x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=num_samples)
         if self.target_labels not in ['explicit', 'inferred']:
             raise ValueError('Invalid test parameter value for target_labels:' + self.target_labels)
 
-        target_labels = None if self.target_labels == 'inferred' else np.unique(y)
+        if self.labels_type == 'sparse':
+            target_labels = None if self.target_labels == 'inferred' else np.unique(y.indices)
+        else:
+            target_labels = None if self.target_labels == 'inferred' else np.unique(y)
         dataset = SklearnDataset(x, y, target_labels=target_labels)
 
         if return_data:
@@ -37,18 +60,31 @@ class SklearnDatasetTest(unittest.TestCase):
         else:
             return dataset
 
-    def test_init_when_some_labels_are_none(self):
+    def test_init(self):
+        ds, x, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
 
-        x, y = random_matrix_data(self.matrix_type, num_samples=self.NUM_SAMPLES)
+        if self.labels_type == 'sparse':
+            self.assertTrue(ds.is_multi_label)
+        else:
+            self.assertFalse(ds.is_multi_label)
 
-        y = y.tolist()
-        y[0:10] = [None] * 10
-        y = np.array(y)
+    def test_init_when_some_samples_are_unlabeled(self):
+
+        x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=self.NUM_SAMPLES)
+
+        if self.labels_type == 'sparse':
+            y_data_new = y.data
+            y_data_new[0:10] = [LABEL_UNLABELED] * 10
+            y = csr_matrix((y_data_new, y.indices, y.indptr))
+        else:
+            y[0:10] = [LABEL_UNLABELED] * 10
 
         if self.target_labels not in ['explicit', 'inferred']:
             raise ValueError('Invalid test parameter value for target_labels:' + self.target_labels)
 
         target_labels = np.array([0, 1]) if self.target_labels == 'inferred' else np.unique(y[10:])
+
+        # passes when no exeption is raised here
         SklearnDataset(x, y, target_labels=target_labels)
 
     def test_get_features(self):
@@ -79,16 +115,25 @@ class SklearnDatasetTest(unittest.TestCase):
 
     def test_get_labels(self):
         ds, _, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
-        assert_array_equal(y, ds.y)
+        assert_labels_equal(y, ds.y)
 
     def test_set_labels(self):
         ds, _, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
         ds_new, _, y_new = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
-        self.assertFalse((y == y_new).all())
+        if self.labels_type == 'sparse':
+            self.assertFalse(np.all(y == y_new.data))
+        else:
+            self.assertFalse((y == y_new).all())
 
         ds.y = ds_new.y
+        assert_labels_equal(y_new, ds.y)
 
-        assert_array_equal(y_new, ds.y)
+    def test_is_multi_label(self):
+        ds = self._dataset(num_samples=self.NUM_SAMPLES)
+        if self.labels_type == 'sparse':
+            self.assertTrue(ds.is_multi_label)
+        else:
+            self.assertFalse(ds.is_multi_label)
 
     def test_get_target_labels(self):
         ds = self._dataset(num_samples=self.NUM_SAMPLES)
@@ -213,13 +258,20 @@ class _DatasetViewTest(object):
         dataset = self._dataset()
         selection = np.random.randint(0, high=len(dataset), size=subset_size)
         dataset_view = DatasetView(dataset, selection)
-        assert_array_equal(dataset.y[selection], dataset_view.y)
+        assert_labels_equal(dataset.y[selection], dataset_view.y)
 
     def test_set_y(self, subset_size=10, num_labels=2):
         dataset = self._dataset()
         dataset_view = DatasetView(dataset, np.s_[0:subset_size])
         with self.assertRaises(UnsupportedOperationException):
             dataset_view.y = np.random.randint(0, high=num_labels, size=subset_size)
+
+    def test_is_multi_label(self):
+        ds = self._dataset()
+        if self.labels_type == 'sparse':
+            self.assertTrue(ds.is_multi_label)
+        else:
+            self.assertFalse(ds.is_multi_label)
 
     def test_get_target_labels(self, subset_size=10):
         dataset = self._dataset()
@@ -234,8 +286,10 @@ class _DatasetViewTest(object):
             dataset_view.target_labels = np.array([0])
 
 
-@parameterized_class([{'matrix_type': 'sparse'},
-                      {'matrix_type': 'dense'}])
+@parameterized_class([{'matrix_type': 'sparse', 'labels_type': 'dense'},
+                      {'matrix_type': 'sparse', 'labels_type': 'sparse'},
+                      {'matrix_type': 'dense', 'labels_type': 'dense'},
+                      {'matrix_type': 'dense', 'labels_type': 'sparse'}])
 class DatasetViewTest(unittest.TestCase, _DatasetViewTest):
 
     # https://github.com/wolever/parameterized/issues/119
@@ -246,13 +300,15 @@ class DatasetViewTest(unittest.TestCase, _DatasetViewTest):
         super().setUpClass()
 
     def _dataset(self, num_samples=100):
-        x, y = random_matrix_data(self.matrix_type, num_samples=num_samples)
+        x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=num_samples)
         target_labels = np.unique(y)
         return SklearnDataset(x, y, target_labels=target_labels)
 
 
-@parameterized_class([{'matrix_type': 'sparse'},
-                      {'matrix_type': 'dense'}])
+@parameterized_class([{'matrix_type': 'sparse', 'labels_type': 'dense'},
+                      {'matrix_type': 'sparse', 'labels_type': 'sparse'},
+                      {'matrix_type': 'dense', 'labels_type': 'dense'},
+                      {'matrix_type': 'dense', 'labels_type': 'sparse'}])
 class NestedDatasetViewTest(unittest.TestCase, _DatasetViewTest):
 
     # https://github.com/wolever/parameterized/issues/119
@@ -263,7 +319,7 @@ class NestedDatasetViewTest(unittest.TestCase, _DatasetViewTest):
         super().setUpClass()
 
     def _dataset(self, num_samples=100):
-        x, y = random_matrix_data(self.matrix_type, num_samples=num_samples)
+        x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=num_samples)
         target_labels = np.unique(y)
         return DatasetView(SklearnDataset(x, y, target_labels=target_labels), np.s_[:])
 
@@ -319,7 +375,7 @@ class SplitDataTest(unittest.TestCase):
 
     @mock.patch('small_text.data.datasets.stratified_sampling',
                 wraps=stratified_sampling)
-    def test_split_data_balanced(self, stratified_sampling_mock):
+    def test_split_data_stratified(self, stratified_sampling_mock):
         train_set = np.random.rand(100, 2)
         y = np.array([0] * 10 + [1] * 90)
 

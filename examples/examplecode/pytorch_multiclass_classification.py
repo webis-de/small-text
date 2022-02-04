@@ -5,8 +5,6 @@ import logging
 import torch
 import numpy as np
 
-from pathlib import Path
-
 from small_text.active_learner import PoolBasedActiveLearner
 from small_text.exceptions import ActiveLearnerException
 from small_text.initialization import random_initialization_stratified
@@ -14,7 +12,10 @@ from small_text.integrations.pytorch.classifiers.factories import KimCNNFactory
 from small_text.integrations.pytorch.query_strategies import ExpectedGradientLength
 from small_text.query_strategies import PoolExhaustedException, EmptyPoolException
 
-from examplecode.data.example_data_multiclass import get_train_test
+from examplecode.data.example_data_multiclass import (
+    get_train_test,
+    preprocess_data
+)
 from examplecode.shared import evaluate
 
 try:
@@ -25,19 +26,17 @@ except ImportError:
 
 
 def main():
-
     device = 'cuda'
-    path = Path('.data/')
-
-    if not path.exists():
-        path.mkdir()
 
     # Prepare some data
     train, test = get_train_test()
+    train, test = preprocess_data(train, test)
     num_classes = len(np.unique(train.y))
 
     # Active learning parameters
     classifier_kwargs = dict({'embedding_matrix': _load_gensim_embedding(train.vocab),
+                              'max_seq_len': 512,
+                              'num_epochs': 4,
                               'device': device})
 
     clf_factory = KimCNNFactory('kimcnn', num_classes, classifier_kwargs)

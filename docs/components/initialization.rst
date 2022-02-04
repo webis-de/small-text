@@ -10,13 +10,18 @@ They are merely intended for experimental purposes and therefore some of them ma
 Initialization Strategies
 -------------------------
 
+For single-label scenarios:
+
 * :py:func:`random_initialization`
-* :py:func:`random_initialization_stratified`
 * :py:func:`random_initialization_balanced`
 
+For single-label and multi-label scenarios:
 
-Functions
----------
+* :py:func:`random_initialization_stratified`
+
+
+Methods
+-------
 
 .. autofunction:: random_initialization
 .. autofunction:: random_initialization_stratified

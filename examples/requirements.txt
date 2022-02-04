@@ -1,0 +1,2 @@
+datasets>=1.17.0
+gensim==3.8.3

@@ -2,12 +2,18 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import normalize
 from sklearn.svm import LinearSVC
+from sklearn.utils.multiclass import is_multilabel
+
+from small_text.utils.classification import empty_result
+from small_text.utils.classification import prediction_result
 
 
 class Classifier(ABC):
-    """Abstract base class for classifiers that can be used with the active learning components."""
+    """
+    Abstract base class for classifiers that can be used with the active learning components."""
 
     @abstractmethod
     def fit(self, train_set):
@@ -23,20 +29,37 @@ class Classifier(ABC):
 
 
 class SklearnClassifier(Classifier):
-    """An adapter for using scikit-learn estimators."""
+    """
+    An adapter for using scikit-learn estimators.
 
-    def __init__(self, clf):
+    Notes
+    -----
+    The multi-label settings currently assumes that the underlying classifer returns a sparse
+    matrix if trained on sparse data.
+    """
+
+    def __init__(self, model, num_classes, multi_label=False):
         """
         Parameters
         ----------
-        clf : sklearn.base.BaseEstimator
+        model : sklearn.base.BaseEstimator
             A scikit-learn estimator that implements `fit` and `predict_proba`.
+        num_classes : int
+            Number of classes which are to be trained and predicted.
+        multi_label : bool
+            If `False`, the classes are mutually exclusive, i.e. the prediction step results in
+            exactly one predicted label per instance.
         """
-        self.clf = clf
+        if multi_label:
+            self.model = OneVsRestClassifier(model)
+        else:
+            self.model = model
+        self.num_classes = num_classes
+        self.multi_label = multi_label
 
     def fit(self, train_set):
         """
-        Trains the model using the given `train_set`.
+        Trains the model using the given train set.
 
         Parameters
         ----------
@@ -46,54 +69,68 @@ class SklearnClassifier(Classifier):
         Returns
         -------
         clf : SklearnClassifier
-            Returns the fitted classifier.
+            Returns the current classifier with a fitted model.
         """
-        self.clf.fit(train_set.x, train_set.y)
+        y = train_set.y
+        if self.multi_label and not is_multilabel(y):
+            raise ValueError('Invalid input: Given labeling must be recognized as '
+                             'multi-label according to sklearn.utils.multilabel.is_multilabel(y)')
+        elif not self.multi_label and is_multilabel(y):
+            raise ValueError('Invalid input: Given labeling is recognized as multi-label labeling '
+                             'but the classifier is set to single-label mode')
+
+        self.model.fit(train_set.x, y)
         return self
 
-    def predict(self, test_set, return_proba=False):
+    def predict(self, data_set, return_proba=False):
         """
+        Predicts the labels for the given dataset.
+
+        Parameters
+        ----------
+        data_set : SklearnDataset
+            A dataset for which the labels are to be predicted.
+        return_proba : bool
+            If `True`, also returns a probability-like class distribution.
 
         Returns
         -------
-        predictions : np.ndarray[int]
-            List of predictions.
-        probas : np.ndarray[float] (optional)
+        predictions : np.ndarray[np.int32] or csr_matrix[np.int32]
+            List of predictions if the classifier was fitted on multi-label data,
+            otherwise a sparse matrix of predictions.
+        probas : np.ndarray[np.float32] (optional)
             List of probabilities (or confidence estimates) if `return_proba` is True.
         """
-        if len(test_set) == 0:
-            if return_proba:
-                return np.array([], dtype=int), np.array([], dtype=float)
-            return np.array([], dtype=int)
+        if len(data_set) == 0:
+            return empty_result(self.multi_label, self.num_classes, return_prediction=True,
+                                return_proba=return_proba)
 
-        proba = self.predict_proba(test_set)
-        predictions = np.argmax(proba, axis=1)
+        proba = self.model.predict_proba(data_set.x)
 
-        if return_proba:
-            return predictions, proba
+        return prediction_result(proba, self.multi_label, self.num_classes, enc=None,
+                                 return_proba=return_proba)
 
-        return predictions
+    def predict_proba(self, data_set):
+        if len(data_set) == 0:
+            return empty_result(self.multi_label, self.num_classes, return_prediction=False, return_proba=True)
 
-    def predict_proba(self, test_set):
-        if len(test_set) == 0:
-            return np.array([], dtype=int), np.array([], dtype=float)
-
-        return self.clf.predict_proba(test_set.x)
+        return self.model.predict_proba(data_set.x)
 
 
 class ConfidenceEnhancedLinearSVC(LinearSVC):
+    """
+    Extends scikit-learn's LinearSVC class to provide confidence estimates.
+    """
 
     def __init__(self, linearsvc_kwargs=None):
         """
-        Extends scikit-learn's LinearSVC class to provide confidence estimates.
-
         Parameters
         ----------
         linearsvc_kwargs : dict
             Kwargs for the LinearSVC superclass.
         """
-        linearsvc_kwargs = dict() if linearsvc_kwargs is None else linearsvc_kwargs
-        super().__init__(**linearsvc_kwargs)
+        self.linearsvc_kwargs = dict() if linearsvc_kwargs is None else linearsvc_kwargs
+        super().__init__(**self.linearsvc_kwargs)
 
     def predict(self, data_set, return_proba=False):
 

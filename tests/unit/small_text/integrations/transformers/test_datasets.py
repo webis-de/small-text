@@ -3,11 +3,14 @@ import pytest
 
 import numpy as np
 
+from scipy.sparse import csr_matrix
+
 from numpy.testing import assert_array_equal
 from parameterized import parameterized_class
 
 from small_text.integrations.pytorch.datasets import PytorchDatasetView
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from tests.utils.testing import assert_csr_matrix_equal
 from tests.utils.testing import assert_list_of_tensors_equal
 
 try:
@@ -22,7 +25,10 @@ except (ModuleNotFoundError, PytorchNotFoundError):
 
 
 @pytest.mark.pytorch
-@parameterized_class([{'target_labels': 'explicit'}, {'target_labels': 'inferred'}])
+@parameterized_class([{'target_labels': 'explicit', 'multi_label': True},
+                      {'target_labels': 'explicit', 'multi_label': False},
+                      {'target_labels': 'inferred', 'multi_label': True},
+                      {'target_labels': 'inferred', 'multi_label': False}])
 class TransformersDatasetTest(unittest.TestCase):
     NUM_SAMPLES = 100
     NUM_LABELS = 3
@@ -31,9 +37,10 @@ class TransformersDatasetTest(unittest.TestCase):
         if self.target_labels not in ['explicit', 'inferred']:
             raise ValueError('Invalid test parameter value for target_labels:' + self.target_labels)
 
-        infer_labels = self.target_labels == 'inferred'
-        return random_transformer_dataset(num_samples=num_samples, num_classes=self.NUM_LABELS,
-                                          infer_labels=infer_labels)
+        return random_transformer_dataset(num_samples=num_samples,
+                                          multi_label=self.multi_label,
+                                          num_classes=self.NUM_LABELS,
+                                          target_labels=self.target_labels)
 
     def test_init(self):
         ds = self._random_data()
@@ -52,12 +59,29 @@ class TransformersDatasetTest(unittest.TestCase):
 
     def test_get_labels(self):
         ds = self._random_data()
-        self.assertTrue(isinstance(ds.y, np.ndarray))
-        self.assertEqual(self.NUM_SAMPLES, ds.y.shape[0])
+        if self.multi_label:
+            self.assertTrue(isinstance(ds.y, csr_matrix))
+            y_expected = np.zeros((self.NUM_SAMPLES, self.NUM_LABELS))
+            for i, d in enumerate(ds.data):
+                labels = d[ds.INDEX_LABEL]
+                if labels is not None:
+                    y_expected[i, labels] = 1
+            y_expected = csr_matrix(y_expected)
+            assert_csr_matrix_equal(y_expected, ds.y)
+        else:
+            self.assertTrue(isinstance(ds.y, np.ndarray))
+            self.assertEqual(self.NUM_SAMPLES, ds.y.shape[0])
 
     def test_set_labels(self):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
         self.assertEqual(self.NUM_SAMPLES, ds.y.shape[0])
+
+    def test_is_multi_label(self):
+        dataset = self._random_data(num_samples=self.NUM_SAMPLES)
+        if self.multi_label:
+            self.assertTrue(dataset.is_multi_label)
+        else:
+            self.assertFalse(dataset.is_multi_label)
 
     def test_get_target_labels(self):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)

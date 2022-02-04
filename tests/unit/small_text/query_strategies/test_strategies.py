@@ -8,13 +8,15 @@ from unittest.mock import patch, Mock
 
 from small_text.classifiers import ConfidenceEnhancedLinearSVC, SklearnClassifier
 from small_text.query_strategies import EmptyPoolException, PoolExhaustedException
-from small_text.query_strategies import (RandomSampling,
-                                         SubsamplingQueryStrategy,
-                                         BreakingTies,
-                                         LeastConfidence,
-                                         PredictionEntropy,
-                                         EmbeddingBasedQueryStrategy,
-                                         EmbeddingKMeans)
+from small_text.query_strategies import (
+    RandomSampling,
+    SubsamplingQueryStrategy,
+    BreakingTies,
+    LeastConfidence,
+    PredictionEntropy,
+    EmbeddingBasedQueryStrategy,
+    EmbeddingKMeans
+)
 
 
 DEFAULT_QUERY_SIZE = 10
@@ -362,7 +364,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
         self.assertEqual('EmbeddingBasedQueryStrategy()', str(query_strategy))
 
     def test_query_with_precomputed_embeddings(self, num_samples=20):
-        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC)
+        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, 2)
         x = np.random.rand(num_samples, 10)
         x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices = np.arange(num_samples)
@@ -381,7 +383,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
             sample_spy.assert_called()
 
     def test_query_when_embed_has_return_proba(self, num_samples=20):
-        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC)
+        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, 2)
         x = np.random.rand(num_samples, 10)
         x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices = np.arange(num_samples)
@@ -400,7 +402,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
                                                n, clf.embeddings_, embeddings_proba=clf.proba_)
 
     def test_query_when_embed_has_no_return_proba(self, num_samples=20):
-        clf = SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC)
+        clf = SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC, 2)
         x = np.random.rand(num_samples, 10)
         x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices = np.arange(num_samples)
@@ -419,7 +421,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
                                                n, clf.embeddings_)
 
     def test_query_with_nonexistent_embed_kwargs_and_no_return_proba(self, num_samples=20):
-        clf = SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC)
+        clf = SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC, 2)
         x = np.random.rand(num_samples, 10)
         x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices = np.arange(num_samples)
@@ -436,7 +438,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
                                  n=n, embeddings=embeddings, embed_kwargs={'does': 'not exist'})
 
     def test_query_with_nonexistent_embed_kwargs_and_return_proba(self, num_samples=20):
-        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC)
+        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, 2)
         x = np.random.rand(num_samples, 10)
         x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices = np.arange(num_samples)
@@ -455,10 +457,10 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
 
 class EmbeddingKMeansTest(unittest.TestCase):
 
-    def test_query(self, n=10, num_samples=100, embedding_dim=60):
+    def test_query(self, n=10, num_samples=100, num_classes=2):
         query_strategy = EmbeddingKMeans()
         # currently does not support embed, but is not used here anyways
-        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC)
+        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, num_classes)
 
         x = np.random.rand(num_samples, 100)
 

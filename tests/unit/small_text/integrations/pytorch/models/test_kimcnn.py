@@ -27,7 +27,7 @@ class KimCNNInitTest(unittest.TestCase):
         # Parameters
         self.assertEqual(100, model.out_channels)
         self.assertEqual(1, model.in_channels)
-        self.assertEqual(3, model.n_kernels)
+        self.assertEqual(3, model.num_kernels)
         self.assertEqual(pool_sizes, model.pool_sizes)
         self.assertEqual(max_seq_length, model.max_seq_length)
         self.assertEqual(2, model.num_classes)
@@ -77,7 +77,7 @@ class KimCNNInitTest(unittest.TestCase):
         # Parameters
         self.assertEqual(out_channels, model.out_channels)
         self.assertEqual(1, model.in_channels)
-        self.assertEqual(2, model.n_kernels)
+        self.assertEqual(2, model.num_kernels)
         self.assertEqual(pool_sizes, model.pool_sizes)
         self.assertEqual(max_seq_length, model.max_seq_length)
         self.assertEqual(num_classes, model.num_classes)
@@ -117,7 +117,7 @@ class KimCNNInitTest(unittest.TestCase):
         # Parameters
         self.assertEqual(100, model.out_channels)
         self.assertEqual(1, model.in_channels)
-        self.assertEqual(3, model.n_kernels)
+        self.assertEqual(3, model.num_kernels)
         self.assertEqual(pool_sizes, model.pool_sizes)
         self.assertEqual(max_seq_length, model.max_seq_length)
         self.assertEqual(2, model.num_classes)

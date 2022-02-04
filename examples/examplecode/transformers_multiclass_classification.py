@@ -1,4 +1,4 @@
-"""Example of a transformer-based active learning multi class text classification.
+"""Example of a transformer-based active learning multi-class text classification.
 """
 import logging
 
@@ -25,8 +25,9 @@ TWENTY_NEWS_SUBCATEGORIES = ['rec.sport.baseball', 'sci.med', 'rec.autos']
 
 def main():
     # Active learning parameters
+    num_classes = len(TWENTY_NEWS_SUBCATEGORIES)
     clf_factory = TransformerBasedClassificationFactory(TRANSFORMER_MODEL,
-                                                        len(TWENTY_NEWS_SUBCATEGORIES),
+                                                        num_classes,
                                                         kwargs=dict({'device': 'cuda'}))
     query_strategy = RandomSampling()
 

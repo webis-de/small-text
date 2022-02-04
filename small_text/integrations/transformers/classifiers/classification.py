@@ -1,49 +1,52 @@
 import datetime
 import logging
-import os
 import tempfile
 import warnings
 
 import numpy as np
 
+from functools import partial
 from pathlib import Path
 
+from sklearn.preprocessing import MultiLabelBinarizer
+
 from small_text.classifiers.classification import EmbeddingMixin
-from small_text.data.datasets import split_data
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from small_text.utils.classification import empty_result, get_splits
 from small_text.utils.context import build_pbar_context
+from small_text.utils.data import check_training_data
 from small_text.utils.data import list_length
 from small_text.utils.datetime import format_timedelta
+from small_text.utils.labels import csr_to_list, get_num_labels
 from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
 from small_text.utils.system import get_tmp_dir_base
-
 
 try:
     import torch
     import torch.nn.functional as F
 
-    from torch import randperm
-    from torch.optim.lr_scheduler import _LRScheduler
-    from torch.nn.modules import CrossEntropyLoss, BCEWithLogitsLoss
-    from torch.utils.data import DataLoader
+    from torch.optim import AdamW
+    from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
 
     from small_text.integrations.pytorch.classifiers.base import PytorchClassifier
     from small_text.integrations.pytorch.model_selection import Metric, PytorchModelSelection
-    from small_text.integrations.pytorch.utils.data import dataloader, get_class_weights
+    from small_text.integrations.pytorch.utils.data import dataloader
     from small_text.integrations.transformers.datasets import TransformersDataset
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
 
-from transformers import AdamW, get_linear_schedule_with_warmup
-from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
-
-
-def transformers_collate_fn(batch):
+def transformers_collate_fn(batch, enc=None):
     with torch.no_grad():
         text = torch.cat([entry[TransformersDataset.INDEX_TEXT] for entry in batch], dim=0)
         masks = torch.cat([entry[TransformersDataset.INDEX_MASK] for entry in batch], dim=0)
-        label = torch.tensor([entry[TransformersDataset.INDEX_LABEL] for entry in batch])
+        if enc is not None:
+            labels = [entry[TransformersDataset.INDEX_LABEL] for entry in batch]
+            # enc.transform raises "TypeError: iteration over a 0-d array" for "enc.transform([np.array(0)])"
+            multi_hot = enc.transform(labels)
+            label = torch.tensor(multi_hot, dtype=float)
+        else:
+            label = torch.tensor([entry[TransformersDataset.INDEX_LABEL] for entry in batch])
 
     return text, masks, label
 
@@ -165,7 +168,8 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
         with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
             for batch in train_iter:
-                batch_len, logits = self._create_embeddings(tensors,batch,
+                batch_len, logits = self._create_embeddings(tensors,
+                                                            batch,
                                                             embedding_method=embedding_method,
                                                             hidden_layer_index=hidden_layer_index)
                 pbar.update(batch_len)
@@ -205,13 +209,12 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
 class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClassifier):
 
-    def __init__(self, transformer_model, num_classes, num_epochs=10, lr=2e-5,
-                 mini_batch_size=12, criterion=None, optimizer=None, scheduler='linear',
-                 validation_set_size=0.1, validations_per_epoch=1, no_validation_set_action='sample',
-                 initial_model_selection=None, early_stopping_no_improvement=5,
+    def __init__(self, transformer_model, num_classes, multi_label=False, num_epochs=10, lr=2e-5,
+                 mini_batch_size=12, validation_set_size=0.1, validations_per_epoch=1,
+                 no_validation_set_action='sample', early_stopping_no_improvement=5,
                  early_stopping_acc=-1, model_selection=True, fine_tuning_arguments=None,
-                 device=None, memory_fix=1, class_weight=None,
-                 verbosity=VERBOSITY_MORE_VERBOSE, cache_dir='.active_learning_lib_cache/'):
+                 device=None, memory_fix=1, class_weight=None, verbosity=VERBOSITY_MORE_VERBOSE,
+                 cache_dir='.active_learning_lib_cache/'):
         """
         Parameters
         ----------
@@ -225,11 +228,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             Learning rate.
         mini_batch_size : int
             Size of mini batches during training.
-        criterion :
-
-        optimizer :
-
-        scheduler :
 
         validation_set_size : float
             The sizes of the validation as a fraction of the training set if no validation set
@@ -238,8 +236,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             Defines how of the validation set is evaluated during the training of a single epoch.
         no_validation_set_action : {'sample', 'none}
             Defines what should be done of no validation set is given.
-        initial_model_selection :
-
         early_stopping_no_improvement :
 
         early_stopping_acc :
@@ -257,11 +253,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         class_weight : 'balanced' or None
 
         """
-        super().__init__(device=device)
-
-        if criterion is not None and class_weight is not None:
-            warnings.warn('Class weighting will have no effect with a non-default criterion',
-                          RuntimeWarning)
+        super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size)
 
         with verbosity_logger():
             self.logger = logging.getLogger(__name__)
@@ -271,16 +263,15 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.num_classes = num_classes
         self.num_epochs = num_epochs
         self.lr = lr
-        self.mini_batch_size = mini_batch_size
-        self.criterion = criterion
-        self.optimizer = optimizer
-        self.scheduler = scheduler
+
+        self.criterion = None
+        self.optimizer = None
+        self.scheduler = 'linear'
 
         self.validation_set_size = validation_set_size
         self.validations_per_epoch = validations_per_epoch
         # 'sample' or 'none'
         self.no_validation_set_action = no_validation_set_action
-        self.initial_model_selection = initial_model_selection
 
         # Huggingface
         self.transformer_model = transformer_model
@@ -300,84 +291,68 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.model = None
         self.model_selection_manager = None
 
+        self.enc_ = None
+
     def fit(self, train_set, validation_set=None, optimizer=None, scheduler=None):
         """
+        Trains the model using the given train set.
+
         Parameters
         ----------
         train_set : TransformersDataset
             Training set.
+        validation_set : TransformersDataset
+            A validation set used for validation during training, or `None`. If `None`, the fit
+            operation will split apart a subset of the trainset as a validation set, whose size
+            is set by `self.validation_set_size`.
+        optimizer :
+
+        scheduler :
 
         Returns
         -------
-        self : HuggingfaceTransformersClassification
-            Returns the current HuggingfaceTransformersClassification instance with a trained model.
+        self : TransformerBasedClassification
+            Returns the current classifier with a fitted model.
         """
-        if (train_set.y == TransformersDataset.NO_LABEL).any():
-            raise ValueError('Training labels must not be None')
-        if validation_set is not None and \
-                (validation_set.y == TransformersDataset.NO_LABEL).any():
-            raise ValueError('Validation set labels must not be None')
+        check_training_data(train_set, validation_set)
 
-        if validation_set is None and self.no_validation_set_action == 'sample':
-            sub_train, sub_valid = split_data(train_set, y=train_set.y, strategy='balanced',
-                                              validation_set_size=self.validation_set_size)
-        elif validation_set is None and self.no_validation_set_action == 'none':
-            sub_train, sub_valid = train_set, None
-        else:
-            sub_train, sub_valid = train_set, validation_set
+        sub_train, sub_valid = get_splits(train_set, validation_set, multi_label=self.multi_label,
+                                          validation_set_size=self.validation_set_size)
 
         fit_scheduler = scheduler if scheduler is not None else self.scheduler
         fit_optimizer = optimizer if optimizer is not None else self.optimizer
 
+        if self.multi_label:
+            self.enc_ = MultiLabelBinarizer()
+            labels = csr_to_list(sub_train.y)
+            self.enc_ = self.enc_.fit(labels)
+
         self.class_weights_ = self.initialize_class_weights(sub_train)
+        self.criterion = self.get_default_criterion()
 
         return self._fit_main(sub_train, sub_valid, fit_optimizer, fit_scheduler)
 
-    def initialize_class_weights(self, sub_train):
-        if self.class_weight == 'balanced':
-            class_weights_ = get_class_weights(sub_train.y, self.num_classes)
-            class_weights_ = class_weights_.to(self.device)
-        else:
-            class_weights_ = None
-        return class_weights_
-
     def _fit_main(self, sub_train, sub_valid, optimizer, scheduler):
         if self.model is None:
-            y = [entry[TransformersDataset.INDEX_LABEL] for entry in sub_train]
-            if self.num_classes is None:
-                self.num_classes = np.max(y) + 1
+            encountered_num_classes = get_num_labels(sub_train.y)
 
-            if self.num_classes != np.max(y) + 1:
+            if self.num_classes is None:
+                self.num_classes = encountered_num_classes
+
+            if self.num_classes != encountered_num_classes:
                 raise ValueError('Conflicting information about the number of classes: '
                                  'expected: {}, encountered: {}'.format(self.num_classes,
-                                                                        np.max(y) + 1))
+                                                                        encountered_num_classes))
 
             self.initialize_transformer(self.cache_dir)
-
-        if self.criterion is None:
-            self.criterion = self.get_default_criterion()
 
         if self.fine_tuning_arguments is not None:
             params = _get_layer_params(self.model, self.lr, self.fine_tuning_arguments)
         else:
             params = None
 
-        if optimizer is None or scheduler is None:
-            if optimizer is not None:
-                self.logger.warning('Overridering optimizer since optimizer in kwargs needs to be '
-                               'passed in combination with scheduler')
-            if scheduler is not None:
-                self.logger.warning('Overridering scheduler since optimizer in kwargs needs to be '
-                                    'passed in combination with scheduler')
-
-            optimizer, scheduler = self._initialize_optimizer_and_scheduler(optimizer,
-                                                                            scheduler,
-                                                                            self.fine_tuning_arguments,
-                                                                            self.lr,
-                                                                            params,
-                                                                            self.model,
-                                                                            sub_train)
-
+        optimizer, scheduler = self._get_optimizer_and_scheduler(optimizer, scheduler, params,
+                                                                 self.num_epochs, sub_train)
         self.model = self.model.to(self.device)
 
         with tempfile.TemporaryDirectory(dir=get_tmp_dir_base()) as tmp_dir:
@@ -404,112 +379,20 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             cache_dir=cache_dir,
         )
 
-    def _initialize_optimizer_and_scheduler(self, optimizer, scheduler, fine_tuning_arguments,
-                                            base_lr, params, model, sub_train):
-
-        steps = (len(sub_train) // self.mini_batch_size) \
-                + int(len(sub_train) % self.mini_batch_size != 0)
-
-        if params is None:
-            params = [param for param in model.parameters() if param.requires_grad]
-
-        optimizer = self._default_optimizer(params, base_lr) if optimizer is None else optimizer
-
-        if scheduler == 'linear':
-            scheduler = get_linear_schedule_with_warmup(optimizer,
-                                                        num_warmup_steps=0,
-                                                        num_training_steps=steps*self.num_epochs)
-        elif not isinstance(scheduler, _LRScheduler):
-            raise ValueError(f'Invalid scheduler: {scheduler}')
-
-        return optimizer, scheduler
-
     def _default_optimizer(self, params, base_lr):
         return AdamW(params, lr=base_lr, eps=1e-8)
 
     def _train(self, sub_train, sub_valid, tmp_dir, optimizer, scheduler):
 
-        if self.initial_model_selection:
-            if sub_valid is None:
-                raise ValueError('Error! Initial model selection requires a validation set')
-
-            with tempfile.TemporaryDirectory(dir=get_tmp_dir_base()) as mselection_tmp_dir:
-                self._perform_initial_model_selection(sub_train, sub_valid, mselection_tmp_dir)
-            start_epoch = self.initial_model_selection[1]
-        else:
-            start_epoch = 0
-
         metrics = [Metric('valid_loss', True), Metric('valid_acc', False),
                    Metric('train_loss', True), Metric('train_acc', False)]
         self.model_selection_manager = PytorchModelSelection(Path(tmp_dir), metrics)
 
+        start_epoch = 0
         self._train_loop(sub_train, sub_valid, optimizer, scheduler, start_epoch, self.num_epochs,
                          self.model_selection_manager)
 
         return self
-
-    # TODO: uses default optimizer and scheduler for now
-    def _perform_initial_model_selection(self, sub_train, sub_valid, tmp_dir):
-
-        num_models = self.initial_model_selection[0]
-        num_epochs = self.initial_model_selection[1]
-
-        metrics = [Metric('valid_loss', True), Metric('valid_acc', False),
-                   Metric('train_loss', True), Metric('train_acc', False)]
-
-        model_selection_managers = []
-
-        for j in range(num_models):
-
-            tmp_dir_local = Path(tmp_dir).joinpath(f'{j}/').absolute()
-            os.mkdir(tmp_dir_local)
-
-            model_selection_manager = PytorchModelSelection(Path(tmp_dir_local), metrics)
-            self.initialize_transformer(self.cache_dir)
-            self.model = self.model.to(self.device)
-
-            # add initial entry since we want to restore the first model at the end
-            fill = dict({metric.name: float('inf') if metric.lower_is_better else float('-inf')
-                         for metric in metrics})
-            model_selection_manager.add_model(self.model, 0, **fill)
-
-
-            optimizer_mod, scheduler_mod = self._initialize_optimizer_and_scheduler(None,
-                                                                                    'linear',
-                                                                                    self.fine_tuning_arguments,
-                                                                                    self.lr,
-                                                                                    None,
-                                                                                    self.model,
-                                                                                    sub_train)
-
-            self._train_loop(sub_train, sub_valid, optimizer_mod, scheduler_mod, 0, num_epochs, model_selection_manager)
-            model_selection_managers.append(model_selection_manager)
-
-        # relativ to metric list above
-        target_metric = 0
-
-        best_metric = None
-        best_model = -1
-
-        for j, model_selection_manager in enumerate(model_selection_managers):
-            model_path, model_metrics = model_selection_manager.select_best()
-
-            if best_metric is None:
-                best_metric = model_metrics[target_metric]
-                best_model = j
-            else:
-                if metrics[target_metric].lower_is_better:
-                    is_better = model_metrics[target_metric] < best_metric
-                else:
-                    is_better = model_metrics[target_metric] > best_metric
-
-                if is_better:
-                    best_metric = model_metrics[target_metric]
-                    best_model = j
-
-        # load the first model (untrained) from the best selection process
-        best_key = list(model_selection_managers[best_model].models.keys())[0]
-        self.model.load_state_dict(torch.load(model_selection_managers[best_model].models[best_key]))
 
     def _train_loop(self, sub_train, sub_valid, optimizer, scheduler, start_epoch, num_epochs,
                     model_selection_manager):
@@ -595,8 +478,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         train_iter = dataloader(sub_train_.data, self.mini_batch_size, self._create_collate_fn())
 
-        for i, (text, masks, cls) in enumerate(train_iter):
-            loss, acc = self._train_single_batch(text, masks, cls, optimizer)
+        for i, (x, masks, cls) in enumerate(train_iter):
+            loss, acc = self._train_single_batch(x, masks, cls, optimizer)
             scheduler.step()
 
             train_loss += loss
@@ -614,26 +497,19 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             return train_loss / len(sub_train_), train_acc / len(sub_train_)
 
     def _create_collate_fn(self):
-        return transformers_collate_fn
+        return partial(transformers_collate_fn, enc=self.enc_)
 
-    def _train_single_batch(self, text, masks, cls, optimizer):
+    def _train_single_batch(self, x, masks, cls, optimizer):
 
         train_loss = 0.
         train_acc = 0.
 
         optimizer.zero_grad()
 
-        text, masks, cls = text.to(self.device), masks.to(self.device), cls.to(self.device)
-        outputs = self.model(text, attention_mask=masks)
+        x, masks, cls = x.to(self.device), masks.to(self.device), cls.to(self.device)
+        outputs = self.model(x, attention_mask=masks)
 
-        if self.num_classes == 2:
-            logits = outputs.logits
-            target = F.one_hot(cls, 2).float()
-        else:
-            logits = outputs.logits.view(-1, self.num_classes)
-            target = cls
-
-        loss = self.criterion(logits, target)
+        logits, loss = self._compute_loss(cls, outputs)
 
         loss.backward()
 
@@ -642,11 +518,22 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         optimizer.step()
 
         train_loss += loss.detach().item()
-        train_acc += (logits.argmax(1) == cls).sum().detach().item()
+        train_acc += self.sum_up_accuracy_(logits, cls)
 
-        del text, masks, cls, loss, outputs
+        del x, masks, cls, loss, outputs
 
         return train_loss, train_acc
+
+    def _compute_loss(self, cls, outputs):
+        if self.num_classes == 2:
+            logits = outputs.logits
+            target = F.one_hot(cls, 2).float()
+        else:
+            logits = outputs.logits.view(-1, self.num_classes)
+            target = cls
+        loss = self.criterion(logits, target)
+
+        return logits, loss
 
     def _perform_model_selection(self, sub_valid):
         if sub_valid is not None:
@@ -687,50 +574,60 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             x, masks, cls = x.to(self.device), masks.to(self.device), cls.to(self.device)
 
             with torch.no_grad():
-                outputs = self.model(x, attention_mask=masks, labels=cls)
+                outputs = self.model(x, attention_mask=masks)
+                _, loss = self._compute_loss(cls, outputs)
 
-                valid_loss += outputs.loss.item()
-                acc += (outputs.logits.argmax(1) == cls).sum().item()
+                valid_loss += loss.item()
+                acc += self.sum_up_accuracy_(outputs.logits, cls)
                 del outputs, x, masks, cls
 
         return valid_loss / len(validation_set), acc / len(validation_set)
 
-    def predict(self, test_set, return_proba=False):
-        if len(test_set) == 0:
-            if return_proba:
-                return np.array([], dtype=int), np.array([], dtype=float)
-            return np.array([], dtype=int)
+    def predict(self, data_set, return_proba=False):
+        """
+        Parameters
+        ----------
+        data_set : small_text.integrations.transformers.TransformerDataset
+            A dataset on whose instances predictions are made.
+        return_proba : bool
+            If True, additionally returns the confidence distribution over all classes.
 
-        proba = self.predict_proba(test_set)
-        predictions = np.argmax(proba, axis=1)
-
-        if return_proba:
-            return predictions, proba
-
-        return predictions
+        Returns
+        -------
+        predictions : np.ndarray[np.int32] or csr_matrix[np.int32]
+            List of predictions if the classifier was fitted on single-label data,
+            otherwise a sparse matrix of predictions.
+        probas : np.ndarray[np.float32] (optional)
+            List of probabilities (or confidence estimates) if `return_proba` is True.
+        """
+        return super().predict(data_set, return_proba=return_proba)
 
     def predict_proba(self, test_set):
         if len(test_set) == 0:
-            return np.array([], dtype=int), np.array([], dtype=float)
+            return empty_result(self.multi_label, self.num_classes, return_prediction=False,
+                                return_proba=True)
 
         self.model.eval()
         test_iter = dataloader(test_set.data, self.mini_batch_size, self._create_collate_fn(),
                                train=False)
 
         predictions = []
+        logits_transform = torch.sigmoid if self.multi_label else partial(F.softmax, dim=1)
 
         with torch.no_grad():
             for text, masks, _ in test_iter:
                 text, masks = text.to(self.device), masks.to(self.device)
                 outputs = self.model(text, attention_mask=masks)
-                predictions += F.softmax(outputs.logits, dim=1).detach().to('cpu').tolist()
+
+                predictions += logits_transform(outputs.logits).to('cpu').tolist()
                 del text, masks
 
         return np.array(predictions)
 
     def __del__(self):
         try:
-            del self.criterion, self.optimizer, self.scheduler
-            del self.model, self.tokenizer, self.config
-        except:
+            for o in [self.criterion, self.optimizer, self.scheduler, self.model,
+                      self.tokenizer, self.config]:
+                del o
+        except Exception:
             pass

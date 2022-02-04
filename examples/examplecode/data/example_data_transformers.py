@@ -1,7 +1,10 @@
+import torch
+import numpy as np
+
 from small_text.integrations.transformers.datasets import TransformersDataset
 
 
-def preprocess_data(tokenizer, data, labels, max_length=500):
+def preprocess_data(tokenizer, data, labels, max_length=500, multi_label=False):
 
     data_out = []
 
@@ -16,6 +19,13 @@ def preprocess_data(tokenizer, data, labels, max_length=500):
             truncation='longest_first'
         )
 
-        data_out.append((encoded_dict['input_ids'], encoded_dict['attention_mask'], labels[i]))
+        if multi_label:
+            data_out.append((encoded_dict['input_ids'],
+                             encoded_dict['attention_mask'],
+                             np.sort(labels[i])))
+        else:
+            data_out.append((encoded_dict['input_ids'],
+                             encoded_dict['attention_mask'],
+                             labels[i]))
 
-    return TransformersDataset(data_out)
+    return TransformersDataset(data_out, multi_label=multi_label)

@@ -2,11 +2,12 @@ import numpy as np
 
 from small_text.active_learner import PoolBasedActiveLearner
 
-def get_initialized_active_learner(clf_factory, query_strategy, dataset):
+
+def get_initialized_active_learner(clf_factory, query_strategy, dataset, initial_indices=10):
 
     active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, dataset)
 
-    x_indices_initial = np.random.choice(np.arange(len(dataset)), size=10, replace=False)
+    x_indices_initial = np.random.choice(np.arange(len(dataset)), size=initial_indices, replace=False)
     y_initial = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
     active_learner.initialize_data(x_indices_initial, y_initial)
 

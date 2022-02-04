@@ -12,6 +12,8 @@ class QueryStrategy(ABC):
     @abstractmethod
     def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10):
         """
+        Queries instances from the unlabeled pool.
+
         A query selects instances from the unlabeled pool.
 
         Parameters
@@ -24,7 +26,7 @@ class QueryStrategy(ABC):
             Indices (relative to `x`) for the unlabeled data.
         x_indices_labeled : list of int
             Indices (relative to `x`) for the labeled data.
-        y : list of int
+        y : np.ndarray[int] or csr_matrix
             List of labels where each label maps by index position to `indices_labeled`.
         n : int
             Number of samples to query.
@@ -47,7 +49,8 @@ class QueryStrategy(ABC):
 
 
 class RandomSampling(QueryStrategy):
-    """Randomly selects instances."""
+    """Randomly selects instances.
+    """
 
     def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10):
         self._validate_query_input(x_indices_unlabeled, n)
@@ -58,8 +61,9 @@ class RandomSampling(QueryStrategy):
 
 
 class ConfidenceBasedQueryStrategy(QueryStrategy):
-    """A base class for confidence-based querying. To use this class, create a subclass and
-     implement `get_confidence()`.
+    """A base class for confidence-based querying.
+
+    To use this class, create a subclass and implement `get_confidence()`.
     """
 
     def __init__(self, lower_is_better=False):
@@ -88,8 +92,7 @@ class ConfidenceBasedQueryStrategy(QueryStrategy):
 
     @abstractmethod
     def get_confidence(self, clf, x, x_indices_unlabeled, x_indices_labeled, y):
-        """
-        Computes a confidence score for each given instance.
+        """Computes a confidence score for each of the given instances.
 
         Parameters
         ----------
@@ -116,7 +119,7 @@ class BreakingTies(ConfidenceBasedQueryStrategy):
     .. [LUO05] Tong Luo, Kurt Kramer, Dmitry B. Goldgof, Lawrence O. Hall, Scott Samson,
        Andrew Remsen, and Thomas Hopkins. 2005.
        Active Learning to Recognize Multiple Types of Plankton.
-       J. Mach. Learn. Res. 6 (12/1/2005), 589–613.
+       J. Mach. Learn. Res. 6, 2005, 589–613.
     """
 
     def __init__(self):
@@ -136,7 +139,8 @@ class BreakingTies(ConfidenceBasedQueryStrategy):
 
 
 class LeastConfidence(ConfidenceBasedQueryStrategy):
-    """Selects instances with the least prediction confidence (regarding the most likely class) [LG94]_.
+    """
+    Selects instances with the least prediction confidence (regarding the most likely class) [LG94]_.
 
     References
     ----------
@@ -222,8 +226,10 @@ class SubsamplingQueryStrategy(QueryStrategy):
 
 
 class EmbeddingBasedQueryStrategy(QueryStrategy):
-    """A base class for embedding-based querying. To use this class, create a subclass and
-     implement `sample()`.
+    """
+    A base class for embedding-based querying.
+
+    To use this class, create a subclass and implement `sample()`.
     """
     def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10, pbar='tqdm',
               embeddings=None, embed_kwargs=dict()):
@@ -288,7 +294,7 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
 
 
 class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
-    """This is a generalized version of BERT-K-Means  [YLB20]_, which is applicable to any kind
+    """This is a generalized version of BERT-K-Means [YLB20]_, which is applicable to any kind
     of dense embedding, regardless of the classifier.
 
     References

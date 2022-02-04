@@ -7,7 +7,7 @@ Before you can use the transformers integration :ref:`make sure you have the opt
 Example
 =======
 
-An example is provided in :file:`examples/code/transformers_multiclass_classification.py`:
+An example is provided in :file:`examples/examplecode/transformers_multiclass_classification.py`:
 
-.. literalinclude:: ../../examples/code/transformers_multiclass_classification.py
+.. literalinclude:: ../../examples/examplecode/transformers_multiclass_classification.py
    :language: python

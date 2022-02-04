@@ -13,14 +13,15 @@ from examplecode.shared import evaluate
 
 
 def main():
-    # Active learning parameters
-    clf_template = ConfidenceEnhancedLinearSVC()
-    clf_factory = SklearnClassifierFactory(clf_template)
-    query_strategy = RandomSampling()
-
     # Prepare some data: The data is a 2-class subset of 20news (baseball vs. hockey)
     text_train, text_test = get_train_test()
     train, test = preprocess_data(text_train, text_test)
+    num_classes = 2
+
+    # Active learning parameters
+    clf_template = ConfidenceEnhancedLinearSVC()
+    clf_factory = SklearnClassifierFactory(clf_template, num_classes)
+    query_strategy = RandomSampling()
 
     # Active learner
     active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)

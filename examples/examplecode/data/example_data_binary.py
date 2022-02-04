@@ -7,9 +7,7 @@ from examplecode.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 
 
 def get_train_test():
-
-    train, test = get_twenty_newsgroups_corpus()
-    return train, test
+    return get_twenty_newsgroups_corpus()
 
 
 def preprocess_data(train, test):

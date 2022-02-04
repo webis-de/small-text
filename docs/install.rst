@@ -4,7 +4,7 @@
 Installation
 ============
 
-Small-text can be easily installed via:
+Small-Text can be easily installed using pip:
 
 .. code-block:: console
 
@@ -36,6 +36,7 @@ To enable the Pytorch Integration, install the library with the `pytorch` extra:
 
     pip install small-text[pytorch]
 
+.. note:: After installation, make sure the installed `torchtext and Pytorch versions are compatible <https://github.com/pytorch/text#installation>`_.
 
 .. _installation-transformers:
 

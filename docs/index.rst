@@ -1,11 +1,12 @@
 ==========
-small-text
+Small-Text
 ==========
 
-[|LIBRARY_VERSION|]
+`Small-Text` provides :doc:`active learning<active_learning>` for text classification.
+It is designed to offer a robust and modular set of components for both experimental and applied active learning.
 
-`small-text` provides :doc:`active_learning` for Text Classification.
-It is designed to offer a robust and modular set of components for both experimental and applied Active Learning.
+
+Current Version: [|LIBRARY_VERSION|]
 
 Getting Started
 ===============
@@ -18,8 +19,9 @@ Getting Started
    install
    active_learning
    data_structures
+   classification
 
-For now, the best way to get started is the `examples/ <https://github.com/webis-de/small-text/tree/master/examples>`_ folder in the github directory.
+For now, the best way to get started is checking out the folders `examples/notebooks/ <https://github.com/webis-de/small-text/tree/master/examples/notebooks>`_ and `examples/examplecode/ <https://github.com/webis-de/small-text/tree/master/examples/examplecode>`_ in the github directory.
 
 Active Learning Components
 ==========================
@@ -67,22 +69,6 @@ such as :doc:`patterns/pool` and :doc:`patterns/serialization`.
    patterns/pool
    patterns/serialization
 
-
-API
-===
-
-.. toctree::
-   :caption: API
-   :maxdepth: 1
-   :hidden:
-
-   api/active_learner
-   api/data_set
-
-:doc:`api/active_learner`
-:doc:`api/data_set`
-
-
 Citation
 ========
 
@@ -99,6 +85,37 @@ A preprint which introduces small-text is available here:
         archivePrefix={arXiv},
         primaryClass={cs.LG}
     }
+
+------
+
+Extensions
+==========
+
+
+API
+===
+
+.. toctree::
+   :caption: API
+   :maxdepth: 1
+   :hidden:
+
+   api/active_learner
+   api/classifier
+   api/data_set
+
+:doc:`api/active_learner`
+:doc:`api/classifier`
+:doc:`api/data_set`
+
+
+.. toctree::
+   :caption: Development
+   :maxdepth: 0
+   :hidden:
+
+   changelog
+
 
 ----
 :ref:`genindex` | :ref:`modindex` | :ref:`search`

@@ -1,6 +1,6 @@
-from small_text.version import __version__  # noqa:F401
+from small_text.version import __version__
 
-from small_text.utils.logging import (  # noqa:F401
+from small_text.utils.logging import (
     verbosity_logger,
     VerbosityLogger,
     VERBOSITY_QUIET,

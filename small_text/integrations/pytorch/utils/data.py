@@ -51,10 +51,11 @@ def dataloader(data, batch_size, collate_fn, train=True):
                       sampler=sampler)
 
 
+# TODO: document that multi-label behaviour may be sub optimal
 def get_class_weights(y, num_classes, eps=1e-8):
     label_counter = _get_class_histogram(y, num_classes, normalize=False)
     pos_weight = torch.ones(num_classes, dtype=torch.float)
-    num_samples = len(y)
+    num_samples = label_counter.sum()
     for c in range(num_classes):
         pos_weight[c] = (num_samples - label_counter[c]) / (label_counter[c] + eps)
 

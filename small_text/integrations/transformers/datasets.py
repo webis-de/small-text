@@ -1,6 +1,8 @@
 import numpy as np
 
+from small_text.base import LABEL_UNLABELED
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from small_text.utils.labels import list_to_csr
 
 try:
     import torch
@@ -21,7 +23,7 @@ class TransformersDataset(PytorchDataset):
 
     NO_LABEL = -1
 
-    def __init__(self, data, target_labels=None, device=None):
+    def __init__(self, data, multi_label=False, target_labels=None, device=None):
         """
         Parameters
         ----------
@@ -29,13 +31,14 @@ class TransformersDataset(PytorchDataset):
             Data set.
         """
         self._data = data
+        self.multi_label = multi_label
 
         if target_labels is not None:
             self.track_target_labels = False
-            self.target_labels = np.array(target_labels)
+            self._target_labels = np.array(target_labels)
         else:
             self.track_target_labels = True
-            self._infer_target_labels(self.y)
+            self._infer_target_labels()
 
         if device is None:
             self.device = None if len(data) == 0 else next(iter(data))[self.INDEX_TEXT].device
@@ -44,8 +47,17 @@ class TransformersDataset(PytorchDataset):
 
         super().__init__(device=device)
 
-    def _infer_target_labels(self, y):
-        self.target_labels = np.unique([d[self.INDEX_LABEL] for d in self._data])
+    def _infer_target_labels(self):
+        if self.multi_label:
+            # TODO: test "and len(d[self.INDEX_LABEL]) > 0"
+            # print([d[self.INDEX_LABEL] for d in self._data])
+            inferred_target_labels = np.concatenate([d[self.INDEX_LABEL] for d in self._data
+                                                     if d[self.INDEX_LABEL] is not None
+                                                     and len(d[self.INDEX_LABEL].shape) > 0])
+            inferred_target_labels = np.unique(inferred_target_labels)
+        else:
+            inferred_target_labels = np.unique([d[self.INDEX_LABEL] for d in self._data])
+        self._target_labels = inferred_target_labels
 
     @property
     def x(self):
@@ -58,21 +70,37 @@ class TransformersDataset(PytorchDataset):
 
     @property
     def y(self):
-        # TODO: document that None -> -1
-        return np.array([d[self.INDEX_LABEL] if d[self.INDEX_LABEL] is not None
-                         else self.NO_LABEL
-                         for d in self._data], dtype=int)
+        if self.multi_label:
+            label_list = [d[self.INDEX_LABEL] if d[self.INDEX_LABEL] is not None else []
+                          for d in self._data]
+            return list_to_csr(label_list, shape=(len(self.data), len(self._target_labels)))
+        else:
+            # TODO: document that None is mapped to -1
+            return np.array([d[self.INDEX_LABEL] if d[self.INDEX_LABEL] is not None else LABEL_UNLABELED
+                             for d in self._data], dtype=int)
 
     @y.setter
     def y(self, y):
         # TODO: check same length
-        for i, _y in enumerate(y):
-            self._data[i] = (self._data[i][self.INDEX_TEXT], self._data[i][self.INDEX_MASK], _y)
-        self._infer_target_labels(self._data)
+        if self.multi_label:
+            for i, p in enumerate(range(y.indptr.shape[0])):
+                self._data[i] = (self._data[i][self.INDEX_TEXT],
+                                 self._data[i][self.INDEX_MASK],
+                                 y.indices[p:(p+1)])
+        else:
+            for i, _y in enumerate(y):
+                self._data[i] = (self._data[i][self.INDEX_TEXT],
+                                 self._data[i][self.INDEX_MASK],
+                                 _y)
+        self._infer_target_labels()
 
     @property
     def data(self):
         return self._data
+
+    @property
+    def is_multi_label(self):
+        return self.multi_label
 
     @property
     def target_labels(self):

@@ -139,6 +139,8 @@ class LightweightCoreset(EmbeddingBasedQueryStrategy):
 
     Parameters
     ----------
+    normalize : bool
+        Embeddings are normalized if `True`, otherwise they are left unchanged.
     """
     def __init__(self, normalize=True):
         self.normalize = normalize

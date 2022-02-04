@@ -17,7 +17,7 @@ from tests.utils.object_factory import get_initialized_active_learner
 class SerializationTest(unittest.TestCase):
 
     def test_save_and_load_with_file_str(self):
-        clf_factory = SklearnClassifierFactory(ConfidenceEnhancedLinearSVC())
+        clf_factory = SklearnClassifierFactory(ConfidenceEnhancedLinearSVC(), 2)
         query_strategy = RandomSampling()
 
         with tempfile.TemporaryDirectory() as tmp_dir_name:
@@ -26,7 +26,7 @@ class SerializationTest(unittest.TestCase):
             self._load(file_str, query_strategy, ind_initial, ind_queried)
 
     def test_save_and_load_with_path(self):
-        clf_factory = SklearnClassifierFactory(ConfidenceEnhancedLinearSVC())
+        clf_factory = SklearnClassifierFactory(ConfidenceEnhancedLinearSVC(), 2)
         query_strategy = RandomSampling()
 
         with tempfile.TemporaryDirectory() as tmp_dir_name:
@@ -35,7 +35,7 @@ class SerializationTest(unittest.TestCase):
             self._load(file_path, query_strategy, ind_initial, ind_queried)
 
     def test_save_and_load_with_file_handle(self):
-        clf_factory = SklearnClassifierFactory(ConfidenceEnhancedLinearSVC())
+        clf_factory = SklearnClassifierFactory(ConfidenceEnhancedLinearSVC(), 2)
         query_strategy = RandomSampling()
 
         with tempfile.TemporaryDirectory() as tmp_dir_name:

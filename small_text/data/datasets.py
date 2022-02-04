@@ -1,6 +1,7 @@
 import numpy as np
 
 from abc import ABC
+from scipy.sparse import csr_matrix
 from scipy.sparse import issparse
 
 from small_text.data.exceptions import UnsupportedOperationException
@@ -38,6 +39,11 @@ class Dataset(ABC):
 
     @y.setter
     def y(self, y_new):
+        pass
+
+    @property
+    def is_multi_label(self):
+        """Returns `True` if this is a multi-label dataset, otherwise `False`."""
         pass
 
     @property
@@ -109,6 +115,10 @@ class DatasetView(Dataset):
         raise UnsupportedOperationException('Cannot set y on a DatasetView')
 
     @property
+    def is_multi_label(self):
+        return self._dataset.is_multi_label
+
+    @property
     def target_labels(self):
         """Returns a list of possible labels.
 
@@ -130,6 +140,13 @@ class DatasetView(Dataset):
         return self._dataset.x[self.selection].shape[0]
 
 
+def is_multi_label(y):
+    if isinstance(y, csr_matrix):
+        return True
+    else:
+        return False
+
+
 class SklearnDataset(Dataset):
     """A dataset representations which is usable in combination with scikit-learn classifiers.
 
@@ -146,7 +163,12 @@ class SklearnDataset(Dataset):
     def __init__(self, x, y, target_labels=None):
 
         self._x = x
-        self._y = np.array(y)
+        if isinstance(y, list):
+            self._y = np.array(y)
+        else:
+            self._y = y
+
+        self.multi_label = is_multi_label(self._y)
 
         if target_labels is not None:
             self.track_target_labels = False
@@ -156,7 +178,10 @@ class SklearnDataset(Dataset):
             self._infer_target_labels(self._y)
 
     def _infer_target_labels(self, y):
-        self.target_labels = np.unique(y)
+        if isinstance(y, csr_matrix):
+            self.target_labels = np.unique(y.indices)
+        else:
+            self.target_labels = np.unique(y)
 
     @property
     def x(self):
@@ -189,6 +214,10 @@ class SklearnDataset(Dataset):
         self._y = y
         if self.track_target_labels:
             self._infer_target_labels(self._y)
+
+    @property
+    def is_multi_label(self):
+        return self.multi_label
 
     @property
     def target_labels(self):

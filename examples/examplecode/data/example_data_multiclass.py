@@ -7,7 +7,10 @@ from examplecode.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 
 
 def get_train_test():
-    train, test = get_twenty_newsgroups_corpus()
+    return get_twenty_newsgroups_corpus(categories=['rec.sport.baseball', 'sci.med', 'rec.autos'])
+
+
+def preprocess_data(train, test):
 
     try:
         from torchtext import data

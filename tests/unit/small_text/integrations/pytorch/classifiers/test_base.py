@@ -1,15 +1,15 @@
 import pytest
 import unittest
 
-import numpy as np
-
 from unittest.mock import patch
+
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from tests.utils.datasets import random_text_classification_dataset
 
 try:
     import torch
-    from torch.nn.modules import CrossEntropyLoss, BCEWithLogitsLoss
+    from torch.nn import CrossEntropyLoss
+    from torch.nn import BCEWithLogitsLoss
 
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.pytorch.classifiers import PytorchClassifier
@@ -18,9 +18,10 @@ try:
     class SimplePytorchClassifier(PytorchClassifier):
         """Simple subclass to allow instantiation."""
 
-        def __init__(self, num_classes, device=None):
+        def __init__(self, num_classes, multi_label=False, class_weight=None, device=None):
             self.num_classes = num_classes
-            super().__init__(device=device)
+            self.class_weight = class_weight
+            super().__init__(multi_label=multi_label, device=device)
 
         def fit(self, train_set, _=None, *args, **kwargs):
             pass
@@ -37,56 +38,6 @@ except PytorchNotFoundError:
     pass
 
 
-class _PytorchClassifierBaseFunctionalityTest(object):
-
-    def _get_clf(self):
-        raise NotImplementedError()
-
-    def test_predict_on_empty_data(self):
-        train_set = random_text_classification_dataset(10)
-        test_set = PytorchTextClassificationDataset(np.array([]), None)
-
-        clf = self._get_clf()
-        clf.fit(train_set)
-
-        predictions = clf.predict(test_set)
-        self.assertEqual(0, predictions.shape[0])
-        self.assertTrue(np.issubdtype(predictions.dtype, np.integer))
-
-    def test_predict_proba_on_empty_data(self):
-        train_set = random_text_classification_dataset(10)
-        test_set = PytorchTextClassificationDataset(np.array([]), None)
-
-        clf = self._get_clf()
-        clf.fit(train_set)
-
-        predictions, proba = clf.predict_proba(test_set)
-        self.assertEqual(0, predictions.shape[0])
-        self.assertTrue(np.issubdtype(predictions.dtype, np.integer))
-        self.assertEqual(0, proba.shape[0])
-        self.assertTrue(np.issubdtype(proba.dtype, np.float))
-
-
-@pytest.mark.pytorch
-class KimCNNBaseFunctionalityTest(unittest.TestCase, _PytorchClassifierBaseFunctionalityTest):
-
-    def test_predict_on_empty_data(self):
-        train_set = random_text_classification_dataset(10)
-        test_set = PytorchTextClassificationDataset(np.array([]), None)
-
-        clf = self._get_clf()
-        clf.fit(train_set)
-
-        predictions = clf.predict(test_set)
-        self.assertEqual(0, predictions.shape[0])
-        self.assertTrue(np.issubdtype(predictions.dtype, np.integer))
-
-    def _get_clf(self):
-        embedding_matrix = torch.rand(5, 20)
-        return KimCNNClassifier(2, embedding_matrix=embedding_matrix, num_epochs=2, out_channels=15,
-                                max_seq_len=20, kernel_heights=[2, 3], device='cpu')
-
-
 @pytest.mark.pytorch
 class SimplePytorchClassifierTest(unittest.TestCase):
 
@@ -95,6 +46,7 @@ class SimplePytorchClassifierTest(unittest.TestCase):
         mock_is_available.return_value = False
 
         clf = SimplePytorchClassifier(2)
+        self.assertFalse(clf.multi_label)
         self.assertEqual('cpu', clf.device)
         mock_is_available.assert_called_with()
 
@@ -105,6 +57,7 @@ class SimplePytorchClassifierTest(unittest.TestCase):
         mock_is_available.return_value = True
 
         clf = SimplePytorchClassifier(2, device='cuda')
+        self.assertFalse(clf.multi_label)
         self.assertEqual('cuda', clf.device)
         mock_is_available.assert_called_with()
 
@@ -115,6 +68,7 @@ class SimplePytorchClassifierTest(unittest.TestCase):
         mock_is_available.return_value = True
 
         clf = SimplePytorchClassifier(2)
+        self.assertFalse(clf.multi_label)
         self.assertEqual('cuda', clf.device)
         mock_is_available.assert_called_with()
 
@@ -139,3 +93,92 @@ class SimplePytorchClassifierTest(unittest.TestCase):
         clf.class_weights_ = torch.ones(3)
         loss = clf.get_default_criterion()
         self.assertTrue(isinstance(loss, CrossEntropyLoss))
+
+    @patch('torch.cuda.is_available')
+    @patch('torch.cuda.current_device')
+    def test_get_default_criterion_multilabel(self, mock_current_device, mock_is_available):
+        mock_current_device.return_value = '0'
+        mock_is_available.return_value = True
+
+        clf = SimplePytorchClassifier(3, multi_label=True)
+        clf.class_weights_ = torch.ones(3)
+        loss = clf.get_default_criterion()
+        self.assertTrue(isinstance(loss, BCEWithLogitsLoss))
+
+    @patch('torch.cuda.is_available')
+    @patch('torch.cuda.current_device')
+    def test_initialize_class_weights(self, mock_current_device, mock_is_available):
+        mock_current_device.return_value = '0'
+        mock_is_available.return_value = True
+
+        clf = SimplePytorchClassifier(3)
+        train_set = random_text_classification_dataset(max_length=10, num_classes=3)
+        class_weights = clf.initialize_class_weights(train_set)
+
+        self.assertIsNone(class_weights)
+
+    @patch('torch.cuda.is_available')
+    @patch('torch.cuda.current_device')
+    def test_initialize_class_weights_balanced(self, mock_current_device, mock_is_available):
+        mock_current_device.return_value = '0'
+        mock_is_available.return_value = True
+
+        clf = SimplePytorchClassifier(3, multi_label=True, class_weight='balanced')
+        train_set = random_text_classification_dataset(max_length=10, num_classes=3)
+        class_weights = clf.initialize_class_weights(train_set)
+
+        self.assertIsNotNone(class_weights)
+
+    @patch('torch.cuda.is_available')
+    @patch('torch.cuda.current_device')
+    def test_initialize_class_weights_invalid_value(self, mock_current_device, mock_is_available):
+        mock_current_device.return_value = '0'
+        mock_is_available.return_value = True
+
+        clf = SimplePytorchClassifier(3, class_weight='does_not_exist')
+        train_set = random_text_classification_dataset(max_length=10, num_classes=3)
+
+        with self.assertRaisesRegex(ValueError, 'Invalid value for class_weight'):
+            clf.initialize_class_weights(train_set)
+
+    @patch('torch.cuda.is_available')
+    @patch('torch.cuda.current_device')
+    def test_initialize_class_weights_multi_label_warning(self, mock_current_device, mock_is_available):
+        mock_current_device.return_value = '0'
+        mock_is_available.return_value = True
+
+        clf = SimplePytorchClassifier(3, multi_label=True, class_weight='balanced')
+        train_set = random_text_classification_dataset(max_length=10, num_classes=3)
+
+        with self.assertWarnsRegex(UserWarning, 'Setting class_weight to \'balanced\' is intended'):
+            clf.initialize_class_weights(train_set)
+
+    def test_sum_up_accuracy(self):
+        logits = torch.FloatTensor([
+            [2.22, -0.14, 0.13],
+            [0.12, 1.05, 3.13],
+            [-0.56, 0.19, 1.02]
+        ], device='cpu')
+
+        cls = torch.IntTensor([0, 2, 1])
+        clf = SimplePytorchClassifier(3)
+
+        accuracy = clf.sum_up_accuracy_(logits, cls)
+        self.assertEqual(2, accuracy)
+
+    def test_sum_up_accuracy_multi_label(self):
+        logits = torch.FloatTensor([
+            [2.22, -0.14, 0.13],
+            [0.12, 1.05, 3.13],
+            [-0.56, 0.19, 1.02]
+        ], device='cpu')
+
+        cls = torch.IntTensor([
+            [1, 0, 1],
+            [0, 0, 1],
+            [0, 1, 1],
+        ])
+        clf = SimplePytorchClassifier(3, multi_label=True)
+
+        accuracy = clf.sum_up_accuracy_(logits, cls)
+        self.assertAlmostEqual(2.333, accuracy, places=3)

@@ -68,8 +68,8 @@ class KimCNN(nn.Module):
 
         self.out_channels = out_channels
         self.in_channels = 1
-        self.n_kernels = len(kernel_heights)
-        self.pool_sizes = [(max_seq_length - K, 1) for K in kernel_heights]
+        self.num_kernels = len(kernel_heights)
+        self.pool_sizes = [(max_seq_length - k, 1) for k in kernel_heights]
         self.max_seq_length = max_seq_length
         self.num_classes = num_classes
 
@@ -91,9 +91,9 @@ class KimCNN(nn.Module):
                 nn.Conv2d(
                     self.in_channels,
                     self.out_channels,
-                    kernel_size=(K, embed_dim)
+                    kernel_size=(k, embed_dim)
                 )
-                for K in kernel_heights
+                for k in kernel_heights
             ]
         )
         self.pools = nn.ModuleList(
@@ -104,7 +104,7 @@ class KimCNN(nn.Module):
         )
 
         self.dropout = nn.Dropout(dropout)
-        self.fc = nn.Linear(self.out_channels * self.n_kernels, self.num_classes)
+        self.fc = nn.Linear(self.out_channels * self.num_kernels, self.num_classes)
 
     def forward(self, x):
         """
