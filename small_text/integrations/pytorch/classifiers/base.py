@@ -12,7 +12,6 @@ try:
 
     from torch.nn.modules import CrossEntropyLoss, BCEWithLogitsLoss, BCELoss
     from torch.optim.lr_scheduler import _LRScheduler, LambdaLR
-    from transformers import get_linear_schedule_with_warmup
 
     from small_text.integrations.pytorch.utils.data import get_class_weights
     from small_text.utils.classification import empty_result, get_splits, prediction_result
@@ -129,9 +128,15 @@ class PytorchClassifier(Classifier):
         optimizer = self._default_optimizer(params, base_lr) if optimizer is None else optimizer
 
         if scheduler == 'linear':
-            scheduler = get_linear_schedule_with_warmup(optimizer,
-                                                        num_warmup_steps=0,
-                                                        num_training_steps=steps*num_epochs)
+            try:
+                from transformers import get_linear_schedule_with_warmup
+                scheduler = get_linear_schedule_with_warmup(optimizer,
+                                                            num_warmup_steps=0,
+                                                            num_training_steps=steps*num_epochs)
+            except ImportError:
+                raise ValueError('Linear scheduler is only available when the transformers '
+                                 'integration is installed ')
+
         elif scheduler is None:
             # constant learning rate
             scheduler = LambdaLR(optimizer, lambda _: 1)
