@@ -626,8 +626,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
     def __del__(self):
         try:
-            for o in [self.criterion, self.optimizer, self.scheduler, self.model,
-                      self.tokenizer, self.config]:
-                del o
+            attrs = ['criterion', 'optimizer', 'scheduler', 'model', 'tokenizer', 'config']
+            for attr in attrs:
+                delattr(self, attr)
         except Exception:
             pass
