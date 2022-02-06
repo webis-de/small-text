@@ -42,6 +42,7 @@ class KimCNNTest(unittest.TestCase):
         self.assertEqual(0.001, classifier.lr)
         self.assertEqual(60, classifier.max_seq_len)
         self.assertEqual(100, classifier.out_channels)
+        self.assertEqual(0, classifier.filter_padding)
         self.assertEqual(0.5, classifier.dropout)
         self.assertEqual(0.1, classifier.validation_set_size)
         np.testing.assert_equal(embedding_matrix, classifier.embedding_matrix)
@@ -59,6 +60,7 @@ class KimCNNTest(unittest.TestCase):
         mini_batch_size = 30
         max_seq_len = 100
         out_channels = 80
+        filter_padding = 0
         dropout = 0.4
         validation_set_size = 0.15
         embedding_matrix = np.random.rand(5, 10)
@@ -69,7 +71,8 @@ class KimCNNTest(unittest.TestCase):
         classifier = KimCNNClassifier(num_classes, multi_label=multi_label, device='cpu',
                                       num_epochs=num_epochs, mini_batch_size=mini_batch_size,
                                       max_seq_len=max_seq_len, out_channels=out_channels,
-                                      dropout=dropout, validation_set_size=validation_set_size,
+                                      filter_padding=filter_padding, dropout=dropout,
+                                      validation_set_size=validation_set_size,
                                       embedding_matrix=embedding_matrix, padding_idx=padding_idx,
                                       early_stopping=early_stopping,
                                       early_stopping_acc=early_stopping_acc)
@@ -84,6 +87,7 @@ class KimCNNTest(unittest.TestCase):
         self.assertIsNone(classifier.scheduler)
         self.assertEqual(max_seq_len, classifier.max_seq_len)
         self.assertEqual(out_channels, classifier.out_channels)
+        self.assertEqual(filter_padding, classifier.filter_padding)
         self.assertEqual(dropout, classifier.dropout)
         self.assertEqual(validation_set_size, classifier.validation_set_size)
         np.testing.assert_equal(embedding_matrix, classifier.embedding_matrix)

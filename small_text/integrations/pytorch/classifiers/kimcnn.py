@@ -32,7 +32,6 @@ except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
 
-# TODO: pass filter_padding
 def kimcnn_collate_fn(batch, enc=None, max_seq_len=60, padding_idx=0, filter_padding=0):
 
     def prepare_tensor(t):
@@ -151,9 +150,9 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
     def __init__(self, num_classes, multi_label=False, embedding_matrix=None, device=None,
                  num_epochs=10, mini_batch_size=25, lr=0.001, max_seq_len=60, out_channels=100,
-                 dropout=0.5, validation_set_size=0.1, padding_idx=0, kernel_heights=[3, 4, 5],
-                 early_stopping=5, early_stopping_acc=0.98, class_weight=None,
-                 verbosity=VERBOSITY_MORE_VERBOSE):
+                 filter_padding=0, dropout=0.5, validation_set_size=0.1, padding_idx=0,
+                 kernel_heights=[3, 4, 5], early_stopping=5, early_stopping_acc=0.98,
+                 class_weight=None, verbosity=VERBOSITY_MORE_VERBOSE):
 
         super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size)
 
@@ -178,6 +177,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         # KimCNN (pytorch model) parameters
         self.max_seq_len = max_seq_len
         self.out_channels = out_channels
+        self.filter_padding = filter_padding
         self.dropout = dropout
         self.validation_set_size = validation_set_size
         self.embedding_matrix = embedding_matrix
@@ -323,7 +323,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
     def _create_collate_fn(self):
         return partial(kimcnn_collate_fn, enc=self.enc_, padding_idx=self.padding_idx,
-                       max_seq_len=self.max_seq_len)
+                       max_seq_len=self.max_seq_len, filter_padding=self.filter_padding)
 
     def _train_func(self, sub_train_, optimizer, scheduler):
 
