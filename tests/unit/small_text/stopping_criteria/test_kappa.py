@@ -1,11 +1,6 @@
-import json
 import unittest
-import warnings
 
 import numpy as np
-
-from pathlib import Path
-
 from numpy.testing import assert_array_equal
 
 from small_text.stopping_criteria.kappa import KappaAverage
@@ -58,25 +53,6 @@ class KappaAverageTest(unittest.TestCase):
         self.assertEqual([0.5], stopping_criterion.kappa_history)
         assert_array_equal(second_predictions, stopping_criterion.last_predictions)
 
-    def test_stop(self):
-        stopping_criterion = KappaAverage(2, kappa=0.99)
-
-        fixture_path = str(Path(__file__).parent.joinpath('fixture_predictions.json'))
-        with open(fixture_path, 'r') as f:
-            predictions = json.load(f)
-            predictions = np.array(predictions)
-
-        self.assertEqual(5, len(predictions))
-
-        for i in range(4):
-            self.assertFalse(stopping_criterion.stop(predictions=predictions[i]))
-
-        stop = stopping_criterion.stop(predictions=predictions[4])
-        self.assertTrue(stop)
-
-        self.assertEqual([0.5, 0.5, 0.5], stopping_criterion.kappa_history)
-        assert_array_equal(predictions[4], stopping_criterion.last_predictions)
-
     def test_stop_with_predictions_none(self):
         stopping_criterion = KappaAverage(2)
 
@@ -92,26 +68,3 @@ class KappaAverageTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             stopping_criterion.stop(predictions=np.array([0, 1, 0]))
             stopping_criterion.stop(predictions=np.array([0, 1, 0, 1]))
-
-    def test_stop_with_nans_occurring(self):
-        stopping_criterion = KappaAverage(2, kappa=0.99)
-
-        fixture_path = str(Path(__file__).parent.joinpath('fixture_predictions_nan.json'))
-        with open(fixture_path, 'r') as f:
-            predictions = json.load(f)
-            predictions = np.array(predictions)
-
-        self.assertEqual(5, len(predictions))
-
-        for i in range(4):
-            self.assertFalse(stopping_criterion.stop(predictions=predictions[i]))
-
-        with warnings.catch_warnings(record=True) as w:
-            stop = stopping_criterion.stop(predictions=predictions[4])
-            self.assertTrue(stop)
-
-            self.assertEqual(1, len(w))
-            self.assertTrue(issubclass(w[0].category, RuntimeWarning))
-
-        assert_array_equal([0.0, float('nan'), float('nan')], stopping_criterion.kappa_history)
-        assert_array_equal(predictions[4], stopping_criterion.last_predictions)
