@@ -152,7 +152,7 @@ def assure_all_labels_occur(data, num_classes, multi_label=False):
 
     for i, label_idx in enumerate(missing_labels):
         if multi_label:
-            data[i] = data[i][:-1] + (np.sort(np.array(data[i][-1] + label_idx)),)
+            data[i] = data[i][:-1] + (np.sort(np.append(data[i][-1], [label_idx])),)
         else:
             data[i] = data[i][:-1] + (label_idx,)
 
@@ -183,7 +183,7 @@ def random_transformer_dataset(num_samples, max_length=60, num_classes=2, multi_
 
         data.append((text, mask, labels))
 
-    data = assure_all_labels_occur(data, num_classes)
+    data = assure_all_labels_occur(data, num_classes, multi_label=multi_label)
 
     target_labels = None if target_labels == 'inferred' else np.arange(num_classes)
     return TransformersDataset(data, multi_label=multi_label, target_labels=target_labels)
