@@ -3,8 +3,10 @@ import numpy as np
 
 from sklearn.metrics import cohen_kappa_score
 
+from small_text.stopping_criteria.base import StoppingCriterion, check_window_based_predictions
 
-class KappaAverage(object):
+
+class KappaAverage(StoppingCriterion):
     """
     A stopping criterion which measures the agreement between sets of predictions.
 
@@ -15,23 +17,26 @@ class KappaAverage(object):
        In Proceedings of the Thirteenth Conference on Computational Natural Language Learning (CoNLL '09).
        Association for Computational Linguistics, USA, 39–47.
     """
-    def __init__(self, kappa=0.99, window_size=3, labels=[0, 1]):
-        self.last_predictions = None
-        self.kappa_history = []
+    def __init__(self, num_classes, kappa=0.99, window_size=3):
+
+        self.num_classes = num_classes
         self.kappa = kappa
         self.window_size = window_size
-        self.labels = labels
 
-    def evaluate(self, predictions):
+        self.last_predictions = None
+        self.kappa_history = []
+
+    def stop(self, active_learner=None, predictions=None, proba=None):
+        check_window_based_predictions(predictions, self.last_predictions)
 
         if self.last_predictions is None:
             self.last_predictions = predictions
             return False
         else:
-            # TODO: labels
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore', category=RuntimeWarning)
-                cohens_kappa = cohen_kappa_score(predictions, self.last_predictions, labels=self.labels)
+                labels = np.arange(self.num_classes)
+                cohens_kappa = cohen_kappa_score(predictions, self.last_predictions, labels=labels)
 
             self.kappa_history.append(cohens_kappa)
             self.last_predictions = predictions
@@ -39,7 +44,7 @@ class KappaAverage(object):
             if len(self.kappa_history) < self.window_size:
                 return False
 
-            self.kappa_history = self.kappa_history[-(self.window_size):]
+            self.kappa_history = self.kappa_history[-self.window_size:]
             deltas = np.abs([a - b for a, b in zip(self.kappa_history, self.kappa_history[1:])])
 
             if all(np.isnan(deltas)):
