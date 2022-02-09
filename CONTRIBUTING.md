@@ -39,7 +39,7 @@ make
 
 - Update small_text/version.json
 - README.md
-  - Documentation Badge should link to the version of the most recent release
+  - Documentation Badge should link to the version of the most recent release (link AND img)
   - Link references at the bottom should point to the most recent release
 
 ## Contributors
