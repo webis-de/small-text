@@ -18,7 +18,7 @@ General
 * :py:class:`EmbeddingKMeans`
 * :py:class:`RandomSampling`
 
-.. py:currentmodule:: active_learning.integrations.pytorch.query_strategies
+.. py:currentmodule:: small_text.integrations.pytorch.query_strategies
 
 Pytorch
 -------

@@ -20,16 +20,69 @@ A comprehensive introduction to active learning can be found in (Settles, 2010) 
 Components
 ==========
 
+.. py:currentmodule:: small_text.active_learner
+
 An active learning process can encompasses several, usually interchangeable components:
 An :doc:`initalization strategy<components/initialization>`,
 a :doc:`query strategy<components/query_strategies>`,
 and (optionally) a :doc:`stopping criterion<components/stopping_criteria>`.
 
+.. figure:: _static/figures/active-learning-components.png
+  :align: center
+  :scale: 70%
+
+  A schematic of component types within an active learning setup.
+
+You can mix and match these around the :py:class:`PoolBasedActiveLearner` which results in
+a full active learning setup in just a few lines of code.
+In some cases, however, there may be conceptually incompatible components,
+e.g. a :py:class:`gradient-based query strategy <small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLength>`
+requires a classifier that has gradients,
+but in general the library does not impose any restrictions.
+
+
+Initialization Strategies
+-------------------------
+
+While there are exceptions, in many cases you will already need an initial model to apply
+a query strategy. This may sound like a contradiction, since you are using active learning
+to create a model in the first place, but usually a weak model using very few training instances
+suffices.
+
+* In a practical settings this can be solved by manually labeling some instances for each class.
+* In the experiment setting, we simulate the choice of the initial samples.
+
+For the latter case, we use :doc:`initalization strategies<components/initialization>`, which select an initial set of documents.
+They are just sampling methods which take the label distribution into account.
+
+Query Strategies
+----------------
+
+:doc:`Query strategies<components/query_strategies>` decide which instances from the pool of
+unlabeled data will be labeled next. They are the most critical component as they influence
+both the effectiveness as well as the efficiency. Moreover, they exists in many different forms,
+which can yield different results and varying runtimes. In case you are not sure which one to choose:
+Uncertainty-based query strategies [LG94]_ have been shown to be a strong (and conceptually simple)
+baseline for both traditional and modern [SNP21]_ classification models.
+
+Stopping Criteria
+-----------------
+
+How often do we need to query the dataset? :doc:`Stopping criteria<components/stopping_criteria>`
+give you an indication whether the process should be stopped or not.
+
 ----
 
 **References**
 
-.. [Set10] Burr Settles. 2010.
+.. [Set10] Burr Settles.
    Active Learning Literature Survey.
-   Computer Sciences Technical Report 1648.
-   University of Wisconsin–Madison.
+   Computer Sciences Technical Report 1648 University of Wisconsin–Madison, 2010.
+
+.. [LG94] David D. Lewis and William A. Gale.
+   A sequential algorithm for training text classifiers.
+   In SIGIR’94, 1994, 3-12.
+
+.. [SNP21] Christopher Schröder, Andreas Niekler and Martin Potthast.
+   Uncertainty-based Query Strategies for Active Learning with Transformers.
+   ArXiv abs/2107.05687, 2021.
