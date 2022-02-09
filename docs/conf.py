@@ -3,6 +3,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
+from packaging.version import parse
 from small_text.version import __version__ as version
 
 # Configuration file for the Sphinx documentation builder.
@@ -37,6 +38,7 @@ author = 'Christopher Schröder'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
+    'sphinx.ext.linkcode',
     'sphinx.ext.napoleon',
     'sphinx_rtd_theme',
     'sphinx.ext.autosectionlabel',
@@ -92,3 +94,16 @@ html_context = {
 html_css_files = [
     'css/custom.css',
 ]
+
+# -- Linkcode resolve------------------- --------------------------------------
+
+def linkcode_resolve(domain, info):
+    if domain != 'py':
+        return None
+    if not info['module']:
+        return None
+    # only link to classes
+    if '.' in info['fullname']:
+        return None
+    filename = info['module'].replace('.', '/') + '.py'
+    return 'https://github.com/webis-de/small-text/blob/%s/%s' % (str(parse(version)), filename)

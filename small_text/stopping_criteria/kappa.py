@@ -8,7 +8,7 @@ from small_text.stopping_criteria.base import StoppingCriterion, check_window_ba
 
 class KappaAverage(StoppingCriterion):
     """
-    A stopping criterion which measures the agreement between sets of predictions.
+    A stopping criterion which measures the agreement between sets of predictions [BV09]_.
 
     References
     ----------

@@ -1,5 +1,3 @@
-.. py:currentmodule:: small_text.query_strategies
-
 ================
 Query Strategies
 ================
@@ -12,16 +10,20 @@ Overview
 General
 -------
 
+.. py:currentmodule:: small_text.query_strategies.strategies
+
 * :py:class:`LeastConfidence`
 * :py:class:`PredictionEntropy`
 * :py:class:`BreakingTies`
 * :py:class:`EmbeddingKMeans`
 * :py:class:`RandomSampling`
 
-.. py:currentmodule:: small_text.integrations.pytorch.query_strategies
 
 Pytorch
 -------
+
+.. py:currentmodule:: small_text.integrations.pytorch.query_strategies
+
 * :py:class:`ExpectedGradientLength`
 * :py:class:`ExpectedGradientLengthMaxWord`
 * :py:class:`ExpectedGradientLengthLayer`
@@ -46,7 +48,7 @@ Constraints
 Classes
 =======
 
-.. py:module:: small_text.query_strategies
+.. py:module:: small_text.query_strategies.strategies
 
 .. autoclass:: LeastConfidence
     :inherited-members:
