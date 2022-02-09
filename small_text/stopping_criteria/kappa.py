@@ -26,7 +26,7 @@ class KappaAverage(StoppingCriterion):
         self.last_predictions = None
         self.kappa_history = []
 
-    def stop(self, active_learner=None, predictions=None, proba=None):
+    def stop(self, active_learner=None, predictions=None, proba=None, x_indices_stopping=None):
         check_window_based_predictions(predictions, self.last_predictions)
 
         if self.last_predictions is None:
