@@ -1,3 +1,25 @@
 @media (max-width: 1280px) {
    .github-ribbon { display: none; }
 }
+
+.sig-object {
+   word-wrap: break-word;
+   word-break: break-word;
+   width: 100%;
+}
+
+.sig .reference.external {
+   float: right;
+}
+
+.rst-content dl dt.sig {
+   clear: both;
+}
+
+.rst-content dl dt.sig .headerlink {
+   display: none;
+}
+
+.descclassname {
+   display: inline-block;
+}
