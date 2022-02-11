@@ -42,6 +42,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx_rtd_theme',
     'sphinx.ext.autosectionlabel',
+    'sphinx.ext.intersphinx',
     'm2r2',
 ]
 
@@ -107,3 +108,10 @@ def linkcode_resolve(domain, info):
         return None
     filename = info['module'].replace('.', '/') + '.py'
     return 'https://github.com/webis-de/small-text/blob/%s/%s' % (str(parse(version)), filename)
+
+# -- Intersphinx------------------- -------------------------------------------
+
+intersphinx_mapping = {
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'torch':  ('https://pytorch.org/docs/master/', None)
+}
