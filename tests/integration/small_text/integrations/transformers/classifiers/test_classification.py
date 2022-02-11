@@ -15,12 +15,11 @@ from tests.utils.datasets import twenty_news_transformers
 from tests.utils.testing import assert_array_not_equal
 
 try:
-    import torch
-
-    from torch.nn.modules import BCEWithLogitsLoss
-
     from small_text.integrations.transformers import TransformerModelArguments
-    from small_text.integrations.transformers.classifiers import TransformerBasedClassificationFactory, TransformerBasedClassification
+    from small_text.integrations.transformers.classifiers import (
+        TransformerBasedClassificationFactory,
+        TransformerBasedClassification
+    )
     from small_text.integrations.transformers.classifiers.classification import FineTuningArguments
 
     from tests.utils.datasets import random_transformer_dataset
@@ -103,7 +102,7 @@ class EmbeddingTest(unittest.TestCase):
                                'eval',
                                wraps=clf.model.eval) as model_eval_spy:
             embedding_two = clf.embed(train_set, embedding_method=self.embedding_method,
-                                  hidden_layer_index=0)
+                                      hidden_layer_index=0)
             model_eval_spy.assert_called()
 
         assert_array_not_equal(embedding_one, embedding_two)
@@ -156,7 +155,7 @@ class _TransformerBasedClassificationTest(object):
         clf.fit(train_set)
 
         # basically tests _get_layer_params for now
- 
+
         fake_train.assert_called()
         select_best_model_mock.assert_called()
 
@@ -187,12 +186,12 @@ class _TransformerBasedClassificationTest(object):
         clf.fit(train_set)
 
         with mock.patch.object(clf.model, 'eval', wraps=clf.model.eval) as model_eval_spy, \
-             mock.patch.object(clf.model, 'train', wraps=clf.model.train) as model_train_spy:
+            mock.patch.object(clf.model, 'train', wraps=clf.model.train) as model_train_spy:
 
-             y_pred = clf.predict(test_set)
+            y_pred = clf.predict(test_set)
 
-             model_eval_spy.assert_called()
-             model_train_spy.assert_called_once_with(False)
+            model_eval_spy.assert_called()
+            model_train_spy.assert_called_once_with(False)
 
         if self.multi_label:
             self.assertTrue(issparse(y_pred))

@@ -1,4 +1,3 @@
-import torch
 import numpy as np
 
 from small_text.integrations.transformers.datasets import TransformersDataset

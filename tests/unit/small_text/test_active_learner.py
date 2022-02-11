@@ -45,7 +45,7 @@ class _PoolBasedActiveLearnerTest(object):
     def _get_classifier_factory(self):
         return SklearnClassifierFactory(ConfidenceEnhancedLinearSVC(),
                                         self.NUM_CLASSES,
-                                        kwargs=dict({ 'multi_label': self.multi_label }))
+                                        kwargs=dict({'multi_label': self.multi_label}))
 
     def _set_up_active_learner(self):
         clf_factory = self._get_classifier_factory()
@@ -528,7 +528,11 @@ class _PoolBasedActiveLearnerTest(object):
         x_indices_initial = np.random.choice(np.arange(100), size=10, replace=False)
         y_initial = self._get_y_initial()
         unlabeled_indices = self._get_unlabeled_indices(x_indices_initial)
-        self._test_ignore_sample_without_label_change(ds, x_indices_initial, y_initial, unlabeled_indices[0], retrain=True)
+        self._test_ignore_sample_without_label_change(ds,
+                                                      x_indices_initial,
+                                                      y_initial,
+                                                      unlabeled_indices[0],
+                                                      retrain=True)
 
     def test_ignore_sample_at_with_validation_set_given(self):
         ds = self._get_random_dataset(num_samples=100)
@@ -643,5 +647,3 @@ class PoolBasedActiveLearnerMultiLabelTest(unittest.TestCase, _PoolBasedActiveLe
         active_learner.initialize_data(x_indices_initial, y_initial)
 
         return active_learner
-
-

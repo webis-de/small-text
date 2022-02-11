@@ -3,15 +3,11 @@ import unittest
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
-    import torch
-    from torch.nn.modules import BCEWithLogitsLoss
-
     from torch.optim import Adadelta, AdamW
     from torch.optim.lr_scheduler import ExponentialLR
 
     from small_text.integrations.pytorch.classifiers.base import PytorchClassifier
     from small_text.integrations.pytorch.models.kimcnn import KimCNN
-    from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from tests.utils.datasets import random_text_classification_dataset
 except PytorchNotFoundError:
     pass

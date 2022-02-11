@@ -23,7 +23,7 @@ from small_text.utils.system import get_tmp_dir_base
 
 try:
     import torch
-    import torch.nn.functional as F
+    import torch.nn.functional as F  # noqa: N812
 
     from torch.optim import AdamW
     from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer

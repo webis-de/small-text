@@ -8,12 +8,14 @@ from small_text.data import balanced_sampling, stratified_sampling
 from small_text.initialization import random_initialization, \
     random_initialization_stratified, random_initialization_balanced
 
+from tests.utils.datasets import random_sklearn_dataset
+
 
 class RandomInitializationTest(unittest.TestCase):
 
     def test_random_initialization(self):
 
-        x = np.random.rand(100,2)
+        x = random_sklearn_dataset(100, vocab_size=2)
         indices = random_initialization(x)
 
         self.assertEqual(10, len(indices))
@@ -22,7 +24,7 @@ class RandomInitializationTest(unittest.TestCase):
 
     def test_random_initialization_num_samples_too_large(self):
 
-        dataset = np.random.rand(100,2)
+        dataset = random_sklearn_dataset(100, vocab_size=2)
         with self.assertRaises(ValueError):
             random_initialization(dataset, n_samples=101)
 

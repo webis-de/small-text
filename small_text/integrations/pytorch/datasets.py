@@ -8,7 +8,6 @@ from small_text.utils.labels import list_to_csr
 
 try:
     import torch
-    from torchtext.vocab import Vocab
 except ModuleNotFoundError:
     raise PytorchNotFoundError('Could not import torchtext')
 

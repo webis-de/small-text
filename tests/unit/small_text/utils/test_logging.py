@@ -63,7 +63,6 @@ class VerbosityLoggerTest(unittest.TestCase):
 
         info_mock.assert_not_called()
 
-
     @patch('small_text.utils.logging.Logger.warning')
     def test_warning(self, warning_mock):
         logger = VerbosityLogger('logger1')
@@ -230,7 +229,7 @@ class VerbosityLoggerTest(unittest.TestCase):
         log_mock.assert_called_with(INFO, msg)
 
     @patch('small_text.utils.logging.Logger.log')
-    def test_log_info(self, log_mock):
+    def test_log_info_suppressed_by_call_verbosity(self, log_mock):
         logger = VerbosityLogger('logger1')
 
         msg = 'something happened'

@@ -11,12 +11,11 @@ from small_text.utils.data import list_length
 
 try:
     import torch
-    import torch.nn.functional as F
+    import torch.nn.functional as F  # noqa: N812
 
     from small_text.integrations.pytorch.utils.misc import assert_layer_exists, default_tensor_type
-    from small_text.integrations.pytorch.classifiers.kimcnn import kimcnn_collate_fn as default_collate_fn
     from small_text.integrations.pytorch.utils.data import dataloader
-except ImportError as e:
+except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
 
