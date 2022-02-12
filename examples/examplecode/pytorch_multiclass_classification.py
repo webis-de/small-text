@@ -97,4 +97,5 @@ def _load_gensim_embedding(vocab, min_freq=1):
 
 if __name__ == '__main__':
     logging.getLogger('small_text').setLevel(logging.INFO)
+
     main()

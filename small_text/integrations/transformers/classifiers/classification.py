@@ -26,6 +26,7 @@ try:
     import torch.nn.functional as F  # noqa: N812
 
     from torch.optim import AdamW
+    from transformers import logging as transformers_logging
     from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
 
     from small_text.integrations.pytorch.classifiers.base import PytorchClassifier
@@ -371,12 +372,17 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             self.transformer_model.tokenizer,
             cache_dir=cache_dir,
         )
+
+        # Suppress "Some weights of the model checkpoint at [model name] were not [...]"-warnings
+        previous_verbosity = transformers_logging.get_verbosity()
+        transformers_logging.set_verbosity_error()
         self.model = AutoModelForSequenceClassification.from_pretrained(
             self.transformer_model.model,
             from_tf=False,
             config=self.config,
             cache_dir=cache_dir,
         )
+        transformers_logging.set_verbosity(previous_verbosity)
 
     def _default_optimizer(self, params, base_lr):
         return AdamW(params, lr=base_lr, eps=1e-8)

@@ -85,6 +85,5 @@ def initialize_active_learner(active_learner, y_train):
 
 if __name__ == '__main__':
     logging.getLogger('small_text').setLevel(logging.INFO)
-    logging.getLogger('transformers.modeling_utils').setLevel(logging.ERROR)
 
     main()
