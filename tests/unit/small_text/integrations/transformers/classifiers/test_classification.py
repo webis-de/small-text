@@ -5,6 +5,7 @@ import numpy as np
 
 from unittest.mock import patch
 
+from small_text.base import LABEL_UNLABELED
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.logging import VERBOSITY_MORE_VERBOSE
 
@@ -109,19 +110,19 @@ class TestTransformerBasedClassification(unittest.TestCase):
         self.assertEqual(no_validation_set_action, classifier.no_validation_set_action)
         # TODO: incomplete
 
-    def test_fit_where_y_train_is_negative(self):
+    def test_fit_where_y_train_contains_unlabeled(self):
         train_set = random_transformer_dataset(10)
-        train_set.y = [-1] * 10
+        train_set.y = np.array([LABEL_UNLABELED] * 10)
 
         model_args = TransformerModelArguments('bert-base-uncased')
         classifier = TransformerBasedClassification(model_args, 2)
         with self.assertRaisesRegex(ValueError, 'Training set labels must be labeled'):
             classifier.fit(train_set)
 
-    def test_fit_where_y_valid_is_negative(self):
+    def test_fit_where_y_valid_contains_unlabeled(self):
         train_set = random_transformer_dataset(8)
         validation_set = random_transformer_dataset(2)
-        validation_set.y = [-1] * 2
+        validation_set.y = np.array([LABEL_UNLABELED] * 2)
 
         model_args = TransformerModelArguments('bert-base-uncased')
         classifier = TransformerBasedClassification(model_args, 2)

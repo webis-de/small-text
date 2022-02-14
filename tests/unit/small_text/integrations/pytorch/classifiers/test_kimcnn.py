@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 from unittest.mock import patch
 
+from small_text.base import LABEL_UNLABELED
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
@@ -148,19 +149,19 @@ class KimCNNTest(unittest.TestCase):
             self.assertEqual(len(train), len(call_args[0]))
             self.assertEqual(len(valid), len(call_args[1]))
 
-    def test_fit_where_y_train_is_negative(self):
+    def test_fit_where_y_train_contains_unlabeled(self):
         train_set = random_text_classification_dataset(10)
-        train_set.y = [-1] * 10
+        train_set.y = np.array([LABEL_UNLABELED] * 10)
 
         classifier = self._get_clf()
 
         with self.assertRaisesRegex(ValueError, 'Training set labels must be labeled'):
             classifier.fit(train_set)
 
-    def test_fit_where_y_valid_is_negative(self):
+    def test_fit_where_y_valid_contains_unlabeled(self):
         train_set = random_text_classification_dataset(8)
         validation_set = random_text_classification_dataset(8)
-        validation_set.y = [-1] * 8
+        validation_set.y = np.array([LABEL_UNLABELED] * 8)
 
         classifier = self._get_clf()
 

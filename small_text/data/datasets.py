@@ -8,6 +8,12 @@ from small_text.data.exceptions import UnsupportedOperationException
 from small_text.data.sampling import stratified_sampling, balanced_sampling
 
 
+def check_size(expected_num_samples, num_samples):
+    if num_samples != expected_num_samples:
+        raise ValueError(f'Size mismatch: expected {expected_num_samples} samples, '
+                         f'encountered {num_samples} samples')
+
+
 class Dataset(ABC):
     """Abstract class for all datasets."""
 
@@ -32,8 +38,8 @@ class Dataset(ABC):
 
         Returns
         -------
-        y : object
-            Label representation.
+        y : numpy.ndarray or scipy.sparse.csr_matrix
+            The labels as either numpy array (single-label) or sparse matrix (multi-label).
         """
         pass
 
@@ -101,13 +107,6 @@ class DatasetView(Dataset):
 
     @property
     def y(self):
-        """Returns the labels.
-
-        Returns
-        -------
-        y : numpy.ndarray
-            List of labels.
-        """
         return self._dataset.y[self.selection]
 
     @y.setter
@@ -200,13 +199,6 @@ class SklearnDataset(Dataset):
 
     @property
     def y(self):
-        """Returns the labels.
-
-        Returns
-        -------
-        y : numpy.ndarray
-            List of labels.
-        """
         return self._y
 
     @y.setter
