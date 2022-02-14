@@ -1,4 +1,8 @@
-# Contributing to active-learning
+# Contributing to Small-Text
+
+Contributions are always welcome.
+
+**Important:** By contributing you agree to the following:
 
 1. License: This project is licensed under the MIT License (see [LICENSE](LICENSE)).
     By contributing you agree to license your contributions under this license as well.
