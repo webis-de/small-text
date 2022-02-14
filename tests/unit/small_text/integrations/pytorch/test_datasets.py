@@ -151,7 +151,7 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
     def test_indexing_list_index(self):
         index = [1, 42, 56, 99]
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
-
+ 
         result = ds[index]
         self.assertEqual(len(index), len(result))
         self.assertTrue(isinstance(result, PytorchDatasetView))

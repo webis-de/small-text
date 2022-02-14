@@ -12,3 +12,8 @@ First beta release with multi-label functionality.
 ### Changed
 
 - Documentation has been overhauled considerably.
+
+### Removed
+
+- Removed `device` kwarg from `PytorchDataset.__init__()`, 
+`PytorchTextClassificationDataset.__init__()` and `TransformersDataset.__init__()`

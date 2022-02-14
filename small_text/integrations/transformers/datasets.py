@@ -23,7 +23,7 @@ class TransformersDataset(PytorchDataset):
 
     NO_LABEL = -1
 
-    def __init__(self, data, multi_label=False, target_labels=None, device=None):
+    def __init__(self, data, multi_label=False, target_labels=None):
         """
         Parameters
         ----------
@@ -39,8 +39,6 @@ class TransformersDataset(PytorchDataset):
             e.g. due to dataset splits, where the labels should however be considered by
             entities such as the classifier. If `None`, the target labels will be inferred
             from the labels encountered in `self.data`.
-        device : str or torch.device
-            [to be removed]
         """
         self._data = data
         self.multi_label = multi_label
@@ -51,13 +49,6 @@ class TransformersDataset(PytorchDataset):
         else:
             self.track_target_labels = True
             self._infer_target_labels()
-
-        if device is None:
-            self.device = None if len(data) == 0 else next(iter(data))[self.INDEX_TEXT].device
-        else:
-            self.device = device
-
-        super().__init__(device=device)
 
     def _infer_target_labels(self):
         inferred_target_labels = self._get_flattened_unique_labels()
@@ -155,7 +146,7 @@ class TransformersDataset(PytorchDataset):
 
         if copy is True:
             target_labels = None if self.track_target_labels else self._target_labels
-            return TransformersDataset(data, target_labels=target_labels, device=self.device)
+            return TransformersDataset(data, target_labels=target_labels)
         else:
             self._data = data
             return self
