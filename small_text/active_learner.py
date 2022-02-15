@@ -74,12 +74,11 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         A factory responsible for creating new classifier instances.
     query_strategy : small_text.query_strategies.QueryStrategy
         Query strategy which is responsible for selecting instances during a `query()` call.
-    x_train : small_text.data.Dataset
+    x_train : ~small_text.data.datasets.Dataset
         A training dataset that is supported by the underlying classifier.
-    incremental_training : bool
-        If False, creates and trains a new classifier only before the first query,
-        otherwise re-trains the existing classifier. Incremental training must be supported
-        by the classifier provided by `clf_factory`.
+    reuse_model : bool, default=False
+        Reuses the previous model during retraining (if a previous model exists),
+        otherwise creates a new model for each retraining.
 
     Attributes
     ----------
@@ -96,7 +95,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         executed yet.
     """
 
-    def __init__(self, clf_factory, query_strategy, x_train, incremental_training=False):
+    def __init__(self, clf_factory, query_strategy, x_train, reuse_model=False):
         self._clf = None
         self._clf_factory = clf_factory
         self._query_strategy = query_strategy
@@ -104,7 +103,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         self._x_index_to_position = None
 
         self.x_train = x_train
-        self.incremental_training = incremental_training
+        self.reuse_model = reuse_model
 
         self.x_indices_labeled = np.empty(shape=0, dtype=int)
         self.x_indices_ignored = np.empty(shape=0, dtype=int)
@@ -381,7 +380,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         return self._query_strategy
 
     def _retrain(self, x_indices_validation=None):
-        if self._clf is None or not self.incremental_training:
+        if self._clf is None or not self.reuse_model:
             if hasattr(self, '_clf'):
                 del self._clf
             self._clf = self._clf_factory.new()

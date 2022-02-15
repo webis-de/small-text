@@ -100,7 +100,7 @@ class _PoolBasedActiveLearnerTest(object):
         self.assertEqual(query_strategy, active_learner.query_strategy)
         self.assertEqual(clf_factory, active_learner._clf_factory)
         self.assertIsNone(active_learner.y)
-        self.assertFalse(active_learner.incremental_training)
+        self.assertFalse(active_learner.reuse_model)
 
     def test_initialize_data(self):
         x_indices_initial = np.random.choice(np.arange(100), size=10, replace=False)
@@ -374,7 +374,7 @@ class _PoolBasedActiveLearnerTest(object):
         retrain_mock.assert_has_calls([call(x_indices_validation=x_indices_validation),
                                        call(x_indices_validation=x_indices_validation)])
 
-    def test_update_incremental_training(self):
+    def test_update_reuse_model(self):
         query_strategy = RandomSampling()
         ds = self._get_random_dataset()
 

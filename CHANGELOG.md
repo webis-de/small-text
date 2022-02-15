@@ -2,7 +2,7 @@
 
 ## [1.0.0b1] - unreleased
 
-First beta release with multi-label functionality.
+First beta release with multi-label functionality and stopping criteria.
 
 ### Added
 
@@ -12,6 +12,7 @@ First beta release with multi-label functionality.
 ### Changed
 
 - Documentation has been overhauled considerably.
+- `PoolBasedActiveLearner`: Renamed `incremental_training` kwarg to `reuse_model`.
 
 ### Removed
 
