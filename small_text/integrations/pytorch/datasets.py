@@ -2,16 +2,10 @@ import numpy as np
 
 from abc import ABC
 from small_text.base import LABEL_UNLABELED
-from small_text.data import Dataset, DatasetView
+from small_text.data import DatasetView
 from small_text.data.datasets import check_size
 from small_text.data.exceptions import UnsupportedOperationException
-from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.labels import list_to_csr
-
-try:
-    import torch
-except ModuleNotFoundError:
-    raise PytorchNotFoundError('Could not import torchtext')
 
 
 class PytorchDataset(ABC):
@@ -238,9 +232,9 @@ class PytorchTextClassificationDataset(PytorchDataset):
                  d[self.INDEX_LABEL]) for d in self._data]
 
         if copy is True:
+            import copy
             target_labels = None if self.track_target_labels else self._target_labels
-            # TODO: clone vocab
-            vocab = self._vocab
+            vocab = copy.deepcopy(self._vocab)
             return PytorchTextClassificationDataset(data, vocab, target_labels=target_labels)
         else:
             self._data = data

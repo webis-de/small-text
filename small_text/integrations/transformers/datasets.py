@@ -6,8 +6,6 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.labels import list_to_csr
 
 try:
-    import torch
-
     from small_text.integrations.pytorch.datasets import PytorchDataset
     from small_text.integrations.pytorch.datasets import PytorchDatasetView
 except ModuleNotFoundError:
@@ -140,9 +138,9 @@ class TransformersDataset(PytorchDataset):
 
     def to(self, other, non_blocking=False, copy=False):
 
-        data = np.array([(d[self.INDEX_TEXT].to(other, non_blocking=non_blocking, copy=copy),
-                         d[self.INDEX_MASK].to(other, non_blocking=non_blocking, copy=copy),
-                         d[self.INDEX_LABEL]) for d in self._data])
+        data = [(d[self.INDEX_TEXT].to(other, non_blocking=non_blocking, copy=copy),
+                 d[self.INDEX_MASK].to(other, non_blocking=non_blocking, copy=copy),
+                 d[self.INDEX_LABEL]) for d in self._data]
 
         if copy is True:
             target_labels = None if self.track_target_labels else self._target_labels
