@@ -67,13 +67,14 @@ csr_matrix. This matrix must be a multi-label indicator matrix, i.e. a matrix in
 (num_documents, num_labels) where each non-zero entry is exactly 1 and represents a label.
 
 .. testcode::
+
    import numpy as np
-   from scipy.sparse import csr_matrix, random
+   from scipy import sparse
    from small_text.data import SklearnDataset
 
-   x = random(100, 2000, density=0.15, format='csr')
+   x = sparse.random(100, 2000, density=0.15, format='csr')
    # a random sparse matrix
-   y = random(100, 5, density=0.5, format='csr')
+   y = sparse.random(100, 5, density=0.5, format='csr')
    # convert non-zero entries to 1, making it an indicator
    y.data[np.s_[:]] = 1
 
@@ -118,6 +119,11 @@ of indices (:code:`dataset[[1, 5, 10]]`).
 Similarly to `numpy indexing <https://numpy.org/doc/stable/user/basics.indexing.html#basics-indexing>`_,
 dataset indexing does not create a copy of the selected subset but creates a view thereon.
 :py:class:`~small_text.data.datasets.DatasetView` objects behave similarly to Datasets, but are readonly.
+
+..testsetup::
+
+   import numpy as np
+   from small_text.data import SklearnDataset
 
 .. testcode::
 

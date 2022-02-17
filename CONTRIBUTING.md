@@ -8,6 +8,22 @@ Contributions are always welcome.
     By contributing you agree to license your contributions under this license as well.
 2. All contributions are subject to the [Developer Certificate of Origin](DCO.md).
 
+## How to Contribute
+
+### Pull Request Checklist
+
+1. Check that the documentation can be built:
+
+    ```bash
+    cd docs && make html
+    ```
+
+2. Check that the documentation examples run:
+    
+    ```bash
+    cd docs && make doctest
+    ```
+
 ## Development
 
 ### Code Conventions
@@ -45,6 +61,10 @@ make
 - README.md
   - Documentation Badge should link to the version of the most recent release (link AND img)
   - Link references at the bottom should point to the most recent release
+
+### Checking for Correctness
+
+- Check every step of the above Pull Request Checklist
 
 ## Contributors
 

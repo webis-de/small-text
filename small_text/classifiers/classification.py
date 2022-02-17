@@ -20,11 +20,11 @@ class Classifier(ABC):
         pass
 
     @abstractmethod
-    def predict(self, test_set, return_proba=False):
+    def predict(self, data_set, return_proba=False):
         pass
 
     @abstractmethod
-    def predict_proba(self, test_set):
+    def predict_proba(self, data_set):
         pass
 
 
