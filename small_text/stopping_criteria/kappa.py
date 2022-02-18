@@ -17,11 +17,21 @@ class KappaAverage(StoppingCriterion):
        In Proceedings of the Thirteenth Conference on Computational Natural Language Learning (CoNLL '09).
        Association for Computational Linguistics, USA, 39–47.
     """
-    def __init__(self, num_classes, kappa=0.99, window_size=3):
-
+    def __init__(self, num_classes, window_size=3, kappa=0.99):
+        """
+        num_classes : int
+            Number of classes.
+        window_size : int, default=3
+            Defines number of iterations for which the predictions are taken into account, i.e.
+            this stopping criterion only sees the last `window_size`-many states of the prediction
+            array passed to `stop()`.
+        threshold : float, threshold=0.05
+            The criterion stops when the agreement between two consecutive predictions within
+            the window falls below this threshold.
+        """
         self.num_classes = num_classes
-        self.kappa = kappa
         self.window_size = window_size
+        self.kappa = kappa
 
         self.last_predictions = None
         self.kappa_history = []

@@ -5,9 +5,6 @@ Small-Text
 `Small-Text` provides :doc:`active learning<active_learning>` for text classification.
 It is designed to offer a robust and modular set of components for both experimental and applied active learning.
 
-
-Current Version: [|LIBRARY_VERSION|]
-
 Getting Started
 ===============
 
@@ -36,7 +33,7 @@ Active Learning Components
    components/stopping_criteria
 
 All components are based around the `ActiveLearner <https://github.com/webis-de/small-text/blob/master/small_text/active_learner.py>`_ class.
-You can mix and match different many Initialization Strategies, Query Strategies and Classifiers.
+You can mix and match different many initialization strategies, query strategies, and Classifiers.
 
 
 Integrations
@@ -88,13 +85,6 @@ A preprint which introduces small-text is available here:
 
 ------
 
-Extensions
-==========
-
-
-API
-===
-
 .. toctree::
    :caption: API
    :maxdepth: 1
@@ -104,10 +94,6 @@ API
    api/classifier
    api/data_set
 
-:doc:`api/active_learner`
-:doc:`api/classifier`
-:doc:`api/data_set`
-
 
 .. toctree::
    :caption: Development
@@ -116,6 +102,6 @@ API
 
    changelog
 
-
 ----
+
 :ref:`genindex` | :ref:`modindex` | :ref:`search`

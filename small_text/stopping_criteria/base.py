@@ -34,8 +34,29 @@ def check_window_based_predictions(predictions, last_predictions):
 
 
 class DeltaFScore(StoppingCriterion):
+    """A stopping criterion which stops if the predicted change of the F-score falls below
+    a threshold [AB19]_.
 
+    .. note:: This criterion is only applicable for binary classification.
+
+    References
+    ----------
+    .. [AB19] Michael Altschuler and Michael Bloodgood. 2019.
+       Stopping Active Learning based on Predicted Change of F Measure for Text Classification.
+       In: International Conference on Semantic Computing (ICSC 2019).
+
+    """
     def __init__(self, num_classes, window_size=3, threshold=0.05):
+        """
+        num_classes : int
+            Number of classes.
+        window_size : int, default=3
+            Defines number of iterations for which the predictions are taken into account, i.e.
+            this stopping criterion only sees the last `window_size`-many states of the prediction
+            array passed to `stop()`.
+        threshold : float, threshold=0.05
+            The criterion stops when the predicted F-score falls below this threshold.
+        """
         self.num_classes = num_classes
 
         if num_classes != 2:
