@@ -22,13 +22,6 @@ except ImportError:
 @constraints(classification_type='single-label')
 class ExpectedGradientLength(QueryStrategy):
     """Selects instances by expected gradient length [Set07]_.
-
-    References
-    ----------
-    .. [Set07] Burr Settles, Mark Craven, and Soumya Ray. 2007.
-       Multiple-instance active learning.
-       In Proceedings of the 20th International Conference on Neural Information Processing Systems (NIPS’07).
-       Curran Associates Inc., Red Hook, 1289–1296.
     """
     def __init__(self, num_classes, batch_size=50, device='cuda', pbar='tqdm'):
         self.batch_size = batch_size
@@ -149,13 +142,6 @@ class ExpectedGradientLengthMaxWord(ExpectedGradientLength):
     - An embedding layer is required for this strategy.
     - This strategy was designed for the `KimCNN` model and might not work for other models
       even if they posses an embedding layer.
-
-    References
-    ----------
-    .. [ZLW17] Ye Zhang, Matthew Lease, and Byron C. Wallace. 2017.
-       Active discriminative text representation learning.
-       In Proceedings of the Thirty-First AAAI Conference on Artificial Intelligence (AAAI’17).
-       AAAI Press, 3386–3392.
     """
     def __init__(self, num_classes, layer_name, batch_size=50, device='cuda'):
         """
@@ -262,13 +248,7 @@ class ExpectedGradientLengthLayer(ExpectedGradientLength):
 @constraints(classification_type='single-label')
 class BADGE(EmbeddingBasedQueryStrategy):
     """
-    Implements "Batch Active learning by Diverse Gradient Embedding" (BADGE) _[AZK20].
-
-    References
-    ----------
-    .. [AZK+20] Jordan T. Ash, Chicheng Zhang, Akshay Krishnamurthy, John Langford and Alekh Agarwal. 2020.
-                Deep Batch Active Learning by Diverse, Uncertain Gradient Lower Bounds.
-                International Conference on Learning Representations 2020 (ICLR 2020).
+    Implements "Batch Active learning by Diverse Gradient Embedding" (BADGE) [AZK+20]_.
     """
     def __init__(self, num_classes):
         self.num_classes = num_classes

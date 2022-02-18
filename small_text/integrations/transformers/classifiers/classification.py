@@ -55,12 +55,6 @@ class FineTuningArguments(object):
     """
     Arguments to enable and configure gradual unfreezing and discriminative learning rates as used in
     Universal Language Model Fine-tuning (ULMFiT) [HR18]_.
-
-    References
-    ----------
-    .. [HR18] Jeremy Howard and Sebastian Ruder
-       Universal Language Model Fine-tuning for Text Classification.
-       In Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics, 2008, 328–339.
     """
 
     def __init__(self, base_lr, layerwise_gradient_decay, gradual_unfreezing=-1, cut_fraction=0.1):

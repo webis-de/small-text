@@ -112,14 +112,7 @@ class ConfidenceBasedQueryStrategy(QueryStrategy):
 
 class BreakingTies(ConfidenceBasedQueryStrategy):
     """Selects instances which have a small margin between their most likely and second
-    most likely prediction.
-
-    References
-    ----------
-    .. [LUO05] Tong Luo, Kurt Kramer, Dmitry B. Goldgof, Lawrence O. Hall, Scott Samson,
-       Andrew Remsen, and Thomas Hopkins. 2005.
-       Active Learning to Recognize Multiple Types of Plankton.
-       J. Mach. Learn. Res. 6, 2005, 589–613.
+    most likely prediction [LUO05]_.
     """
 
     def __init__(self):
@@ -140,13 +133,8 @@ class BreakingTies(ConfidenceBasedQueryStrategy):
 
 class LeastConfidence(ConfidenceBasedQueryStrategy):
     """
-    Selects instances with the least prediction confidence (regarding the most likely class) [LG94]_.
-
-    References
-    ----------
-    .. [LG94] David D. Lewis and William A. Gale.
-       A sequential algorithm for training text classifiers.
-       In SIGIR’94, 1994, 3-12.
+    Selects instances with the least prediction confidence (regarding the most likely class)
+    [LG94]_.
     """
 
     def __init__(self):
@@ -162,13 +150,6 @@ class LeastConfidence(ConfidenceBasedQueryStrategy):
 
 class PredictionEntropy(ConfidenceBasedQueryStrategy):
     """Selects instances with the largest prediction entropy [HOL08]_.
-
-    References
-    ----------
-    .. [HOL08] Alex Holub, Pietro Perona, and Michael C. Burl. 2008.
-       Entropy-based active learning for object recognition.
-       In 2008 IEEE Computer Society Conference on Computer Vision and Pattern Recognition Workshops,
-       IEEE, 1–8.
     """
     def __init__(self):
         super().__init__(lower_is_better=False)
@@ -296,13 +277,6 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
 class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
     """This is a generalized version of BERT-K-Means [YLB20]_, which is applicable to any kind
     of dense embedding, regardless of the classifier.
-
-    References
-    ----------
-    .. [YLB20] Michelle Yuan, Hsuan-Tien Lin, and Jordan Boyd-Graber. 2020.
-       Cold-start Active Learning through Self-supervised Language Modeling
-       In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)
-       Association for Computational Linguistics, 7935–-7948.
     """
 
     def __init__(self, normalize=True):

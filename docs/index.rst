@@ -96,11 +96,12 @@ A preprint which introduces small-text is available here:
 
 
 .. toctree::
-   :caption: Development
+   :caption: Other
    :maxdepth: 0
    :hidden:
 
    changelog
+   bibliography
 
 ----
 

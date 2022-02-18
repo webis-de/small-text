@@ -120,11 +120,6 @@ Similarly to `numpy indexing <https://numpy.org/doc/stable/user/basics.indexing.
 dataset indexing does not create a copy of the selected subset but creates a view thereon.
 :py:class:`~small_text.data.datasets.DatasetView` objects behave similarly to Datasets, but are readonly.
 
-..testsetup::
-
-   import numpy as np
-   from small_text.data import SklearnDataset
-
 .. testcode::
 
    import numpy as np

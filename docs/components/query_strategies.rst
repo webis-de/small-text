@@ -22,7 +22,7 @@ General
 Pytorch
 -------
 
-.. py:currentmodule:: small_text.integrations.pytorch.query_strategies
+.. py:currentmodule:: small_text.integrations.pytorch.query_strategies.strategies
 
 * :py:class:`ExpectedGradientLength`
 * :py:class:`ExpectedGradientLengthMaxWord`
@@ -56,13 +56,16 @@ Classes
 .. autoclass:: PredictionEntropy
     :inherited-members:
 
+.. autoclass:: BreakingTies
+    :inherited-members:
+
 .. autoclass:: EmbeddingKMeans
     :inherited-members:
 
 .. autoclass:: RandomSampling
     :inherited-members:
 
-.. py:module:: small_text.integrations.pytorch.query_strategies
+.. py:module:: small_text.integrations.pytorch.query_strategies.strategies
 
 .. autoclass:: ExpectedGradientLength
     :inherited-members:
@@ -71,4 +74,7 @@ Classes
     :inherited-members:
 
 .. autoclass:: ExpectedGradientLengthLayer
+    :inherited-members:
+
+.. autoclass:: BADGE
     :inherited-members:

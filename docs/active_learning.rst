@@ -52,7 +52,8 @@ suffices.
 * In a practical settings this can be solved by manually labeling some instances for each class.
 * In the experiment setting, we simulate the choice of the initial samples.
 
-For the latter case, we use :doc:`initalization strategies<components/initialization>`, which select an initial set of documents.
+For the latter case, we use :doc:`initalization strategies<components/initialization>`,
+which select an initial set of documents.
 They are just sampling methods which take the label distribution into account.
 
 Query Strategies
@@ -69,20 +70,5 @@ Stopping Criteria
 -----------------
 
 How often do we need to query the dataset? :doc:`Stopping criteria<components/stopping_criteria>`
-give you an indication whether the process should be stopped or not.
+give you an indication whether the active learning process should be stopped or not.
 
-----
-
-**References**
-
-.. [Set10] Burr Settles.
-   Active Learning Literature Survey.
-   Computer Sciences Technical Report 1648 University of Wisconsin–Madison, 2010.
-
-.. [LG94] David D. Lewis and William A. Gale.
-   A sequential algorithm for training text classifiers.
-   In SIGIR’94, 1994, 3-12.
-
-.. [SNP21] Christopher Schröder, Andreas Niekler and Martin Potthast.
-   Uncertainty-based Query Strategies for Active Learning with Transformers.
-   ArXiv abs/2107.05687, 2021.
