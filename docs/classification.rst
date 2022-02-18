@@ -2,21 +2,23 @@
 Classification
 ==============
 
-In order to use different models from the active learner, query strategies, and stopping criteria,
-we have classification abstractions providing an unified interface.
+In order to use different models, query strategies, and stopping criteria from the active learner,
+we have developed classification abstractions that provide an unified interface.
 
 Interface
 =========
 
-The classifier interface is very simple and scikit-learn-like, with the exception that it operates on
+The classifier interface is very simple and scikit-learn-like, with the difference that it operates on
 :py:class:`Datasets<small_text.data.datasets.Dataset>` objects. Call the :code:`fit()` method with a
-training set as argument to train your classifier, and use :code:`predict()` to obtain a prediction.
+training set as argument to train your classifier, and use :code:`predict()` to get a prediction.
 
 .. literalinclude:: ../small_text/classifiers/classification.py
    :pyobject: Classifier
 
 Example
 =======
+
+This is a simple example which shows the training of a tiny toy dataset.
 
 .. testcode::
 
@@ -47,7 +49,7 @@ Example
    y_train_pred = clf.predict(train_set)
    print(y_train_pred)
 
-Output:
+*Output:*
 
 .. testoutput::
 
@@ -56,9 +58,11 @@ Output:
 Factories
 =========
 
-A factory creates new instances of an object. This is necessary for active learning,
-since we need to create new classifiers during each iteration. Using a factory gives a new and
-unaltered object.
+To configure the active learner to use classifiers a factory object is required because
+new classifier objects are created at each iteration (unless explicitly configured not to).
+A factory creates new instances of an object, for which the knowledge of what to pass to
+the constructor is required, which is why we need a factory.
+Assuming all constructor took zero arguments we would not need factories here.
 
 .. testcode::
 

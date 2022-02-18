@@ -7,6 +7,8 @@ Query strategies select data samples from the set of unlabeled data.
 Overview
 ========
 
+You can use the following pre-implemented query strategies:
+
 General
 -------
 
@@ -33,6 +35,16 @@ Pytorch
 Helpers
 =======
 
+Some query strategies may be formulated so that are only applicable to either single-label or
+multi-label data. As a safeguard against using such strategies on data which is not supported,
+the `constraints()` decorator intercepts the `query()`. If the given labels cannot be handled,
+`RuntimeError` is raised.
+
+.. note:: For all pre-implemented query strategies, don't equate an absence of an constraint
+          as an indicator of capibility, since we will sparingly use this in the main library
+          in order to not restrict the user unnecessarily.
+          For your own projects and applications, however, this is highly recommended.
+
 Constraints
 -----------
 
@@ -51,30 +63,30 @@ Classes
 .. py:module:: small_text.query_strategies.strategies
 
 .. autoclass:: LeastConfidence
-    :inherited-members:
+    :special-members: __init__
 
 .. autoclass:: PredictionEntropy
-    :inherited-members:
+    :special-members: __init__
 
 .. autoclass:: BreakingTies
-    :inherited-members:
+    :special-members: __init__
 
 .. autoclass:: EmbeddingKMeans
-    :inherited-members:
+    :special-members: __init__
 
 .. autoclass:: RandomSampling
-    :inherited-members:
+    :special-members: __init__
 
 .. py:module:: small_text.integrations.pytorch.query_strategies.strategies
 
 .. autoclass:: ExpectedGradientLength
-    :inherited-members:
+    :special-members: __init__
 
 .. autoclass:: ExpectedGradientLengthMaxWord
-    :inherited-members:
+    :special-members: __init__
 
 .. autoclass:: ExpectedGradientLengthLayer
-    :inherited-members:
+    :special-members: __init__
 
 .. autoclass:: BADGE
-    :inherited-members:
+    :special-members: __init__

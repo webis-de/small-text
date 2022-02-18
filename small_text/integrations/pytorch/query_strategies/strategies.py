@@ -21,8 +21,7 @@ except ImportError:
 
 @constraints(classification_type='single-label')
 class ExpectedGradientLength(QueryStrategy):
-    """Selects instances by expected gradient length [Set07]_.
-    """
+    """Selects instances by expected gradient length [Set07]_."""
     def __init__(self, num_classes, batch_size=50, device='cuda', pbar='tqdm'):
         self.batch_size = batch_size
         self.num_classes = num_classes
@@ -223,9 +222,23 @@ class ExpectedGradientLengthMaxWord(ExpectedGradientLength):
 
 @constraints(classification_type='single-label')
 class ExpectedGradientLengthLayer(ExpectedGradientLength):
+    """An EGL variant that is restricted to the gradients of a single layer.
+
+    This is a generalized version of the EGL-sm strategy [ZLW17]_, but instead of being
+    restricted to the last layer it operates on the layer name passed to the constructor.
+    """
 
     def __init__(self, num_classes, layer_name, batch_size=50):
-
+        """
+        Parameters
+        ----------
+        num_classes : int
+            The number of classes.
+        layer_name : str
+            The name of the target layer.
+        batch_size : int, default=50
+            Batch size in which the query strategy scores the instances.
+        """
         super().__init__(num_classes, batch_size=batch_size)
         self.layer_name = layer_name
 

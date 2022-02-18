@@ -14,8 +14,8 @@ def random_initialization(x, n_samples=10):
     Parameters
     ----------
     x : Dataset
-        Any dataset supported by small-text.
-    n_samples :  int
+        A dataset.
+    n_samples : int, default=10
         Number of samples to draw.
 
     Returns
@@ -35,14 +35,14 @@ def random_initialization_stratified(y, n_samples=10, multilabel_strategy='label
         Labels to be used for stratification.
     n_samples :  int
         Number of samples to draw.
-    multilabel_strategy : {'labelsets'}
+    multilabel_strategy : {'labelsets'}, default='labelsets'
         The multi-label strategy to be used in case of a multi-label labeling.
         This is only used if `y` is of type csr_matrix.
 
     Returns
     -------
     indices : np.array[int]
-        Indices relative to x.
+        Indices relative to y.
 
     See Also
     --------
@@ -66,14 +66,14 @@ def random_initialization_balanced(y, n_samples=10):
     ----------
     y : np.ndarray[int] or csr_matrix
         Labels to be used for balanced sampling.
-    n_samples :  int
+    n_samples : int, default=10
         Number of samples to draw.
 
 
     Returns
     -------
     indices : np.array[int]
-        Indices relative to x.
+        Indices relative to y.
 
     Notes
     -----
