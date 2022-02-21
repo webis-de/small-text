@@ -384,7 +384,8 @@ class _PoolBasedActiveLearnerTest(object):
         clf_factory_mock.new = Mock()
         clf_factory_mock.new.side_effect = [clf_mock, None]
 
-        active_learner = PoolBasedActiveLearner(clf_factory_mock, query_strategy, ds, incremental_training=True)
+        active_learner = PoolBasedActiveLearner(clf_factory_mock, query_strategy, ds,
+                                                reuse_model=True)
 
         x_indices_initial = np.random.choice(np.arange(100), size=10, replace=False)
         y_initial = self._get_y_initial()
