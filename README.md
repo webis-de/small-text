@@ -1,6 +1,6 @@
 [![PyPI](https://img.shields.io/pypi/v/small-text)](https://pypi.org/project/small-text/)
 [![codecov](https://codecov.io/gh/webis-de/small-text/branch/master/graph/badge.svg?token=P86CPABQOL)](https://codecov.io/gh/webis-de/small-text)
-[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=1.0.0b1)](https://small-text.readthedocs.io/en/1.0.0b1/) 
+[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.0.0b1)](https://small-text.readthedocs.io/en/v1.0.0b1/) 
 ![Maintained Yes](https://img.shields.io/badge/maintained-yes-green)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 ![GitHub](https://img.shields.io/github/license/webis-de/small-text)
@@ -36,7 +36,7 @@ to build active learning experiments or applications.
 ## News
 
 - 🎉 **Beta Release** (v1.0.0b1) - February 22, 2022
-  - New features: Multi-label classification and stopping criteria are now supported.
+  - New features: multi-label classification and stopping criteria are now supported.
   - Added/revised large parts of the documentation.
 
 ## Installation
@@ -110,5 +110,5 @@ A preprint which introduces small-text is available here:
 [MIT License](LICENSE)
 
 
-[documentation_main]: https://small-text.readthedocs.io/en/1.0.0b1/
-[documentation_install]: https://small-text.readthedocs.io/en/1.0.0b1/install.html
+[documentation_main]: https://small-text.readthedocs.io/en/v1.0.0b1/
+[documentation_install]: https://small-text.readthedocs.io/en/v1.0.0b1/install.html
