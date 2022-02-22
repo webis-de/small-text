@@ -33,6 +33,12 @@ to build active learning experiments or applications.
   a slim installation does not need any unnecessary dependencies.
 - Multiple scientifically evaluated components re-implemented: Query Strategies, Initialization Strategies, and Stopping Criteria.
 
+## News
+
+- 🎉 **Beta Release** (v1.0.0b1) - February 22, 2022
+  - New features: Multi-label classification and stopping criteria are now supported.
+  - Added/revised large parts of the documentation.
+
 ## Installation
 
 Small-text can be easily installed via pip:

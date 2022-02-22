@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0b1] - unreleased
+## [1.0.0b1] - 2022-02-22
 
 First beta release with multi-label functionality and stopping criteria.
 
