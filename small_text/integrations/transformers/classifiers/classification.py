@@ -29,7 +29,10 @@ try:
     from transformers import logging as transformers_logging
     from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
 
-    from small_text.integrations.pytorch.classifiers.base import PytorchClassifier
+    from small_text.integrations.pytorch.classifiers.base import (
+        check_optimizer_and_scheduler_config,
+        PytorchClassifier
+    )
     from small_text.integrations.pytorch.model_selection import Metric, PytorchModelSelection
     from small_text.integrations.pytorch.utils.data import dataloader
     from small_text.integrations.transformers.datasets import TransformersDataset
@@ -260,7 +263,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         self.criterion = None
         self.optimizer = None
-        self.scheduler = 'linear'
+        self.scheduler = None
 
         self.validation_set_size = validation_set_size
         self.validations_per_epoch = validations_per_epoch
@@ -299,9 +302,10 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             A validation set used for validation during training, or `None`. If `None`, the fit
             operation will split apart a subset of the trainset as a validation set, whose size
             is set by `self.validation_set_size`.
-        optimizer :
-
-        scheduler :
+        optimizer : torch.optim.optimizer.Optimizer
+            A pytorch optimizer.
+        scheduler :torch.optim._LRScheduler
+            A pytorch scheduler.
 
         Returns
         -------
@@ -309,12 +313,16 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             Returns the current classifier with a fitted model.
         """
         check_training_data(train_set, validation_set)
+        optimizer_or_scheduler_given = optimizer is not None or scheduler is not None
+        if self.fine_tuning_arguments is not None and optimizer_or_scheduler_given:
+            raise ValueError('When fine_tuning_arguments are provided you cannot pass '
+                             'optimizer and scheduler to fit()')
 
         sub_train, sub_valid = get_splits(train_set, validation_set, multi_label=self.multi_label,
                                           validation_set_size=self.validation_set_size)
 
-        fit_scheduler = scheduler if scheduler is not None else self.scheduler
         fit_optimizer = optimizer if optimizer is not None else self.optimizer
+        fit_scheduler = scheduler if scheduler is not None else self.scheduler
 
         if self.multi_label:
             self.enc_ = MultiLabelBinarizer()
@@ -340,13 +348,13 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
             self.initialize_transformer(self.cache_dir)
 
-        if self.fine_tuning_arguments is not None:
-            params = _get_layer_params(self.model, self.lr, self.fine_tuning_arguments)
-        else:
-            params = None
+        check_optimizer_and_scheduler_config(optimizer, scheduler)
+        scheduler = scheduler if scheduler is None else 'linear'
 
-        optimizer, scheduler = self._get_optimizer_and_scheduler(optimizer, scheduler, params,
-                                                                 self.num_epochs, sub_train)
+        optimizer, scheduler = self._get_optimizer_and_scheduler(optimizer,
+                                                                 scheduler,
+                                                                 self.num_epochs,
+                                                                 sub_train)
         self.model = self.model.to(self.device)
 
         with tempfile.TemporaryDirectory(dir=get_tmp_dir_base()) as tmp_dir:
@@ -378,8 +386,14 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         )
         transformers_logging.set_verbosity(previous_verbosity)
 
-    def _default_optimizer(self, params, base_lr):
-        return AdamW(params, lr=base_lr, eps=1e-8)
+    def _default_optimizer(self, base_lr):
+
+        if self.fine_tuning_arguments is not None:
+            params = _get_layer_params(self.model, self.lr, self.fine_tuning_arguments)
+        else:
+            params = [param for param in self.model.parameters() if param.requires_grad]
+
+        return params, AdamW(params, lr=base_lr, eps=1e-8)
 
     def _train(self, sub_train, sub_valid, tmp_dir, optimizer, scheduler):
 

@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from parameterized import parameterized_class
 from scipy.sparse import issparse
@@ -171,6 +171,38 @@ class _TransformerBasedClassificationTest(object):
         clf.fit(train_set)
         self.assertIsNotNone(clf.class_weights_)
         self.assertIsNotNone(clf.model)
+
+    def test_fit_with_finetuning_args_and_scheduler_kwargs(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        finetuning_args = FineTuningArguments(5e-2, 0.99)
+        clf = TransformerBasedClassification(model_args,
+                                             4,
+                                             multi_label=self.multi_label,
+                                             class_weight='balanced',
+                                             num_epochs=1,
+                                             fine_tuning_arguments=finetuning_args)
+
+        train_set = self._get_dataset(num_samples=20)
+
+        scheduler = Mock()
+
+        with self.assertRaisesRegex(ValueError, 'When fine_tuning_arguments are provided'):
+            clf.fit(train_set, scheduler=scheduler)
+
+    def test_fit_with_scheduler_but_without_optimizer(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        clf = TransformerBasedClassification(model_args,
+                                             4,
+                                             multi_label=self.multi_label,
+                                             class_weight='balanced',
+                                             num_epochs=1)
+
+        train_set = self._get_dataset(num_samples=20)
+
+        scheduler = Mock()
+
+        with self.assertRaisesRegex(ValueError, 'You must also pass an optimizer'):
+            clf.fit(train_set, scheduler=scheduler)
 
     def test_fit_and_predict(self):
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')

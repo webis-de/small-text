@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 
 from unittest import mock
+from unittest.mock import Mock
 from parameterized import parameterized_class
 from scipy.sparse import issparse
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
@@ -26,13 +27,29 @@ class KimCNNClassifierTest(unittest.TestCase):
         return random_text_classification_dataset(num_samples, max_length=60, num_classes=num_classes,
                                                   multi_label=self.multi_label)
 
+    def test_fit_with_scheduler_but_without_optimizer(self):
+        ds = self._get_dataset()
+
+        num_classes = 4
+
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        clf = KimCNNClassifier(num_classes,
+                               multi_label=self.multi_label,
+                               embedding_matrix=embedding_matrix)
+
+        scheduler = Mock()
+
+        with self.assertRaisesRegex(ValueError, 'You must also pass an optimizer'):
+            clf.fit(ds, scheduler=scheduler)
+
     def test_fit_and_predict(self):
         ds = self._get_dataset()
 
         num_classes = 4
 
         embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
-        clf = KimCNNClassifier(num_classes, multi_label=self.multi_label,
+        clf = KimCNNClassifier(num_classes,
+                               multi_label=self.multi_label,
                                embedding_matrix=embedding_matrix)
         clf.fit(ds)
 
@@ -60,7 +77,8 @@ class KimCNNClassifierTest(unittest.TestCase):
         num_classes = 4
 
         embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
-        clf = KimCNNClassifier(num_classes, multi_label=self.multi_label,
+        clf = KimCNNClassifier(num_classes,
+                               multi_label=self.multi_label,
                                embedding_matrix=embedding_matrix)
         clf.fit(ds)
 

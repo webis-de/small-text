@@ -22,6 +22,11 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def check_optimizer_and_scheduler_config(optimizer, scheduler):
+    if scheduler is not None and optimizer is None:
+        raise ValueError('You must also pass an optimizer if you pass a scheduler to fit()')
+
+
 class PytorchClassifier(Classifier):
 
     def __init__(self, multi_label=False, device=None, mini_batch_size=32):
@@ -95,37 +100,26 @@ class PytorchClassifier(Classifier):
         else:
             return CrossEntropyLoss(weight=self.class_weights_)
 
-    def _get_optimizer_and_scheduler(self, optimizer, scheduler, params, num_epochs, sub_train):
+    def _get_optimizer_and_scheduler(self, optimizer, scheduler, num_epochs, sub_train):
 
         if optimizer is None or scheduler is None:
-            if optimizer is not None:
-                # TODO: find a better formulation for this
-                # TODO: is one warning enough?
-                self.logger.warning('Overridering optimizer since optimizer in kwargs needs to be '
-                                    'passed in combination with scheduler')
-            if scheduler is not None:
-                self.logger.warning('Overridering scheduler since optimizer in kwargs needs to be '
-                                    'passed in combination with scheduler')
 
             optimizer, scheduler = self._initialize_optimizer_and_scheduler(optimizer,
                                                                             scheduler,
-                                                                            params,
                                                                             num_epochs,
                                                                             sub_train,
-                                                                            self.lr,
-                                                                            self.model)
+                                                                            self.lr)
         return optimizer, scheduler
 
-    def _initialize_optimizer_and_scheduler(self, optimizer, scheduler, params, num_epochs,
-                                            sub_train, base_lr, model):
+    def _initialize_optimizer_and_scheduler(self, optimizer, scheduler, num_epochs,
+                                            sub_train, base_lr):
 
         steps = (len(sub_train) // self.mini_batch_size) \
                 + int(len(sub_train) % self.mini_batch_size != 0)
 
-        if params is None:
-            params = [param for param in model.parameters() if param.requires_grad]
-
-        optimizer = self._default_optimizer(params, base_lr) if optimizer is None else optimizer
+        if optimizer is None:
+            params, optimizer = self._default_optimizer(base_lr) \
+                if optimizer is None else optimizer
 
         if scheduler == 'linear':
             try:

@@ -15,8 +15,9 @@ except PytorchNotFoundError:
 
 class PytorchClassifierImplementation(PytorchClassifier):
 
-    def _default_optimizer(self, params, base_lr):
-        return AdamW(params, lr=base_lr, eps=1e-8)
+    def _default_optimizer(self, base_lr):
+        params = [param for param in self.model.parameters() if param.requires_grad]
+        return params, AdamW(params, lr=base_lr, eps=1e-8)
 
     def fit(self, train_set, validation_set=None, **kwargs):
         raise NotImplementedError()
@@ -43,24 +44,20 @@ class PytorchClassifierTest(unittest.TestCase):
 
         optimizer = None
         scheduler = None
-        params = None
         num_epochs = 2
         base_lr = 2e-5
 
         optimizer, scheduler = classifier._initialize_optimizer_and_scheduler(optimizer,
                                                                               scheduler,
-                                                                              params,
                                                                               num_epochs,
                                                                               sub_train,
-                                                                              base_lr,
-                                                                              classifier.model)
+                                                                              base_lr)
 
         self.assertIsNotNone(optimizer)
         self.assertIsNotNone(scheduler)
 
-        optimizer_params = [param for param in classifier.model.parameters() if param.requires_grad]
-        self.assertEqual(optimizer.__class__,
-                         classifier._default_optimizer(optimizer_params, base_lr).__class__)
+        params, default_optimizer = classifier._default_optimizer(base_lr)
+        self.assertEqual(optimizer.__class__, default_optimizer.__class__)
 
     def test_initialize_optimizer_and_scheduler_custom(self):
         sub_train = random_text_classification_dataset(10)
@@ -73,17 +70,14 @@ class PytorchClassifierTest(unittest.TestCase):
         optimizer_arg = Adadelta(optimizer_params)
         scheduler_arg = ExponentialLR(optimizer_arg, 0.99)
 
-        params = None
         num_epochs = 2
         base_lr = 2e-5
 
         optimizer, scheduler = classifier._initialize_optimizer_and_scheduler(optimizer_arg,
                                                                               scheduler_arg,
-                                                                              params,
                                                                               num_epochs,
                                                                               sub_train,
-                                                                              base_lr,
-                                                                              classifier.model)
+                                                                              base_lr)
 
         self.assertIsNotNone(optimizer)
         self.assertIsNotNone(scheduler)

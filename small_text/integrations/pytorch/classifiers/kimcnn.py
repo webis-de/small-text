@@ -25,6 +25,9 @@ try:
     import torch.nn.functional as F  # noqa:N812
     from torch.optim import Adadelta
 
+    from small_text.integrations.pytorch.classifiers.base import (
+        check_optimizer_and_scheduler_config
+    )
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.pytorch.model_selection import Metric, PytorchModelSelection
     from small_text.integrations.pytorch.utils.data import dataloader, get_class_weights
@@ -203,10 +206,10 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             A validation set used for validation during training, or `None`. If `None`, the fit
             operation will split apart a subset of the trainset as a validation set, whose size
             is set by `self.validation_set_size`.
-        optimizer :
-
-        scheduler :
-
+        optimizer : torch.optim.optimizer.Optimizer
+            A pytorch optimizer.
+        scheduler :torch.optim._LRScheduler
+            A pytorch scheduler.
 
         Returns
         -------
@@ -218,8 +221,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         sub_train, sub_valid = get_splits(train_set, validation_set, multi_label=self.multi_label,
                                           validation_set_size=self.validation_set_size)
 
-        fit_scheduler = scheduler if scheduler is not None else self.scheduler
         fit_optimizer = optimizer if optimizer is not None else self.optimizer
+        fit_scheduler = scheduler if scheduler is not None else self.scheduler
 
         if self.multi_label:
             self.enc_ = MultiLabelBinarizer()
@@ -245,9 +248,11 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
             self.initialize_kimcnn_model(sub_train)
 
+        check_optimizer_and_scheduler_config(optimizer, scheduler)
+        scheduler = scheduler if scheduler is None else None
+
         optimizer, scheduler = self._get_optimizer_and_scheduler(optimizer,
                                                                  scheduler,
-                                                                 self.model.parameters(),
                                                                  self.num_epochs,
                                                                  sub_train)
 
@@ -271,8 +276,9 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                             freeze_embedding_layer=False, padding_idx=self.padding_idx,
                             kernel_heights=self.kernel_heights)
 
-    def _default_optimizer(self, params, base_lr):
-        return Adadelta(params, lr=base_lr, eps=1e-8)
+    def _default_optimizer(self, base_lr):
+        params = [param for param in self.model.parameters() if param.requires_grad]
+        return params, Adadelta(params, lr=base_lr, eps=1e-8)
 
     def _train(self, sub_train, sub_valid, tmp_dir, optimizer, scheduler):
 

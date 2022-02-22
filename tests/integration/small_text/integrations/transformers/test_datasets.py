@@ -19,6 +19,7 @@ class TransformersDatasetTest(unittest.TestCase):
 
     def test_dataset_to(self):
         ds = random_transformer_dataset(10)
+        ds = ds.to('cpu')
         self.assertTrue(
             np.all([item[TransformersDataset.INDEX_TEXT].device == torch.device('cpu')
                     for item in ds.data])
@@ -32,6 +33,7 @@ class TransformersDatasetTest(unittest.TestCase):
 
     def test_dataset_to_non_blocking(self):
         ds = random_transformer_dataset(10)
+        ds = ds.to('cpu')
         self.assertTrue(
             np.all([item[TransformersDataset.INDEX_TEXT].device == torch.device('cpu')
                     for item in ds.data])
@@ -45,6 +47,7 @@ class TransformersDatasetTest(unittest.TestCase):
 
     def test_dataset_to_copy(self):
         ds = random_transformer_dataset(10)
+        ds = ds.to('cpu')
         self.assertTrue(
             np.all([item[TransformersDataset.INDEX_TEXT].device == torch.device('cpu')
                     for item in ds.data])
@@ -58,6 +61,7 @@ class TransformersDatasetTest(unittest.TestCase):
 
     def test_dataset_to_copy_with_target_labels_explicit(self):
         ds = random_transformer_dataset(10, target_labels='explicit')
+        ds = ds.to('cpu')
         self.assertTrue(
             np.all([item[TransformersDataset.INDEX_TEXT].device == torch.device('cpu')
                     for item in ds.data])
