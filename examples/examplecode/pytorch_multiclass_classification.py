@@ -1,4 +1,7 @@
 """Example of a multiclass active learning text classification with pytorch.
+
+Note:
+This examples requires gensim 3.8.x.
 """
 import logging
 
