@@ -90,7 +90,7 @@ A preprint which introduces small-text is available here:
 
 ```
 @misc{schroeder2021smalltext,
-    title={Small-text: Active Learning for Text Classification in Python}, 
+    title={Small-Text: Active Learning for Text Classification in Python}, 
     author={Christopher Schröder and Lydia Müller and Andreas Niekler and Martin Potthast},
     year={2021},
     eprint={2107.10314},
