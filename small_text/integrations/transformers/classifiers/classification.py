@@ -457,7 +457,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                             valid_acc, valid_loss)
 
             if sub_valid is not None:
-                # TODO: early stopping configurable
                 if self.early_stopping_no_improvement > 0:
                     if valid_loss < min_loss:
                         no_loss_reduction = 0
@@ -466,12 +465,12 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                         no_loss_reduction += 1
 
                         if no_loss_reduction >= self.early_stopping_no_improvement:
-                            print('\nEarly stopping after %s epochs' % (epoch + 1))
+                            logging.info(f'Early stopping after {epoch + 1} epochs')
                             stopped = True
 
                 if not stopped and self.early_stopping_acc > 0:
                     if train_acc > self.early_stopping_acc:
-                        print('\nEarly stopping due to high train acc: %s' % (train_acc))
+                        logging.info(f'Early stopping due to high train acc: {train_acc}')
                         stopped = True
 
                 model_selection_manager.add_model(self.model, epoch + 1, valid_acc=valid_acc,
