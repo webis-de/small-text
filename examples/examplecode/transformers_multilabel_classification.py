@@ -1,4 +1,7 @@
 """Example of a transformer-based active learning multi-label text classification.
+
+Note:
+This examples requires the datasets library.
 """
 import logging
 
@@ -7,6 +10,7 @@ import numpy as np
 from transformers import AutoTokenizer
 
 from small_text.active_learner import PoolBasedActiveLearner
+from small_text.exceptions import ActiveLearnerException
 from small_text.initialization import random_initialization_stratified
 from small_text.integrations.transformers import TransformerModelArguments
 from small_text.integrations.transformers.classifiers.factories import TransformerBasedClassificationFactory
@@ -21,6 +25,13 @@ from examplecode.shared import evaluate_multi_label
 
 
 TRANSFORMER_MODEL = TransformerModelArguments('distilroberta-base')
+
+
+try:
+    import datasets
+except ImportError:
+    raise ActiveLearnerException('This example requires the "datasets" library. '
+                                 'Please install datasets to run this example.')
 
 
 def main():
