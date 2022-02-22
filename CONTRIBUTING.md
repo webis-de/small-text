@@ -67,6 +67,13 @@ make
 
 - Check every step of the above Pull Request Checklist
 
+### Finalizing
+
+- Create a git tag: `v<VERSION>` (e.g., v1.0.0)
+- Create a release on testpypi
+  - If successful: Create a release on pypi
+- Create a release on github
+
 ## Contributors
 
 Thanks goes to...
