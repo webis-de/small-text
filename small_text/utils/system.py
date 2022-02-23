@@ -1,6 +1,6 @@
 import os
 
-TMP_DIR_VARIABLE = 'ALL_TMP'
+TMP_DIR_VARIABLE = 'SMALL_TEXT_TEMP'
 
 
 def get_tmp_dir_base():
