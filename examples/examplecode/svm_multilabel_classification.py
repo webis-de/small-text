@@ -24,7 +24,9 @@ def main():
 
     # Active learning parameters
     clf_template = ConfidenceEnhancedLinearSVC()
-    clf_factory = SklearnClassifierFactory(clf_template, num_classes, kwargs=dict({'multi_label': True}))
+    clf_factory = SklearnClassifierFactory(clf_template,
+                                           num_classes,
+                                           kwargs=dict({'multi_label': True}))
     query_strategy = RandomSampling()
 
     # Active learner
@@ -50,15 +52,15 @@ def perform_active_learning(active_learner, train, labeled_indices, test):
     # Perform 10 iterations of active learning...
     for i in range(10):
         # ...where each iteration consists of labelling 20 samples
-        q_indices = active_learner.query(num_samples=100)
+        queried_indices = active_learner.query(num_samples=100)
 
         # Simulate user interaction here. Replace this for real-world usage.
-        y = train.y[q_indices]
+        y = train.y[queried_indices]
 
         # Return the labels for the current query to the active learner.
         active_learner.update(y)
 
-        labeled_indices = np.concatenate([q_indices, labeled_indices])
+        labeled_indices = np.concatenate([queried_indices, labeled_indices])
 
         print('Iteration #{:d} ({} samples)'.format(i, len(labeled_indices)))
         evaluate_multi_label(active_learner, train[labeled_indices], test)
@@ -67,13 +69,13 @@ def perform_active_learning(active_learner, train, labeled_indices, test):
 def initialize_active_learner(active_learner, y_train):
 
     # Initialize the model - This is required for model-based query strategies.
-    x_indices_initial = multilabel_stratified_subsets_sampling(y_train, n_samples=200)
+    indices_initial = multilabel_stratified_subsets_sampling(y_train, n_samples=200)
 
-    y_initial = y_train[x_indices_initial]
+    y_initial = y_train[indices_initial]
 
-    active_learner.initialize_data(x_indices_initial, y_initial)
+    active_learner.initialize_data(indices_initial, y_initial)
 
-    return x_indices_initial
+    return indices_initial
 
 
 if __name__ == '__main__':

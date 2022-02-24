@@ -70,15 +70,15 @@ def perform_active_learning(active_learner, train, labeled_indices, test):
     # Perform 10 iterations of active learning...
     for i in range(10):
         # ...where each iteration consists of labelling 20 samples
-        q_indices = active_learner.query(num_samples=1000)
+        indices_queried = active_learner.query(num_samples=1000)
 
         # Simulate user interaction here. Replace this for real-world usage.
-        y = train.y[q_indices]
+        y = train.y[indices_queried]
 
         # Return the labels for the current query to the active learner.
         active_learner.update(y)
 
-        labeled_indices = np.concatenate([q_indices, labeled_indices])
+        labeled_indices = np.concatenate([indices_queried, labeled_indices])
 
         print('Iteration #{:d} ({} samples)'.format(i, len(labeled_indices)))
         evaluate_multi_label(active_learner, train[labeled_indices], test)
@@ -86,12 +86,12 @@ def perform_active_learning(active_learner, train, labeled_indices, test):
 
 def initialize_active_learner(active_learner, y_train):
 
-    x_indices_initial = random_initialization_stratified(y_train, n_samples=2000)
-    y_initial = y_train[x_indices_initial]
+    indices_initial = random_initialization_stratified(y_train, n_samples=2000)
+    y_initial = y_train[indices_initial]
 
-    active_learner.initialize_data(x_indices_initial, y_initial)
+    active_learner.initialize_data(indices_initial, y_initial)
 
-    return x_indices_initial
+    return indices_initial
 
 
 if __name__ == '__main__':

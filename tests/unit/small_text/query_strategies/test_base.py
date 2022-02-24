@@ -13,14 +13,14 @@ from tests.utils.datasets import random_sklearn_dataset
 @constraints(classification_type='single-label')
 class FakeSingleLabelQueryStrategy(RandomSampling):
 
-    def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10):
-        return super().query(clf, x, x_indices_unlabeled, x_indices_labeled, y, n=n)
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+        return super().query(clf, dataset, indices_unlabeled, indices_labeled, y, n=n)
 
 @constraints(classification_type='multi-label')
 class FakeMultiLabelQueryStrategy(RandomSampling):
 
-    def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10):
-        return super().query(clf, x, x_indices_unlabeled, x_indices_labeled, y, n=n)
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+        return super().query(clf, dataset, indices_unlabeled, indices_labeled, y, n=n)
 
 
 class ClassificationTypeTest(unittest.TestCase):
@@ -69,15 +69,15 @@ class ConstraintTest(unittest.TestCase):
         clf = SklearnClassifier(ConfidenceEnhancedLinearSVC(), num_classes)
         ds = random_sklearn_dataset(num_samples=100)
 
-        x_indices_all = np.arange(len(ds))
-        x_indices_labeled = np.random.choice(x_indices_all, 10, replace=False)
-        x_indices_unlabeled = np.delete(x_indices_all, x_indices_labeled)
+        indices_all = np.arange(len(ds))
+        indices_labeled = np.random.choice(indices_all, 10, replace=False)
+        indices_unlabeled = np.delete(indices_all, indices_labeled)
 
         if multi_label:
             y = scipy.sparse.random(100, num_classes, density=0.5, format='csr')
             y.data[np.s_[:]] = 1
             y = y.astype(int)
         else:
-            y = np.random.randint(num_classes, size=x_indices_labeled.shape[0])
+            y = np.random.randint(num_classes, size=indices_labeled.shape[0])
 
-        query_strategy.query(clf, ds, x_indices_unlabeled, x_indices_labeled, y)
+        query_strategy.query(clf, ds, indices_unlabeled, indices_labeled, y)

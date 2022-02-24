@@ -35,7 +35,7 @@ def main():
         print('Error! No more samples left. (Unlabeled pool is empty)')
 
 
-def perform_active_learning(active_learner, train, labeled_indices, test):
+def perform_active_learning(active_learner, train, indices_labeled, test):
     """
     This is the main loop in which we perform 10 iterations of active learning.
     During each iteration 20 samples are queried and then updated.
@@ -46,35 +46,35 @@ def perform_active_learning(active_learner, train, labeled_indices, test):
     # Perform 10 iterations of active learning...
     for i in range(10):
         # ...where each iteration consists of labelling 20 samples
-        q_indices = active_learner.query(num_samples=20)
+        indices_queried = active_learner.query(num_samples=20)
 
         # Simulate user interaction here. Replace this for real-world usage.
-        y = train.y[q_indices]
+        y = train.y[indices_queried]
 
         # Return the labels for the current query to the active learner.
         active_learner.update(y)
 
-        labeled_indices = np.concatenate([q_indices, labeled_indices])
+        indices_labeled = np.concatenate([indices_queried, indices_labeled])
 
-        print('Iteration #{:d} ({} samples)'.format(i, len(labeled_indices)))
-        evaluate(active_learner, train[labeled_indices], test)
+        print('Iteration #{:d} ({} samples)'.format(i, len(indices_labeled)))
+        evaluate(active_learner, train[indices_labeled], test)
 
 
 def initialize_active_learner(active_learner, y_train):
 
-    # Initialize the model - This is required for model-based query strategies.
+    # Initialize the model. This is required for model-based query strategies.
     indices_pos_label = np.where(y_train == 1)[0]
     indices_neg_label = np.where(y_train == 0)[0]
 
-    x_indices_initial = np.concatenate([np.random.choice(indices_pos_label, 10, replace=False),
+    indices_initial = np.concatenate([np.random.choice(indices_pos_label, 10, replace=False),
                                         np.random.choice(indices_neg_label, 10, replace=False)])
 
-    x_indices_initial = x_indices_initial.astype(int)
-    y_initial = [y_train[i] for i in x_indices_initial]
+    indices_initial = indices_initial.astype(int)
+    y_initial = np.array([y_train[i] for i in indices_initial])
 
-    active_learner.initialize_data(x_indices_initial, y_initial)
+    active_learner.initialize_data(indices_initial, y_initial)
 
-    return x_indices_initial
+    return indices_initial
 
 
 if __name__ == '__main__':

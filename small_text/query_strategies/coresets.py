@@ -70,12 +70,12 @@ class GreedyCoreset(EmbeddingBasedQueryStrategy):
         self.normalize = normalize
         self.batch_size = batch_size
 
-    def sample(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings,
+    def sample(self, clf, dataset, indices_unlabeled, indices_labeled, y, n, embeddings,
                embeddings_proba=None):
         if self.normalize:
             from sklearn.preprocessing import normalize
             embeddings = normalize(embeddings, axis=1)
-        return greedy_coreset(embeddings, x_indices_unlabeled, x_indices_labeled, n,
+        return greedy_coreset(embeddings, indices_unlabeled, indices_labeled, n,
                               normalized=self.normalize)
 
     def __str__(self):
@@ -145,10 +145,10 @@ class LightweightCoreset(EmbeddingBasedQueryStrategy):
     def __init__(self, normalize=True):
         self.normalize = normalize
 
-    def sample(self, clf, x, x_indices_unlabeled, _x_indices_labeled, _y, n, embeddings,
+    def sample(self, clf, dataset, indices_unlabeled, _indices_labeled, _y, n, embeddings,
                embeddings_proba=None):
 
-        embeddings = embeddings[x_indices_unlabeled]
+        embeddings = embeddings[indices_unlabeled]
 
         embeddings_mean = np.mean(embeddings, axis=0)
         if self.normalize:

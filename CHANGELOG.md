@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.0.0b3] - unreleased
+
+### Changed
+
+The naming of variables related to datasets and indices has been unified 
+(and also improved, since the previous `x_` notation, stemming from earlier versions of this library,
+does not reflect the underlying object anymore).
+
+- `QueryStrategy`
+  - old: `query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10)`
+  - new: `query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10)`
+
+## [1.0.0b2] - 2022-02-22
+
+Bugfix release.
+
+### Fixed
+
+- Fix links to the documentation in README.md and notebooks.
+
+
 ## [1.0.0b1] - 2022-02-22
 
 First beta release with multi-label functionality and stopping criteria.

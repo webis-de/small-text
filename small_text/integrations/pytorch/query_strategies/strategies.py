@@ -30,44 +30,44 @@ class ExpectedGradientLength(QueryStrategy):
 
         self.scores_ = None
 
-    def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10, pbar=None):
-        self._validate_query_input(x_indices_unlabeled, n)
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10, pbar=None):
+        self._validate_query_input(indices_unlabeled, n)
 
-        if len(x_indices_unlabeled) == n:
-            return np.array(x_indices_unlabeled)
+        if len(indices_unlabeled) == n:
+            return np.array(indices_unlabeled)
 
         criterion = torch.nn.CrossEntropyLoss(reduction='none').to(self.device)
 
         collate_fn = clf._create_collate_fn()
-        dataset_iter = dataloader(x, batch_size=self.batch_size, collate_fn=collate_fn,
+        dataset_iter = dataloader(dataset, batch_size=self.batch_size, collate_fn=collate_fn,
                                   train=False)
 
         clf.model.eval()
         clf.model.to(self.device)
 
-        gradient_lengths = self.initialize_gradient_lengths_array(list_length(x))
-        pbar_context = build_pbar_context('tqdm', tqdm_kwargs={'total': list_length(x)})
+        gradient_lengths = self.initialize_gradient_lengths_array(list_length(dataset))
+        pbar_context = build_pbar_context('tqdm', tqdm_kwargs={'total': list_length(dataset)})
 
         offset = 0
         with default_tensor_type(torch.FloatTensor), pbar_context as pbar:
-            for i, (x, _) in enumerate(dataset_iter):
-                self.compute_gradient_lengths(clf, criterion, gradient_lengths, offset, x)
+            for i, (dataset, _) in enumerate(dataset_iter):
+                self.compute_gradient_lengths(clf, criterion, gradient_lengths, offset, dataset)
 
-                batch_len = x.size(0)
+                batch_len = dataset.size(0)
                 offset += batch_len
 
                 if pbar is not None:
                     pbar.update(batch_len)
 
-        return self.finalize_results(n, x_indices_unlabeled, gradient_lengths)
+        return self.finalize_results(n, indices_unlabeled, gradient_lengths)
 
     def initialize_gradient_lengths_array(self, dim):
         return np.zeros(dim, dtype=np.float64)
 
-    def finalize_results(self, n, x_indices_unlabeled, gradient_lengths):
+    def finalize_results(self, n, indices_unlabeled, gradient_lengths):
         self.scores_ = gradient_lengths
-        indices = np.argpartition(-gradient_lengths[x_indices_unlabeled], n)[:n]
-        return np.array([x_indices_unlabeled[i] for i in indices])
+        indices = np.argpartition(-gradient_lengths[indices_unlabeled], n)[:n]
+        return np.array([indices_unlabeled[i] for i in indices])
 
     def compute_gradient_lengths(self, clf, criterion, gradient_lengths, offset, x):
 
@@ -163,10 +163,10 @@ class ExpectedGradientLengthMaxWord(ExpectedGradientLength):
         # tensor that contains the unique word is for each item in the batch
         self._words = None
 
-    def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10, pbar=None):
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10, pbar=None):
 
         assert_layer_exists(clf.model, self.layer_name)
-        return super().query(clf, x, x_indices_unlabeled, x_indices_labeled, y, n=n, pbar=pbar)
+        return super().query(clf, dataset, indices_unlabeled, indices_labeled, y, n=n, pbar=pbar)
 
     def compute_gradient_lengths(self, clf, criterion, gradient_lengths, offset, x):
 
@@ -266,16 +266,16 @@ class BADGE(EmbeddingBasedQueryStrategy):
     def __init__(self, num_classes):
         self.num_classes = num_classes
 
-    def sample(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings,
+    def sample(self, clf, dataset, indices_unlabeled, indices_labeled, y, n, embeddings,
                embeddings_proba=None):
 
         if embeddings_proba is None:
-            proba = clf.predict_proba(x[x_indices_unlabeled])
-            embeddings = self.get_badge_embeddings(embeddings[x_indices_unlabeled],
+            proba = clf.predict_proba(dataset[indices_unlabeled])
+            embeddings = self.get_badge_embeddings(embeddings[indices_unlabeled],
                                                    proba)
         else:
-            embeddings = self.get_badge_embeddings(embeddings[x_indices_unlabeled],
-                                                   embeddings_proba[x_indices_unlabeled])
+            embeddings = self.get_badge_embeddings(embeddings[indices_unlabeled],
+                                                   embeddings_proba[indices_unlabeled])
 
         _, indices = init_kmeans_plusplus_safe(embeddings,
                                                n,

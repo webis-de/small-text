@@ -4,11 +4,14 @@ import numpy as np
 from parameterized import parameterized_class
 
 from small_text.classifiers import ConfidenceEnhancedLinearSVC
-from small_text.query_strategies import (EmptyPoolException,
-                                         greedy_coreset,
-                                         GreedyCoreset,
-                                         lightweight_coreset,
-                                         LightweightCoreset)
+from small_text.data.datasets import SklearnDataset
+from small_text.query_strategies import (
+    EmptyPoolException,
+    greedy_coreset,
+    GreedyCoreset,
+    lightweight_coreset,
+    LightweightCoreset
+)
 
 from tests.unit.small_text.query_strategies.test_strategies import (DEFAULT_QUERY_SIZE,
                                                                     SamplingStrategiesTests,
@@ -18,11 +21,12 @@ from tests.unit.small_text.query_strategies.test_strategies import (DEFAULT_QUER
 class GreedyCoresetMethodTest(unittest.TestCase):
 
     def test_query_with_overlarge_n(self, num_samples=20, num_features=100):
-        x = np.random.rand(num_samples, num_features)
+        dataset = SklearnDataset(np.random.rand(num_samples, num_features),
+                                 np.random.randint(0, high=2, size=10))
         indices = np.arange(num_samples)
         indices_mid = int(num_samples / 2)
         with self.assertRaises(ValueError):
-            greedy_coreset(x, indices[:indices_mid], indices[indices_mid:], num_samples+1)
+            greedy_coreset(dataset, indices[:indices_mid], indices[indices_mid:], num_samples+1)
 
 
 @parameterized_class([{'normalize': True}, {'normalize': False}])
@@ -77,14 +81,15 @@ class GreedyCoresetTest(unittest.TestCase, SamplingStrategiesTests):
     def test_query_empty_pool(self, num_samples=20, n=10):
         strategy = self._get_query_strategy()
 
-        x = np.random.rand(num_samples, 10)
+        dataset = SklearnDataset(np.random.rand(num_samples, 10),
+                                 np.random.randint(0, high=2, size=10))
 
-        x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
-        x_indices_unlabeled = []
+        indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices_unlabeled = []
         y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
 
         with self.assertRaises(EmptyPoolException):
-            strategy.query(None, x, x_indices_unlabeled, x_indices_labeled, y, n=n)
+            strategy.query(None, dataset, indices_unlabeled, indices_labeled, y, n=n)
 
 
 class LightweightCoresetMethodTest(unittest.TestCase):
@@ -147,11 +152,12 @@ class LightweightCoresetTest(unittest.TestCase, SamplingStrategiesTests):
     def test_lightweight_coreset_empty_pool(self, num_samples=20, n=10):
         strategy = self._get_query_strategy()
 
-        x = np.random.rand(num_samples, 10)
+        dataset = SklearnDataset(np.random.rand(num_samples, 10),
+                                 np.random.randint(0, high=2, size=10))
 
-        x_indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
-        x_indices_unlabeled = []
+        indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices_unlabeled = []
         y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
 
         with self.assertRaises(EmptyPoolException):
-            strategy.query(None, x, x_indices_unlabeled, x_indices_labeled, y, n=n)
+            strategy.query(None, dataset, indices_unlabeled, indices_labeled, y, n=n)

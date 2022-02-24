@@ -35,17 +35,17 @@ def main():
     train, test = get_twenty_newsgroups_corpus(categories=TWENTY_NEWS_SUBCATEGORIES)
 
     tokenizer = AutoTokenizer.from_pretrained(TRANSFORMER_MODEL.model, cache_dir='.cache/')
-    x_train = preprocess_data(tokenizer, train.data, train.target)
+    train = preprocess_data(tokenizer, train.data, train.target)
     y_train = train.target
 
-    x_test = preprocess_data(tokenizer, test.data, test.target)
+    test = preprocess_data(tokenizer, test.data, test.target)
 
     # Active learner
-    active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, x_train)
+    active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
     labeled_indices = initialize_active_learner(active_learner, y_train)
 
     try:
-        perform_active_learning(active_learner, x_train, labeled_indices, x_test)
+        perform_active_learning(active_learner, train, labeled_indices, test)
 
     except PoolExhaustedException:
         print('Error! Not enough samples left to handle the query.')
@@ -57,15 +57,15 @@ def perform_active_learning(active_learner, train, labeled_indices, test):
     # Perform 10 iterations of active learning...
     for i in range(10):
         # ...where each iteration consists of labelling 20 samples
-        q_indices = active_learner.query(num_samples=20)
+        queried_indices = active_learner.query(num_samples=20)
 
         # Simulate user interaction here. Replace this for real-world usage.
-        y = train.y[q_indices]
+        y = train.y[queried_indices]
 
         # Return the labels for the current query to the active learner.
         active_learner.update(y)
 
-        labeled_indices = np.concatenate([q_indices, labeled_indices])
+        labeled_indices = np.concatenate([queried_indices, labeled_indices])
 
         print('Iteration #{:d} ({} samples)'.format(i, len(labeled_indices)))
         evaluate(active_learner, train[labeled_indices], test)
@@ -73,12 +73,12 @@ def perform_active_learning(active_learner, train, labeled_indices, test):
 
 def initialize_active_learner(active_learner, y_train):
 
-    x_indices_initial = random_initialization_balanced(y_train)
-    y_initial = np.array([y_train[i] for i in x_indices_initial])
+    indices_initial = random_initialization_balanced(y_train)
+    y_initial = np.array([y_train[i] for i in indices_initial])
 
-    active_learner.initialize_data(x_indices_initial, y_initial)
+    active_learner.initialize_data(indices_initial, y_initial)
 
-    return x_indices_initial
+    return indices_initial
 
 
 if __name__ == '__main__':

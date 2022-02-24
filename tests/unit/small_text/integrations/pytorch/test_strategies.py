@@ -52,6 +52,7 @@ class ExpectedGradientLengthTest(unittest.TestCase):
         expected_str = 'ExpectedGradientLength()'
         self.assertEqual(expected_str, str(strategy))
 
+
 @pytest.mark.pytorch
 class ExpectedGradientLengthMaxWordTest(unittest.TestCase):
 

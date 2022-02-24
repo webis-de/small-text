@@ -3,9 +3,6 @@ from functools import partial, wraps
 
 from scipy.sparse import csr_matrix
 
-# args: (self, clf, x, x_indices_unlabeled, x_indices_labeled, y)
-NUM_QUERY_ARGS = 6
-
 
 class ClassificationType(Enum):
     SINGLE_LABEL = 'single-label'
@@ -23,8 +20,10 @@ class ClassificationType(Enum):
 
 
 def constraints(cls=None, classification_type=None):
-    """
+    """Restricts a query strategy to certain settings such as single- or multi-label classification
 
+    This should be used sparingly and mostly in cases where a misconfiguration would not raise
+    an error but is clearly unwanted.
     """
     if not callable(cls):
         return partial(constraints, classification_type=classification_type)
@@ -32,7 +31,7 @@ def constraints(cls=None, classification_type=None):
     @wraps(cls, updated=())
     class QueryStrategyConstraints(cls):
 
-        def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, *args, n=10, **kwargs):
+        def query(self, clf, datasets, indices_unlabeled, indices_labeled, y, *args, n=10, **kwargs):
 
             if classification_type is not None:
                 if isinstance(classification_type, str):
@@ -48,7 +47,7 @@ def constraints(cls=None, classification_type=None):
                                        f'classification_type={str(classification_type_.value)} '
                                        f'but single-label data was encountered')
 
-            return super().query(clf, x, x_indices_unlabeled, x_indices_labeled, y,
+            return super().query(clf, datasets, indices_unlabeled, indices_labeled, y,
                                  *args, n=n, **kwargs)
 
     return QueryStrategyConstraints

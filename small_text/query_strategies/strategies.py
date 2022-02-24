@@ -10,7 +10,7 @@ class QueryStrategy(ABC):
     """Abstract base class for Query Strategies."""
 
     @abstractmethod
-    def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10):
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
         """
         Queries instances from the unlabeled pool.
 
@@ -19,13 +19,13 @@ class QueryStrategy(ABC):
         Parameters
         ----------
         clf : small_text.classifiers.Classifier
-            A classifier.
-        x : small_text.data.datasets.Dataset
-            A dataset.
-        x_indices_unlabeled : list of int
-            Indices (relative to `x`) for the unlabeled data.
-        x_indices_labeled : list of int
-            Indices (relative to `x`) for the labeled data.
+            A text classifier.
+        dataset : small_text.data.datasets.Dataset
+            A text dataset.
+        indices_unlabeled : np.ndarray[int]
+            Indices (relative to `dataset`) for the unlabeled data.
+        indices_labeled : np.ndarray[int]
+            Indices (relative to `dataset`) for the labeled data.
         y : np.ndarray[int] or csr_matrix
             List of labels where each label maps by index position to `indices_labeled`.
         n : int
@@ -34,7 +34,7 @@ class QueryStrategy(ABC):
         Returns
         -------
         indices : numpy.ndarray
-            Indices relative to `dataset`.
+            Indices relative to `dataset` which were selected.
         """
         pass
 
@@ -49,12 +49,11 @@ class QueryStrategy(ABC):
 
 
 class RandomSampling(QueryStrategy):
-    """Randomly selects instances.
-    """
+    """Randomly selects instances."""
 
-    def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10):
-        self._validate_query_input(x_indices_unlabeled, n)
-        return np.random.choice(x_indices_unlabeled, size=n, replace=False)
+    def query(self, clf, _dataset, indices_unlabeled, indices_labeled, y, n=10):
+        self._validate_query_input(indices_unlabeled, n)
+        return np.random.choice(indices_unlabeled, size=n, replace=False)
 
     def __str__(self):
         return 'RandomSampling()'
@@ -70,18 +69,40 @@ class ConfidenceBasedQueryStrategy(QueryStrategy):
         self.lower_is_better = lower_is_better
         self.scores_ = None
 
-    def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10):
-        self._validate_query_input(x_indices_unlabeled, n)
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+        self._validate_query_input(indices_unlabeled, n)
 
-        confidence = self.score(clf, x, x_indices_unlabeled, x_indices_labeled, y)
+        confidence = self.score(clf, dataset, indices_unlabeled, indices_labeled, y)
 
-        if len(x_indices_unlabeled) == n:
-            return np.array(x_indices_unlabeled)
+        if len(indices_unlabeled) == n:
+            return np.array(indices_unlabeled)
 
-        indices_partitioned = np.argpartition(confidence[x_indices_unlabeled], n)[:n]
-        return np.array([x_indices_unlabeled[i] for i in indices_partitioned])
+        indices_partitioned = np.argpartition(confidence[indices_unlabeled], n)[:n]
+        return np.array([indices_unlabeled[i] for i in indices_partitioned])
 
     def score(self, clf, dataset, indices_unlabeled, indices_labeled, y):
+        """Assigns a confidence score to each instance.
+
+        Parameters
+        ----------
+        clf : small_text.classifiers.Classifier
+            A text classifier.
+        dataset : small_text.data.datasets.Dataset
+            A text dataset.
+        indices_unlabeled : np.ndarray[int]
+            Indices (relative to `dataset`) for the unlabeled data.
+        indices_labeled : np.ndarray[int]
+            Indices (relative to `dataset`) for the labeled data.
+        y : np.ndarray[int] or csr_matrix
+            List of labels where each label maps by index position to `indices_labeled`.
+
+        Returns
+        -------
+        confidence : np.ndarray[float]
+            Array of confidence scores in the shape (n_samples, n_classes).
+            If `self.lower_is_better` the confiden values are flipped to negative so that
+            subsequent methods do not need to differentiate maximization/minimization.
+        """
 
         confidence = self.get_confidence(clf, dataset, indices_unlabeled, indices_labeled, y)
         self.scores_ = confidence
@@ -91,18 +112,25 @@ class ConfidenceBasedQueryStrategy(QueryStrategy):
         return confidence
 
     @abstractmethod
-    def get_confidence(self, clf, x, x_indices_unlabeled, x_indices_labeled, y):
+    def get_confidence(self, clf, dataset, indices_unlabeled, indices_labeled, y):
         """Computes a confidence score for each of the given instances.
 
         Parameters
         ----------
-        x : ndarray
-            Instances for which the confidence should be computed.
-
+        clf : small_text.classifiers.Classifier
+            A text classifier.
+        dataset : small_text.data.datasets.Dataset
+            A text dataset.
+        indices_unlabeled : np.ndarray[int]
+            Indices (relative to `dataset`) for the unlabeled data.
+        indices_labeled : np.ndarray[int]
+            Indices (relative to `dataset`) for the labeled data.
+        y : np.ndarray[int] or csr_matrix
+            List of labels where each label maps by index position to `indices_labeled`.
         Returns
         -------
-        confidence : ndarray
-            A 2D numpy array (of type float) in the shape (n_samples, n_classes).
+        confidence : ndarray[float]
+            Array of confidence scores in the shape (n_samples, n_classes).
         """
         pass
 
@@ -112,14 +140,14 @@ class ConfidenceBasedQueryStrategy(QueryStrategy):
 
 class BreakingTies(ConfidenceBasedQueryStrategy):
     """Selects instances which have a small margin between their most likely and second
-    most likely prediction [LUO05]_.
+    most likely predicted class [LUO05]_.
     """
 
     def __init__(self):
         super().__init__(lower_is_better=True)
 
-    def get_confidence(self, clf, x, _x_indices_unlabeled, _x_indices_labeled, _y):
-        proba = clf.predict_proba(x)
+    def get_confidence(self, clf, dataset, _indices_unlabeled, _indices_labeled, _y):
+        proba = clf.predict_proba(dataset)
         return np.apply_along_axis(lambda x: self._best_versus_second_best(x), 1, proba)
 
     @staticmethod
@@ -132,16 +160,14 @@ class BreakingTies(ConfidenceBasedQueryStrategy):
 
 
 class LeastConfidence(ConfidenceBasedQueryStrategy):
-    """
-    Selects instances with the least prediction confidence (regarding the most likely class)
-    [LG94]_.
-    """
+    """Selects instances with the least prediction confidence (regarding the most likely class)
+    [LG94]_."""
 
     def __init__(self):
         super().__init__(lower_is_better=True)
 
-    def get_confidence(self, clf, x, _x_indices_unlabeled, _x_indices_labeled, _y):
-        proba = clf.predict_proba(x)
+    def get_confidence(self, clf, dataset, _indices_unlabeled, _indices_labeled, _y):
+        proba = clf.predict_proba(dataset)
         return np.amax(proba, axis=1)
 
     def __str__(self):
@@ -149,13 +175,12 @@ class LeastConfidence(ConfidenceBasedQueryStrategy):
 
 
 class PredictionEntropy(ConfidenceBasedQueryStrategy):
-    """Selects instances with the largest prediction entropy [HOL08]_.
-    """
+    """Selects instances with the largest prediction entropy [HOL08]_."""
     def __init__(self):
         super().__init__(lower_is_better=False)
 
-    def get_confidence(self, clf, x, _x_indices_unlabeled, _x_indices_labeled, _y):
-        proba = clf.predict_proba(x)
+    def get_confidence(self, clf, dataset, _indices_unlabeled, _indices_labeled, _y):
+        proba = clf.predict_proba(dataset)
         return np.apply_along_axis(lambda x: entropy(x), 1, proba)
 
     def __str__(self):
@@ -169,7 +194,7 @@ class SubsamplingQueryStrategy(QueryStrategy):
     Parameters
     ----------
     base_query_strategy : QueryStrategy
-        Base query strategy.
+        Base query strategy to which the querying is being delegated after subsampling.
     subsample_size : int
         Size of the subsampled set.
     """
@@ -179,19 +204,25 @@ class SubsamplingQueryStrategy(QueryStrategy):
 
         self.subsampled_indices_ = None
 
-    def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10):
-        self._validate_query_input(x_indices_unlabeled, n)
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+        self._validate_query_input(indices_unlabeled, n)
 
-        subsampled_indices = np.random.choice(x_indices_unlabeled, self.subsample_size,
+        subsampled_indices = np.random.choice(indices_unlabeled,
+                                              self.subsample_size,
                                               replace=False)
-        x_sub = x[np.concatenate([subsampled_indices, x_indices_labeled])]
-        x_sub_unlabeled = np.arange(self.subsample_size)
-        x_sub_labeled = np.arange(self.subsample_size,
-                                  self.subsample_size + x_indices_labeled.shape[0])
+        subset = dataset[np.concatenate([subsampled_indices, indices_labeled])]
+        subset_indices_unlabeled = np.arange(self.subsample_size)
+        subset_indices_labeled = np.arange(self.subsample_size,
+                                  self.subsample_size + indices_labeled.shape[0])
 
-        indices = self.base_query_strategy.query(clf, x_sub, x_sub_unlabeled, x_sub_labeled, y, n=n)
+        indices = self.base_query_strategy.query(clf,
+                                                 subset,
+                                                 subset_indices_unlabeled,
+                                                 subset_indices_labeled,
+                                                 y,
+                                                 n=n)
 
-        self.subsampled_indices_ = x_sub_unlabeled
+        self.subsampled_indices_ = indices
 
         return np.array([subsampled_indices[i] for i in indices])
 
@@ -207,66 +238,65 @@ class SubsamplingQueryStrategy(QueryStrategy):
 
 
 class EmbeddingBasedQueryStrategy(QueryStrategy):
-    """
-    A base class for embedding-based querying.
+    """A base class for embedding-based query strategies.
 
     To use this class, create a subclass and implement `sample()`.
     """
-    def query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10, pbar='tqdm',
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10, pbar='tqdm',
               embeddings=None, embed_kwargs=dict()):
-        self._validate_query_input(x_indices_unlabeled, n)
+        self._validate_query_input(indices_unlabeled, n)
 
-        if len(x_indices_unlabeled) == n:
-            return np.array(x_indices_unlabeled)
+        if len(indices_unlabeled) == n:
+            return np.array(indices_unlabeled)
 
         if embeddings is not None:
-            sampled_indices = self.sample(clf, x, x_indices_unlabeled, x_indices_labeled, y, n,
+            sampled_indices = self.sample(clf, dataset, indices_unlabeled, indices_labeled, y, n,
                                           embeddings)
         else:
             try:
-                embeddings, proba = clf.embed(x, return_proba=True, pbar=pbar, **embed_kwargs) \
+                embeddings, proba = clf.embed(dataset, return_proba=True, pbar=pbar, **embed_kwargs) \
                     if embeddings is None else embeddings
-                sampled_indices = self.sample(clf, x, x_indices_unlabeled, x_indices_labeled,
+                sampled_indices = self.sample(clf, dataset, indices_unlabeled, indices_labeled,
                                               y, n, embeddings, embeddings_proba=proba)
             except TypeError as e:
                 if 'got an unexpected keyword argument \'return_proba\'' in e.args[0]:
-                    embeddings = clf.embed(x, pbar=pbar,
+                    embeddings = clf.embed(dataset, pbar=pbar,
                                            **embed_kwargs) if embeddings is None else embeddings
-                    sampled_indices = self.sample(clf, x, x_indices_unlabeled, x_indices_labeled, y,
+                    sampled_indices = self.sample(clf, dataset, indices_unlabeled, indices_labeled, y,
                                                   n, embeddings)
                 else:
                     raise e
 
-        return x_indices_unlabeled[sampled_indices]
+        return indices_unlabeled[sampled_indices]
 
     @abstractmethod
-    def sample(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings,
+    def sample(self, clf, dataset, indices_unlabeled, indices_labeled, y, n, embeddings,
                embeddings_proba=None):
         """Samples from the given embeddings.
 
         Parameters
         ----------
         clf : small_text.classifiers.Classifier
-            A classifier.
-        x : Dataset
-            A dataset.
-        x_indices_unlabeled : ndarray
-            Indices (relative to `x`) for the unlabeled data.
-        x_indices_labeled : ndarray
-            Indices (relative to `x`) for the labeled data.
-        y : ndarray or list of int
+            A text classifier.
+        dataset : Dataset
+            A text dataset.
+        indices_unlabeled : ndarray[int]
+            Indices (relative to `dataset`) for the unlabeled data.
+        indices_labeled : ndarray[int]
+            Indices (relative to `dataset`) for the labeled data.
+        y : ndarray[int]
             List of labels where each label maps by index position to `indices_labeled`.
-        x : ndarray
+        dataset : ndarray
             Instances for which the score should be computed.
-        embeddings : ndarray
-            Embeddings for each sample in x.
-        embeddings_proba : ndarray or None
+        n : int
+            Number of instances to sample.
+        embeddings_proba : ndarray, default=None
             Class probabilities for each embedding in embeddings.
 
         Returns
         -------
-        indices : ndarray
-            A numpy array of selected indices (relative to `x_indices_unlabeled`).
+        indices : ndarray[int]
+            A numpy array of selected indices (relative to `indices_unlabeled`).
         """
         pass
 
@@ -282,7 +312,7 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
     def __init__(self, normalize=True):
         self.normalize = normalize
 
-    def sample(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n, embeddings,
+    def sample(self, clf, dataset, indices_unlabeled, indices_labeled, y, n, embeddings,
                embeddings_proba=None):
         """Samples from the given embeddings.
 
@@ -290,15 +320,15 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
         ----------
         clf : small_text.classifiers.Classifier
             A classifier.
-        x : Dataset
+        dataset : Dataset
             A dataset.
-        x_indices_unlabeled : ndarray
+        indices_unlabeled : ndarray
             Indices (relative to `x`) for the unlabeled data.
-        x_indices_labeled : ndarray
+        indices_labeled : ndarray
             Indices (relative to `x`) for the labeled data.
         y : ndarray or list of int
             List of labels where each label maps by index position to `indices_labeled`.
-        x : ndarray
+        dataset : ndarray
             Instances for which the score should be computed.
         embeddings : ndarray
             Embeddings for each sample in x.
@@ -306,7 +336,7 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
         Returns
         -------
         indices : ndarray
-            A numpy array of selected indices (relative to `x_indices_unlabeled`).
+            A numpy array of selected indices (relative to `indices_unlabeled`).
         """
         from sklearn.cluster import KMeans
 
@@ -315,17 +345,17 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
             embeddings = normalize(embeddings, axis=1)
 
         km = KMeans(n_clusters=n)
-        km.fit(embeddings[x_indices_unlabeled])
+        km.fit(embeddings[indices_unlabeled])
 
         indices = self._get_nearest_to_centers(km.cluster_centers_,
-                                               embeddings[x_indices_unlabeled],
+                                               embeddings[indices_unlabeled],
                                                normalized=self.normalize)
 
         # fall back to an iterative version if one or more vectors are most similar
         # to multiple cluster centers
         if np.unique(indices).shape[0] < n:
             indices = self._get_nearest_to_centers_iterative(km.cluster_centers_,
-                                                             embeddings[x_indices_unlabeled],
+                                                             embeddings[indices_unlabeled],
                                                              normalized=self.normalize)
 
         return indices
@@ -346,7 +376,6 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
 
     @staticmethod
     def _get_nearest_to_centers_iterative(cluster_centers, vectors, normalized=True):
-
         indices = np.empty(cluster_centers.shape[0], dtype=int)
 
         for i in range(cluster_centers.shape[0]):
