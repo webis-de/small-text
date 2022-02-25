@@ -75,4 +75,4 @@ class QueryStrategiesTest(unittest.TestCase):
             active_learner.query()
             active_learner.update(np.random.randint(2, size=query_size))
 
-        self.assertEqual(query_size*3 + num_initial, active_learner.x_indices_labeled.shape[0])
+        self.assertEqual(query_size * 3 + num_initial, active_learner.indices_labeled.shape[0])

@@ -57,7 +57,7 @@ def main():
         # Perform 20 iterations of active learning...
         for i in range(20):
             # ...where each iteration consists of labelling 20 samples
-            queried_indices = active_learner.query(num_samples=20, x=train)
+            queried_indices = active_learner.query(num_samples=20, representation=train)
 
             # Simulate user interaction here. Replace this for real-world usage.
             y = train.y[queried_indices]

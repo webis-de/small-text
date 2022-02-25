@@ -21,12 +21,11 @@ from tests.unit.small_text.query_strategies.test_strategies import (DEFAULT_QUER
 class GreedyCoresetMethodTest(unittest.TestCase):
 
     def test_query_with_overlarge_n(self, num_samples=20, num_features=100):
-        dataset = SklearnDataset(np.random.rand(num_samples, num_features),
-                                 np.random.randint(0, high=2, size=10))
+        x = np.random.rand(num_samples, num_features)
         indices = np.arange(num_samples)
         indices_mid = int(num_samples / 2)
         with self.assertRaises(ValueError):
-            greedy_coreset(dataset, indices[:indices_mid], indices[indices_mid:], num_samples+1)
+            greedy_coreset(x, indices[:indices_mid], indices[indices_mid:], num_samples+1)
 
 
 @parameterized_class([{'normalize': True}, {'normalize': False}])

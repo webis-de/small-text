@@ -39,7 +39,7 @@ class SerializationTest(unittest.TestCase):
             file_str = tmp_dir_name + 'active_learner.ser'
 
             active_learner = get_initialized_active_learner(clf_factory, query_strategy, dataset)
-            ind_initial = active_learner.x_indices_labeled
+            ind_initial = active_learner.indices_labeled
             ind = active_learner.query()
 
             active_learner.update(np.random.randint(2, size=10))
@@ -50,7 +50,7 @@ class SerializationTest(unittest.TestCase):
 
             active_learner = PoolBasedActiveLearner.load(file_str)
             self.assertIsNotNone(active_learner)
-            assert_array_equal(np.concatenate([ind_initial, ind]), active_learner.x_indices_labeled)
+            assert_array_equal(np.concatenate([ind_initial, ind]), active_learner.indices_labeled)
 
             weights_after = list(active_learner.classifier.model.parameters())
             self.assertEqual(len(weights_before), len(weights_after))

@@ -49,7 +49,7 @@ class SerializationTest(unittest.TestCase):
 
         x = random_sklearn_dataset(20, 100)
         active_learner = get_initialized_active_learner(clf_factory, query_strategy, x)
-        ind_initial = active_learner.x_indices_labeled
+        ind_initial = active_learner.indices_labeled
         ind_queried = active_learner.query()
 
         labels = np.random.randint(2, size=10)
@@ -65,6 +65,6 @@ class SerializationTest(unittest.TestCase):
         active_learner = PoolBasedActiveLearner.load(file)
         self.assertIsNotNone(active_learner)
 
-        assert_array_equal(np.concatenate([ind_initial, ind_queried]), active_learner.x_indices_labeled)
+        assert_array_equal(np.concatenate([ind_initial, ind_queried]), active_learner.indices_labeled)
         self.assertIsNotNone(active_learner.classifier)
         self.assertEqual(query_strategy.__class__, active_learner.query_strategy.__class__)
