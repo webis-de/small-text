@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 class StoppingCriterion(ABC):
 
     @abstractmethod
-    def stop(self, active_learner=None, predictions=None, proba=None, x_indices_stopping=None):
+    def stop(self, active_learner=None, predictions=None, proba=None, indices_stopping=None):
         """
         Parameters
         ----------
@@ -18,7 +18,7 @@ class StoppingCriterion(ABC):
             Probability distribution over the possible classes for a fixed subset. This is expected
             to have the same length as `predictions` unless one of `predictions` and `proba`
             is `None`.
-        x_indices_stopping : np.ndarray[int]
+        indices_stopping : np.ndarray[int]
             Uses the given indices to select a subset for stopping from either `predictions`
             or `proba` if not `None`. The indices are relative to `predictions` and `proba`.
         """
@@ -69,7 +69,7 @@ class DeltaFScore(StoppingCriterion):
         self.last_predictions = None
         self.delta_history = []
 
-    def stop(self, active_learner=None, predictions=None, proba=None, x_indices_stopping=None):
+    def stop(self, active_learner=None, predictions=None, proba=None, indices_stopping=None):
         check_window_based_predictions(predictions, self.last_predictions)
 
         if self.last_predictions is None:

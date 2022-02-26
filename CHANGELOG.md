@@ -26,6 +26,10 @@ does not reflect the underlying object anymore).
   - old: `query(self, clf, x, x_indices_unlabeled, x_indices_labeled, y, n=10)`
   - new: `query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10)`
 
+
+- `StoppingCriterion`
+  - `stop(self, active_learner=None, predictions=None, proba=None, x_indices_stopping=None)` changed to `stop(self, active_learner=None, predictions=None, proba=None, indices_stopping=None)`
+
 ## [1.0.0b2] - 2022-02-22
 
 Bugfix release.
