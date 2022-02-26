@@ -30,9 +30,9 @@ Bibliography
    In Proceedings of the Thirty-First AAAI Conference on Artificial Intelligence (AAAI’17).
    AAAI Press, 3386–3392.
 
-.. [HR18] Jeremy Howard and Sebastian Ruder
+.. [HR18] Jeremy Howard and Sebastian Ruder. 2008.
    Universal Language Model Fine-tuning for Text Classification.
-   In Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics, 2008, 328–339.
+   In Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics, , 328–339.
 
 .. [AZK+20] Jordan T. Ash, Chicheng Zhang, Akshay Krishnamurthy, John Langford and Alekh Agarwal. 2020.
    Deep Batch Active Learning by Diverse, Uncertain Gradient Lower Bounds.
@@ -41,7 +41,13 @@ Bibliography
 .. [YLB20] Michelle Yuan, Hsuan-Tien Lin, and Jordan Boyd-Graber. 2020.
    Cold-start Active Learning through Self-supervised Language Modeling
    In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)
-   Association for Computational Linguistics, 7935–-7948.
+   Association for Computational Linguistics, 7935–7948.
+
+.. [EHG+20] Liat Ein-Dor, Alon Halfon, Ariel Gera, Eyal Shnarch, Lena Dankin, Leshem Choshen,
+     Marina Danilevsky, Ranit Aharonov, Yoav Katz, and Noam Slonim. 2020.
+   Active Learning for BERT: An Empirical Study.
+   In Proceedings of the 2020 Conference on Empirical Methods in
+     Natural Language Processing (EMNLP), 7949–7962.
 
 .. [SNP21] Christopher Schröder, Andreas Niekler and Martin Potthast.
    Uncertainty-based Query Strategies for Active Learning with Transformers.

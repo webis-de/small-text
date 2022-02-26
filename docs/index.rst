@@ -101,6 +101,7 @@ A preprint which introduces small-text is available here:
    :hidden:
 
    changelog
+   reproducibility_notes
    bibliography
 
 ----
