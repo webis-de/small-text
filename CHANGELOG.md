@@ -3,6 +3,10 @@
 
 ## [1.0.0b3] - unreleased
 
+### Added
+
+- New query strategy: [ContrastiveActiveLearning](small_text/query_strategies/strategies.py).
+
 ### Changed
 
 The naming of variables related to datasets and indices has been unified 

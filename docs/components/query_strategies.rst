@@ -18,6 +18,7 @@ General
 * :py:class:`PredictionEntropy`
 * :py:class:`BreakingTies`
 * :py:class:`EmbeddingKMeans`
+* :py:class:`ContrastiveActiveLearning`
 * :py:class:`RandomSampling`
 
 
@@ -60,22 +61,27 @@ Constraints
 Classes
 =======
 
+Base
+----
+
 .. py:module:: small_text.query_strategies.strategies
 
 .. autoclass:: LeastConfidence
-    :special-members: __init__
 
 .. autoclass:: PredictionEntropy
-    :special-members: __init__
 
 .. autoclass:: BreakingTies
-    :special-members: __init__
 
 .. autoclass:: EmbeddingKMeans
     :special-members: __init__
 
-.. autoclass:: RandomSampling
+.. autoclass:: ContrastiveActiveLearning
     :special-members: __init__
+
+.. autoclass:: RandomSampling
+
+Pytorch Integration
+-------------------
 
 .. py:module:: small_text.integrations.pytorch.query_strategies.strategies
 

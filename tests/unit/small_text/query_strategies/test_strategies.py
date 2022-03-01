@@ -10,9 +10,10 @@ from small_text.classifiers import ConfidenceEnhancedLinearSVC, SklearnClassifie
 from small_text.data.datasets import SklearnDataset
 from small_text.query_strategies import EmptyPoolException, PoolExhaustedException
 from small_text.query_strategies import (
+    BreakingTies,
+    ContrastiveActiveLearning,
     RandomSampling,
     SubsamplingQueryStrategy,
-    BreakingTies,
     LeastConfidence,
     PredictionEntropy,
     EmbeddingBasedQueryStrategy,
@@ -496,7 +497,6 @@ class EmbeddingKMeansTest(unittest.TestCase):
 
     def test_query(self, n=10, num_samples=100, num_classes=2):
         query_strategy = EmbeddingKMeans()
-        # currently does not support embed, but is not used here anyways
         clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, num_classes)
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
@@ -516,7 +516,6 @@ class EmbeddingKMeansTest(unittest.TestCase):
         query_strategy = EmbeddingKMeans()
         query_strategy._get_nearest_to_centers_iterative = Mock(
             wraps=query_strategy._get_nearest_to_centers_iterative)
-        # currently does not support embed, but is not used here anyways
         clf = ConfidenceEnhancedLinearSVC()
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
@@ -545,7 +544,6 @@ class EmbeddingKMeansTest(unittest.TestCase):
         query_strategy = EmbeddingKMeans(normalize=False)
         query_strategy._get_nearest_to_centers_iterative = Mock(
             wraps=query_strategy._get_nearest_to_centers_iterative)
-        # currently does not support embed, but is not used here anyways
         clf = ConfidenceEnhancedLinearSVC()
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
@@ -569,7 +567,6 @@ class EmbeddingKMeansTest(unittest.TestCase):
         query_strategy._get_nearest_to_centers_iterative = Mock(
             wraps=query_strategy._get_nearest_to_centers_iterative)
 
-        # currently does not support embed, but is not used here anyways
         clf = ConfidenceEnhancedLinearSVC()
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
@@ -596,3 +593,117 @@ class EmbeddingKMeansTest(unittest.TestCase):
     def test_str_with_normalize_false(self):
         query_strategy = EmbeddingKMeans(normalize=False)
         self.assertEqual('EmbeddingKMeans(normalize=False)', str(query_strategy))
+
+
+class ContrastiveActiveLearningTest(unittest.TestCase):
+
+    def test_query(self, n=10, num_samples=100, num_classes=2):
+        query_strategy = ContrastiveActiveLearning()
+        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, num_classes)
+
+        dataset = SklearnDataset(np.random.rand(num_samples, 10),
+                                 np.random.randint(0, high=2, size=10))
+
+        indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices_unlabeled = np.array([i for i in np.arange(100) if i not in set(indices_labeled)])
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        indices = query_strategy.query(clf, dataset, indices_unlabeled, indices_labeled, y, n)
+
+        self.assertIsNotNone(indices)
+        self.assertEqual(n, indices.shape[0])
+
+    def test_query_with_precomputed_embeddings(self, n=10, num_samples=100, embedding_dim=20):
+
+        query_strategy = ContrastiveActiveLearning()
+        clf = SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC, 2)
+
+        dataset = SklearnDataset(np.random.rand(num_samples, 10),
+                                 np.random.randint(0, high=2, size=10))
+        embeddings = np.random.rand(num_samples, embedding_dim)
+
+        indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices_unlabeled = np.array([i for i in np.arange(100) if i not in set(indices_labeled)])
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        with self.assertRaisesRegex(ValueError, 'Error: embeddings_proba is None. This strategy'):
+            query_strategy.query(clf, dataset, indices_unlabeled, indices_labeled, y, n,
+                                 embeddings=embeddings)
+
+    @patch('small_text.query_strategies.strategies.normalize', wraps=normalize)
+    def test_sample(self, normalize_mock, n=10, num_samples=100, embedding_dim=60):
+        query_strategy = ContrastiveActiveLearning()
+        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, 2)
+
+        dataset = SklearnDataset(np.random.rand(num_samples, 10),
+                                 np.random.randint(0, high=2, size=10))
+
+        indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices_unlabeled = np.array([i for i in np.arange(100) if i not in set(indices_labeled)])
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        embeddings = np.random.rand(num_samples, embedding_dim)
+        embeddings_proba = np.random.random_sample((num_samples, 2))
+
+        indices = query_strategy.sample(clf, dataset, indices_unlabeled, indices_labeled, y, n,
+                                        embeddings, embeddings_proba=embeddings_proba)
+        self.assertIsNotNone(indices)
+        self.assertEqual(n, indices.shape[0])
+
+        normalize_mock.assert_called()
+        np.testing.assert_array_equal(embeddings, normalize_mock.call_args[0][0])
+
+    @patch('small_text.query_strategies.strategies.normalize', wraps=normalize)
+    def test_sample_with_normalize_false(self, normalize_mock, n=10, num_samples=100,
+                                         embedding_dim=20):
+        query_strategy = ContrastiveActiveLearning(normalize=False)
+        clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, 2)
+
+        dataset = SklearnDataset(np.random.rand(num_samples, 10),
+                                 np.random.randint(0, high=2, size=10))
+
+        indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices_unlabeled = np.array([i for i in np.arange(100) if i not in set(indices_labeled)])
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        embeddings = np.random.rand(num_samples, embedding_dim)
+        embeddings_proba = np.random.random_sample((num_samples, 2))
+
+        indices = query_strategy.sample(clf, dataset, indices_unlabeled, indices_labeled, y, n,
+                                        embeddings, embeddings_proba=embeddings_proba)
+        self.assertIsNotNone(indices)
+        self.assertEqual(n, indices.shape[0])
+
+        normalize_mock.assert_not_called()
+
+    def test_sample_with_clf_that_does_not_return_proba(self,
+                                                        n=10,
+                                                        num_samples=100,
+                                                        embedding_dim=20):
+        query_strategy = ContrastiveActiveLearning()
+        clf = ConfidenceEnhancedLinearSVC()
+
+        dataset = SklearnDataset(np.random.rand(num_samples, 10),
+                                 np.random.randint(0, high=2, size=10))
+
+        indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices_unlabeled = np.array(
+            [i for i in np.arange(100) if i not in set(indices_labeled)])
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        embeddings = np.random.rand(num_samples, embedding_dim)
+
+        with self.assertRaisesRegex(ValueError, 'Error: embeddings_proba is None. This strategy'):
+            query_strategy.sample(clf, dataset, indices_unlabeled, indices_labeled, y, n,
+                                  embeddings)
+
+    def test_str(self):
+        query_strategy = ContrastiveActiveLearning()
+        self.assertEqual(
+            'ContrastiveActiveLearning(k=10, embed_kwargs={}, normalize=True)',
+            str(query_strategy))
+
+    def test_str_with_normalize_false(self):
+        query_strategy = ContrastiveActiveLearning(normalize=False)
+        self.assertEqual('ContrastiveActiveLearning(k=10, embed_kwargs={}, normalize=False)',
+                         str(query_strategy))
