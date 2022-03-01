@@ -191,15 +191,16 @@ class PredictionEntropy(ConfidenceBasedQueryStrategy):
 class SubsamplingQueryStrategy(QueryStrategy):
     """A decorator that first subsamples randomly from the unlabeled pool and then applies
     the `base_query_strategy` on the sampled subset.
-
-    Parameters
-    ----------
-    base_query_strategy : QueryStrategy
-        Base query strategy to which the querying is being delegated after subsampling.
-    subsample_size : int
-        Size of the subsampled set.
     """
     def __init__(self, base_query_strategy, subsample_size=4096):
+        """
+        Parameters
+        ----------
+        base_query_strategy : QueryStrategy
+            Base query strategy to which the querying is being delegated after subsampling.
+        subsample_size : int, default=4096
+            Size of the subsampled set.
+        """
         self.base_query_strategy = base_query_strategy
         self.subsample_size = subsample_size
 
@@ -314,7 +315,7 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
         """
         Parameters
         ----------
-        normalize : bool
+        normalize : bool, default=True
             Embeddings will be L2 normalized if `True`, otherwise they remain unchanged.
         """
         self.normalize = normalize
@@ -408,9 +409,9 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
             Number of nearest neighbours whose KL divergence is considered.
         embed_kwargs : dict
             Embedding keyword args which are passed to `clf.embed()`.
-        normalize : bool
+        normalize : bool, default=True
             Embeddings will be L2 normalized if `True`, otherwise they remain unchanged.
-        batch_size : int
+        batch_size : int, default=100
             Batch size which is used to process the embeddings.
         """
         self.embed_kwargs = embed_kwargs
