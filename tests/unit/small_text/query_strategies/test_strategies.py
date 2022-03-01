@@ -35,7 +35,7 @@ def query_random_data(strategy, num_samples=100, n=10, use_embeddings=False, emb
 
     indices_labeled = np.random.choice(np.arange(num_samples), size=10, replace=False)
     indices_unlabeled = np.array([i for i in range(x.shape[0])
-                                    if i not in set(indices_labeled)])
+                                  if i not in set(indices_labeled)])
     y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
 
     return strategy.query(None,

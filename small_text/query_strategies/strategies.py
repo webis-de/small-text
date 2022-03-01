@@ -428,19 +428,25 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
 
     def sample(self, _clf, dataset, indices_unlabeled, _indices_labeled, _y, n, embeddings,
                embeddings_proba=None):
+        from sklearn.neighbors import NearestNeighbors
+
         if embeddings_proba is None:
             raise ValueError('Error: embeddings_proba is None. '
                              'This strategy requires a classifier whose embed() method '
                              'supports the return_proba kwarg.')
-
-        from scipy.special import rel_entr
-        from sklearn.neighbors import NearestNeighbors
 
         if self.normalize:
             embeddings = normalize(embeddings, axis=1)
 
         nn = NearestNeighbors(n_neighbors=n)
         nn.fit(embeddings)
+
+        return self._contrastive_active_learning(dataset, embeddings, embeddings_proba,
+                                                 indices_unlabeled, nn, n)
+
+    def _contrastive_active_learning(self, dataset, embeddings, embeddings_proba,
+                                     indices_unlabeled, nn, n):
+        from scipy.special import rel_entr
 
         scores = []
 
@@ -456,11 +462,11 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
                                        n_neighbors=self.k,
                                        return_distance=False)
 
-            kl_divs = np.apply_along_axis(lambda v: np.mean([rel_entr(embeddings_proba[i],
-                                                                      embeddings_unlabelled_proba[v])
-                                          for i in nn_indices[v - offset]]),
-                                          0,
-                                          batch_idx[None, :])
+            kl_divs = np.apply_along_axis(lambda v: np.mean([
+                rel_entr(embeddings_proba[i], embeddings_unlabelled_proba[v])
+                for i in nn_indices[v - offset]]),
+                0,
+                batch_idx[None, :])
 
             scores.extend(kl_divs.tolist())
             offset += batch_idx.shape[0]
