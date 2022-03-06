@@ -29,11 +29,15 @@ to build active learning experiments or applications.
   easily mix and match query strategies with classifiers provided by [sklearn](https://scikit-learn.org/), [Pytorch](https://pytorch.org/), or [transformers](https://github.com/huggingface/transformers).
 - Supports GPU-based [Pytorch](https://pytorch.org/) models and integrates [transformers](https://github.com/huggingface/transformers) 
   so that you can use state-of-the-art Text Classification models for Active Learning.
-- GPU is only required for some models. In case of a CPU-only use case, 
-  a slim installation does not need any unnecessary dependencies.
-- Multiple scientifically evaluated components re-implemented: Query Strategies, Initialization Strategies, and Stopping Criteria.
+- GPU is optional: In case of a CPU-only use case, 
+  a lightweight installation only requires a minimal set of dependencies.
+- Multiple scientifically evaluated components are pre-implemented and ready to use (Query Strategies, Initialization Strategies, and Stopping Criteria).
 
 ## News
+
+- **March Beta Release** (v1.0.0b3) - March 06, 2022
+  - Interface Consolidation: Renamed and unified some arguments before v1.0.0.
+  - New query strategy: [ContrastiveActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b3/small_text/query_strategies/strategies.py).  
 
 - 🎉 **Beta Release** (v1.0.0b1) - February 22, 2022
   - New features: multi-label classification and stopping criteria are now supported.
