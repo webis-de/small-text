@@ -70,6 +70,8 @@ make
 ### Finalizing
 
 - Create a git tag: `v<VERSION>` (e.g., v1.0.0)
+- Push tags and code to github
+- Create new version at Read the Docs
 - Create a release on testpypi
   - If successful: Create a release on pypi
 - Create a release on github
