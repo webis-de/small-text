@@ -36,13 +36,12 @@ def main():
 
     tokenizer = AutoTokenizer.from_pretrained(TRANSFORMER_MODEL.model, cache_dir='.cache/')
     train = preprocess_data(tokenizer, train.data, train.target)
-    y_train = train.target
 
     test = preprocess_data(tokenizer, test.data, test.target)
 
     # Active learner
     active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
-    labeled_indices = initialize_active_learner(active_learner, y_train)
+    labeled_indices = initialize_active_learner(active_learner, train.y)
 
     try:
         perform_active_learning(active_learner, train, labeled_indices, test)
