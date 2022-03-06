@@ -36,7 +36,7 @@ to build active learning experiments or applications.
 ## News
 
 - **March Beta Release** (v1.0.0b3) - March 06, 2022
-  - Interface Consolidation: Renamed and unified some arguments before v1.0.0.
+  - Consolidated interfaces: Renamed and unified some arguments before v1.0.0.
   - New query strategy: [ContrastiveActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b3/small_text/query_strategies/strategies.py).  
 
 - 🎉 **Beta Release** (v1.0.0b1) - February 22, 2022
