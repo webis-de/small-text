@@ -44,6 +44,15 @@ cd docs/
 make
 ```
 
+### Continuous Integration
+
+We use a CI Pipeline which is unfortunately not public yet, but this might change in the future.
+
+This pipeline checks the following:
+- Checks if small-text can be installed with and without extra requirements.
+- Checks if the unit/integration tests complete successfully.
+- Checks if the examples can be executed successfully.
+- Checks whether the documentation can be built.
 
 ## Documentation Conventions
 
@@ -66,6 +75,7 @@ make
 ### Checking for Correctness
 
 - Check every step of the above Pull Request Checklist
+- Check if the CI Pipeline runs successfully
 
 ### Finalizing
 
