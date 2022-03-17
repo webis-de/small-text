@@ -3,8 +3,6 @@
 Note:
 This examples requires the datasets library.
 """
-import logging
-
 import numpy as np
 
 from transformers import AutoTokenizer
@@ -34,7 +32,7 @@ except ImportError:
                                  'Please install datasets to run this example.')
 
 
-def main():
+def main(num_iterations=10):
     # Active learning parameters
     num_classes = 28
     clf_factory = TransformerBasedClassificationFactory(TRANSFORMER_MODEL,
@@ -49,26 +47,25 @@ def main():
     train, test = get_train_test()
 
     tokenizer = AutoTokenizer.from_pretrained(TRANSFORMER_MODEL.model, cache_dir='.cache/')
-    x_train = preprocess_data(tokenizer, train['text'], train['labels'], multi_label=True)
+    train = preprocess_data(tokenizer, train['text'], train['labels'], multi_label=True)
 
-    x_test = preprocess_data(tokenizer, test['text'], test['labels'], multi_label=True)
+    test = preprocess_data(tokenizer, test['text'], test['labels'], multi_label=True)
 
     # Active learner
-    active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, x_train)
-    labeled_indices = initialize_active_learner(active_learner, x_train.y)
+    active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
+    indices_labeled = initialize_active_learner(active_learner, train.y)
 
     try:
-        perform_active_learning(active_learner, x_train, labeled_indices, x_test)
-
+        perform_active_learning(active_learner, train, indices_labeled, test, num_iterations)
     except PoolExhaustedException:
         print('Error! Not enough samples left to handle the query.')
     except EmptyPoolException:
         print('Error! No more samples left. (Unlabeled pool is empty)')
 
 
-def perform_active_learning(active_learner, train, labeled_indices, test):
+def perform_active_learning(active_learner, train, indices_labeled, test, num_iterations):
     # Perform 10 iterations of active learning...
-    for i in range(10):
+    for i in range(num_iterations):
         # ...where each iteration consists of labelling 20 samples
         indices_queried = active_learner.query(num_samples=1000)
 
@@ -78,10 +75,10 @@ def perform_active_learning(active_learner, train, labeled_indices, test):
         # Return the labels for the current query to the active learner.
         active_learner.update(y)
 
-        labeled_indices = np.concatenate([indices_queried, labeled_indices])
+        indices_labeled = np.concatenate([indices_queried, indices_labeled])
 
-        print('Iteration #{:d} ({} samples)'.format(i, len(labeled_indices)))
-        evaluate_multi_label(active_learner, train[labeled_indices], test)
+        print('Iteration #{:d} ({} samples)'.format(i, len(indices_labeled)))
+        evaluate_multi_label(active_learner, train[indices_labeled], test)
 
 
 def initialize_active_learner(active_learner, y_train):
@@ -95,6 +92,16 @@ def initialize_active_learner(active_learner, y_train):
 
 
 if __name__ == '__main__':
+    import argparse
+    import logging
     logging.getLogger('small_text').setLevel(logging.INFO)
 
-    main()
+    parser = argparse.ArgumentParser(description='An example that shows active learning '
+                                                 'for multi-class multi-label text classification '
+                                                 'using transformers.')
+    parser.add_argument('--num_iterations', type=int, default=10,
+                        help='number of active learning iterations')
+
+    args = parser.parse_args()
+
+    main(num_iterations=args.num_iterations)

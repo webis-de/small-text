@@ -3,8 +3,6 @@
 Note:
 This examples requires gensim 3.8.x.
 """
-import logging
-
 import torch
 import numpy as np
 
@@ -28,7 +26,7 @@ except ImportError:
                                  'Please install gensim 3.8.x to run this example.')
 
 
-def main():
+def main(num_iterations=10):
     device = 'cuda'
 
     # Prepare some data
@@ -37,7 +35,7 @@ def main():
     num_classes = len(np.unique(train.y))
 
     # Active learning parameters
-    classifier_kwargs = dict({'embedding_matrix': _load_gensim_embedding(train.vocab),
+    classifier_kwargs = dict({'embedding_matrix': load_gensim_embedding(train.vocab),
                               'max_seq_len': 512,
                               'num_epochs': 4,
                               'device': device})
@@ -47,28 +45,10 @@ def main():
 
     # Active learner
     active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
-
-    labeled_indices = random_initialization_stratified(train.y, 20)
-    y_initial = train[labeled_indices].y
-
-    active_learner.initialize_data(labeled_indices, y_initial)
+    indices_labeled = initialize_active_learner(active_learner, train.y)
 
     try:
-        # Perform 20 iterations of active learning...
-        for i in range(20):
-            # ...where each iteration consists of labelling 20 samples
-            queried_indices = active_learner.query(num_samples=20, representation=train)
-
-            # Simulate user interaction here. Replace this for real-world usage.
-            y = train.y[queried_indices]
-
-            # Return the labels for the current query to the active learner.
-            active_learner.update(y)
-
-            labeled_indices = np.concatenate([queried_indices, labeled_indices])
-
-            print('Iteration #{:d} ({} samples)'.format(i, len(labeled_indices)))
-            evaluate(active_learner, train[labeled_indices], test)
+        perform_active_learning(active_learner, train, indices_labeled, test, num_iterations)
 
     except PoolExhaustedException:
         print('Error! Not enough samples left to handle the query.')
@@ -76,8 +56,25 @@ def main():
         print('Error! No more samples left. (Unlabeled pool is empty)')
 
 
-def _load_gensim_embedding(vocab, min_freq=1):
-    # assert vocab.itos[0] == '<pad>'
+def perform_active_learning(active_learner, train, indices_labeled, test, num_iterations):
+    # Perform 20 iterations of active learning...
+    for i in range(num_iterations):
+        # ...where each iteration consists of labelling 20 samples
+        indices_queried = active_learner.query(num_samples=20, representation=train)
+
+        # Simulate user interaction here. Replace this for real-world usage.
+        y = train.y[indices_queried]
+
+        # Return the labels for the current query to the active learner.
+        active_learner.update(y)
+
+        indices_labeled = np.concatenate([indices_queried, indices_labeled])
+
+        print('Iteration #{:d} ({} samples)'.format(i, len(indices_labeled)))
+        evaluate(active_learner, train[indices_labeled], test)
+
+
+def load_gensim_embedding(vocab, min_freq=1):
     pretrained_vectors = api.load('word2vec-google-news-300')
 
     vectors = [
@@ -98,7 +95,24 @@ def _load_gensim_embedding(vocab, min_freq=1):
     return torch.as_tensor(np.stack(vectors))
 
 
+def initialize_active_learner(active_learner, y_train):
+
+    indices_initial = random_initialization_stratified(y_train, 20)
+    active_learner.initialize_data(indices_initial, y_train[indices_initial])
+
+    return indices_initial
+
+
 if __name__ == '__main__':
+    import argparse
+    import logging
     logging.getLogger('small_text').setLevel(logging.INFO)
 
-    main()
+    parser = argparse.ArgumentParser(description='An example that shows active learning '
+                                                 'for multi-class text classification.')
+    parser.add_argument('--num_iterations', type=int, default=10,
+                        help='number of active learning iterations')
+
+    args = parser.parse_args()
+
+    main(num_iterations=args.num_iterations)
