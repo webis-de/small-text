@@ -420,10 +420,10 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
         self.batch_size = batch_size
         self.pbar = pbar
 
-    def query(self, clf, dataset, x_indices_unlabeled, x_indices_labeled, y, n=10, pbar='tqdm',
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10, pbar='tqdm',
               embeddings=None, embed_kwargs=dict()):
 
-        return super().query(clf, dataset, x_indices_unlabeled, x_indices_labeled, y, n=n,
+        return super().query(clf, dataset, indices_unlabeled, indices_labeled, y, n=n,
                              embed_kwargs=self.embed_kwargs, pbar=self.pbar)
 
     def sample(self, _clf, dataset, indices_unlabeled, _indices_labeled, _y, n, embeddings,
