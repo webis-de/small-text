@@ -24,7 +24,9 @@ try:
 
     from tests.utils.datasets import random_transformer_dataset
 except (ImportError, PytorchNotFoundError):
-    pass
+    # prevent "NameError: name 'TransformerBasedClassification' is not defined" in patch.object
+    class TransformerBasedClassification(object):
+        pass
 
 
 @pytest.mark.skip
