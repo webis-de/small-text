@@ -16,7 +16,7 @@ from small_text.data.datasets import split_data
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.data import balanced_sampling, stratified_sampling
 
-from tests.utils.datasets import random_matrix_data
+from tests.utils.datasets import random_matrix_data, random_sklearn_dataset
 from tests.utils.testing import assert_array_not_equal
 from tests.utils.testing import assert_labels_equal
 
@@ -326,19 +326,34 @@ class NestedDatasetViewTest(unittest.TestCase, _DatasetViewTest):
 
 class SplitDataTest(unittest.TestCase):
 
+    def test_split_data_invalid_strategy(self):
+        with self.assertRaises(ValueError):
+            train_set = random_sklearn_dataset(100)
+            split_data(train_set, strategy='does_not_exist')
+
+    def test_split_data_invalid_validation_set_sizes(self):
+        expected_regex = 'Invalid value encountered for "validation_set_size".'
+        with self.assertRaisesRegex(ValueError, expected_regex):
+            train_set = random_sklearn_dataset(100)
+            split_data(train_set, validation_set_size=0.0)
+
+        with self.assertRaisesRegex(ValueError, expected_regex):
+            train_set = random_sklearn_dataset(100)
+            split_data(train_set, validation_set_size=1.0)
+
     @mock.patch('numpy.random.permutation', wraps=np.random.permutation)
     def test_split_data_random(self, permutation_mock):
-        train_set = np.random.rand(100, 2)
+        train_set = random_sklearn_dataset(100)
 
         subset_train, subset_valid = split_data(train_set)
 
-        self.assertEqual(90, subset_train.shape[0])
-        self.assertEqual(10, subset_valid.shape[0])
+        self.assertEqual(90, len(subset_train))
+        self.assertEqual(10, len(subset_valid))
         permutation_mock.assert_called()
 
     @mock.patch('numpy.random.permutation', wraps=np.random.permutation)
     def test_split_data_random_return_indices(self, permutation_mock):
-        train_set = np.random.rand(100, 2)
+        train_set = random_sklearn_dataset(100)
 
         indices_train, indices_valid = split_data(train_set, return_indices=True)
 
@@ -350,19 +365,19 @@ class SplitDataTest(unittest.TestCase):
     @mock.patch('small_text.data.datasets.balanced_sampling',
                 wraps=balanced_sampling)
     def test_split_data_balanced(self, balanced_sampling_mock):
-        train_set = np.random.rand(100, 2)
+        train_set = random_sklearn_dataset(100)
         y = np.array([0] * 10 + [1] * 90)
 
         subset_train, subset_valid = split_data(train_set, y=y, strategy='balanced')
 
-        self.assertEqual(90, subset_train.shape[0])
-        self.assertEqual(10, subset_valid.shape[0])
+        self.assertEqual(90, len(subset_train))
+        self.assertEqual(10, len(subset_valid))
         balanced_sampling_mock.assert_called()
 
     @mock.patch('small_text.data.datasets.balanced_sampling',
                 wraps=balanced_sampling)
     def test_split_data_balanced_return_indices(self, balanced_sampling_mock):
-        train_set = np.random.rand(100, 2)
+        train_set = random_sklearn_dataset(100)
         y = np.array([0] * 10 + [1] * 90)
 
         indices_train, indices_valid = split_data(train_set, y=y, strategy='balanced',
@@ -376,19 +391,19 @@ class SplitDataTest(unittest.TestCase):
     @mock.patch('small_text.data.datasets.stratified_sampling',
                 wraps=stratified_sampling)
     def test_split_data_stratified(self, stratified_sampling_mock):
-        train_set = np.random.rand(100, 2)
+        train_set = random_sklearn_dataset(100)
         y = np.array([0] * 10 + [1] * 90)
 
         subset_train, subset_valid = split_data(train_set, y=y, strategy='stratified')
 
-        self.assertEqual(90, subset_train.shape[0])
-        self.assertEqual(10, subset_valid.shape[0])
+        self.assertEqual(90, len(subset_train))
+        self.assertEqual(10, len(subset_valid))
         stratified_sampling_mock.assert_called()
 
     @mock.patch('small_text.data.datasets.stratified_sampling',
                 wraps=stratified_sampling)
     def test_split_data_stratified_return_indices(self, stratified_sampling_mock):
-        train_set = np.random.rand(100, 2)
+        train_set = random_sklearn_dataset(100)
         y = np.array([0] * 10 + [1] * 90)
 
         indices_train, indices_valid = split_data(train_set, y=y, strategy='stratified',
@@ -398,8 +413,3 @@ class SplitDataTest(unittest.TestCase):
         self.assertEqual(90, indices_train.shape[0])
         self.assertEqual(10, indices_valid.shape[0])
         stratified_sampling_mock.assert_called()
-
-    def test_data_invalid_strategy(self):
-        with self.assertRaises(ValueError):
-            train_set = np.random.rand(100, 2)
-            split_data(train_set, strategy='does_not_exist')

@@ -236,21 +236,37 @@ class SklearnDataset(Dataset):
 
 def split_data(train_set, y=None, strategy='random', validation_set_size=0.1, return_indices=False):
     """
-    Splits the given set `train_set` into two subsets (`sub_train` and `sub_valid`).
+    Splits the given set `train_set` into two subsets (`sub_train` and `sub_valid`) according to
+    a specified strategy.
 
     Parameters
     ----------
-    train_set :
-
+    train_set : Dataset
+        A training dataset that should be split.
     y : np.ndarray [int]
         Labels for the train set.
-    strategy : str
-        The strategy used for splitting. One of 'random', 'balanced', 'stratified'.
+    strategy : {'random', 'balanced', 'stratified'}
+        The strategy used for splitting.
     validation_set_size : float
         Fraction of the input size that will be the size of the validation set.
     return_indices : bool
         Returns two lists (np.ndarray[int]) of indices instead of two subsets if True.
+
+    Returns
+    -------
+    train_split_or_indices : Dataset or numpy.ndarray[int]
+        The train split or indices (relative to `train_set`) defining the train split.
+    validation_split_or_indices : Dataset or numpy.ndarray[int]
+        The validation split or indices (relative to `train_set`) defining the validation split.
+
+    Note
+    ----
+    Labes are passed separately due to legacy reasons. This circumstance is currently also used to
+    handle the multi-label case. This might change in the future.
     """
+    if validation_set_size == 0 or validation_set_size >= 1.0:
+        raise ValueError('Invalid value encountered for "validation_set_size". '
+                         'Must be within the interval (0.0, 1.0).')
 
     train_len = int(len(train_set) * (1-validation_set_size))
 
