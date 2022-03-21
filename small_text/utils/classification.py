@@ -21,23 +21,22 @@ def get_splits(train_set, validation_set, multi_label=False, validation_set_size
     return sub_train, sub_valid
 
 
-# TODO: unittest
 def prediction_result(proba, multi_label, num_classes, enc=None, return_proba=False):
     """Helper method which returns a single- or multi-label prediction result.
 
     Parameters
     ----------
-    proba :
-
+    proba : np.ndarray[float]
+        A (dense) probability matrix of shape (num_instances, num_classes).
     multi_label : bool
         If True, this method returns a result suitable for a multi-label classification,
         otherwise for a single-label classification.
     num_classes : int
         The number of classes.
-    enc : sklearn.preprocessing.MultiLabelBinarizer
-        A multi-label binarizer. Only used if `multi-label` is `True`, and only intended to be used
-        in combination with `small_text.integrations.pytorch.classifiers.PytorchClassifier`-based
-        classifiers.
+    enc : sklearn.preprocessing.MultiLabelBinarizer, default=None
+        A multi-label binarizer which is (optionally) used if `multi-label` is `True`. It is only
+        intended to be used in combination with
+        `small_text.integrations.pytorch.classifiers.PytorchClassifier`-based classifiers.
     return_proba : bool
         Also returns the probability if `True`. This is intended to be used with `multi_label=True`
         where it returns a sparse matrix with only the probabilities for the predicted labels. For
@@ -87,9 +86,9 @@ def empty_result(multi_label, num_classes, return_prediction=True, return_proba=
         when set to `False`.
     num_classes : int
         The number of classes.
-    return_prediction : bool
+    return_prediction : bool, default=True
         If `True`, returns an empty result of prediction.
-    return_proba : bool
+    return_proba : bool, default=True
         If `True`, returns an empty result of probabilities.
 
     Returns
