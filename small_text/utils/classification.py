@@ -2,11 +2,36 @@ import numpy as np
 
 from scipy.sparse import csr_matrix
 
-from small_text.data.datasets import split_data
+from small_text.data.datasets import Dataset, split_data
 from small_text.utils.labels import list_to_csr
 
 
 def get_splits(train_set, validation_set, multi_label=False, validation_set_size=0.1):
+    """Helper method to ensure that a validation set is available after calling this method.
+    This is only necessary when the previous code did not select a validation set prior to this,
+    otherwise the passed `validation_set` variable is not None and no action is necessary here.
+
+    If a split is necessary, stratified sampling is used in the single-label case,
+    and random sampling is used in the multi-label case.
+
+    Parameters
+    ----------
+    train_set : Dataset
+        Training set.
+    validation_set : Dataset
+        Validation set.
+    multi_label : bool, default=False
+        Indicates if the splits are for a multi-label problem.
+    validation_set_size : float, default=0.1
+        Specifies the size of the validation set (as a percentage of the training set). Only
+        used if a new split is created.
+    Returns
+    -------
+    sub_train : Dataset
+        A subset used for training. Defaults to `train_set` if `validation_set` is not `None`.
+    sub_valid : Dataset
+        A subset used for validation. Defaults to `validation_set` is
+    """
     if validation_set is None:
         if multi_label:
             # TODO: adapt sampling for multi-label
