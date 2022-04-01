@@ -1,5 +1,13 @@
 # Changelog
 
+## [Next] - unreleased
+
+### Changed
+
+- Code examples:
+  - Code structure was  unified.
+  - Number of iterations can now be passed via an cli argument.
+
 ## [1.0.0b3] - 2022-03-06
 
 ### Added
