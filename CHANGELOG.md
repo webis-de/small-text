@@ -7,6 +7,9 @@
 - Code examples:
   - Code structure was  unified.
   - Number of iterations can now be passed via an cli argument.
+- `small_text.integrations.pytorch.utils.data`:
+  - Method `get_class_weights()` now scales the resulting multi-class weights so that the smallest 
+    weight equals to `1.0`.
 
 ## [1.0.0b3] - 2022-03-06
 
