@@ -153,7 +153,7 @@ class SklearnDataset(Dataset):
     ----------
     x : numpy.ndarray or scipy.sparse.csr_matrix
         Dense or sparse feature matrix.
-    y : list of int
+    y : nump.ndarray[int]
         List of labels where each label belongs to the features of the respective row.
     target_labels : list of int or None
         List of possible labels. Will be inferred from `y` if `None` is passed.
@@ -162,10 +162,7 @@ class SklearnDataset(Dataset):
     def __init__(self, x, y, target_labels=None):
 
         self._x = x
-        if isinstance(y, list):
-            self._y = np.array(y)
-        else:
-            self._y = y
+        self._y = y
 
         self.multi_label = is_multi_label(self._y)
 
