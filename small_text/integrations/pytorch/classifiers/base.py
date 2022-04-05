@@ -14,7 +14,7 @@ try:
     from torch.optim.lr_scheduler import _LRScheduler, LambdaLR
 
     from small_text.integrations.pytorch.utils.data import get_class_weights
-    from small_text.utils.classification import empty_result, get_splits, prediction_result
+    from small_text.utils.classification import empty_result, prediction_result
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 

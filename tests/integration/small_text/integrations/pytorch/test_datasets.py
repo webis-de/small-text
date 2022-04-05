@@ -88,4 +88,3 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
         # assign test attribute to check for object equality
         ds.vocab.TEST = 'test'
         self.assertFalse(hasattr(ds_new, 'TEST'))
-

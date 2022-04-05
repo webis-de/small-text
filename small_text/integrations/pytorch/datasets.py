@@ -23,6 +23,10 @@ class PytorchDatasetView(DatasetView):
         self.selection = selection
 
     @property
+    def dataset(self):
+        return self._dataset
+
+    @property
     def x(self):
         """Returns the features.
 
@@ -44,6 +48,14 @@ class PytorchDatasetView(DatasetView):
         raise UnsupportedOperationException('Cannot set x on a DatasetView')
 
     @property
+    def y(self):
+        return self.dataset.y[self.selection]
+
+    @y.setter
+    def y(self, y):
+        raise UnsupportedOperationException('Cannot set y on a DatasetView')
+
+    @property
     def is_multi_label(self):
         return self._dataset.is_multi_label
 
@@ -60,6 +72,14 @@ class PytorchDatasetView(DatasetView):
     @property
     def vocab(self):
         return self._dataset.vocab
+
+    @property
+    def target_labels(self):
+        return self.dataset.target_labels
+
+    @target_labels.setter
+    def target_labels(self, target_labels):
+        raise UnsupportedOperationException('Cannot set target_labels on a DatasetView')
 
     def __iter__(self):
         return self.data.__iter__()

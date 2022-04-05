@@ -4,6 +4,9 @@
 
 ### Changed
 
+- Datasets:
+  - Separated the previous `DatasetView` implementation into interface (`DatasetView`) 
+    and implementation (`SklearnDatasetView`).
 - Code examples:
   - Code structure was  unified.
   - Number of iterations can now be passed via an cli argument.

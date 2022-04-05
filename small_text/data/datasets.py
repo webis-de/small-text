@@ -1,6 +1,6 @@
 import numpy as np
 
-from abc import ABC
+from abc import ABCMeta, abstractmethod
 from scipy.sparse import csr_matrix
 from scipy.sparse import issparse
 
@@ -14,10 +14,12 @@ def check_size(expected_num_samples, num_samples):
                          f'encountered {num_samples} samples')
 
 
-class Dataset(ABC):
-    """Abstract class for all datasets."""
+class Dataset(metaclass=ABCMeta):
+    """A dataset contains a set of instances in the form of features, include a respective
+    labeling for every instance."""
 
     @property
+    @abstractmethod
     def x(self):
         """Returns the features.
 
@@ -33,6 +35,7 @@ class Dataset(ABC):
         pass
 
     @property
+    @abstractmethod
     def y(self):
         """Returns the labels.
 
@@ -48,11 +51,13 @@ class Dataset(ABC):
         pass
 
     @property
+    @abstractmethod
     def is_multi_label(self):
         """Returns `True` if this is a multi-label dataset, otherwise `False`."""
         pass
 
     @property
+    @abstractmethod
     def target_labels(self):
         """Returns a list of possible labels.
 
@@ -68,17 +73,27 @@ class Dataset(ABC):
         pass
 
 
-class DatasetView(Dataset):
-    """An immutable view on a Dataset or a subset thereof.
+class DatasetView(metaclass=Dataset.__class__):
+    """An immutable view on a Dataset or a subset thereof."""
 
-    Parameters
-    ----------
-    dataset : Dataset
-        The base dataset.
-    selection : int or list or slice or np.ndarray
-        Selects the subset for this view.
-    """
+    @property
+    @abstractmethod
+    def dataset(self):
+        pass
+
+
+class SklearnDatasetView(DatasetView):
+    """An immutable view on a SklearnDataset or a subset thereof."""
+
     def __init__(self, dataset, selection):
+        """
+        Parameters
+        ----------
+        dataset : Dataset
+            The base dataset.
+        selection : int or list or slice or np.ndarray
+            Selects the subset for this view.
+        """
         self.obj_class = type(self)
         self._dataset = dataset
 
@@ -91,15 +106,12 @@ class DatasetView(Dataset):
             self.selection = selection
 
     @property
-    def x(self):
-        """Returns the features.
+    def dataset(self):
+        return self._dataset
 
-        Returns
-        -------
-        x : numpy.ndarray or scipy.sparse.csr_matrix
-            Dense or sparse feature matrix.
-        """
-        return self._dataset.x[self.selection]
+    @property
+    def x(self):
+        return self.dataset.x[self.selection]
 
     @x.setter
     def x(self, x):
@@ -107,7 +119,7 @@ class DatasetView(Dataset):
 
     @property
     def y(self):
-        return self._dataset.y[self.selection]
+        return self.dataset.y[self.selection]
 
     @y.setter
     def y(self, y):
@@ -115,18 +127,11 @@ class DatasetView(Dataset):
 
     @property
     def is_multi_label(self):
-        return self._dataset.is_multi_label
+        return self.dataset.is_multi_label
 
     @property
     def target_labels(self):
-        """Returns a list of possible labels.
-
-        Returns
-        -------
-        target_labels : numpy.ndarray
-            List of possible labels.
-        """
-        return self._dataset.target_labels
+        return self.dataset.target_labels
 
     @target_labels.setter
     def target_labels(self, target_labels):
@@ -136,7 +141,7 @@ class DatasetView(Dataset):
         return self.obj_class(self, item)
 
     def __len__(self):
-        return self._dataset.x[self.selection].shape[0]
+        return self.dataset.x[self.selection].shape[0]
 
 
 def is_multi_label(y):
@@ -153,7 +158,7 @@ class SklearnDataset(Dataset):
     ----------
     x : numpy.ndarray or scipy.sparse.csr_matrix
         Dense or sparse feature matrix.
-    y : nump.ndarray[int]
+    y : numpy.ndarray[int]
         List of labels where each label belongs to the features of the respective row.
     target_labels : list of int or None
         List of possible labels. Will be inferred from `y` if `None` is passed.
@@ -225,7 +230,7 @@ class SklearnDataset(Dataset):
         self._target_labels = target_labels
 
     def __getitem__(self, item):
-        return DatasetView(self, item)
+        return SklearnDatasetView(self, item)
 
     def __len__(self):
         return self._x.shape[0]

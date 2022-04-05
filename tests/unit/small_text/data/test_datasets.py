@@ -11,7 +11,7 @@ from scipy.sparse import csr_matrix
 from small_text.base import LABEL_UNLABELED
 
 from small_text.data.datasets import is_multi_label
-from small_text.data.datasets import SklearnDataset, DatasetView
+from small_text.data.datasets import SklearnDataset, DatasetView, SklearnDatasetView
 from small_text.data.datasets import split_data
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.data import balanced_sampling, stratified_sampling
@@ -224,25 +224,31 @@ class _DatasetViewTest(object):
     def test_init_with_slice(self):
         dataset = self._dataset()
         self.assertEqual(100, len(dataset))
-        dataset_view = DatasetView(dataset, slice(0, 10))
+        dataset_view = SklearnDatasetView(dataset, slice(0, 10))
         self.assertEqual(10, len(dataset_view))
 
     def test_init_with_slice_and_step(self):
         dataset = self._dataset()
         self.assertEqual(100, len(dataset))
-        dataset_view = DatasetView(dataset, slice(0, 10, 2))
+        dataset_view = SklearnDatasetView(dataset, slice(0, 10, 2))
         self.assertEqual(5, len(dataset_view))
 
     def test_init_with_numpy_slice(self):
         dataset = self._dataset()
         self.assertEqual(100, len(dataset))
-        dataset_view = DatasetView(dataset, np.s_[0:10])
+        dataset_view = SklearnDatasetView(dataset, np.s_[0:10])
         self.assertEqual(10, len(dataset_view))
+
+    def test_get_dataset(self):
+        dataset = self._dataset()
+        self.assertEqual(100, len(dataset))
+        dataset_view = SklearnDatasetView(dataset, np.s_[0:10])
+        self.assertEqual(dataset, dataset_view.dataset)
 
     def test_get_x(self, subset_size=10):
         dataset = self._dataset()
         selection = np.random.randint(0, high=len(dataset), size=subset_size)
-        dataset_view = DatasetView(dataset, selection)
+        dataset_view = SklearnDatasetView(dataset, selection)
         if self.matrix_type == 'dense':
             assert_array_equal(dataset.x[selection], dataset_view.x)
         else:
@@ -250,19 +256,19 @@ class _DatasetViewTest(object):
 
     def test_set_x(self, subset_size=10):
         dataset = self._dataset()
-        dataset_view = DatasetView(dataset, np.s_[0:subset_size])
+        dataset_view = SklearnDatasetView(dataset, np.s_[0:subset_size])
         with self.assertRaises(UnsupportedOperationException):
             dataset_view.x = self._dataset(num_samples=subset_size)
 
     def test_get_y(self, subset_size=10):
         dataset = self._dataset()
         selection = np.random.randint(0, high=len(dataset), size=subset_size)
-        dataset_view = DatasetView(dataset, selection)
+        dataset_view = SklearnDatasetView(dataset, selection)
         assert_labels_equal(dataset.y[selection], dataset_view.y)
 
     def test_set_y(self, subset_size=10, num_labels=2):
         dataset = self._dataset()
-        dataset_view = DatasetView(dataset, np.s_[0:subset_size])
+        dataset_view = SklearnDatasetView(dataset, np.s_[0:subset_size])
         with self.assertRaises(UnsupportedOperationException):
             dataset_view.y = np.random.randint(0, high=num_labels, size=subset_size)
 
@@ -276,14 +282,54 @@ class _DatasetViewTest(object):
     def test_get_target_labels(self, subset_size=10):
         dataset = self._dataset()
         selection = np.random.randint(0, high=len(dataset), size=subset_size)
-        dataset_view = DatasetView(dataset, selection)
+        dataset_view = SklearnDatasetView(dataset, selection)
         assert_array_equal(dataset.target_labels, dataset_view.target_labels)
 
     def test_set_target_labels(self, subset_size=10):
         dataset = self._dataset()
-        dataset_view = DatasetView(dataset, np.s_[0:subset_size])
+        dataset_view = SklearnDatasetView(dataset, np.s_[0:subset_size])
         with self.assertRaises(UnsupportedOperationException):
             dataset_view.target_labels = np.array([0])
+
+    def test_indexing_single_index(self):
+        index = 42
+        ds, x, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
+
+        result = ds[index]
+        self.assertEqual(1, len(result))
+        self.assertTrue(isinstance(result, DatasetView))
+
+        if self.matrix_type == 'dense':
+            # additional unsqueeze on first dimension
+            assert_array_equal(x[np.newaxis, index], result.x)
+        else:
+            self.assertTrue((x[index] != result.x).nnz == 0)
+
+    def test_indexing_list_index(self):
+        index = [1, 42, 56, 99]
+        ds, x, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
+
+        result = ds[index]
+        self.assertEqual(4, len(result))
+        self.assertTrue(isinstance(result, DatasetView))
+
+        if self.matrix_type == 'dense':
+            assert_array_equal(x[index], result.x)
+        else:
+            self.assertTrue((x[index] != result.x).nnz == 0)
+
+    def test_indexing_slicing(self):
+        index = np.s_[10:20]
+        ds, x, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
+
+        result = ds[index]
+        self.assertEqual(10, len(result))
+        self.assertTrue(isinstance(result, DatasetView))
+
+        if self.matrix_type == 'dense':
+            assert_array_equal(x[index], result.x)
+        else:
+            self.assertTrue((x[index] != result.x).nnz == 0)
 
 
 @parameterized_class([{'matrix_type': 'sparse', 'labels_type': 'dense'},
@@ -292,6 +338,8 @@ class _DatasetViewTest(object):
                       {'matrix_type': 'dense', 'labels_type': 'sparse'}])
 class DatasetViewTest(unittest.TestCase, _DatasetViewTest):
 
+    NUM_SAMPLES = 100
+
     # https://github.com/wolever/parameterized/issues/119
     @classmethod
     def setUpClass(cls):
@@ -299,10 +347,16 @@ class DatasetViewTest(unittest.TestCase, _DatasetViewTest):
             raise unittest.SkipTest('parameterized_class bug')
         super().setUpClass()
 
-    def _dataset(self, num_samples=100):
+    def _dataset(self, num_samples=100, return_data=False):
         x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=num_samples)
         target_labels = np.unique(y)
-        return SklearnDataset(x, y, target_labels=target_labels)
+
+        dataset = SklearnDataset(x, y, target_labels=target_labels)
+
+        if return_data:
+            return dataset, x, y
+        else:
+            return dataset
 
 
 @parameterized_class([{'matrix_type': 'sparse', 'labels_type': 'dense'},
@@ -311,6 +365,8 @@ class DatasetViewTest(unittest.TestCase, _DatasetViewTest):
                       {'matrix_type': 'dense', 'labels_type': 'sparse'}])
 class NestedDatasetViewTest(unittest.TestCase, _DatasetViewTest):
 
+    NUM_SAMPLES = 100
+
     # https://github.com/wolever/parameterized/issues/119
     @classmethod
     def setUpClass(cls):
@@ -318,10 +374,19 @@ class NestedDatasetViewTest(unittest.TestCase, _DatasetViewTest):
             raise unittest.SkipTest('parameterized_class bug')
         super().setUpClass()
 
-    def _dataset(self, num_samples=100):
+    def _dataset(self, num_samples=100, return_data=False):
         x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=num_samples)
         target_labels = np.unique(y)
-        return DatasetView(SklearnDataset(x, y, target_labels=target_labels), np.s_[:])
+
+        dataset_view = SklearnDatasetView(
+            SklearnDataset(x, y, target_labels=target_labels),
+            np.s_[:]
+        )
+
+        if return_data:
+            return dataset_view, x, y
+        else:
+            return dataset_view
 
 
 class SplitDataTest(unittest.TestCase):

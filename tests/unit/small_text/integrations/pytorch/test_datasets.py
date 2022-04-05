@@ -222,6 +222,12 @@ class _PytorchDatasetViewTest(object):
         dataset_view = PytorchDatasetView(dataset, np.s_[0:10])
         self.assertEqual(10, len(dataset_view))
 
+    def test_get_dataset(self):
+        dataset = self._dataset()
+        self.assertEqual(self.NUM_SAMPLES_VIEW, len(dataset))
+        dataset_view = PytorchDatasetView(dataset, np.s_[0:10])
+        self.assertEqual(dataset, dataset_view.dataset)
+
     def test_get_x(self):
         dataset = self._dataset()
         selection = np.random.randint(0, high=len(dataset), size=10)
