@@ -96,7 +96,7 @@ The encompassing project was funded by the Development Bank of Saxony (SAB) unde
 ## Citation
 
 A preprint which introduces small-text is available here:  
-[Small-text: Active Learning for Text Classification in Python](https://arxiv.org/abs/2107.10314). 
+[Small-Text: Active Learning for Text Classification in Python](https://arxiv.org/abs/2107.10314). 
 
 ```
 @misc{schroeder2021smalltext,
