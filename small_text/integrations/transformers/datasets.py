@@ -6,6 +6,8 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.labels import list_to_csr
 
 try:
+    import torch
+
     from small_text.integrations.pytorch.datasets import PytorchDataset
     from small_text.integrations.pytorch.datasets import PytorchDatasetView
 except ModuleNotFoundError:
@@ -29,9 +31,9 @@ class TransformersDataset(PytorchDataset):
             The single items constituting the dataset. For single-label datasets, unlabeled
             instances the label should be set to small_text.base.LABEL_UNLABELED`,
             and for multi-label datasets to an empty list.
-        multi_label : bool
+        multi_label : bool, default=False
             Indicates if this is a multi-label dataset.
-        target_labels : list of int or None
+        target_labels : numpy.ndarray[int] or None, default=None
             This is a list of (integer) labels to be encountered within this dataset.
             This is important to set if your data does not contain some labels,
             e.g. due to dataset splits, where the labels should however be considered by
@@ -135,6 +137,19 @@ class TransformersDataset(PytorchDataset):
             raise ValueError('Cannot remove existing labels from target_labels as long as they '
                              'still exists in the data. Create a new dataset instead.')
         self._target_labels = target_labels
+
+    def clone(self):
+        if self.is_multi_label:
+            data = [(torch.clone(d[self.INDEX_TEXT]),
+                     torch.clone(d[self.INDEX_MASK]),
+                     d[self.INDEX_LABEL].copy()) for d in self._data]
+        else:
+            data = [(torch.clone(d[self.INDEX_TEXT]),
+                     torch.clone(d[self.INDEX_MASK]),
+                     np.copy(d[self.INDEX_LABEL])) for d in self._data]
+        return TransformersDataset(data,
+                                   multi_label=self.multi_label,
+                                   target_labels=np.copy(self._target_labels))
 
     def to(self, other, non_blocking=False, copy=False):
 

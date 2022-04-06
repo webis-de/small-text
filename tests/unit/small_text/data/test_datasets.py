@@ -149,6 +149,36 @@ class SklearnDatasetTest(unittest.TestCase):
         ds.target_labels = new_target_labels
         assert_array_equal(new_target_labels, ds.target_labels)
 
+    def test_clone(self):
+        ds = self._dataset(num_samples=self.NUM_SAMPLES)
+        ds_cloned = ds.clone()
+
+        if self.matrix_type == 'dense':
+            self.assertTrue((ds.x == ds_cloned.x).all())
+        else:
+            self.assertTrue((ds.x != ds_cloned.x).nnz == 0)
+        if self.labels_type == 'sparse':
+            assert_array_equal(ds.y.indices, ds_cloned.y.indices)
+        else:
+            assert_array_equal(ds.y, ds_cloned.y)
+        assert_array_equal(ds.target_labels, ds_cloned.target_labels)
+
+        # mutability test
+        if self.matrix_type == 'dense':
+            ds_cloned.x += 1
+            self.assertFalse((ds.x == ds_cloned.x).all())
+        else:
+            ds_cloned.x.data += 1
+            self.assertFalse((ds.x != ds_cloned.x).nnz == 0)
+        if self.labels_type == 'sparse':
+            ds_cloned.y.data += 1
+            assert_array_not_equal(ds.y.data, ds_cloned.y.data)
+        else:
+            ds_cloned.y += 1
+            assert_array_not_equal(ds.y, ds_cloned.y)
+        ds_cloned.target_labels = np.arange(10)
+        assert_array_not_equal(ds.target_labels, ds_cloned.target_labels)
+
     def test_indexing_single_index(self):
         index = 42
         ds, x, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)

@@ -14,7 +14,8 @@ from tests.utils.testing import (
     assert_array_not_equal,
     assert_csr_matrix_equal,
     assert_csr_matrix_not_equal,
-    assert_list_of_tensors_equal
+    assert_list_of_tensors_equal,
+    assert_list_of_tensors_not_equal
 )
 
 try:
@@ -128,6 +129,34 @@ class TransformersDatasetTest(unittest.TestCase):
     def test_get_data(self):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
         assert_array_equal(len(ds), len(ds.data))
+
+    def test_clone(self):
+        ds = self._random_data(num_samples=self.NUM_SAMPLES)
+        ds_cloned = ds.clone()
+
+        assert_list_of_tensors_equal(self, ds.x, ds_cloned.x)
+        if self.multi_label:
+            assert_csr_matrix_equal(ds.y, ds_cloned.y)
+        else:
+            assert_array_equal(ds.y, ds_cloned.y)
+
+        assert_array_equal(ds.target_labels, ds_cloned.target_labels)
+
+        # mutability test
+        ds_cloned.x[0][0] += 1
+        assert_list_of_tensors_not_equal(self, ds.x, ds_cloned.x)
+
+        if self.multi_label:
+            y_tmp = ds_cloned.y.todense()
+            y_tmp[2:10] = 0
+            ds_cloned.y = csr_matrix(y_tmp)
+            assert_array_not_equal(ds.y.indices, ds_cloned.y.indices)
+        else:
+            ds_cloned.y += 1
+            assert_array_not_equal(ds.y, ds_cloned.y)
+
+        ds_cloned.target_labels = np.arange(10)
+        assert_array_not_equal(ds.target_labels, ds_cloned.target_labels)
 
     def test_indexing_single_index(self, index=42):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)

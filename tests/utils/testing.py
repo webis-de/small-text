@@ -35,3 +35,7 @@ def assert_list_of_tensors_equal(unittest_obj, input, other):
     is_equal = [torch.equal(first, second)
                 for first, second in tensor_pairs]
     unittest_obj.assertTrue(np.alltrue(is_equal))
+
+
+def assert_list_of_tensors_not_equal(unittest_obj, input, other):
+    assert_raises(AssertionError, assert_list_of_tensors_equal, unittest_obj, input, other)

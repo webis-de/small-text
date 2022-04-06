@@ -72,6 +72,17 @@ class Dataset(metaclass=ABCMeta):
     def target_labels(self, target_labels):
         pass
 
+    @abstractmethod
+    def clone(self):
+        """Returns an identical copy of the dataset.
+
+        Returns
+        -------
+        dataset : Dataset
+            An exact copy of the dataset.
+        """
+        pass
+
 
 class DatasetView(metaclass=Dataset.__class__):
     """An immutable view on a Dataset or a subset thereof."""
@@ -137,6 +148,9 @@ class SklearnDatasetView(DatasetView):
     def target_labels(self, target_labels):
         raise UnsupportedOperationException('Cannot set target_labels on a DatasetView')
 
+    def clone(self):
+        raise UnsupportedOperationException('Cannot set target_labels on a DatasetView')
+
     def __getitem__(self, item):
         return self.obj_class(self, item)
 
@@ -160,7 +174,7 @@ class SklearnDataset(Dataset):
         Dense or sparse feature matrix.
     y : numpy.ndarray[int]
         List of labels where each label belongs to the features of the respective row.
-    target_labels : list of int or None
+    target_labels : numpy.ndarray[int] or None, default=None
         List of possible labels. Will be inferred from `y` if `None` is passed.
     """
 
@@ -173,7 +187,7 @@ class SklearnDataset(Dataset):
 
         if target_labels is not None:
             self.track_target_labels = False
-            self.target_labels = np.array(target_labels)
+            self.target_labels = target_labels
         else:
             self.track_target_labels = True
             self._infer_target_labels(self._y)
@@ -228,6 +242,19 @@ class SklearnDataset(Dataset):
     def target_labels(self, target_labels):
         # TODO: how to handle existing labels that are outside this set
         self._target_labels = target_labels
+
+    def clone(self):
+        if isinstance(self._x, csr_matrix):
+            x = self._x.copy()
+        else:
+            x = np.copy(self._x)
+
+        if isinstance(self._y, csr_matrix):
+            y = self._y.copy()
+        else:
+            y = np.copy(self._y)
+
+        return SklearnDataset(x, y, target_labels=np.copy(self._target_labels))
 
     def __getitem__(self, item):
         return SklearnDatasetView(self, item)

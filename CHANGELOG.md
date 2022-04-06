@@ -7,6 +7,7 @@
 - Datasets:
   - Separated the previous `DatasetView` implementation into interface (`DatasetView`) 
     and implementation (`SklearnDatasetView`).
+  - Added `clone()` method which creates an identical copy of the dataset.
 - Code examples:
   - Code structure was  unified.
   - Number of iterations can now be passed via an cli argument.
