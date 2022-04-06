@@ -309,6 +309,39 @@ class _PytorchDatasetViewTest(object):
         with self.assertRaises(UnsupportedOperationException):
             dataset.target_labels = np.array([0])
 
+    def test_indexing_single_index(self):
+        index = 12
+        ds = self._dataset()
+
+        result = ds[index]
+        self.assertEqual(1, len(result))
+        self.assertTrue(isinstance(result, PytorchDatasetView))
+
+        expected_x = [ds.x[index]]
+        self.assertTrue(np.all(expected_x == result.x))
+
+    def test_indexing_list_index(self):
+        index = [1, 2, 7, 13]
+        ds = self._dataset()
+
+        result = ds[index]
+        self.assertEqual(4, len(result))
+        self.assertTrue(isinstance(result, PytorchDatasetView))
+
+        expected_x = [ds.x[i] for i in index]
+        self.assertTrue(np.all(expected_x == result.x))
+
+    def test_indexing_slicing(self):
+        index = np.s_[4:11]
+        ds = self._dataset()
+
+        result = ds[index]
+        self.assertEqual(7, len(result))
+        self.assertTrue(isinstance(result, PytorchDatasetView))
+
+        expected_x = [ds.x[i] for i in np.arange(len(ds))[index]]
+        self.assertTrue(np.all(expected_x == result.x))
+
     def test_get_data(self):
         dataset = self._dataset()
         assert_array_equal(len(dataset), len(dataset.data))

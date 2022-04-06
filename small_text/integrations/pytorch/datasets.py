@@ -87,6 +87,9 @@ class PytorchDatasetView(DatasetView):
     def target_labels(self, target_labels):
         raise UnsupportedOperationException('Cannot set target_labels on a DatasetView')
 
+    def __getitem__(self, item):
+        return self.obj_class(self, item)
+
     def __iter__(self):
         return self.data.__iter__()
 
