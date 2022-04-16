@@ -26,7 +26,7 @@ TRANSFORMER_MODEL = TransformerModelArguments('distilroberta-base')
 
 
 try:
-    import datasets
+    import datasets  # noqa: F401
 except ImportError:
     raise ActiveLearnerException('This example requires the "datasets" library. '
                                  'Please install datasets to run this example.')

@@ -204,7 +204,7 @@ class PytorchTextClassificationDataset(PytorchDataset):
                 self._data[i] = (
                     self._data[i][self.INDEX_TEXT],
                     y.indices[y.indptr[p]:y.indptr[p+1]]
-            )
+                )
         else:
             num_samples = y.shape[0]
             check_size(expected_num_samples, num_samples)

@@ -8,6 +8,7 @@ per-file-ignores =
     small_text/initialization/__init__.py:F401
     small_text/integrations/__init__.py:F401
     small_text/integrations/pytorch/__init__.py:F401
+    small_text/integrations/pytorch/classifiers/__init__.py:F401
     small_text/integrations/pytorch/query_strategies/__init__.py:F401
     small_text/integrations/transformers/__init__.py:F401
     small_text/integrations/transformers/classifiers/__init__.py:F401

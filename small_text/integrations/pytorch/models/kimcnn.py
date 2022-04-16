@@ -30,7 +30,7 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 try:
     import torch
     import torch.nn as nn
-    import torch.nn.functional as F
+    import torch.nn.functional as F  # noqa: N812
 except ImportError as e:
     raise PytorchNotFoundError('Could not import pytorch or one of its dependencies: ' + str(e))
 

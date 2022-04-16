@@ -23,12 +23,9 @@ from tests.utils.testing import (
 
 try:
     import torch
-    from torchtext.vocab import Vocab
 
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset, \
         PytorchTextClassificationDatasetView
-    from small_text.integrations.pytorch.query_strategies import (
-        ExpectedGradientLength, ExpectedGradientLengthMaxWord)
 except (PytorchNotFoundError, ModuleNotFoundError):
     pass
 

@@ -2,7 +2,7 @@ import numpy as np
 
 from scipy.sparse import csr_matrix
 
-from small_text.data.datasets import Dataset, split_data
+from small_text.data.datasets import split_data
 from small_text.utils.labels import list_to_csr
 
 

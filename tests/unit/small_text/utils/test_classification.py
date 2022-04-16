@@ -7,7 +7,6 @@ from scipy.sparse import csr_matrix
 from sklearn.preprocessing import MultiLabelBinarizer
 
 from small_text.utils.classification import empty_result, prediction_result
-from small_text.utils.labels import csr_to_list
 from tests.utils.testing import assert_csr_matrix_equal
 
 

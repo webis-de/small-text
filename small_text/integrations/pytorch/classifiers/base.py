@@ -8,9 +8,9 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
     import torch
-    import torch.nn.functional as F
+    import torch.nn.functional as F  # noqa: N812
 
-    from torch.nn.modules import CrossEntropyLoss, BCEWithLogitsLoss, BCELoss
+    from torch.nn.modules import CrossEntropyLoss, BCEWithLogitsLoss
     from torch.optim.lr_scheduler import _LRScheduler, LambdaLR
 
     from small_text.integrations.pytorch.utils.data import get_class_weights
@@ -166,4 +166,3 @@ class PytorchClassifier(Classifier):
             acc = (logits.argmax(1) == cls).sum().item()
 
         return acc
-

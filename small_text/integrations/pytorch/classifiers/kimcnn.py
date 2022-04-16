@@ -22,7 +22,7 @@ from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
 
 try:
     import torch
-    import torch.nn.functional as F  # noqa:N812
+    import torch.nn.functional as F  # noqa: N812
     from torch.optim import Adadelta
 
     from small_text.integrations.pytorch.classifiers.base import (
@@ -30,7 +30,7 @@ try:
     )
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.pytorch.model_selection import Metric, PytorchModelSelection
-    from small_text.integrations.pytorch.utils.data import dataloader, get_class_weights
+    from small_text.integrations.pytorch.utils.data import dataloader
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
