@@ -44,8 +44,9 @@ class SklearnDatasetTest(unittest.TestCase):
 
     NUM_SAMPLES = 100
 
-    def _dataset(self, num_samples=100, return_data=False):
-        x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=num_samples)
+    def _dataset(self, num_samples=100, return_data=False, num_labels=2):
+        x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=num_samples,
+                                  num_labels=num_labels)
         if self.target_labels not in ['explicit', 'inferred']:
             raise ValueError('Invalid test parameter value for target_labels:' + self.target_labels)
 
@@ -117,9 +118,11 @@ class SklearnDatasetTest(unittest.TestCase):
         ds, _, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
         assert_labels_equal(y, ds.y)
 
-    def test_set_labels(self):
-        ds, _, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
-        ds_new, _, y_new = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
+    def test_set_labels(self, num_labels=2):
+        ds, _, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True,
+                                 num_labels=num_labels)
+        ds_new, _, y_new = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True,
+                                         num_labels=num_labels+1)
         if self.labels_type == 'sparse':
             self.assertFalse(np.all(y == y_new.data))
         else:
@@ -127,6 +130,7 @@ class SklearnDatasetTest(unittest.TestCase):
 
         ds.y = ds_new.y
         assert_labels_equal(y_new, ds.y)
+        assert_array_equal(np.arange(num_labels+1), ds.target_labels)
 
     def test_is_multi_label(self):
         ds = self._dataset(num_samples=self.NUM_SAMPLES)
@@ -321,6 +325,77 @@ class _DatasetViewTest(object):
         with self.assertRaises(UnsupportedOperationException):
             dataset_view.target_labels = np.array([0])
 
+    def test_clone_single_index(self):
+        ds = self._dataset(num_samples=self.NUM_SAMPLES)
+
+        if self.labels_type == 'sparse':
+            # get first row which has at least one label
+            indptr_deltas = np.array([ds.y.indptr[i+1] - ds.y.indptr[i]
+                                     for i in range(ds.y.indptr.shape[0] - 1)])
+            index = np.where(indptr_deltas > 0)[0][0]
+        else:
+            index = 42
+        ds_view = SklearnDatasetView(ds, index)
+
+        self._clone_test(ds_view)
+
+    def test_clone_list_index(self):
+        ds = self._dataset(num_samples=self.NUM_SAMPLES)
+
+        if self.labels_type == 'sparse':
+            # get first 5 rows which have at least one label
+            indptr_deltas = np.array([ds.y.indptr[i+1] - ds.y.indptr[i]
+                                     for i in range(ds.y.indptr.shape[0] - 1)])
+            index = np.where(indptr_deltas > 0)[0][:5]
+        else:
+            index = [1, 42, 56, 99]
+        ds_view = SklearnDatasetView(ds, index)
+
+        self._clone_test(ds_view)
+
+    def test_clone_slicing(self):
+        ds = self._dataset(num_samples=self.NUM_SAMPLES)
+
+        if self.labels_type == 'sparse':
+            indptr_deltas = np.array([ds.y.indptr[i+1] - ds.y.indptr[i]
+                                     for i in range(ds.y.indptr.shape[0] - 1)])
+            index = np.s_[np.where(indptr_deltas > 0)[0][3]:]
+        else:
+            index = np.s_[10:20]
+        ds_view = SklearnDatasetView(ds, index)
+
+        self._clone_test(ds_view)
+
+    def _clone_test(self, ds_view):
+        ds_cloned = ds_view.clone()
+        self.assertTrue(isinstance(ds_cloned, SklearnDataset))
+
+        if self.matrix_type == 'dense':
+            self.assertTrue((ds_view.x == ds_cloned.x).all())
+        else:
+            self.assertTrue((ds_view.x != ds_cloned.x).nnz == 0)
+        if self.labels_type == 'sparse':
+            assert_array_equal(ds_view.y.indices, ds_cloned.y.indices)
+        else:
+            assert_array_equal(ds_view.y, ds_cloned.y)
+        assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+
+        # mutability test
+        if self.matrix_type == 'dense':
+            ds_cloned.x += 1
+            self.assertFalse((ds_view.x == ds_cloned.x).all())
+        else:
+            ds_cloned.x.data += 1
+            self.assertFalse((ds_view.x != ds_cloned.x).nnz == 0)
+        if self.labels_type == 'sparse':
+            ds_cloned.y.data += 1
+            assert_array_not_equal(ds_view.y.data, ds_cloned.y.data)
+        else:
+            ds_cloned.y += 1
+            assert_array_not_equal(ds_view.y, ds_cloned.y)
+        ds_cloned.target_labels = np.arange(10)
+        assert_array_not_equal(ds_view.target_labels, ds_cloned.target_labels)
+
     def test_indexing_single_index(self):
         index = 42
         ds, x, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
@@ -366,20 +441,23 @@ class _DatasetViewTest(object):
                       {'matrix_type': 'sparse', 'labels_type': 'sparse'},
                       {'matrix_type': 'dense', 'labels_type': 'dense'},
                       {'matrix_type': 'dense', 'labels_type': 'sparse'}])
-class DatasetViewTest(unittest.TestCase, _DatasetViewTest):
+class SklearnDatasetViewTest(unittest.TestCase, _DatasetViewTest):
 
     NUM_SAMPLES = 100
 
     # https://github.com/wolever/parameterized/issues/119
     @classmethod
     def setUpClass(cls):
-        if cls == DatasetViewTest:
+        if cls == SklearnDatasetViewTest:
             raise unittest.SkipTest('parameterized_class bug')
         super().setUpClass()
 
     def _dataset(self, num_samples=100, return_data=False):
         x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=num_samples)
-        target_labels = np.unique(y)
+        if isinstance(y, csr_matrix):
+            target_labels = np.unique(y.indices)
+        else:
+            target_labels = np.unique(y)
 
         dataset = SklearnDataset(x, y, target_labels=target_labels)
 
@@ -406,7 +484,10 @@ class NestedDatasetViewTest(unittest.TestCase, _DatasetViewTest):
 
     def _dataset(self, num_samples=100, return_data=False):
         x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=num_samples)
-        target_labels = np.unique(y)
+        if isinstance(y, csr_matrix):
+            target_labels = np.unique(y.indices)
+        else:
+            target_labels = np.unique(y)
 
         dataset_view = SklearnDatasetView(
             SklearnDataset(x, y, target_labels=target_labels),

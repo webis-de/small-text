@@ -1,9 +1,9 @@
 import numpy as np
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from small_text.base import LABEL_UNLABELED
 from small_text.data import DatasetView
-from small_text.data.datasets import check_size
+from small_text.data.datasets import check_size, get_updated_target_labels
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.labels import list_to_csr
@@ -16,8 +16,9 @@ except ImportError:
 
 class PytorchDataset(ABC):
 
+    @abstractmethod
     def to(self, other, non_blocking=False, copy=False):
-        raise NotImplementedError()
+        pass
 
 
 class PytorchDatasetView(DatasetView):
@@ -87,6 +88,10 @@ class PytorchDatasetView(DatasetView):
     def target_labels(self, target_labels):
         raise UnsupportedOperationException('Cannot set target_labels on a DatasetView')
 
+    @abstractmethod
+    def clone(self):
+        pass
+
     def __getitem__(self, item):
         return self.obj_class(self, item)
 
@@ -100,6 +105,23 @@ class PytorchDatasetView(DatasetView):
         elif isinstance(self.selection, int):
             return 1
         return len(self.selection)
+
+
+class PytorchTextClassificationDatasetView(PytorchDatasetView):
+
+    def clone(self):
+        import copy
+
+        if self.is_multi_label:
+            data = [(torch.clone(d[PytorchTextClassificationDataset.INDEX_TEXT]),
+                     d[PytorchTextClassificationDataset.INDEX_LABEL].copy()) for d in self.data]
+        else:
+            data = [(torch.clone(d[PytorchTextClassificationDataset.INDEX_TEXT]),
+                     np.copy(d[PytorchTextClassificationDataset.INDEX_LABEL])) for d in self.data]
+        return PytorchTextClassificationDataset(data,
+                                                copy.deepcopy(self.vocab),
+                                                multi_label=self.is_multi_label,
+                                                target_labels=np.copy(self.target_labels))
 
 
 class PytorchTextClassificationDataset(PytorchDataset):
@@ -143,11 +165,13 @@ class PytorchTextClassificationDataset(PytorchDataset):
         inferred_target_labels = self._get_flattened_unique_labels()
         self.target_labels = inferred_target_labels
 
+    # TODO: move to utils
+    # TODO: check for no labels in multi_label_case
     def _get_flattened_unique_labels(self):
         if self.multi_label:
             labels = np.concatenate([d[self.INDEX_LABEL] for d in self._data
                                      if d[self.INDEX_LABEL] is not None
-                                     and len(d[self.INDEX_LABEL].shape) > 0])
+                                     and len(d[self.INDEX_LABEL]) > 0])
             labels = np.unique(labels)
         else:
             labels = np.unique([d[self.INDEX_LABEL] for d in self._data])
@@ -198,7 +222,8 @@ class PytorchTextClassificationDataset(PytorchDataset):
 
             for i, _y in enumerate(y):
                 self._data[i] = (self._data[i][self.INDEX_TEXT], _y)
-        self._infer_target_labels()
+
+        self.target_labels = get_updated_target_labels(self.is_multi_label, y, self.target_labels)
 
     @property
     def data(self):
@@ -284,7 +309,7 @@ class PytorchTextClassificationDataset(PytorchDataset):
             return self
 
     def __getitem__(self, item):
-        return PytorchDatasetView(self, item)
+        return PytorchTextClassificationDatasetView(self, item)
 
     def __iter__(self):
         return self._data.__iter__()

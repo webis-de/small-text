@@ -1,17 +1,34 @@
 import numpy as np
 
 from small_text.base import LABEL_UNLABELED
-from small_text.data.datasets import check_size
+from small_text.data.datasets import check_size, get_updated_target_labels
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.labels import list_to_csr
 
 try:
     import torch
 
-    from small_text.integrations.pytorch.datasets import PytorchDataset
-    from small_text.integrations.pytorch.datasets import PytorchDatasetView
+    from small_text.integrations.pytorch.datasets import (
+        PytorchDataset, PytorchDatasetView
+    )
 except ModuleNotFoundError:
     raise PytorchNotFoundError('Could not import torchtext')
+
+
+class TransformersDatasetView(PytorchDatasetView):
+
+    def clone(self):
+        if self.is_multi_label:
+            data = [(torch.clone(d[TransformersDataset.INDEX_TEXT]),
+                     torch.clone(d[TransformersDataset.INDEX_MASK]),
+                     d[TransformersDataset.INDEX_LABEL].copy()) for d in self.data]
+        else:
+            data = [(torch.clone(d[TransformersDataset.INDEX_TEXT]),
+                     torch.clone(d[TransformersDataset.INDEX_MASK]),
+                     np.copy(d[TransformersDataset.INDEX_LABEL])) for d in self.data]
+        return TransformersDataset(data,
+                                   multi_label=self.is_multi_label,
+                                   target_labels=np.copy(self.target_labels))
 
 
 class TransformersDataset(PytorchDataset):
@@ -109,7 +126,7 @@ class TransformersDataset(PytorchDataset):
                 self._data[i] = (self._data[i][self.INDEX_TEXT],
                                  self._data[i][self.INDEX_MASK],
                                  _y)
-        self._infer_target_labels()
+        self.target_labels = get_updated_target_labels(self.is_multi_label, y, self.target_labels)
 
     @property
     def data(self):
@@ -165,7 +182,7 @@ class TransformersDataset(PytorchDataset):
             return self
 
     def __getitem__(self, item):
-        return PytorchDatasetView(self, item)
+        return TransformersDatasetView(self, item)
 
     def __iter__(self):
         return self._data.__iter__()

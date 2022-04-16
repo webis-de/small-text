@@ -3,6 +3,7 @@ import pytest
 
 import numpy as np
 
+from abc import abstractmethod
 from scipy.sparse import csr_matrix
 
 from numpy.testing import assert_array_equal
@@ -25,7 +26,7 @@ try:
     from torchtext.vocab import Vocab
 
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset, \
-        PytorchDatasetView
+        PytorchTextClassificationDatasetView
     from small_text.integrations.pytorch.query_strategies import (
         ExpectedGradientLength, ExpectedGradientLengthMaxWord)
 except (PytorchNotFoundError, ModuleNotFoundError):
@@ -96,8 +97,8 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
             self.assertEqual(self.NUM_SAMPLES, ds.y.shape[0])
 
     def test_set_labels(self):
-        ds = self._random_data(num_samples=self.NUM_SAMPLES)
-        ds_new = self._random_data(num_samples=self.NUM_SAMPLES)
+        ds = self._random_data(num_samples=self.NUM_SAMPLES, num_labels=self.NUM_LABELS)
+        ds_new = self._random_data(num_samples=self.NUM_SAMPLES, num_labels=self.NUM_LABELS+1)
 
         if self.multi_label:
             assert_csr_matrix_not_equal(ds.y, ds_new.y)
@@ -112,6 +113,7 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
             assert_array_equal(ds.y, ds_new.y)
             self.assertTrue(isinstance(ds.y, np.ndarray))
             self.assertEqual(self.NUM_SAMPLES, ds.y.shape[0])
+        assert_array_equal(np.arange(self.NUM_LABELS+1), ds.target_labels)
 
     def test_set_labels_with_mismatching_data_length(self):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
@@ -152,12 +154,14 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
         ds_cloned = ds.clone()
 
-        assert_list_of_tensors_equal(self, ds.x, ds_cloned.x)
+        self.assertTrue(np.all([
+            torch.equal(t, t_cloned)
+            for t, t_cloned in zip(ds.x, ds_cloned.x)
+        ]))
         if self.multi_label:
             assert_csr_matrix_equal(ds.y, ds_cloned.y)
         else:
             assert_array_equal(ds.y, ds_cloned.y)
-
         assert_array_equal(ds.target_labels, ds_cloned.target_labels)
 
         # mutability test
@@ -181,7 +185,7 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
 
         result = ds[index]
         self.assertEqual(1, len(result))
-        self.assertTrue(isinstance(result, PytorchDatasetView))
+        self.assertTrue(isinstance(result, PytorchTextClassificationDatasetView))
 
         self.assertTrue(torch.equal(ds.x[index], result.x[0]))
 
@@ -191,7 +195,7 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
  
         result = ds[index]
         self.assertEqual(len(index), len(result))
-        self.assertTrue(isinstance(result, PytorchDatasetView))
+        self.assertTrue(isinstance(result, PytorchTextClassificationDatasetView))
 
         expected = [ds.x[i] for i in index]
         assert_list_of_tensors_equal(self, expected, result.x)
@@ -202,7 +206,7 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
 
         result = ds[index]
         self.assertEqual(10, len(result))
-        self.assertTrue(isinstance(result, PytorchDatasetView))
+        self.assertTrue(isinstance(result, PytorchTextClassificationDatasetView))
 
         expected = [ds.x[i] for i in np.arange(self.NUM_SAMPLES)[index]]
         assert_list_of_tensors_equal(self, expected, result.x)
@@ -241,45 +245,62 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
 class _PytorchDatasetViewTest(object):
 
     NUM_SAMPLES = 20
+    """Size of the dataset."""
+
     NUM_SAMPLES_VIEW = 14
+    """Size of the default view."""
+
+    @property
+    @abstractmethod
+    def dataset_view_class(self):
+        pass
+
+    @property
+    @abstractmethod
+    def dataset_class(self):
+        pass
+
+    @property
+    @abstractmethod
+    def default_result_size(self):
+        pass
 
     def test_init_with_slice(self):
         dataset_view = self._dataset()
-        view_on_view = PytorchDatasetView(dataset_view, slice(0, 10))
+        view_on_view = self.dataset_view_class(dataset_view, slice(0, 10))
         self.assertEqual(10, len(view_on_view))
 
     def test_init_with_slice_and_step(self):
         dataset_view = self._dataset()
-        view_on_view = PytorchDatasetView(dataset_view, slice(0, 10, 2))
+        view_on_view = self.dataset_view_class(dataset_view, slice(0, 10, 2))
         self.assertEqual(5, len(view_on_view))
 
     def test_init_with_numpy_slice(self):
         dataset = self._dataset()
-        self.assertEqual(self.NUM_SAMPLES_VIEW, len(dataset))
-        dataset_view = PytorchDatasetView(dataset, np.s_[0:10])
+        dataset_view = self.dataset_view_class(dataset, np.s_[0:10])
         self.assertEqual(10, len(dataset_view))
 
     def test_get_dataset(self):
         dataset = self._dataset()
-        self.assertEqual(self.NUM_SAMPLES_VIEW, len(dataset))
-        dataset_view = PytorchDatasetView(dataset, np.s_[0:10])
+        dataset_view = self.dataset_view_class(dataset, np.s_[0:10])
         self.assertEqual(dataset, dataset_view.dataset)
 
     def test_get_x(self):
         dataset = self._dataset()
         selection = np.random.randint(0, high=len(dataset), size=10)
-        dataset_view = PytorchDatasetView(dataset, selection)
+        dataset_view = self.dataset_view_class(dataset, selection)
         assert_list_of_tensors_equal(self, [dataset.x[i] for i in selection], dataset_view.x)
 
     def test_set_x(self):
         dataset = self._dataset()
+        dataset_view = self.dataset_view_class(dataset, np.s_[0:10])
         with self.assertRaises(UnsupportedOperationException):
-            dataset.x = self._dataset()
+            dataset_view.x = self._dataset()
 
     def test_get_y(self):
         dataset = self._dataset()
         selection = np.random.randint(0, high=len(dataset), size=10)
-        dataset_view = PytorchDatasetView(dataset, selection)
+        dataset_view = self.dataset_view_class(dataset, selection)
         if self.multi_label:
             assert_csr_matrix_equal(dataset.y[selection], dataset_view.y)
         else:
@@ -287,7 +308,7 @@ class _PytorchDatasetViewTest(object):
 
     def test_set_y(self, subset_size=10, num_labels=2):
         dataset = self._dataset()
-        dataset_view = PytorchDatasetView(dataset, np.s_[0:subset_size])
+        dataset_view = PytorchTextClassificationDatasetView(dataset, np.s_[0:subset_size])
         with self.assertRaises(UnsupportedOperationException):
             dataset_view.y = np.random.randint(0, high=num_labels, size=subset_size)
 
@@ -301,13 +322,80 @@ class _PytorchDatasetViewTest(object):
     def test_get_target_labels(self, subset_size=10):
         dataset = self._dataset()
         selection = np.random.randint(0, high=len(dataset), size=subset_size)
-        dataset_view = PytorchDatasetView(dataset, selection)
+        dataset_view = self.dataset_view_class(dataset, selection)
         assert_array_equal(dataset.target_labels, dataset_view.target_labels)
 
     def test_set_target_labels(self):
         dataset = self._dataset()
+        dataset_view = self.dataset_view_class(dataset, np.s_[0:10])
         with self.assertRaises(UnsupportedOperationException):
-            dataset.target_labels = np.array([0])
+            dataset_view.target_labels = np.array([0])
+
+    def test_clone_single_index(self):
+        ds = self._dataset()
+
+        if self.multi_label:
+            # get first row which has at least one label
+            indptr_deltas = np.array([ds.y.indptr[i + 1] - ds.y.indptr[i]
+                                      for i in range(ds.y.indptr.shape[0] - 1)])
+            index = np.where(indptr_deltas > 0)[0][0]
+            index = int(index)
+        else:
+            index = 3
+
+        ds_view = self.dataset_view_class(ds, index)
+
+        self._clone_test(ds_view)
+
+    def test_clone_list_index(self):
+        ds = self._dataset()
+
+        index = [1, 3, 4, 9, 10, 12]
+        ds_view = self.dataset_view_class(ds, index)
+
+        self._clone_test(ds_view)
+
+    def test_clone_slicing(self):
+        ds = self._dataset()
+
+        index = np.s_[2:5]
+        ds_view = self.dataset_view_class(ds, index)
+
+        self._clone_test(ds_view)
+
+    def _clone_test(self, ds_view):
+        ds_cloned = ds_view.clone()
+        self.assertTrue(isinstance(ds_cloned, self.dataset_class))
+
+        self.assertTrue(np.all([
+            torch.equal(t, t_cloned)
+            for t, t_cloned in zip(ds_view.x, ds_cloned.x)
+        ]))
+        if self.multi_label:
+            assert_csr_matrix_equal(ds_view.y, ds_cloned.y)
+        else:
+            assert_array_equal(ds_view.y, ds_cloned.y)
+        assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+
+        # mutability test
+        ds_cloned.x[0][0] += 1
+        assert_list_of_tensors_not_equal(self, ds_view.x, ds_cloned.x)
+
+        if self.multi_label:
+            y_tmp = ds_cloned.y.todense()
+            y_tmp = (y_tmp + 1) % 2
+            ds_cloned.y = csr_matrix(y_tmp, shape=ds_view.y.shape)
+            try:
+                assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
+            except (AssertionError, ValueError):
+                print()
+                assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
+        else:
+            ds_cloned.y += 1
+            assert_array_not_equal(ds_view.y, ds_cloned.y)
+
+        ds_cloned.target_labels = np.arange(10)
+        assert_array_not_equal(ds_view.target_labels, ds_cloned.target_labels)
 
     def test_indexing_single_index(self):
         index = 12
@@ -315,7 +403,7 @@ class _PytorchDatasetViewTest(object):
 
         result = ds[index]
         self.assertEqual(1, len(result))
-        self.assertTrue(isinstance(result, PytorchDatasetView))
+        self.assertTrue(isinstance(result, self.dataset_view_class))
 
         expected_x = [ds.x[index]]
         self.assertTrue(np.all(expected_x == result.x))
@@ -326,7 +414,7 @@ class _PytorchDatasetViewTest(object):
 
         result = ds[index]
         self.assertEqual(4, len(result))
-        self.assertTrue(isinstance(result, PytorchDatasetView))
+        self.assertTrue(isinstance(result, self.dataset_view_class))
 
         expected_x = [ds.x[i] for i in index]
         self.assertTrue(np.all(expected_x == result.x))
@@ -337,7 +425,7 @@ class _PytorchDatasetViewTest(object):
 
         result = ds[index]
         self.assertEqual(7, len(result))
-        self.assertTrue(isinstance(result, PytorchDatasetView))
+        self.assertTrue(isinstance(result, self.dataset_view_class))
 
         expected_x = [ds.x[i] for i in np.arange(len(ds))[index]]
         self.assertTrue(np.all(expected_x == result.x))
@@ -351,14 +439,30 @@ class _PytorchDatasetViewTest(object):
         count = 0
         for _ in ds:
             count += 1
-        self.assertEqual(self.NUM_SAMPLES_VIEW, count)
+        self.assertEqual(self.default_result_size, count)
 
     def test_datasen_len(self):
         ds = self._dataset()
-        self.assertEqual(self.NUM_SAMPLES_VIEW, len(ds))
+        self.assertEqual(self.default_result_size, len(ds))
 
 
-class PytorchDatasetViewSingleLabelTest(unittest.TestCase, _PytorchDatasetViewTest):
+class _PytorchTextClassificationDatasetViewTest(_PytorchDatasetViewTest):
+
+    @property
+    def dataset_class(self):
+        return PytorchTextClassificationDataset
+
+    @property
+    def dataset_view_class(self):
+        return PytorchTextClassificationDatasetView
+
+    @property
+    def default_result_size(self):
+        return self.NUM_SAMPLES
+
+
+class PytorchTextClassificationDatasetViewSingleLabelTest(
+    unittest.TestCase, _PytorchTextClassificationDatasetViewTest):
 
     def _dataset(self, num_labels=3):
         assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW
@@ -368,10 +472,11 @@ class PytorchDatasetViewSingleLabelTest(unittest.TestCase, _PytorchDatasetViewTe
                                                      multi_label=self.multi_label,
                                                      num_classes=num_labels,
                                                      target_labels='explicit')
-        return PytorchDatasetView(dataset, np.s_[:self.NUM_SAMPLES_VIEW])
+        return dataset
 
 
-class PytorchDatasetViewMultiLabelTest(unittest.TestCase, _PytorchDatasetViewTest):
+class PytorchTextClassificationDatasetViewMultiLabelTest(unittest.TestCase,
+                                                         _PytorchTextClassificationDatasetViewTest):
 
     def _dataset(self, num_labels=3):
         assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW
@@ -381,10 +486,10 @@ class PytorchDatasetViewMultiLabelTest(unittest.TestCase, _PytorchDatasetViewTes
                                                      multi_label=self.multi_label,
                                                      num_classes=num_labels,
                                                      target_labels='explicit')
-        return PytorchDatasetView(dataset, np.s_[:self.NUM_SAMPLES_VIEW])
+        return dataset
 
 
-class NestedPytorchDatasetViewSingleLabelTest(unittest.TestCase, _PytorchDatasetViewTest):
+class NestedPytorchDatasetViewSingleLabelTest(unittest.TestCase, _PytorchTextClassificationDatasetViewTest):
 
     NUM_SAMPLES_VIEW_OUTER = 17
 
@@ -396,21 +501,30 @@ class NestedPytorchDatasetViewSingleLabelTest(unittest.TestCase, _PytorchDataset
                                                 multi_label=self.multi_label,
                                                 num_classes=num_labels,
                                                 target_labels='explicit')
-        ds_view_outer = PytorchDatasetView(ds, np.s_[:self.NUM_SAMPLES_VIEW_OUTER])
-        return PytorchDatasetView(ds_view_outer, np.s_[:self.NUM_SAMPLES_VIEW])
+        ds_view_inner = PytorchTextClassificationDatasetView(ds, np.s_[:self.NUM_SAMPLES_VIEW_OUTER])
+        return PytorchTextClassificationDatasetView(ds_view_inner, np.s_[:self.NUM_SAMPLES_VIEW])
+
+    @property
+    def default_result_size(self):
+        return self.NUM_SAMPLES_VIEW
 
 
-class NestedPytorchDatasetViewMultiLabelTest(unittest.TestCase, _PytorchDatasetViewTest):
+class NestedPytorchTextClassificationDatasetViewMultiLabelTest(unittest.TestCase, _PytorchTextClassificationDatasetViewTest):
 
-    NUM_SAMPLES_VIEW_OUTER = 17
+    NUM_SAMPLES_VIEW_INNER = 17
+    """Size of the inner view."""
 
     def _dataset(self, num_labels=2):
-        assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW_OUTER > self.NUM_SAMPLES_VIEW
+        assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW_INNER > self.NUM_SAMPLES_VIEW
         self.multi_label = True
 
         ds = random_text_classification_dataset(num_samples=self.NUM_SAMPLES,
                                                 multi_label=self.multi_label,
                                                 num_classes=num_labels,
                                                 target_labels='explicit')
-        ds_view_outer = PytorchDatasetView(ds, np.s_[:self.NUM_SAMPLES_VIEW_OUTER])
-        return PytorchDatasetView(ds_view_outer, np.s_[:self.NUM_SAMPLES_VIEW])
+        ds_view_inner = PytorchTextClassificationDatasetView(ds, np.s_[:self.NUM_SAMPLES_VIEW_INNER])
+        return PytorchTextClassificationDatasetView(ds_view_inner, np.s_[:self.NUM_SAMPLES_VIEW])
+
+    @property
+    def default_result_size(self):
+        return self.NUM_SAMPLES_VIEW

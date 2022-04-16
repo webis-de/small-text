@@ -14,6 +14,19 @@ def check_size(expected_num_samples, num_samples):
                          f'encountered {num_samples} samples')
 
 
+def get_updated_target_labels(is_multi_label, y, target_labels):
+
+    if is_multi_label:
+        new_labels = np.setdiff1d(np.unique(y.indices), target_labels)
+    else:
+        new_labels = np.setdiff1d(np.unique(y), target_labels)
+
+    if new_labels.shape[0] > 0:
+        target_labels = np.unique(np.union1d(target_labels, new_labels))
+
+    return target_labels
+
+
 class Dataset(metaclass=ABCMeta):
     """A dataset contains a set of instances in the form of features, include a respective
     labeling for every instance."""
@@ -48,6 +61,14 @@ class Dataset(metaclass=ABCMeta):
 
     @y.setter
     def y(self, y_new):
+        """Assigns new labels to the existing instances.
+
+        Note
+        ----
+        This can alter `self.target_labels` but the set of target labels only grows, it is never
+        automatically reduced. This means, if labels in `y_new` occur, which are not in
+        `self.target_labels`, they will be added during this operation.
+        """
         pass
 
     @property
@@ -108,13 +129,15 @@ class SklearnDatasetView(DatasetView):
         self.obj_class = type(self)
         self._dataset = dataset
 
-        if isinstance(selection, int):
+        """if isinstance(selection, int):
             if issparse(dataset.x):
                 self.selection = selection
             else:
+                # TODO: only for .x not for .y
                 self.selection = np.s_[np.newaxis, selection]
         else:
-            self.selection = selection
+            self.selection = selection"""
+        self.selection = selection
 
     @property
     def dataset(self):
@@ -122,7 +145,7 @@ class SklearnDatasetView(DatasetView):
 
     @property
     def x(self):
-        return self.dataset.x[self.selection]
+        return self.dataset.x[select(self.dataset, self.selection)]
 
     @x.setter
     def x(self, x):
@@ -149,13 +172,25 @@ class SklearnDatasetView(DatasetView):
         raise UnsupportedOperationException('Cannot set target_labels on a DatasetView')
 
     def clone(self):
-        raise UnsupportedOperationException('Cannot set target_labels on a DatasetView')
+        if isinstance(self.x, csr_matrix):
+            x = self.x.copy()
+        else:
+            x = np.copy(self.x)
+
+        if isinstance(self.y, csr_matrix):
+            y = self.y.copy()
+        else:
+            y = np.copy(self.y)
+
+        return SklearnDataset(x,
+                              y,
+                              target_labels=np.copy(self.target_labels))
 
     def __getitem__(self, item):
         return self.obj_class(self, item)
 
     def __len__(self):
-        return self.dataset.x[self.selection].shape[0]
+        return self.dataset.x[select(self.dataset, self.selection)].shape[0]
 
 
 def is_multi_label(y):
@@ -165,21 +200,26 @@ def is_multi_label(y):
         return False
 
 
+def select(dataset, selection):
+    if isinstance(selection, int) and not issparse(dataset.x):
+        return np.s_[np.newaxis, selection]
+    return selection
+
+
 class SklearnDataset(Dataset):
     """A dataset representations which is usable in combination with scikit-learn classifiers.
-
-    Parameters
-    ----------
-    x : numpy.ndarray or scipy.sparse.csr_matrix
-        Dense or sparse feature matrix.
-    y : numpy.ndarray[int]
-        List of labels where each label belongs to the features of the respective row.
-    target_labels : numpy.ndarray[int] or None, default=None
-        List of possible labels. Will be inferred from `y` if `None` is passed.
     """
 
     def __init__(self, x, y, target_labels=None):
-
+        """
+        Parameters
+        ----------
+        x : numpy.ndarray or scipy.sparse.csr_matrix
+            Dense or sparse feature matrix.
+        y : numpy.ndarray[int]
+            List of labels where each label belongs to the features of the respective row.
+        target_labels : numpy.ndarray[int] or None, default=None
+            List of possible labels. Will be inferred from `y` if `None` is passed."""
         self._x = x
         self._y = y
 
@@ -220,8 +260,8 @@ class SklearnDataset(Dataset):
     @y.setter
     def y(self, y):
         self._y = y
-        if self.track_target_labels:
-            self._infer_target_labels(self._y)
+
+        self.target_labels = get_updated_target_labels(self.is_multi_label, y, self.target_labels)
 
     @property
     def is_multi_label(self):

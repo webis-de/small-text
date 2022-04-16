@@ -4,7 +4,7 @@ Data Structures
 
 Small-Text's basic data structures for data are called :py:class:`Datasets<small_text.data.datasets.Dataset>` and
 represent text data for :doc:`single-label and multi-label classification<classification>`.
-These datasets also hold meta information about the underlying data, namely the number of classes and
+Besides features and labels, these datasets also hold meta information about the underlying data, namely the number of classes and
 whether the labeling is single- or multi-label.
 
 Basic Data Structures
@@ -99,16 +99,6 @@ there is a special label constant :code:`LABEL_UNLABELED`, which indicates that 
 
    dataset = SklearnDataset(x, y)
 
-In the multi-label case, this is for once simpler, and here no separate handling is needed.
-An unlabeled instance just has no label in the corresponding row of the indicator matrix.
-
-Integration Data Structures
-===========================
-
-Both the :doc:`Pytorch Integration <libraries/pytorch_main>` the :doc:`Transformers Integration <libraries/transformers_main>`
-bring their own Datasets (each subclassing :py:class:`~small_text.data.datasets.Dataset`),
-which rely on different representations and bring additional methods for handling GPU-related operations.
-
 
 Indexing and Views
 ==================
@@ -133,6 +123,50 @@ dataset indexing does not create a copy of the selected subset but creates a vie
 
    # returns a DatasetView of the first ten items in x
    dataset_sub = dataset[0:10]
+
+
+In the multi-label case, this is for once simpler, and here no separate handling is needed.
+An unlabeled instance just has no label in the corresponding row of the indicator matrix.
+
+Copying a Dataset
+=================
+
+While indexing creates a view instead of copying, there are cases where you want a copy instead.
+
+.. testcode::
+
+   dataset_copy = dataset.clone()
+   print(type(dataset_copy).__name__)
+
+*Output*:
+
+.. testoutput::
+
+   SklearnDataset
+
+This also works on :py:class:`~small_text.data.datasets.DatasetView` instances, however,
+the :code:`clone()` operation dissolves a view and returns a dataset again:
+
+.. testcode::
+
+   dataset_view = dataset[0:5]
+   dataset_view_copy = dataset_view.clone()
+   print(type(dataset_view_copy).__name__)
+
+*Output*:
+
+.. testoutput::
+
+   SklearnDataset
+
+
+
+Integration Data Structures
+===========================
+
+Both the :doc:`Pytorch Integration <libraries/pytorch_main>` the :doc:`Transformers Integration <libraries/transformers_main>`
+bring their own Datasets (each subclassing :py:class:`~small_text.data.datasets.Dataset`),
+which rely on different representations and bring additional methods for handling GPU-related operations.
 
 
 Further Extensions

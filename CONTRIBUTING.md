@@ -76,6 +76,7 @@ This pipeline checks the following:
 
 - Check every step of the above Pull Request Checklist
 - Check if the CI Pipeline runs successfully
+- Run the sphinx doctests (`sphinx-build -b doctest ...`)
 
 ### Finalizing
 

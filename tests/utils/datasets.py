@@ -46,7 +46,7 @@ def random_labels(num_classes, multi_label=False):
     label_values = np.arange(num_classes)
     if multi_label:
         num_labels = np.random.randint(num_classes)
-        label = np.random.choice(label_values, num_labels, replace=False)
+        label = np.random.choice(label_values, num_labels, replace=False).tolist()
     else:
         label = np.random.randint(num_classes)
     return label
@@ -118,8 +118,10 @@ def random_text_classification_dataset(num_samples=10, max_length=60, num_classe
     vocab = Vocab(Counter([f'word_{i}' for i in range(vocab_size)]))
 
     if multi_label:
-        data = [(torch.randint(vocab_size, (max_length,), dtype=dtype, device=device),
-                 np.sort(random_labels(num_classes, multi_label)))
+        data = [(
+                    torch.randint(vocab_size, (max_length,), dtype=dtype, device=device),
+                    np.sort(random_labels(num_classes, multi_label)).tolist()
+                 )
                 for _ in range(num_samples)]
     else:
         data = [
