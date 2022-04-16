@@ -2,6 +2,12 @@
 
 ## [Next] - unreleased
 
+### Added
+
+- Datasets:
+  - The `Dataset` interface now has a `clone()` method 
+    that creates an identical copy of the respective dataset.
+
 ### Changed
 
 - Datasets:

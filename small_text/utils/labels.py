@@ -2,6 +2,8 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse import vstack
 
+from small_text.base import LABEL_UNLABELED
+
 
 def get_num_labels(y):
     if y.shape[0] == 0:
@@ -55,3 +57,11 @@ def list_to_csr(label_list, shape, dtype=np.int64):
     data = np.ones_like(col_ind, dtype=np.int64)
 
     return csr_matrix((data, (row_ind, col_ind)), shape=shape, dtype=dtype)
+
+
+def get_flattened_unique_labels(dataset):
+    if dataset.is_multi_label:
+        labels = np.unique(dataset.y.indices)
+    else:
+        labels = np.unique(dataset.y)
+    return np.setdiff1d(labels, np.array([LABEL_UNLABELED]))

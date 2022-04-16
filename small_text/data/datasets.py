@@ -6,6 +6,7 @@ from scipy.sparse import issparse
 
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.data.sampling import stratified_sampling, balanced_sampling
+from small_text.utils.labels import get_flattened_unique_labels
 
 
 def check_size(expected_num_samples, num_samples):
@@ -230,13 +231,10 @@ class SklearnDataset(Dataset):
             self.target_labels = target_labels
         else:
             self.track_target_labels = True
-            self._infer_target_labels(self._y)
+            self._infer_target_labels()
 
-    def _infer_target_labels(self, y):
-        if isinstance(y, csr_matrix):
-            self.target_labels = np.unique(y.indices)
-        else:
-            self.target_labels = np.unique(y)
+    def _infer_target_labels(self):
+        self.target_labels = get_flattened_unique_labels(self)
 
     @property
     def x(self):

@@ -10,6 +10,7 @@ from small_text.utils.labels import list_to_csr
 
 try:
     import torch
+    from small_text.integrations.pytorch.utils.labels import get_flattened_unique_labels
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
@@ -162,20 +163,8 @@ class PytorchTextClassificationDataset(PytorchDataset):
             self._infer_target_labels()
 
     def _infer_target_labels(self):
-        inferred_target_labels = self._get_flattened_unique_labels()
+        inferred_target_labels = get_flattened_unique_labels(self)
         self.target_labels = inferred_target_labels
-
-    # TODO: move to utils
-    # TODO: check for no labels in multi_label_case
-    def _get_flattened_unique_labels(self):
-        if self.multi_label:
-            labels = np.concatenate([d[self.INDEX_LABEL] for d in self._data
-                                     if d[self.INDEX_LABEL] is not None
-                                     and len(d[self.INDEX_LABEL]) > 0])
-            labels = np.unique(labels)
-        else:
-            labels = np.unique([d[self.INDEX_LABEL] for d in self._data])
-        return labels
 
     @property
     def x(self):
@@ -264,7 +253,7 @@ class PytorchTextClassificationDataset(PytorchDataset):
 
     @target_labels.setter
     def target_labels(self, target_labels):
-        encountered_labels = self._get_flattened_unique_labels()
+        encountered_labels = get_flattened_unique_labels(self)
         if np.setdiff1d(encountered_labels, target_labels).shape[0] > 0:
             raise ValueError('Cannot remove existing labels from target_labels as long as they '
                              'still exists in the data. Create a new dataset instead.')

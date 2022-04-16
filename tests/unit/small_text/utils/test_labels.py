@@ -4,10 +4,11 @@ import numpy as np
 from numpy.testing import assert_array_equal
 from scipy.sparse import csr_matrix
 
-from small_text.base import LABEL_IGNORED
+from small_text.base import LABEL_IGNORED, LABEL_UNLABELED
 from small_text.utils.labels import (
     concatenate,
     csr_to_list,
+    get_flattened_unique_labels,
     get_ignored_labels_mask,
     get_num_labels,
     list_to_csr,
@@ -15,6 +16,7 @@ from small_text.utils.labels import (
 )
 
 from tests.utils.testing import assert_csr_matrix_equal
+from tests.utils.datasets import random_sklearn_dataset
 
 
 class LabelUtilsTest(unittest.TestCase):
@@ -153,3 +155,27 @@ class LabelUtilsTest(unittest.TestCase):
         self.assertEqual(np.float64, result.data.dtype)
         self.assertEqual(np.int32, result.indices.dtype)
         self.assertEqual(np.int32, result.indices.dtype)
+
+    def test_get_flattened_unique_labels(self):
+        dataset = random_sklearn_dataset(10)
+        labels = get_flattened_unique_labels(dataset)
+        assert_array_equal(np.array([0, 1]), labels)
+
+    def test_get_flattened_unique_labels_no_labels(self):
+        dataset = random_sklearn_dataset(10)
+        dataset.y = np.array([LABEL_UNLABELED] * len(dataset))
+        labels = get_flattened_unique_labels(dataset)
+        self.assertEqual((0,), labels.shape)
+
+    def test_get_flattened_unique_labels_multi_label(self):
+        num_classes = 3
+        dataset = random_sklearn_dataset(10, multi_label=True, num_classes=num_classes)
+        labels = get_flattened_unique_labels(dataset)
+        assert_array_equal(np.array([0, 1, 2]), labels)
+
+    def test_get_flattened_unique_labels_multi_label_no_labels(self):
+        num_classes = 3
+        dataset = random_sklearn_dataset(10, multi_label=True, num_classes=num_classes)
+        dataset.y = csr_matrix((10, num_classes))
+        labels = get_flattened_unique_labels(dataset)
+        self.assertEqual((0,), labels.shape)
