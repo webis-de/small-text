@@ -5,6 +5,7 @@ from scipy.stats import entropy
 from sklearn.preprocessing import normalize
 
 from small_text.query_strategies.exceptions import EmptyPoolException, PoolExhaustedException
+from small_text.utils.context import build_pbar_context
 
 
 class QueryStrategy(ABC):
@@ -215,7 +216,7 @@ class SubsamplingQueryStrategy(QueryStrategy):
         subset = dataset[np.concatenate([subsampled_indices, indices_labeled])]
         subset_indices_unlabeled = np.arange(self.subsample_size)
         subset_indices_labeled = np.arange(self.subsample_size,
-                                  self.subsample_size + indices_labeled.shape[0])
+                                           self.subsample_size + indices_labeled.shape[0])
 
         indices = self.base_query_strategy.query(clf,
                                                  subset,
@@ -413,6 +414,8 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
             Embeddings will be L2 normalized if `True`, otherwise they remain unchanged.
         batch_size : int, default=100
             Batch size which is used to process the embeddings.
+        pbar : 'tqdm' or None, default='tqdm'
+            Displays a progress bar if 'tqdm' is passed.
         """
         self.embed_kwargs = embed_kwargs
         self.normalize = normalize
@@ -480,3 +483,127 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
         return f'ContrastiveActiveLearning(k={self.k}, ' \
                f'embed_kwargs={str(self.embed_kwargs)}, ' \
                f'normalize={self.normalize})'
+
+
+class DiscriminativeActiveLearning(QueryStrategy):
+    """Discriminative Active Learning [GS19]_ learns to differentiate between the labeled and
+    unlabeled pool and selects the instances that are most likely to belong to the unlabeled pool.
+    """
+
+    LABEL_LABELED_POOL = 0
+    """Label index for the labeled class in the discriminative classification."""
+
+    LABEL_UNLABELED_POOL = 1
+    """Label index for the unlabeled class in the discriminative classification."""
+
+    def __init__(self, classifier_factory, num_iterations, unlabeled_factor=10, pbar='tqdm'):
+        """
+        classifier_factory : small_text.
+            Classifier factory which is used for the discriminative classifiers.
+        num_iterations : int
+            Number of iterations for the discriminiative training.
+        unlabeled_factor : int, default=10
+            The ratio of "unlabeled pool" instances to "labeled pool" instances in the
+            discriminative training.
+        pbar : 'tqdm' or None, default='tqdm'
+            Displays a progress bar if 'tqdm' is passed.
+        """
+        self.classifier_factory = classifier_factory
+        self.num_iterations = num_iterations
+
+        self.unlabeled_factor = unlabeled_factor
+        self.pbar = pbar
+
+        self.clf_ = None
+
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+        self._validate_query_input(indices_unlabeled, n)
+
+        query_sizes = self._get_query_sizes(self.num_iterations, n)
+        indices = self.discriminative_active_learning(dataset, indices_unlabeled, indices_labeled,
+                                                      query_sizes)
+
+        return indices
+
+    def discriminative_active_learning(self, dataset, indices_unlabeled, indices_labeled,
+                                       query_sizes):
+
+        indices = np.array([], dtype=indices_labeled.dtype)
+
+        indices_unlabeled_copy = np.copy(indices_unlabeled)
+        indices_labeled_copy = np.copy(indices_labeled)
+
+        with build_pbar_context(len(query_sizes)) as pbar:
+            for q in query_sizes:
+                indices_most_confident = self._train_and_get_most_confident(dataset,
+                                                                            indices_unlabeled_copy,
+                                                                            indices_labeled_copy,
+                                                                            q)
+
+                indices = np.append(indices, indices_unlabeled_copy[indices_most_confident])
+                indices_labeled_copy = np.append(indices_labeled_copy,
+                                                 indices_unlabeled_copy[indices_most_confident])
+                indices_unlabeled_copy = np.delete(indices_unlabeled_copy, indices_most_confident)
+                pbar.update(1)
+
+        return indices
+
+    @staticmethod
+    def _get_query_sizes(num_iterations, n):
+
+        if num_iterations > n:
+            raise ValueError('num_iterations cannot be greater than the query_size n')
+
+        query_size = int(n / num_iterations)
+        query_sizes = [query_size if i < num_iterations - 1
+                       else n - (num_iterations - 1) * query_size
+                       for i, _ in enumerate(range(num_iterations))]
+
+        return query_sizes
+
+    def _train_and_get_most_confident(self, ds, indices_unlabeled, indices_labeled, q):
+
+        if self.clf_ is not None:
+            del self.clf_
+
+        clf = self.classifier_factory.new()
+
+        num_unlabeled = min(indices_labeled.shape[0] * self.unlabeled_factor,
+                            indices_unlabeled.shape[0])
+
+        indices_unlabeled_sub = np.random.choice(indices_unlabeled,
+                                                 num_unlabeled,
+                                                 replace=False)
+
+        ds_discr = DiscriminativeActiveLearning.get_relabeled_copy(ds,
+                                                                   indices_unlabeled_sub,
+                                                                   indices_labeled)
+
+        self.clf_ = clf.fit(ds_discr)
+
+        proba = clf.predict_proba(ds[indices_unlabeled])
+        proba = proba[:, self.LABEL_UNLABELED_POOL]
+
+        # return instances which most likely belong to the "unlabeled" class (higher is better)
+        return np.argpartition(-proba, q)[:q]
+
+    @staticmethod
+    def get_relabeled_copy(dataset, indices_unlabeled_sub, indices_labeled):
+
+        if dataset.is_multi_label:
+            raise NotImplementedError('Only single-label datasets are supported')
+
+        indices_train = np.append(indices_unlabeled_sub, indices_labeled)
+        ds_sub = dataset[indices_train].clone()
+
+        # relabel dataset as "unlabeled" (pool) and "labeled" (pool)
+        ds_sub.y = np.array(
+            [DiscriminativeActiveLearning.LABEL_UNLABELED_POOL] * indices_unlabeled_sub.shape[0] +
+            [DiscriminativeActiveLearning.LABEL_LABELED_POOL] * indices_labeled.shape[0]
+        )
+
+        return ds_sub
+
+    def __str__(self):
+        return f'DiscriminativeActiveLearning(classifier_factory={str(self.classifier_factory)}, ' \
+               f'num_iterations={self.num_iterations}, unlabeled_factor={self.unlabeled_factor})'

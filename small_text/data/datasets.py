@@ -224,6 +224,8 @@ class SklearnDataset(Dataset):
         self._x = x
         self._y = y
 
+        # TODO: check that x and y have the same size (also on re-assignment)
+
         self.multi_label = is_multi_label(self._y)
 
         if target_labels is not None:

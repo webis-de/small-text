@@ -141,8 +141,8 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
             Embedding method to use [avg, cls].
         hidden_layer_index : int
             Index of the hidden layer.
-        pbar : str or None
-            The progress bar to use, or None otherwise.
+        pbar : 'tqdm' or None
+            Displays a progress bar if 'tqdm' is passed.
 
         Returns
         -------

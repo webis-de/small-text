@@ -18,7 +18,10 @@ General
 * :py:class:`PredictionEntropy`
 * :py:class:`BreakingTies`
 * :py:class:`EmbeddingKMeans`
+* :py:class:`~small_text.query_strategies.coresets.GreedyCoreset`
+* :py:class:`~small_text.query_strategies.coresets.LightweightCoreset`
 * :py:class:`ContrastiveActiveLearning`
+* :py:class:`DiscriminativeActiveLearning`
 * :py:class:`RandomSampling`
 
 
@@ -75,7 +78,21 @@ Base
 .. autoclass:: EmbeddingKMeans
     :special-members: __init__
 
+.. py:module:: small_text.query_strategies.coresets
+
+.. autoclass:: GreedyCoreset
+    :special-members: __init__
+
+.. autoclass:: LightweightCoreset
+    :special-members: __init__
+
+.. py:module:: small_text.query_strategies.strategies
+    :noindex:
+
 .. autoclass:: ContrastiveActiveLearning
+    :special-members: __init__
+
+.. autoclass:: DiscriminativeActiveLearning
     :special-members: __init__
 
 .. autoclass:: RandomSampling

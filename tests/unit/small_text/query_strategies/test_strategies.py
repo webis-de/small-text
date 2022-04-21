@@ -7,6 +7,7 @@ from sklearn.preprocessing import normalize
 from unittest.mock import patch, Mock
 
 from small_text.classifiers import ConfidenceEnhancedLinearSVC, SklearnClassifier
+from small_text.classifiers.factories import SklearnClassifierFactory
 from small_text.data.datasets import SklearnDataset
 from small_text.query_strategies import EmptyPoolException, PoolExhaustedException
 from small_text.query_strategies import (
@@ -17,8 +18,11 @@ from small_text.query_strategies import (
     LeastConfidence,
     PredictionEntropy,
     EmbeddingBasedQueryStrategy,
-    EmbeddingKMeans
+    EmbeddingKMeans,
+    DiscriminativeActiveLearning
 )
+
+from tests.utils.datasets import random_sklearn_dataset
 
 
 DEFAULT_QUERY_SIZE = 10
@@ -82,10 +86,10 @@ class SamplingStrategiesTests(object):
             self._query(self._get_query_strategy(), n=11)
 
     def _query(self, strategy, num_samples=20, n=10, **kwargs):
-        x = np.random.rand(num_samples, 10)
+        dataset = random_sklearn_dataset(num_samples, vocab_size=10)
 
         indices_labeled = np.random.choice(np.arange(num_samples), size=10, replace=False)
-        indices_unlabeled = np.array([i for i in range(x.shape[0])
+        indices_unlabeled = np.array([i for i in range(len(dataset))
                                       if i not in set(indices_labeled)])
 
         clf_mock = self._get_clf()
@@ -96,7 +100,8 @@ class SamplingStrategiesTests(object):
         y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
         self.assertEqual(indices_labeled.shape[0], y.shape[0])
 
-        return strategy.query(clf_mock, x, indices_unlabeled, indices_labeled, y, n=n, **kwargs)
+        return strategy.query(clf_mock, dataset, indices_unlabeled, indices_labeled, y, n=n,
+                              **kwargs)
 
 
 class RandomSamplingTest(unittest.TestCase, SamplingStrategiesTests):
@@ -707,3 +712,88 @@ class ContrastiveActiveLearningTest(unittest.TestCase):
         query_strategy = ContrastiveActiveLearning(normalize=False)
         self.assertEqual('ContrastiveActiveLearning(k=10, embed_kwargs={}, normalize=False)',
                          str(query_strategy))
+
+
+class DiscriminativeActiveLearningTest(unittest.TestCase, SamplingStrategiesTests):
+
+    def _get_clf(self):
+        return ConfidenceEnhancedLinearSVC()
+
+    def _get_query_strategy(self):
+        return DiscriminativeActiveLearning(
+            SklearnClassifierFactory(self._get_clf(), 2),
+            3
+        )
+
+    def test_query_test_num_iterations(self):
+        num_iterations = 7
+
+        strategy = DiscriminativeActiveLearning(
+            SklearnClassifierFactory(self._get_clf(), 2),
+            num_iterations
+        )
+
+        clf = ConfidenceEnhancedLinearSVC()
+
+        dataset = SklearnDataset(np.random.rand(100, 10),
+                                 np.random.randint(0, high=2, size=100))
+
+        indices_labeled = np.random.choice(np.arange(10), size=10, replace=False)
+        indices_unlabeled = np.array(
+            [i for i in np.arange(100) if i not in set(indices_labeled)])
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        with patch.object(strategy, '_train_and_get_most_confident',
+                          wraps=strategy._train_and_get_most_confident) \
+                as train_and_get_most_confident_spy:
+            strategy.query(clf, dataset, indices_unlabeled, indices_labeled, y)
+            self.assertEqual(num_iterations, train_and_get_most_confident_spy.call_count)
+
+    def test_query_with_num_iterations_greater_than_query_size(self):
+        query_size = 10
+        num_iterations = query_size + 1
+
+        strategy = DiscriminativeActiveLearning(
+            SklearnClassifierFactory(self._get_clf(), 2),
+            num_iterations
+        )
+
+        clf = ConfidenceEnhancedLinearSVC()
+
+        dataset = SklearnDataset(np.random.rand(10, 10),
+                                 np.random.randint(0, high=2, size=10))
+
+        indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices_unlabeled = np.array(
+            [i for i in np.arange(100) if i not in set(indices_labeled)])
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        with self.assertRaisesRegex(ValueError, 'num_iterations cannot be greater than'):
+            strategy.query(clf, dataset, indices_unlabeled, indices_labeled, y, n=query_size)
+
+    def test_query_with_multi_label_dataset(self):
+        # Not impossible but currently not supported by the implementation
+        strategy = DiscriminativeActiveLearning(
+            SklearnClassifierFactory(self._get_clf(), 2),
+            3
+        )
+
+        clf = ConfidenceEnhancedLinearSVC()
+
+        dataset = random_sklearn_dataset(10, num_classes=3, multi_label=True)
+
+        indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
+        indices_unlabeled = np.array(
+            [i for i in np.arange(100) if i not in set(indices_labeled)])
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        with self.assertRaisesRegex(NotImplementedError,
+                                    'Only single-label datasets are supported'):
+            strategy.query(clf, dataset, indices_unlabeled, indices_labeled, y)
+
+    def test_discriminative_active_learning_str(self):
+        strategy = self._get_query_strategy()
+        expected_str = 'DiscriminativeActiveLearning(classifier_factory=SklearnClassifierFactory(' \
+                       'base_estimator=ConfidenceEnhancedLinearSVC, num_classes=2, kwargs={}), ' \
+                       'num_iterations=3, unlabeled_factor=10)'
+        self.assertEqual(expected_str, str(strategy))

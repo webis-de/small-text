@@ -34,6 +34,10 @@ Bibliography
    Universal Language Model Fine-tuning for Text Classification.
    In Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics, pages 328–339.
 
+.. [GS19] Daniel Gissin and Shai Shalev-Shwartz. 2019.
+   Discriminative Active Learning.
+   ArXiv abs/1907.06347, 2019.
+
 .. [AZK+20] Jordan T. Ash, Chicheng Zhang, Akshay Krishnamurthy, John Langford and Alekh Agarwal. 2020.
    Deep Batch Active Learning by Diverse, Uncertain Gradient Lower Bounds.
    International Conference on Learning Representations 2020 (ICLR 2020).

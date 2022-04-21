@@ -16,6 +16,7 @@ class FakeSingleLabelQueryStrategy(RandomSampling):
     def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
         return super().query(clf, dataset, indices_unlabeled, indices_labeled, y, n=n)
 
+
 @constraints(classification_type='multi-label')
 class FakeMultiLabelQueryStrategy(RandomSampling):
 

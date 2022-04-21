@@ -28,3 +28,7 @@ class SklearnClassifierFactory(AbstractClassifierFactory):
 
     def new(self):
         return SklearnClassifier(clone(self.base_estimator), self.num_classes, **self.kwargs)
+
+    def __str__(self):
+        return f'SklearnClassifierFactory(base_estimator={type(self.base_estimator).__name__}, ' \
+               f'num_classes={self.num_classes}, kwargs={self.kwargs})'
