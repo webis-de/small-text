@@ -8,7 +8,7 @@ from unittest.mock import patch, Mock
 
 from small_text.classifiers import ConfidenceEnhancedLinearSVC, SklearnClassifier
 from small_text.classifiers.factories import SklearnClassifierFactory
-from small_text.data.datasets import SklearnDataset
+from small_text.data.datasets import SklearnDataset, DatasetView
 from small_text.query_strategies import EmptyPoolException, PoolExhaustedException
 from small_text.query_strategies import (
     BreakingTies,
@@ -26,6 +26,19 @@ from tests.utils.datasets import random_sklearn_dataset
 
 
 DEFAULT_QUERY_SIZE = 10
+
+
+class AnyDatasetView(object):
+    def __eq__(self, other):
+        return isinstance(other, DatasetView)
+
+
+class EqualNumpyArray(object):
+    def __init__(self, arr):
+        self.arr = arr
+
+    def __eq__(self, other):
+        return np.all(self.arr == other)
 
 
 def query_random_data(strategy, num_samples=100, n=10, use_embeddings=False, embedding_dim=100):
@@ -373,7 +386,7 @@ class EmbeddingBasedQueryStrategyImplementation(EmbeddingBasedQueryStrategy):
 
     def sample(self, clf, dataset, indices_unlabeled, indices_labeled, y, n, embeddings,
                embeddings_proba=None):
-        pass
+        return np.random.choice(indices_unlabeled, size=n, replace=False)
 
 
 class SklearnClassifierWithRandomEmbeddings(SklearnClassifier):
@@ -401,7 +414,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
         query_strategy = EmbeddingBasedQueryStrategyImplementation()
         self.assertEqual('EmbeddingBasedQueryStrategy()', str(query_strategy))
 
-    def test_query_with_precomputed_embeddings(self, num_samples=20):
+    def test_query_with_precomputed_embeddings(self, num_samples=100):
         clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, 2)
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
                                  np.random.randint(0, high=2, size=10))
@@ -421,7 +434,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
 
             sample_spy.assert_called()
 
-    def test_query_when_embed_has_return_proba(self, num_samples=20):
+    def test_query_when_embed_has_return_proba(self, num_samples=100):
         clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, 2)
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
                                  np.random.randint(0, high=2, size=10))
@@ -438,10 +451,23 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
         with patch.object(query_strategy, 'sample', wraps=query_strategy.sample) as sample_spy:
             query_strategy.query(clf, dataset, indices_unlabeled, indices_labeled, y,
                                  n=n, embeddings=embeddings)
-            sample_spy.assert_called_once_with(clf, dataset, indices_unlabeled, indices_labeled, y,
-                                               n, clf.embeddings_, embeddings_proba=clf.proba_)
 
-    def test_query_when_embed_has_no_return_proba(self, num_samples=20):
+            indices_subset_all = np.concatenate([indices_unlabeled, indices_labeled])
+            subset_indices_unlabeled = np.arange(indices_unlabeled.shape[0])
+            subset_indices_labeled = np.arange(indices_unlabeled.shape[0],
+                                               indices_unlabeled.shape[0] + indices_labeled.shape[
+                                                   0])
+
+            sample_spy.assert_called_once_with(clf,
+                                               AnyDatasetView(),
+                                               EqualNumpyArray(subset_indices_unlabeled),
+                                               EqualNumpyArray(subset_indices_labeled),
+                                               y,
+                                               n,
+                                               clf.embeddings_,
+                                               embeddings_proba=clf.proba_)
+
+    def test_query_when_embed_has_no_return_proba(self, num_samples=100):
         clf = SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC, 2)
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
                                  np.random.randint(0, high=2, size=10))
@@ -458,10 +484,23 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
         with patch.object(query_strategy, 'sample', wraps=query_strategy.sample) as sample_spy:
             query_strategy.query(clf, dataset, indices_unlabeled, indices_labeled, y,
                                  n=n, embeddings=embeddings)
-            sample_spy.assert_called_once_with(clf, dataset, indices_unlabeled, indices_labeled, y,
-                                               n, clf.embeddings_)
 
-    def test_query_with_nonexistent_embed_kwargs_and_no_return_proba(self, num_samples=20):
+            indices_subset_all = np.concatenate([indices_unlabeled, indices_labeled])
+            subset_indices_unlabeled = np.arange(indices_unlabeled.shape[0])
+            subset_indices_labeled = np.arange(indices_unlabeled.shape[0],
+                                               indices_unlabeled.shape[0]
+                                               + indices_labeled.shape[0])
+
+            sample_spy.assert_called_once_with(clf,
+                                               AnyDatasetView(),
+                                               EqualNumpyArray(subset_indices_unlabeled),
+                                               EqualNumpyArray(subset_indices_labeled),
+                                               y,
+                                               n,
+                                               clf.embeddings_,
+                                               embeddings_proba=None)
+
+    def test_query_with_nonexistent_embed_kwargs_and_no_return_proba(self, num_samples=100):
         clf = SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC, 2)
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
                                  np.random.randint(0, high=2, size=10))

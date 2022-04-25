@@ -252,25 +252,34 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
         if len(indices_unlabeled) == n:
             return np.array(indices_unlabeled)
 
+        indices_subset_all = np.concatenate([indices_unlabeled, indices_labeled])
+
         if embeddings is not None:
-            sampled_indices = self.sample(clf, dataset, indices_unlabeled, indices_labeled, y, n,
-                                          embeddings)
+            proba = None
         else:
             try:
-                embeddings, proba = clf.embed(dataset, return_proba=True, pbar=pbar, **embed_kwargs) \
+                embeddings, proba = clf.embed(dataset[indices_subset_all],
+                                              return_proba=True, pbar=pbar, **embed_kwargs) \
                     if embeddings is None else embeddings
-                sampled_indices = self.sample(clf, dataset, indices_unlabeled, indices_labeled,
-                                              y, n, embeddings, embeddings_proba=proba)
+
             except TypeError as e:
                 if 'got an unexpected keyword argument \'return_proba\'' in e.args[0]:
-                    embeddings = clf.embed(dataset, pbar=pbar,
+                    embeddings = clf.embed(dataset[indices_subset_all], pbar=pbar,
                                            **embed_kwargs) if embeddings is None else embeddings
-                    sampled_indices = self.sample(clf, dataset, indices_unlabeled, indices_labeled, y,
-                                                  n, embeddings)
+                    proba = None
                 else:
                     raise e
 
-        return indices_unlabeled[sampled_indices]
+
+        subset = dataset[indices_subset_all]
+        subset_indices_unlabeled = np.arange(indices_unlabeled.shape[0])
+        subset_indices_labeled = np.arange(indices_unlabeled.shape[0],
+                                           indices_unlabeled.shape[0] + indices_labeled.shape[0])
+
+        sampled_indices = self.sample(clf, subset, subset_indices_unlabeled, subset_indices_labeled,
+                                      y, n, embeddings, embeddings_proba=proba)
+
+        return np.array([indices_subset_all[i] for i in sampled_indices])
 
     @abstractmethod
     def sample(self, clf, dataset, indices_unlabeled, indices_labeled, y, n, embeddings,

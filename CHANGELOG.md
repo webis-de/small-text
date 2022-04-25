@@ -16,6 +16,9 @@
   - Separated the previous `DatasetView` implementation into interface (`DatasetView`) 
     and implementation (`SklearnDatasetView`).
   - Added `clone()` method which creates an identical copy of the dataset.
+- Query Strategies:
+  - `EmbeddingBasedQueryStrategy` now only embeds instances that are either in the label
+    or in the unlabeled pool (and no longer the entire dataset).
 - Code examples:
   - Code structure was  unified.
   - Number of iterations can now be passed via an cli argument.
