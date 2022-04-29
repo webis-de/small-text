@@ -42,6 +42,8 @@ The documentation (currently work in progress) can be generated using sphinx:
 pip install sphinx sphinx-rtd-theme
 cd docs/
 make
+sphinx-build . _build/ -b linkcheck
+sphinx-build . _build/ -b doctest
 ```
 
 ### Continuous Integration
@@ -76,7 +78,11 @@ This pipeline checks the following:
 
 - Check every step of the above Pull Request Checklist
 - Check if the CI Pipeline runs successfully
-- Run the sphinx doctests (`sphinx-build -b doctest ...`)
+- Run the sphinx linkcheck and doctests
+  - ```bash
+    sphinx-build SOURCEDIR OUTPUTDIR -b linkcheck
+    sphinx-build SOURCEDIR OUTPUTDIR -b doctest
+    ```
 
 ### Finalizing
 
