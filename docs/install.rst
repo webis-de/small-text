@@ -4,20 +4,23 @@
 Installation
 ============
 
-Small-Text can be easily installed using pip:
+You can easily install small-text using pip:
 
 .. code-block:: console
 
     pip install small-text
 
-This installs a minimal setup **without** any integrations.
+This installs a minimal setup **without** any integrations. By installing the :ref:`integrations<install:Optional Integrations>`
+you can enable larger scopes of gpu-based functionality.
+Further :ref:`optional dependencies<install:Optional Dependencies>`, i.e. dependencies which are only needed for one to a few strategies
+and are not installed by default (to avoid bloated dependencies), might be required.
 
 .. _installation-optional-dependencies:
 
-Optional Dependencies
+Optional Integrations
 =====================
 
-This library is designed to be usable in combination with as many classifiers/classification libraries as possible.
+The small-text library is designed to be usable in combination with as many classifiers/classification libraries as possible.
 Whenever possible, we try to keep most dependencies optional to avoid dependency bloat.
 Dependending on the classifier of your choice, you might need additional python libraries.
 
@@ -52,3 +55,17 @@ To enable the Transformers Integration, install the library with the `transforme
 
 The Transformers Integration also requires Pytorch, so installing this automatically
 entails an installation of the Pytorch Integration.
+
+Optional Dependencies
+=====================
+
+We keep certain python dependencies optional when they are either only required
+for very specific (query or stopping) strategies or are purely convenience functions.
+
+An overview of such dependencies is given in table below:
+
++------------+-------------+
+| Dependency | Required by |
++------------+-------------+
+|            |             |
++------------+-------------+
