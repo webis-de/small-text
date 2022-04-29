@@ -2,6 +2,11 @@
    .github-ribbon { display: none; }
 }
 
+.wy-side-scroll {
+   width: auto;
+   overflow-y: auto;
+}
+
 .sig-object {
    word-wrap: break-word;
    word-break: break-word;
