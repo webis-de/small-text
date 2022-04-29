@@ -37,15 +37,7 @@ class DeltaFScore(StoppingCriterion):
     """A stopping criterion which stops if the predicted change of the F-score falls below
     a threshold [AB19]_.
 
-    .. note:: This criterion is only applicable for binary classification.
-
-    References
-    ----------
-    .. [AB19] Michael Altschuler and Michael Bloodgood. 2019.
-       Stopping Active Learning based on Predicted Change of F Measure for Text Classification.
-       In: International Conference on Semantic Computing (ICSC 2019).
-
-    """
+    .. note:: This criterion is only applicable for binary classification."""
     def __init__(self, num_classes, window_size=3, threshold=0.05):
         """
         num_classes : int

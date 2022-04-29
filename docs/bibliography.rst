@@ -2,10 +2,6 @@
 Bibliography
 ============
 
-.. [Set10] Burr Settles.
-   Active Learning Literature Survey.
-   Computer Sciences Technical Report 1648 University of Wisconsin–Madison, 2010.
-
 .. [LG94] David D. Lewis and William A. Gale. 1994.
    A sequential algorithm for training text classifiers.
    In SIGIR’94, pages 3-12.
@@ -25,6 +21,15 @@ Bibliography
    In 2008 IEEE Computer Society Conference on Computer Vision and Pattern Recognition Workshops,
    IEEE, pages 1–8.
 
+.. [BV09] M. Bloodgood and K. Vijay-Shanker. 2009.
+   A method for stopping active learning based on stabilizing predictions and the need for user-adjustable stopping.
+   In Proceedings of the Thirteenth Conference on Computational Natural Language Learning (CoNLL '09).
+   Association for Computational Linguistics, USA, 39–47.
+
+.. [Set10] Burr Settles.
+   Active Learning Literature Survey.
+   Computer Sciences Technical Report 1648 University of Wisconsin–Madison, 2010.
+
 .. [ZLW17] Ye Zhang, Matthew Lease, and Byron C. Wallace. 2017.
    Active discriminative text representation learning.
    In Proceedings of the Thirty-First AAAI Conference on Artificial Intelligence (AAAI’17).
@@ -33,6 +38,10 @@ Bibliography
 .. [HR18] Jeremy Howard and Sebastian Ruder. 2008.
    Universal Language Model Fine-tuning for Text Classification.
    In Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics, pages 328–339.
+
+.. [AB19] Michael Altschuler and Michael Bloodgood. 2019.
+   Stopping Active Learning based on Predicted Change of F Measure for Text Classification.
+   In: International Conference on Semantic Computing (ICSC 2019).
 
 .. [GS19] Daniel Gissin and Shai Shalev-Shwartz. 2019.
    Discriminative Active Learning.

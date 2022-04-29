@@ -7,15 +7,7 @@ from small_text.stopping_criteria.base import StoppingCriterion, check_window_ba
 
 
 class KappaAverage(StoppingCriterion):
-    """
-    A stopping criterion which measures the agreement between sets of predictions [BV09]_.
-
-    References
-    ----------
-    .. [BV09] M. Bloodgood and K. Vijay-Shanker. 2009.
-       A method for stopping active learning based on stabilizing predictions and the need for user-adjustable stopping.
-       In Proceedings of the Thirteenth Conference on Computational Natural Language Learning (CoNLL '09).
-       Association for Computational Linguistics, USA, 39–47.
+    """A stopping criterion which measures the agreement between sets of predictions [BV09]_.
     """
     def __init__(self, num_classes, window_size=3, kappa=0.99):
         """
