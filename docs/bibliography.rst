@@ -45,11 +45,15 @@ Bibliography
 
 .. [GS19] Daniel Gissin and Shai Shalev-Shwartz. 2019.
    Discriminative Active Learning.
-   ArXiv abs/1907.06347, 2019.
+   ArXiv abs/1907.06347.
 
 .. [AZK+20] Jordan T. Ash, Chicheng Zhang, Akshay Krishnamurthy, John Langford and Alekh Agarwal. 2020.
    Deep Batch Active Learning by Diverse, Uncertain Gradient Lower Bounds.
    International Conference on Learning Representations 2020 (ICLR 2020).
+
+.. [CCK+20] Cody Coleman, Edward Chou, Julian Katz-Samuels, Sean Culatana, Peter Bailis, Alexander C. Berg, Robert Nowak, Roshan Sumbaly, Matei Zaharia, I. Zeki Yalniz. 2020.
+   Similarity Search for Efficient Active Learning and Search of Rare Concepts.
+   ArXiv abs/2007.00077v2.
 
 .. [YLB20] Michelle Yuan, Hsuan-Tien Lin, and Jordan Boyd-Graber. 2020.
    Cold-start Active Learning through Self-supervised Language Modeling

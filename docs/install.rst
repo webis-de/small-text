@@ -64,8 +64,10 @@ for very specific (query or stopping) strategies or are purely convenience funct
 
 An overview of such dependencies is given in table below:
 
-+------------+-------------+
-| Dependency | Required by |
-+------------+-------------+
-|            |             |
-+------------+-------------+
++-------------------------+----------------------------------------------------------------+
+| Dependency              | Required by                                                    |
++-------------------------+----------------------------------------------------------------+
+| `hnswlib`_              | :py:class:`~small_text.query_strategies.strategies.SEALS`      |
++-------------------------+----------------------------------------------------------------+
+
+.. _hnswlib: https://pypi.org/project/hnswlib/

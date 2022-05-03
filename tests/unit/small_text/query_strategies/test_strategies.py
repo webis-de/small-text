@@ -9,6 +9,7 @@ from unittest.mock import patch, Mock
 from small_text.classifiers import ConfidenceEnhancedLinearSVC, SklearnClassifier
 from small_text.classifiers.factories import SklearnClassifierFactory
 from small_text.data.datasets import SklearnDataset, DatasetView
+from small_text.exceptions import MissingOptionalDependencyError
 from small_text.query_strategies import EmptyPoolException, PoolExhaustedException
 from small_text.query_strategies import (
     BreakingTies,
@@ -19,7 +20,8 @@ from small_text.query_strategies import (
     PredictionEntropy,
     EmbeddingBasedQueryStrategy,
     EmbeddingKMeans,
-    DiscriminativeActiveLearning
+    DiscriminativeActiveLearning,
+    SEALS
 )
 
 from tests.utils.datasets import random_sklearn_dataset
@@ -69,7 +71,7 @@ class SamplingStrategiesTests(object):
     DEFAULT_NUM_SAMPLES = 100
 
     def _get_clf(self):
-        return ConfidenceEnhancedLinearSVC()
+        return SklearnClassifier(ConfidenceEnhancedLinearSVC())
 
     def _get_query_strategy(self):
         raise NotImplementedError()
@@ -150,7 +152,7 @@ class RandomSamplingTest(unittest.TestCase, SamplingStrategiesTests):
 class BreakingTiesTest(unittest.TestCase, SamplingStrategiesTests):
 
     def _get_clf(self):
-        return ConfidenceEnhancedLinearSVC()
+        return SklearnClassifier(ConfidenceEnhancedLinearSVC(), 2)
 
     def _get_query_strategy(self):
         return BreakingTies()
@@ -210,7 +212,7 @@ class BreakingTiesTest(unittest.TestCase, SamplingStrategiesTests):
 class LeastConfidenceTest(unittest.TestCase, SamplingStrategiesTests):
 
     def _get_clf(self):
-        return ConfidenceEnhancedLinearSVC()
+        return SklearnClassifier(ConfidenceEnhancedLinearSVC(), 2)
 
     def _get_query_strategy(self):
         return LeastConfidence()
@@ -275,7 +277,7 @@ class LeastConfidenceTest(unittest.TestCase, SamplingStrategiesTests):
 class PredictionEntropyTest(unittest.TestCase, SamplingStrategiesTests):
 
     def _get_clf(self):
-        return ConfidenceEnhancedLinearSVC()
+        return SklearnClassifier(ConfidenceEnhancedLinearSVC(), 2)
 
     def _get_query_strategy(self):
         return PredictionEntropy()
@@ -452,7 +454,6 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
             query_strategy.query(clf, dataset, indices_unlabeled, indices_labeled, y,
                                  n=n, embeddings=embeddings)
 
-            indices_subset_all = np.concatenate([indices_unlabeled, indices_labeled])
             subset_indices_unlabeled = np.arange(indices_unlabeled.shape[0])
             subset_indices_labeled = np.arange(indices_unlabeled.shape[0],
                                                indices_unlabeled.shape[0] + indices_labeled.shape[
@@ -485,7 +486,6 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
             query_strategy.query(clf, dataset, indices_unlabeled, indices_labeled, y,
                                  n=n, embeddings=embeddings)
 
-            indices_subset_all = np.concatenate([indices_unlabeled, indices_labeled])
             subset_indices_unlabeled = np.arange(indices_unlabeled.shape[0])
             subset_indices_labeled = np.arange(indices_unlabeled.shape[0],
                                                indices_unlabeled.shape[0]
@@ -836,3 +836,11 @@ class DiscriminativeActiveLearningTest(unittest.TestCase, SamplingStrategiesTest
                        'base_estimator=ConfidenceEnhancedLinearSVC, num_classes=2, kwargs={}), ' \
                        'num_iterations=3, unlabeled_factor=10)'
         self.assertEqual(expected_str, str(strategy))
+
+
+class SEALSTest(unittest.TestCase):
+
+    def test_init(self):
+        with self.assertRaisesRegex(MissingOptionalDependencyError,
+                               'The optional dependency \'hnswlib\''):
+            SEALS(LeastConfidence())

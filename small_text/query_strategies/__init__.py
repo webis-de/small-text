@@ -17,5 +17,6 @@ from small_text.query_strategies.strategies import (
     EmbeddingBasedQueryStrategy,
     EmbeddingKMeans,
     ContrastiveActiveLearning,
-    DiscriminativeActiveLearning
+    DiscriminativeActiveLearning,
+    SEALS
 )

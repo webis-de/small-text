@@ -4,6 +4,7 @@ import numpy as np
 from scipy.stats import entropy
 from sklearn.preprocessing import normalize
 
+from small_text.base import check_optional_dependency
 from small_text.query_strategies.exceptions import EmptyPoolException, PoolExhaustedException
 from small_text.utils.context import build_pbar_context
 
@@ -616,3 +617,99 @@ class DiscriminativeActiveLearning(QueryStrategy):
     def __str__(self):
         return f'DiscriminativeActiveLearning(classifier_factory={str(self.classifier_factory)}, ' \
                f'num_iterations={self.num_iterations}, unlabeled_factor={self.unlabeled_factor})'
+
+
+class SEALS(QueryStrategy):
+    """Similarity Search for Efficient Active Learning and Search of Rare Concepts (SEALS)
+    improves the computational efficiency of active learning by presenting a reduced subset
+    of the unlabeled pool to a base strategy [CCK+20]_.
+
+    This method is to be applied in conjunction with a base query strategy. SEALS selects a
+    subset of the unlabeled pool by selecting the `k` nearest neighbours of the current labeled
+    pool.
+
+    If the size of the unlabeled pool falls below the given `k`, this implementation will
+    not select a subset anymore and will just delegate to the base strategy instead.
+
+    .. note ::
+       This strategy requires the optional dependency `hnswlib`.
+    """
+    def __init__(self, base_query_strategy, k=100, hnsw_kwargs=dict(), embed_kwargs=dict(),
+                 normalize=True):
+        """
+        base_query_strategy : small_text.query_strategy.QueryStrategy
+            A base query strategy which operates on the subset that is selected by SEALS.
+        k : int, default=100
+            Number of nearest neighbors that will be selected.
+        hnsw_kwargs : dict(), default=dict()
+            Kwargs which will be passed to the underlying hnsw index.
+            Check the `hnswlib github repository <https://github.com/nmslib/hnswlib>`_ on details
+            for the parameters `space`, `ef_construction`, `ef`, and `M`.
+        embed_kwargs : dict, default=dict()
+            Kwargs that will be passed to the embed() method.
+        normalize : bool, default=True
+            Embeddings will be L2 normalized if `True`, otherwise they remain unchanged.
+        """
+        check_optional_dependency('hnswlib')
+
+        self.base_query_strategy = base_query_strategy
+        self.k = k
+        self.hnsw_kwargs = hnsw_kwargs
+        self.embed_kwargs = embed_kwargs
+        self.normalize = normalize
+
+        self.nn = None
+
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10, pbar='tqdm'):
+
+        if self.k > indices_unlabeled.shape[0]:
+            return self.base_query_strategy.query(clf, dataset, indices_unlabeled, indices_labeled,
+                                                  y, n=n)
+
+        indices_subset = self.get_subset_indices(clf,
+                                                 dataset,
+                                                 indices_unlabeled,
+                                                 indices_labeled,
+                                                 pbar=pbar)
+        return self.base_query_strategy.query(clf, dataset, indices_subset, indices_labeled, y, n=n)
+
+    def get_subset_indices(self, clf, dataset, indices_unlabeled, indices_labeled, pbar='tqdm'):
+        if self.nn is None:
+            self.embeddings = clf.embed(dataset, pbar=pbar)
+            if self.normalize:
+                self.embeddings = normalize(self.embeddings, axis=1)
+
+            self.nn = self.initialize_index(self.embeddings, indices_unlabeled, self.hnsw_kwargs)
+            self.indices_unlabeled = set(indices_unlabeled)
+        else:
+            recently_removed_elements = self.indices_unlabeled - set(indices_unlabeled)
+            for el in recently_removed_elements:
+                self.nn.mark_deleted(el)
+            self.indices_unlabeled = set(indices_unlabeled)
+
+        indices_nn, _ = self.nn.knn_query(self.embeddings[indices_labeled], k=self.k)
+        indices_nn = np.unique(indices_nn.astype(int).flatten())
+
+        return indices_nn
+
+    @staticmethod
+    def initialize_index(embeddings, indices_unlabeled, hnsw_kwargs):
+        import hnswlib
+
+        space = hnsw_kwargs.get('space', 'l2')
+        ef_construction = hnsw_kwargs.get('ef_construction', 200)
+        m = hnsw_kwargs.get('M', 64)
+        ef = hnsw_kwargs.get('ef', 200)
+
+        index = hnswlib.Index(space=space, dim=embeddings.shape[1])
+        index.init_index(max_elements=embeddings.shape[0],
+                         ef_construction=ef_construction,
+                         M=m)
+        index.add_items(embeddings[indices_unlabeled], indices_unlabeled)
+        index.set_ef(ef)
+
+        return index
+
+    def __str__(self):
+        return f'SEALS(base_query_strategy={str(self.base_query_strategy)}, ' \
+               f'k={self.k}, embed_kwargs={self.embed_kwargs}, normalize={self.normalize})'

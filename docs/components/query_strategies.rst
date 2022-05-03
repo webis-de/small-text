@@ -22,6 +22,7 @@ General
 * :py:class:`~small_text.query_strategies.coresets.LightweightCoreset`
 * :py:class:`ContrastiveActiveLearning`
 * :py:class:`DiscriminativeActiveLearning`
+* :py:class:`SEALS`
 * :py:class:`RandomSampling`
 
 
@@ -95,7 +96,11 @@ Base
 .. autoclass:: DiscriminativeActiveLearning
     :special-members: __init__
 
+.. autoclass:: SEALS
+    :special-members: __init__
+
 .. autoclass:: RandomSampling
+
 
 Pytorch Integration
 -------------------
