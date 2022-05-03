@@ -271,7 +271,6 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
                 else:
                     raise e
 
-
         subset = dataset[indices_subset_all]
         subset_indices_unlabeled = np.arange(indices_unlabeled.shape[0])
         subset_indices_labeled = np.arange(indices_unlabeled.shape[0],

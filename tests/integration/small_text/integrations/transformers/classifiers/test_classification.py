@@ -220,7 +220,7 @@ class _TransformerBasedClassificationTest(object):
         clf.fit(train_set)
 
         with mock.patch.object(clf.model, 'eval', wraps=clf.model.eval) as model_eval_spy, \
-            mock.patch.object(clf.model, 'train', wraps=clf.model.train) as model_train_spy:
+                mock.patch.object(clf.model, 'train', wraps=clf.model.train) as model_train_spy:
 
             y_pred = clf.predict(test_set)
 

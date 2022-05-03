@@ -4,11 +4,9 @@ import pytest
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
-    import torch
     from small_text.integrations.transformers.classifiers.classification import \
         TransformerBasedClassification, TransformerModelArguments
     from small_text.integrations.transformers.classifiers.factories import TransformerBasedClassificationFactory
-    from tests.utils.datasets import trec_dataset
 except (PytorchNotFoundError, ModuleNotFoundError):
     pass
 

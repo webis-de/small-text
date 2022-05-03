@@ -9,7 +9,6 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
     import torch
-    from torch.nn.modules import BCEWithLogitsLoss
 
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
     from small_text.integrations.pytorch.datasets import PytorchDatasetView

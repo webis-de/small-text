@@ -189,7 +189,7 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
     def test_indexing_list_index(self):
         index = [1, 42, 56, 99]
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
- 
+
         result = ds[index]
         self.assertEqual(len(index), len(result))
         self.assertTrue(isinstance(result, PytorchTextClassificationDatasetView))
@@ -459,8 +459,9 @@ class _PytorchTextClassificationDatasetViewTest(_PytorchDatasetViewTest):
 
 
 class PytorchTextClassificationDatasetViewSingleLabelTest(
-    unittest.TestCase, _PytorchTextClassificationDatasetViewTest):
-
+    unittest.TestCase,
+    _PytorchTextClassificationDatasetViewTest
+):
     def _dataset(self, num_labels=3):
         assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW
         self.multi_label = False
@@ -486,7 +487,8 @@ class PytorchTextClassificationDatasetViewMultiLabelTest(unittest.TestCase,
         return dataset
 
 
-class NestedPytorchDatasetViewSingleLabelTest(unittest.TestCase, _PytorchTextClassificationDatasetViewTest):
+class NestedPytorchDatasetViewSingleLabelTest(unittest.TestCase,
+                                              _PytorchTextClassificationDatasetViewTest):
 
     NUM_SAMPLES_VIEW_OUTER = 17
 
@@ -506,8 +508,9 @@ class NestedPytorchDatasetViewSingleLabelTest(unittest.TestCase, _PytorchTextCla
         return self.NUM_SAMPLES_VIEW
 
 
-class NestedPytorchTextClassificationDatasetViewMultiLabelTest(unittest.TestCase, _PytorchTextClassificationDatasetViewTest):
-
+class NestedPytorchTextClassificationDatasetViewMultiLabelTest(
+    unittest.TestCase, _PytorchTextClassificationDatasetViewTest
+):
     NUM_SAMPLES_VIEW_INNER = 17
     """Size of the inner view."""
 

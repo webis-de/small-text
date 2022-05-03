@@ -65,4 +65,4 @@ class ClassWeightsTest(unittest.TestCase):
         y = csr_matrix(y, shape=(y.shape[0], num_classes))
 
         class_weights = get_class_weights(y, num_classes)
-        assert_array_almost_equal(np.array([1.8, 1. , 1.8, 4.2]), class_weights.cpu().numpy())
+        assert_array_almost_equal(np.array([1.8, 1., 1.8, 4.2]), class_weights.cpu().numpy())

@@ -33,7 +33,9 @@ class KimCNNEmbeddingTest(unittest.TestCase):
         embedding_matrix = torch.Tensor(np.random.rand(len(train.vocab), 100))
         classifier = KimCNNClassifier(6, embedding_matrix=embedding_matrix)
 
-        module_selector = lambda m: m['fc']
+        def module_selector(m):
+            return m['fc']
+
         with self.assertRaises(ValueError):
             classifier.embed(train,
                              module_selector=module_selector,

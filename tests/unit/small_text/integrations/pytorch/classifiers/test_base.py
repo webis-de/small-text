@@ -11,9 +11,7 @@ try:
     from torch.nn import CrossEntropyLoss
     from torch.nn import BCEWithLogitsLoss
 
-    from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.pytorch.classifiers import PytorchClassifier
-    from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
 
     class SimplePytorchClassifier(PytorchClassifier):
         """Simple subclass to allow instantiation."""
@@ -52,7 +50,7 @@ class SimplePytorchClassifierTest(unittest.TestCase):
 
     @patch('torch.cuda.is_available')
     @patch('torch.cuda.current_device')
-    def test_init_with_cuda_available(self, mock_current_device, mock_is_available):
+    def test_init_with_cuda_available_and_device(self, mock_current_device, mock_is_available):
         mock_current_device.return_value = '0'
         mock_is_available.return_value = True
 

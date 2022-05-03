@@ -18,11 +18,8 @@ from tests.utils.testing import (
     assert_list_of_tensors_not_equal
 )
 
-
 try:
     import torch
-    from small_text.integrations.pytorch.query_strategies import (
-        ExpectedGradientLength, ExpectedGradientLengthMaxWord)
     from small_text.integrations.transformers.datasets import (
         TransformersDataset,
         TransformersDatasetView

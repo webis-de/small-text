@@ -31,9 +31,11 @@ class SerializationTest(unittest.TestCase):
         dataset = twenty_news_transformers(20, num_labels=num_labels)
         self.assertFalse(dataset.x[TransformersDataset.INDEX_TEXT].is_cuda)
 
-        clf_factory = TransformerBasedClassificationFactory(TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
-                                                            num_labels,
-                                                            kwargs={'device': 'cuda'})
+        clf_factory = TransformerBasedClassificationFactory(
+            TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
+            num_labels,
+            kwargs={'device': 'cuda'})
+
         query_strategy = RandomSampling()
 
         with tempfile.TemporaryDirectory() as tmp_dir_name:

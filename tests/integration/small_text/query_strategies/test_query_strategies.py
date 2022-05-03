@@ -133,7 +133,6 @@ class SEALSTest(unittest.TestCase, SamplingStrategiesTests):
             # no error should be thrown
             strategy.query(clf_mock, dataset, indices_unlabeled, indices_labeled, y, n=n)
 
-
         get_subset_indices_spy.assert_not_called()
         base_strategy_query_spy.assert_called_once_with(clf_mock, dataset, indices_unlabeled, indices_labeled, y, n=n)
 

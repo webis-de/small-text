@@ -9,7 +9,6 @@ try:
     import torch
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
     from small_text.integrations.pytorch.classifiers.factories import KimCNNFactory
-    from tests.utils.datasets import trec_dataset
 except PytorchNotFoundError:
     pass
 
