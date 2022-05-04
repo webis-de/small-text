@@ -12,7 +12,7 @@
   - The `Dataset` interface now has a `clone()` method 
     that creates an identical copy of the respective dataset.
 - Query Strategies:
-  - New strategies: [DiscriminativeActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b3/small_text/query_strategies/strategies.py) 
+  - New strategies: [DiscriminativeActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py) 
     and [SEALS](https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py).
 
 ### Changed
