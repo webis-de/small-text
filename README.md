@@ -12,7 +12,7 @@
 > Active Learning for Text Classifcation in Python.
 <hr>
 
-[Installation](#installation) | [Quick Start](#quick-start) | [Docs][documentation_main]
+[Installation](#installation) | [Quick Start](#quick-start) | [Changelog][changelog] | [**Docs**][documentation_main]
 
 Small-Text provides state-of-the-art **Active Learning** for Text Classification. 
 Several components are provided, which are abstracted via generic interfaces, 
@@ -35,11 +35,19 @@ to build active learning experiments or applications.
 
 ## News
 
-- **March Beta Release** (v1.0.0b3) - March 06, 2022
+The news section provides only a brief update showing a small selection of highlights. Read the [changelog][changelog] for a complete list of changes.
+
+- **May Beta Release** ([v1.0.0b4][changelog_1.0.0b4]) - May 04, 2022
+  - Two new query strategies: [DiscriminativeActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py), 
+    [SEALS](https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py).
+  - `Dataset` interface now has a `clone()` method.
+  - Added a concept for [optional dependencies](https://small-text.readthedocs.io/en/v1.0.0b4/install.html#optional-dependencies).
+
+- **March Beta Release** ([v1.0.0b3][changelog_1.0.0b3]) - March 06, 2022
   - Consolidated interfaces: Renamed and unified some arguments before v1.0.0.
   - New query strategy: [ContrastiveActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b3/small_text/query_strategies/strategies.py).  
 
-- 🎉 **Beta Release** (v1.0.0b1) - February 22, 2022
+- 🎉 **Beta Release** ([v1.0.0b1][changelog_1.0.0b1]) - February 22, 2022
   - New features: multi-label classification and stopping criteria are now supported.
   - Added/revised large parts of the documentation.
 
@@ -116,3 +124,7 @@ A preprint which introduces small-text is available here:
 
 [documentation_main]: https://small-text.readthedocs.io/en/v1.0.0b4/
 [documentation_install]: https://small-text.readthedocs.io/en/v1.0.0b4/install.html
+[changelog]: https://small-text.readthedocs.io/en/latest/changelog.html]
+[changelog_1.0.0b1]: https://small-text.readthedocs.io/en/latest/changelog.html#b1-2022-02-22
+[changelog_1.0.0b3]: https://small-text.readthedocs.io/en/latest/changelog.html#b3-2022-03-06
+[changelog_1.0.0b4]: https://small-text.readthedocs.io/en/latest/changelog.html#b4-2022-05-04
