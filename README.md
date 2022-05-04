@@ -1,6 +1,6 @@
 [![PyPI](https://img.shields.io/pypi/v/small-text)](https://pypi.org/project/small-text/)
 [![codecov](https://codecov.io/gh/webis-de/small-text/branch/master/graph/badge.svg?token=P86CPABQOL)](https://codecov.io/gh/webis-de/small-text)
-[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.0.0b3)](https://small-text.readthedocs.io/en/v1.0.0b3/) 
+[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.0.0b4)](https://small-text.readthedocs.io/en/v1.0.0b4/) 
 ![Maintained Yes](https://img.shields.io/badge/maintained-yes-green)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 ![GitHub](https://img.shields.io/github/license/webis-de/small-text)
@@ -114,5 +114,5 @@ A preprint which introduces small-text is available here:
 [MIT License](LICENSE)
 
 
-[documentation_main]: https://small-text.readthedocs.io/en/v1.0.0b3/
-[documentation_install]: https://small-text.readthedocs.io/en/v1.0.0b3/install.html
+[documentation_main]: https://small-text.readthedocs.io/en/v1.0.0b4/
+[documentation_install]: https://small-text.readthedocs.io/en/v1.0.0b4/install.html
