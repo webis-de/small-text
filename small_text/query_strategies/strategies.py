@@ -621,7 +621,7 @@ class DiscriminativeActiveLearning(QueryStrategy):
 class SEALS(QueryStrategy):
     """Similarity Search for Efficient Active Learning and Search of Rare Concepts (SEALS)
     improves the computational efficiency of active learning by presenting a reduced subset
-    of the unlabeled pool to a base strategy [CCK+20]_.
+    of the unlabeled pool to a base strategy [CCK+21]_.
 
     This method is to be applied in conjunction with a base query strategy. SEALS selects a
     subset of the unlabeled pool by selecting the `k` nearest neighbours of the current labeled

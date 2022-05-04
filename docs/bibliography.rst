@@ -51,10 +51,6 @@ Bibliography
    Deep Batch Active Learning by Diverse, Uncertain Gradient Lower Bounds.
    International Conference on Learning Representations 2020 (ICLR 2020).
 
-.. [CCK+20] Cody Coleman, Edward Chou, Julian Katz-Samuels, Sean Culatana, Peter Bailis, Alexander C. Berg, Robert Nowak, Roshan Sumbaly, Matei Zaharia, I. Zeki Yalniz. 2020.
-   Similarity Search for Efficient Active Learning and Search of Rare Concepts.
-   ArXiv abs/2007.00077v2.
-
 .. [YLB20] Michelle Yuan, Hsuan-Tien Lin, and Jordan Boyd-Graber. 2020.
    Cold-start Active Learning through Self-supervised Language Modeling
    In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)
@@ -63,6 +59,10 @@ Bibliography
 .. [EHG+20] Liat Ein-Dor, Alon Halfon, Ariel Gera, Eyal Shnarch, Lena Dankin, Leshem Choshen, Marina Danilevsky, Ranit Aharonov, Yoav Katz, and Noam Slonim. 2020.
    Active Learning for BERT: An Empirical Study.
    In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP), pages 7949–7962.
+
+.. [CCK+21] Cody Coleman, Edward Chou, Julian Katz-Samuels, Sean Culatana, Peter Bailis, Alexander C. Berg, Robert Nowak, Roshan Sumbaly, Matei Zaharia, I. Zeki Yalniz. 2020.
+   Similarity Search for Efficient Active Learning and Search of Rare Concepts.
+   ArXiv abs/2007.00077v2.
 
 .. [MVB+21] Katerina Margatina, Giorgos Vernikos, Loïc Barrault, and Nikolaos Aletras. 2021.
    Active Learning by Acquiring Contrastive Examples.
