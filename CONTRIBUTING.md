@@ -78,9 +78,9 @@ This pipeline checks the following:
 
 - Check every step of the above Pull Request Checklist
 - Check if the CI Pipeline runs successfully
-- Run the sphinx linkcheck and doctests
+- Run the sphinx doctests
+
   - ```bash
-    sphinx-build SOURCEDIR OUTPUTDIR -b linkcheck
     sphinx-build SOURCEDIR OUTPUTDIR -b doctest
     ```
 
@@ -89,6 +89,10 @@ This pipeline checks the following:
 - Create a git tag: `v<VERSION>` (e.g., v1.0.0)
 - Push tags and code to github
 - Create new version at Read the Docs
+  - Run sphinx linkcheck:
+  - ```bash
+    sphinx-build SOURCEDIR OUTPUTDIR -b linkcheck
+    ```
 - Create a release on testpypi
   - If successful: Create a release on pypi
 - Create a release on github
