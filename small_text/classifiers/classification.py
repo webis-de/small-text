@@ -7,13 +7,13 @@ from sklearn.preprocessing import normalize
 from sklearn.svm import LinearSVC
 from sklearn.utils.multiclass import is_multilabel
 
-from small_text.utils.classification import empty_result
-from small_text.utils.classification import prediction_result
+from small_text.utils.classification import empty_result, prediction_result
+from small_text.utils.data import check_training_data
 
 
 class Classifier(ABC):
+    """Abstract base class for classifiers that can be used with the active learning components.
     """
-    Abstract base class for classifiers that can be used with the active learning components."""
 
     @abstractmethod
     def fit(self, train_set):
@@ -46,7 +46,7 @@ class SklearnClassifier(Classifier):
             A scikit-learn estimator that implements `fit` and `predict_proba`.
         num_classes : int
             Number of classes which are to be trained and predicted.
-        multi_label : bool
+        multi_label : bool, default=False
             If `False`, the classes are mutually exclusive, i.e. the prediction step results in
             exactly one predicted label per instance.
         """
@@ -71,6 +71,8 @@ class SklearnClassifier(Classifier):
         clf : SklearnClassifier
             Returns the current classifier with a fitted model.
         """
+        check_training_data(train_set, None)
+
         y = train_set.y
         if self.multi_label and not is_multilabel(y):
             raise ValueError('Invalid input: Given labeling must be recognized as '
@@ -90,7 +92,7 @@ class SklearnClassifier(Classifier):
         ----------
         data_set : SklearnDataset
             A dataset for which the labels are to be predicted.
-        return_proba : bool
+        return_proba : bool, default=False
             If `True`, also returns a probability-like class distribution.
 
         Returns
@@ -118,15 +120,14 @@ class SklearnClassifier(Classifier):
 
 
 class ConfidenceEnhancedLinearSVC(LinearSVC):
-    """
-    Extends scikit-learn's LinearSVC class to provide confidence estimates.
+    """Extends scikit-learn's LinearSVC class to provide confidence estimates.
     """
 
     def __init__(self, linearsvc_kwargs=None):
         """
         Parameters
         ----------
-        linearsvc_kwargs : dict
+        linearsvc_kwargs : dict, default=None
             Kwargs for the LinearSVC superclass.
         """
         self.linearsvc_kwargs = dict() if linearsvc_kwargs is None else linearsvc_kwargs

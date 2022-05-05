@@ -12,10 +12,20 @@ def list_length(x):
 def check_training_data(train_set, validation_set):
     """Checks the given datasets' labels for validity.
 
+    Validity in this context means that no `LABEL_UNLABELED` must not occur in the labels of both
+    given datasets which usually should not happen anyway.
+
+    If you encounter a ValueError this indicates that there is likely a bug in your code.
+
     train_set : small_text.data.Dataset
         Any dataset.
     validation set : small_text.data.Dataset, optional
         Any dataset or None.
+
+    Raises
+    ------
+    ValueError
+        If either the given train set or validation set contains contains a `LABEL_UNLABELED` label.
     """
 
     if train_set.is_multi_label:

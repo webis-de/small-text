@@ -14,8 +14,7 @@ from small_text.classifiers.classification import EmbeddingMixin
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.classification import empty_result, get_splits
 from small_text.utils.context import build_pbar_context
-from small_text.utils.data import check_training_data
-from small_text.utils.data import list_length
+from small_text.utils.data import check_training_data, list_length
 from small_text.utils.datetime import format_timedelta
 from small_text.utils.labels import csr_to_list, get_num_labels
 from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
@@ -313,6 +312,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             Returns the current classifier with a fitted model.
         """
         check_training_data(train_set, validation_set)
+
         optimizer_or_scheduler_given = optimizer is not None or scheduler is not None
         if self.fine_tuning_arguments is not None and optimizer_or_scheduler_given:
             raise ValueError('When fine_tuning_arguments are provided you cannot pass '
