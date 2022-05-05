@@ -8,9 +8,7 @@ from scipy.sparse import csr_matrix
 from small_text.base import LABEL_IGNORED
 from small_text.exceptions import LearnerNotInitializedException
 from small_text.utils.data import list_length
-from small_text.utils.labels import concatenate
-from small_text.utils.labels import get_ignored_labels_mask
-from small_text.utils.labels import remove_by_index
+from small_text.utils.labels import concatenate, get_ignored_labels_mask, remove_by_index
 from small_text.version import __version__ as version
 
 
