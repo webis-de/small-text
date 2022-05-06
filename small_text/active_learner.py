@@ -383,16 +383,17 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
                 del self._clf
             self._clf = self._clf_factory.new()
 
-        x = self.dataset[self.indices_labeled]
+        dataset = self.dataset[self.indices_labeled].clone()
+        dataset.y = self.y
 
         if indices_validation is None:
-            self._clf.fit(x)
+            self._clf.fit(dataset)
         else:
             indices = np.arange(self.indices_labeled.shape[0])
             mask = np.isin(indices, indices_validation)
 
-            train = x[indices[~mask]]
-            valid = x[indices[mask]]
+            train = dataset[indices[~mask]]
+            valid = dataset[indices[mask]]
 
             self._clf.fit(train, validation_set=valid)
 
