@@ -22,7 +22,11 @@ class _ClassifierBaseFunctionalityTest(object):
         train_set = random_sklearn_dataset(10,
                                            num_classes=3 if self._is_multi_label() else 2,
                                            multi_label=self._is_multi_label())
-        train_set.y = np.array([LABEL_UNLABELED] * 10)
+
+        if self._is_multi_label():
+            train_set.y = csr_matrix(np.array([[LABEL_UNLABELED] * 3] * 10))
+        else:
+            train_set.y = np.array([LABEL_UNLABELED] * 10)
 
         classifier = self._get_clf()
 
@@ -91,12 +95,12 @@ class SklearnClassifierMultiLabelTest(unittest.TestCase, _ClassifierBaseFunction
         return True
 
     def test_fit_with_invalid_multi_label_data(self):
-        train_set = SklearnDataset(*random_matrix_data('dense',
-                                                       'sparse',
-                                                       num_samples=10,
-                                                       num_labels=3))
+        train_set = random_sklearn_dataset(10,
+                                           num_classes=3 if self._is_multi_label() else 2,
+                                           multi_label=self._is_multi_label())
         # possibility of error: more than one unique value in y.data
-        train_set.y.data = np.array([0] * 5 + [1] * 5, dtype=train_set.y.data.dtype)
+        train_set.y.data = np.random.choice([0, 1], train_set.y.indices.shape[0])
+        train_set.y.data[0:2] = [0, 1]
         clf = self._get_clf()
 
         expected_str = 'Invalid input: Given labeling must be recognized as multi-label'
