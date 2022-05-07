@@ -69,7 +69,8 @@ class QueryStrategiesTest(unittest.TestCase):
                                      'num_epochs': 2})
 
         active_learner = get_initialized_active_learner(clf_factory, query_strategy, dataset,
-                                                        initial_indices=num_initial)
+                                                        initial_indices=num_initial,
+                                                        num_classes=num_classes)
 
         for _ in range(3):
             active_learner.query()
