@@ -47,21 +47,21 @@ class KimCNN(nn.Module):
             Number of tokens contained in of the vocabulary.
         max_seq_length : int
             Maximum sequence length.
-        num_classes : int
+        num_classes : int, default=2
             Number of output classes.
-        out_channels : int
+        out_channels : int, default=100
             Number of output channels.
-        embed_dim : int
+        embed_dim : int, default=300
             Number of dimensions of a single embedding.
-        padding_idx : int
+        padding_idx : int, default=0
             Padding index (passed to the embedding layer).
-        kernel_heights : list of int
+        kernel_heights : list of int, default=[3, 4, 5]
             Kernels heights for the convolutions.
-        dropout : float
+        dropout : float, default=0.5
             Dropout Probability.
-        embedding_matrix : FloatTensor
+        embedding_matrix : torch.FloatTensor or torch.cuda.FloatTensor, default=None
             Embedding matrix in the shape (vocabulary_size, embed_dim).
-        freeze_embedding_layer : bool
+        freeze_embedding_layer : bool, default=False
             Training adapts the embedding matrix if `True`, otherwise the embeddings are frozen.
         """
         super().__init__()

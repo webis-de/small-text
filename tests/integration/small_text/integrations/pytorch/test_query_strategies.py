@@ -77,3 +77,24 @@ class QueryStrategiesTest(unittest.TestCase):
             active_learner.update(np.random.randint(2, size=query_size))
 
         self.assertEqual(query_size * 3 + num_initial, active_learner.indices_labeled.shape[0])
+
+
+@pytest.mark.pytorch
+class ExpectedGradientLengthMaxWordTest(unittest.TestCase):
+
+    def test_query_with_layer_name_that_is_no_embedding_layer(self, num_samples=100):
+        strategy = ExpectedGradientLengthMaxWord(4, 'fc', batch_size=100, device='cpu')
+
+        embedding_matrix = torch.FloatTensor(np.random.rand(num_samples, 5))
+        clf = KimCNNClassifier(2, embedding_matrix=embedding_matrix)
+        dataset = random_text_classification_dataset(num_samples=num_samples)
+
+        indices_labeled = np.random.choice(np.arange(num_samples), size=10, replace=False)
+        indices_unlabeled = np.array([i for i in range(len(dataset))
+                                      if i not in set(indices_labeled)])
+        clf.fit(dataset[indices_labeled])
+
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        with self.assertRaisesRegex(ValueError, 'Given parameter \(layer_name=fc\) is not'):
+            strategy.query(clf, dataset, indices_labeled, indices_unlabeled, y)

@@ -160,19 +160,26 @@ class ExpectedGradientLengthMaxWord(ExpectedGradientLength):
 
         self.layer_name = layer_name
 
-        # tensor that contains the unique word is for each item in the batch
+        # tensor of unique word ids
         self._words = None
 
     def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10, pbar=None):
 
+        if clf.model is None:
+            raise ValueError('Initial model must be trained!')
+
         assert_layer_exists(clf.model, self.layer_name)
+        modules = dict(clf.model.named_modules())
+        if not isinstance(modules[self.layer_name], torch.nn.Embedding):
+            raise ValueError(f'Given parameter (layer_name={self.layer_name}) '
+                             f'is not an embedding layer.')
+
         return super().query(clf, dataset, indices_unlabeled, indices_labeled, y, n=n, pbar=pbar)
 
     def compute_gradient_lengths(self, clf, criterion, gradient_lengths, offset, x):
 
         self._words = torch.unique(x, dim=1).to(self.device)
 
-        # TODO: assert layer_name is embedding layer
         batch_len = x.size(0)
         all_classes = torch.cuda.LongTensor([batch_len * [i]
                                              for i in range(self.num_classes)])
@@ -192,7 +199,7 @@ class ExpectedGradientLengthMaxWord(ExpectedGradientLength):
                 clf.model.zero_grad()
                 loss[k].backward(retain_graph=True)
 
-                # difference to ExpectedGradientLength: compute_gradients takes texts as argument
+                # Contrary to ExpectedGradientLength, compute_gradients operates on text
                 self.compute_gradient_length(clf, x, sm, gradients, j, k)
 
         self.aggregate_gradient_lengths_batch(batch_len, gradient_lengths, gradients, offset)
@@ -233,9 +240,9 @@ class ExpectedGradientLengthLayer(ExpectedGradientLength):
         Parameters
         ----------
         num_classes : int
-            The number of classes.
+            Number of classes.
         layer_name : str
-            The name of the target layer.
+            Name of the target layer.
         batch_size : int, default=50
             Batch size in which the query strategy scores the instances.
         """

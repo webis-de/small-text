@@ -1,6 +1,7 @@
 import unittest
 
 import pytest
+import numpy as np
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
@@ -9,6 +10,9 @@ try:
         BADGE,
         ExpectedGradientLength,
         ExpectedGradientLengthMaxWord)
+    from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
+
+    from tests.utils.datasets import random_text_classification_dataset
 except PytorchNotFoundError:
     pass
 
@@ -71,3 +75,17 @@ class ExpectedGradientLengthMaxWordTest(unittest.TestCase):
         self.assertEqual(100, strategy.batch_size)
         self.assertEqual('cpu', strategy.device)
         self.assertEqual('embedding', strategy.layer_name)
+
+    def test_query_with_initial_model_untrained(self, num_samples=100):
+        strategy = ExpectedGradientLengthMaxWord(4, 'fc', batch_size=100, device='cpu')
+
+        clf = KimCNNClassifier(2, embedding_matrix=np.random.rand(num_samples, 5))
+        dataset = random_text_classification_dataset(num_samples=num_samples)
+
+        indices_labeled = np.random.choice(np.arange(num_samples), size=10, replace=False)
+        indices_unlabeled = np.array([i for i in range(len(dataset))
+                                      if i not in set(indices_labeled)])
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+        with self.assertRaisesRegex(ValueError, 'Initial model must be trained'):
+            strategy.query(clf, dataset, indices_labeled, indices_unlabeled, y)

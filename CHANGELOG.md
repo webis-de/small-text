@@ -1,5 +1,12 @@
 # Changelog
 
+## [Next] - unreleased
+
+### Changed
+
+- Query Strategies:
+  - [ExpectedGradientLengthMaxWord](https://github.com/webis-de/small-text/blob/master/small_text/integrations/pytorch/query_strategies/strategies.py): Cleaned up code and added checks to detect invalid configurations.
+
 ## [1.0.0b4] - 2022-05-04
 
 ### Added
