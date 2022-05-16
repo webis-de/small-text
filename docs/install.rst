@@ -25,7 +25,7 @@ Whenever possible, we try to keep most dependencies optional to avoid dependency
 Dependending on the classifier of your choice, you might need additional python libraries.
 
 .. note:: The `Pytorch` and `Transformers` Integrations are best used with a CUDA-capable GPU.
-          You need a CUDA version |CUDA_VERSION| or newer, and your GPU must also support that specific version.
+          You need CUDA version |CUDA_VERSION| or newer, and your GPU must also support that specific version.
 
 
 .. _installation-pytorch:
