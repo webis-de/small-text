@@ -124,7 +124,7 @@ A preprint which introduces small-text is available here:
 
 [documentation_main]: https://small-text.readthedocs.io/en/v1.0.0b4/
 [documentation_install]: https://small-text.readthedocs.io/en/v1.0.0b4/install.html
-[changelog]: https://small-text.readthedocs.io/en/latest/changelog.html]
+[changelog]: https://small-text.readthedocs.io/en/latest/changelog.html
 [changelog_1.0.0b1]: https://small-text.readthedocs.io/en/latest/changelog.html#b1-2022-02-22
 [changelog_1.0.0b3]: https://small-text.readthedocs.io/en/latest/changelog.html#b3-2022-03-06
 [changelog_1.0.0b4]: https://small-text.readthedocs.io/en/latest/changelog.html#b4-2022-05-04
