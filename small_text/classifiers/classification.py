@@ -133,19 +133,19 @@ class ConfidenceEnhancedLinearSVC(LinearSVC):
         self.linearsvc_kwargs = dict() if linearsvc_kwargs is None else linearsvc_kwargs
         super().__init__(**self.linearsvc_kwargs)
 
-    def predict(self, data_set, return_proba=False):
+    def predict(self, x, return_proba=False):
 
         if return_proba:
-            proba = self.predict_proba(data_set)
+            proba = self.predict_proba(x)
 
             target_class = np.argmax(proba, axis=1)
             return target_class, proba
         else:
-            return super().predict(data_set)
+            return super().predict(x)
 
-    def predict_proba(self, data_set):
+    def predict_proba(self, x):
 
-        scores = self.decision_function(data_set)
+        scores = self.decision_function(x)
         if len(scores.shape) == 1:
             proba = np.zeros((scores.shape[0], 2))
             scores = np.apply_along_axis(self._sigmoid, -1, scores)
