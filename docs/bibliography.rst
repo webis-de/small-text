@@ -26,9 +26,9 @@ Bibliography
    In Proceedings of the Thirteenth Conference on Computational Natural Language Learning (CoNLL '09).
    Association for Computational Linguistics, USA, 39–47.
 
-.. [Set10] Burr Settles.
+.. [Set10] Burr Settles. 2010.
    Active Learning Literature Survey.
-   Computer Sciences Technical Report 1648 University of Wisconsin–Madison, 2010.
+   Computer Sciences Technical Report 1648 University of Wisconsin–Madison.
 
 .. [ZLW17] Ye Zhang, Matthew Lease, and Byron C. Wallace. 2017.
    Active discriminative text representation learning.
@@ -68,6 +68,6 @@ Bibliography
    Active Learning by Acquiring Contrastive Examples.
    In Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing, pages 650–663.
 
-.. [SNP21] Christopher Schröder, Andreas Niekler and Martin Potthast.
+.. [SNP21] Christopher Schröder, Andreas Niekler and Martin Potthast. 2021.
    Uncertainty-based Query Strategies for Active Learning with Transformers.
-   ArXiv abs/2107.05687, 2021.
+   ArXiv abs/2107.05687.
