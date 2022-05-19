@@ -1,12 +1,39 @@
 # Contributing to Small-Text
 
-Contributions are always welcome.
+Contributions are always welcome. We need help, among others, in the form of code or 
+documentation.
+
+❤️ Even if you tend to doubt yourself, we encourage you to try and pick a small part 
+of small-text that can be improved.
+*Every little bit of effort is appeciated and we welcome everyone who is willing to learn.*
+
+[Click here to see the list of contributors.](CONTRIBUTORS.md)
+
+---
+
+## Table of Contents
+
+1. [How to Contribute](#how-to-contribute)
+2. [Development](#development)
+3. [Documentation](#documentation)
+4. [Workflows](#workflows)
+
+---
+
+## License / Preliminaries
 
 **Important:** By contributing you agree to the following:
 
 1. License: This project is licensed under the MIT License (see [LICENSE](LICENSE)).
     By contributing you agree to license your contributions under this license as well.
 2. All contributions are subject to the [Developer Certificate of Origin](DCO.md).
+
+You are responsible to guarantee that the code is a) either written by yourself or,
+or b) that it is both usable under the MIT License **and** properly attributed.
+*Please mark any code fragments that you did not write yourself in the code and mention them in 
+the pull request so that a second person can review this.*
+
+---
 
 ## How to Contribute
 
@@ -24,6 +51,8 @@ Contributions are always welcome.
     cd docs && make doctest
     ```
 
+---
+
 ## Development
 
 ### Code Conventions
@@ -36,7 +65,7 @@ flake8
 
 ### Building the Documentation
 
-The documentation (currently work in progress) can be generated using sphinx:
+The documentation can be generated using sphinx:
 
 ```bash
 pip install sphinx sphinx-rtd-theme
@@ -56,17 +85,37 @@ This pipeline checks the following:
 - Checks if the examples can be executed successfully.
 - Checks whether the documentation can be built.
 
-## Documentation Conventions
+---
 
-### Spellings
+## Documentation
+
+This section refers to the (sphinx) online documentation. 
+This may include adapting certain parts of the docstrings but the focus here is the final result.
+See the subsection under [Development](#development) on [how to build the documentation](#building-the-documentation).
+
+### Documentation Conventions
+
+The paradigma here is that 1. the same thing should unambiguously be referred to in the same way 
+(i.e. don't use different names or spellings for one single concept) and 2. similar things should be treated in the same way.
+
+#### General
+
+We use [numpydoc docstrings](https://numpydoc.readthedocs.io/en/latest/format.html).
+
+#### Spellings
 
 - multi-label instead of multi label (analogous: multi-class)
 - dataset instead of data set (but: train set, test set)
 
+---
 
-## Release Checklist
+## Workflows
 
-### Raising the Version
+### Release Checklist
+
+The following steps need to be done before a new release can be created. 
+
+#### Raising the Version
 
 - Update small_text/version.json
 - examples/notebooks: Set the small-text version to the new release.
@@ -77,7 +126,7 @@ This pipeline checks the following:
   - Make sure the changelog is complete
 - Update the "News" section in README.md
 
-### Checking for Correctness
+#### Checking for Correctness
 
 - Check every step of the above Pull Request Checklist
 - Check if the CI Pipeline runs successfully
@@ -87,7 +136,7 @@ This pipeline checks the following:
     sphinx-build SOURCEDIR OUTPUTDIR -b doctest
     ```
 
-### Finalizing
+### Create a Release
 
 - Create a git tag: `v<VERSION>` (e.g., v1.0.0)
 - Push tags and code to github
@@ -99,11 +148,3 @@ This pipeline checks the following:
 - Create a release on testpypi
   - If successful: Create a release on pypi
 - Create a release on github
-
-## Contributors
-
-Thanks goes to...
-
-- Erik Körner ([@Querela](https://github.com/querela)), for the help with packaging and CI.
-
-And to the many testers who gave their feedback.
