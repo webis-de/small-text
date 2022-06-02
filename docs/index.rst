@@ -32,7 +32,7 @@ Getting Started
    classification
 
 - Start: :doc:`install` | :doc:`Active Learning Overview<active_learning>`
-- Examples: `Notebooks <https://github.com/webis-de/small-text/tree/main/examples/notebooks>`_ | `Code Examples <https://github.com/webis-de/small-text/tree/main/examples/examplecode>`_
+- Examples: `Notebooks <https://github.com/webis-de/small-text#notebooks>`_ | `Code Examples <https://github.com/webis-de/small-text/tree/main/examples/examplecode>`_
 
 .. toctree::
    :caption: Components
@@ -67,12 +67,12 @@ Citation
 ========
 
 | A preprint which introduces small-text is available here:
-| `Small-text: Active Learning for Text Classification in Python <https://arxiv.org/abs/2107.10314>`_.
+| `Small-Text: Active Learning for Text Classification in Python <https://arxiv.org/abs/2107.10314>`_.
 
 .. code-block:: text
 
     @misc{schroeder2021smalltext,
-        title={Small-text: Active Learning for Text Classification in Python},
+        title={Small-Text: Active Learning for Text Classification in Python},
         author={Christopher Schröder and Lydia Müller and Andreas Niekler and Martin Potthast},
         year={2021},
         eprint={2107.10314},
