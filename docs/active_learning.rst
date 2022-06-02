@@ -59,7 +59,7 @@ unlabeled data will be labeled next. They are the most critical component as the
 both the effectiveness as well as the efficiency. Moreover, they exists in many different forms,
 which can yield different results and varying runtimes. In case you are not sure which one to choose:
 Uncertainty-based query strategies [LG94]_ have been shown to be a strong (and conceptually simple)
-baseline for both traditional and modern [SNP21]_ classification models.
+baseline for both traditional and modern [SNP22]_ classification models.
 
 Stopping Criteria
 -----------------

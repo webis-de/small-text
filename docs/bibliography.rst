@@ -66,8 +66,8 @@ Bibliography
 
 .. [MVB+21] Katerina Margatina, Giorgos Vernikos, Loïc Barrault, and Nikolaos Aletras. 2021.
    Active Learning by Acquiring Contrastive Examples.
-   In Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing, pages 650–663.
+   In Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing (EMNLP), pages 650–663.
 
-.. [SNP21] Christopher Schröder, Andreas Niekler and Martin Potthast. 2021.
-   Uncertainty-based Query Strategies for Active Learning with Transformers.
-   ArXiv abs/2107.05687.
+.. [SNP22] Christopher Schröder, Andreas Niekler and Martin Potthast. 2022.
+   Revisiting Uncertainty-based Query Strategies for Active Learning with Transformers.
+   In Findings of the Association for Computational Linguistics: ACL 2022, pages 2194–2203.
