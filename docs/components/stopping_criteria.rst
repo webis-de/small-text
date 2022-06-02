@@ -4,7 +4,7 @@
 Stopping Criteria
 =================
 
-Stopping criteria provide you an indication when to exit the active learning loop.
+Stopping criteria indicate when to exit the active learning loop.
 
 Pre-implemented Stopping Criteria
 =================================

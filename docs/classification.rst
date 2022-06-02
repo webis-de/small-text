@@ -3,14 +3,14 @@ Classification
 ==============
 
 In order to use different models, query strategies, and stopping criteria from the active learner,
-we have developed classification abstractions that provide an unified interface.
+we provide classification abstractions to allow for a unified interface.
 
 Interface
 =========
 
 The classifier interface is very simple and scikit-learn-like, with the difference that it operates on
 :py:class:`Datasets<small_text.data.datasets.Dataset>` objects. Call the :code:`fit()` method with a
-training set as argument to train your classifier, and use :code:`predict()` to get a prediction.
+training set as argument to train your classifier, and use :code:`predict()` to obtain predictions.
 
 .. literalinclude:: ../small_text/classifiers/classification.py
    :pyobject: Classifier

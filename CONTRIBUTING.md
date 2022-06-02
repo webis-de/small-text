@@ -104,6 +104,7 @@ We use [numpydoc docstrings](https://numpydoc.readthedocs.io/en/latest/format.ht
 
 #### Spellings
 
+- "small-text" is preferred over "Small-Text" in cases where the first letter is capitalized the latter should be used
 - multi-label instead of multi label (analogous: multi-class)
 - dataset instead of data set (but: train set, test set)
 

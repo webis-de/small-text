@@ -17,20 +17,42 @@ class Classifier(ABC):
 
     @abstractmethod
     def fit(self, train_set):
+        """Trains the model using the given train set.
+
+        Parameters
+        ----------
+        train_set : Dataset
+            The dataset used for training the model.
+        """
         pass
 
     @abstractmethod
     def predict(self, data_set, return_proba=False):
+        """Predicts the labels for each sample in the given dataset.
+
+        Parameters
+        ----------
+        data_set : Dataset
+            A dataset for which the labels are to be predicted.
+        return_proba : bool, default=False
+            If `True`, also returns a probability-like class distribution.
+        """
         pass
 
     @abstractmethod
     def predict_proba(self, data_set):
+        """Predicts the label distribution for each sample in the given dataset.
+
+        Parameters
+        ----------
+        data_set : Dataset
+            A dataset for which the labels are to be predicted.
+        """
         pass
 
 
 class SklearnClassifier(Classifier):
-    """
-    An adapter for using scikit-learn estimators.
+    """An adapter for using scikit-learn estimators.
 
     Notes
     -----
@@ -58,8 +80,7 @@ class SklearnClassifier(Classifier):
         self.multi_label = multi_label
 
     def fit(self, train_set):
-        """
-        Trains the model using the given train set.
+        """Trains the model using the given train set.
 
         Parameters
         ----------

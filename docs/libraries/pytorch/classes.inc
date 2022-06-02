@@ -14,4 +14,5 @@ Models
 
 Classification
 ==============
-
+.. autoclass:: small_text.integrations.pytorch.classifiers.kimcnn.KimCNNClassifier
+    :members:

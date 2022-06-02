@@ -7,8 +7,27 @@ represent text data for :doc:`single-label and multi-label classification<classi
 Besides features and labels, these datasets also hold meta information about the underlying data, namely the number of classes and
 whether the labeling is single- or multi-label.
 
-Basic Data Structures
-=====================
+Dataset Overview
+================
+
+While all the other components are mostly unified, for the datasets the respective
+dataset and classifier have to match, since the underlying representations can be quite different.
+
+.. table::
+   :widths: 50 50
+
+   +----------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+
+   | Dataset Implementation                                                                 | Classifier(s)                                                                                               |
+   +----------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+
+   | :py:class:`~small_text.data.datasets.SklearnDataset`                                   | :py:class:`~small_text.classifiers.classification.SklearnClassifier`                                        |
+   +----------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+
+   | :py:class:`~small_text.integrations.pytorch.datasets.PytorchTextClassificationDataset` | :py:class:`~small_text.integrations.pytorch.classifiers.kimcnn.KimCNNClassifier`                            |
+   +----------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+
+   | :py:class:`~small_text.integrations.transformers.datasets.TransformersDataset`         | :py:class:`~small_text.integrations.transformers.classifiers.classification.TransformerBasedClassification` |
+   +----------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+
+
+SklearnDatasets
+===============
 
 Disregarding any integrations, small-text's core is built around dense (numpy) and sparse (scipy)
 matrices, which can be easily used for active learning via :py:class:`~small_text.data.datasets.SklearnDataset`.
@@ -169,8 +188,8 @@ bring their own Datasets (each subclassing :py:class:`~small_text.data.datasets.
 which rely on different representations and bring additional methods for handling GPU-related operations.
 
 
-Further Extensions
-==================
+Building your own Dataset implementation
+========================================
 
 In general, any data structure handled by your classifier can be implemented.
 Custom Datasets should work with existing parts of the library, providing the following

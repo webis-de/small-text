@@ -2,7 +2,7 @@
 Active Learning
 ===============
 
-`Active learning <https://en.wikipedia.org/wiki/Active_learning_(machine_learning)>` aims at creating training data for classification algorithms in a very efficient manner,
+`Active learning <https://en.wikipedia.org/wiki/Active_learning_(machine_learning)>`_ aims at creating training data for classification algorithms in a very efficient manner,
 for cases in which a large amount of unlabeled data is available but labels are not.
 Labeling such data is usually time-consuming and expensive.
 To avoid having to label the full dataset,
