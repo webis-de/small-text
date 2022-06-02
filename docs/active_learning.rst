@@ -17,7 +17,7 @@ Components
 
 .. py:currentmodule:: small_text.active_learner
 
-An active learning process can encompasses several, usually interchangeable components:
+An active learning process encompasses several, usually interchangeable components:
 An :doc:`initalization strategy<components/initialization>`,
 a :doc:`query strategy<components/query_strategies>`,
 and (optionally) a :doc:`stopping criterion<components/stopping_criteria>`.
