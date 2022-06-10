@@ -32,7 +32,7 @@ class DeltaFScoreTest(unittest.TestCase):
 
     def test_init_multiclass(self):
         with self.assertRaises(ValueError):
-            stopping_criterion = DeltaFScore(3)
+            DeltaFScore(3)
 
     def test_first_stop_call(self):
         stopping_criterion = DeltaFScore(2)

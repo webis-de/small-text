@@ -96,5 +96,6 @@ class ExpectedGradientLengthMaxWordTest(unittest.TestCase):
 
         y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
 
-        with self.assertRaisesRegex(ValueError, 'Given parameter \(layer_name=fc\) is not'):
+        with self.assertRaisesRegex(ValueError,
+                                    r'Given parameter \(layer_name=fc\) is not'):
             strategy.query(clf, dataset, indices_labeled, indices_unlabeled, y)

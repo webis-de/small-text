@@ -842,5 +842,5 @@ class SEALSTest(unittest.TestCase):
 
     def test_init(self):
         with self.assertRaisesRegex(MissingOptionalDependencyError,
-                               'The optional dependency \'hnswlib\''):
+                                    'The optional dependency \'hnswlib\''):
             SEALS(LeastConfidence())
