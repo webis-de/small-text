@@ -15,6 +15,12 @@ def check_size(expected_num_samples, num_samples):
                          f'encountered {num_samples} samples')
 
 
+def check_dataset_and_labels(x, y):
+    if x.shape[0] != y.shape[0]:
+        raise ValueError(f'Feature and label dimensions do not match: '
+                         f'x.shape = {x.shape}, y.shape= {y.shape} ### {type(x)} / {type(y)}')
+
+
 def get_updated_target_labels(is_multi_label, y, target_labels):
 
     if is_multi_label:
@@ -130,14 +136,6 @@ class SklearnDatasetView(DatasetView):
         self.obj_class = type(self)
         self._dataset = dataset
 
-        """if isinstance(selection, int):
-            if issparse(dataset.x):
-                self.selection = selection
-            else:
-                # TODO: only for .x not for .y
-                self.selection = np.s_[np.newaxis, selection]
-        else:
-            self.selection = selection"""
         self.selection = selection
 
     @property
@@ -154,7 +152,11 @@ class SklearnDatasetView(DatasetView):
 
     @property
     def y(self):
-        return self.dataset.y[self.selection]
+        y_result = self.dataset.y[self.selection]
+        if self.is_multi_label:
+            return y_result
+        else:
+            return np.atleast_1d(y_result)
 
     @y.setter
     def y(self, y):
@@ -202,7 +204,7 @@ def is_multi_label(y):
 
 
 def select(dataset, selection):
-    if isinstance(selection, int) and not issparse(dataset.x):
+    if isinstance(selection, (int, np.integer)) and not issparse(dataset.x):
         return np.s_[np.newaxis, selection]
     return selection
 
@@ -221,10 +223,10 @@ class SklearnDataset(Dataset):
             List of labels where each label belongs to the features of the respective row.
         target_labels : numpy.ndarray[int] or None, default=None
             List of possible labels. Will be inferred from `y` if `None` is passed."""
+        check_dataset_and_labels(x, y)
+
         self._x = x
         self._y = y
-
-        # TODO: check that x and y have the same size (also on re-assignment)
 
         self.multi_label = is_multi_label(self._y)
 
@@ -251,6 +253,7 @@ class SklearnDataset(Dataset):
 
     @x.setter
     def x(self, x):
+        check_dataset_and_labels(x, self._y)
         self._x = x
 
     @property
@@ -259,6 +262,7 @@ class SklearnDataset(Dataset):
 
     @y.setter
     def y(self, y):
+        check_dataset_and_labels(self.x, y)
         self._y = y
 
         self.target_labels = get_updated_target_labels(self.is_multi_label, y, self.target_labels)
@@ -280,7 +284,6 @@ class SklearnDataset(Dataset):
 
     @target_labels.setter
     def target_labels(self, target_labels):
-        # TODO: how to handle existing labels that are outside this set
         self._target_labels = target_labels
 
     def clone(self):
@@ -304,21 +307,20 @@ class SklearnDataset(Dataset):
 
 
 def split_data(train_set, y=None, strategy='random', validation_set_size=0.1, return_indices=False):
-    """
-    Splits the given set `train_set` into two subsets (`sub_train` and `sub_valid`) according to
+    """Splits the given set `train_set` into two subsets (`sub_train` and `sub_valid`) according to
     a specified strategy.
 
     Parameters
     ----------
     train_set : Dataset
         A training dataset that should be split.
-    y : np.ndarray [int]
+    y : np.ndarray[int]
         Labels for the train set.
-    strategy : {'random', 'balanced', 'stratified'}
+    strategy : {'random', 'balanced', 'stratified'}, default='random'
         The strategy used for splitting.
-    validation_set_size : float
+    validation_set_size : float, default=0.1
         Fraction of the input size that will be the size of the validation set.
-    return_indices : bool
+    return_indices : bool, default=False
         Returns two lists (np.ndarray[int]) of indices instead of two subsets if True.
 
     Returns

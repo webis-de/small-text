@@ -69,6 +69,19 @@ class SklearnDatasetTest(unittest.TestCase):
         else:
             self.assertFalse(ds.is_multi_label)
 
+    def test_init_with_dimension_mismatch(self):
+        ds, x, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
+
+        if self.labels_type == 'sparse':
+            mask = np.ones(self.NUM_SAMPLES, dtype=bool)
+            mask[0] = False
+            y = y[mask]
+        else:
+            y = np.delete(y, 0)
+
+        with self.assertRaisesRegex(ValueError, 'Feature and label dimensions do not match'):
+            SklearnDataset(x, y, target_labels=ds.target_labels)
+
     def test_init_when_some_samples_are_unlabeled(self):
 
         x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=self.NUM_SAMPLES)
@@ -114,6 +127,19 @@ class SklearnDatasetTest(unittest.TestCase):
         else:
             self.assertTrue((ds.x != ds_new.x).nnz == 0)
 
+    def test_set_features_with_dimension_mismatch(self):
+        ds, x, _ = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
+
+        if self.matrix_type == 'sparse':
+            mask = np.ones(self.NUM_SAMPLES, dtype=bool)
+            mask[0] = False
+            x = x[mask]
+        else:
+            x = np.delete(x, 0)
+
+        with self.assertRaisesRegex(ValueError, 'Feature and label dimensions do not match'):
+            ds.x = x
+
     def test_get_labels(self):
         ds, _, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
         assert_labels_equal(y, ds.y)
@@ -131,6 +157,19 @@ class SklearnDatasetTest(unittest.TestCase):
         ds.y = ds_new.y
         assert_labels_equal(y_new, ds.y)
         assert_array_equal(np.arange(num_labels+1), ds.target_labels)
+
+    def test_set_labels_with_dimension_mismatch(self):
+        ds, _, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
+
+        if self.labels_type == 'sparse':
+            mask = np.ones(self.NUM_SAMPLES, dtype=bool)
+            mask[0] = False
+            y = y[mask]
+        else:
+            y = np.delete(y, 0)
+
+        with self.assertRaisesRegex(ValueError, 'Feature and label dimensions do not match'):
+            ds.y = y
 
     def test_is_multi_label(self):
         ds = self._dataset(num_samples=self.NUM_SAMPLES)
