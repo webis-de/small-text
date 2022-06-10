@@ -69,7 +69,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
         self.assertIsNone(classifier.criterion)
         self.assertEqual(0.1, classifier.validation_set_size)
         self.assertEqual(1, classifier.validations_per_epoch)
-        self.assertEqual('sample', classifier.no_validation_set_action)
         self.assertEqual(5, classifier.early_stopping_no_improvement)
         self.assertEqual(-1, classifier.early_stopping_acc)
         self.assertTrue(classifier.model_selection)
@@ -89,7 +88,15 @@ class TestTransformerBasedClassification(unittest.TestCase):
         mini_batch_size = 24
         validation_set_size = 0.05
         validations_per_epoch = 5
-        no_validation_set_action = 'sample'
+        early_stopping_no_improvement = 10
+        early_stopping_acc = 0.99
+        model_selection = True
+        fine_tuning_arguments = FineTuningArguments('bert-base-uncased')
+        device = 'cuda'
+        memory_fix = 1
+        class_weight = 'balanced'
+        verbosity = VERBOSITY_MORE_VERBOSE,
+        cache_dir = '.active_learning_lib_cache/'
 
         classifier = TransformerBasedClassification(model_args,
                                                     num_classes,
@@ -97,8 +104,7 @@ class TestTransformerBasedClassification(unittest.TestCase):
                                                     lr=lr,
                                                     mini_batch_size=mini_batch_size,
                                                     validation_set_size=validation_set_size,
-                                                    validations_per_epoch=validations_per_epoch,
-                                                    no_validation_set_action=no_validation_set_action)
+                                                    validations_per_epoch=validations_per_epoch)
 
         self.assertEqual(num_classes, classifier.num_classes)
         self.assertEqual(multi_label, classifier.multi_label)
@@ -107,8 +113,15 @@ class TestTransformerBasedClassification(unittest.TestCase):
         self.assertEqual(mini_batch_size, classifier.mini_batch_size)
         self.assertEqual(validation_set_size, classifier.validation_set_size)
         self.assertEqual(validations_per_epoch, classifier.validations_per_epoch)
-        self.assertEqual(no_validation_set_action, classifier.no_validation_set_action)
-        # TODO: incomplete
+        self.assertEqual(early_stopping_no_improvement, classifier.early_stopping_no_improvement)
+        self.assertEqual(early_stopping_acc, classifier.early_stopping_acc)
+        self.assertEqual(model_selection, classifier.model_selection)
+        self.assertEqual(fine_tuning_arguments, classifier.fine_tuning_arguments)
+        self.assertEqual(device, classifier.device)
+        self.assertEqual(memory_fix, classifier.memory_fix)
+        self.assertEqual(class_weight, classifier.class_weight)
+        self.assertEqual(verbosity, classifier.verbosity)
+        self.assertEqual(cache_dir, classifier.cache_dir)
 
     def test_fit_where_y_train_contains_unlabeled(self):
         train_set = random_transformer_dataset(10)

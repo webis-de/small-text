@@ -195,8 +195,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         self.enc_ = None
 
     def fit(self, train_set, validation_set=None, optimizer=None, scheduler=None):
-        """
-        Trains the model using the given train set.
+        """Trains the model using the given train set.
 
         Parameters
         ----------

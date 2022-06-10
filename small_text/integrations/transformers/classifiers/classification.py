@@ -126,8 +126,7 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
     def embed(self, data_set, return_proba=False, embedding_method=EMBEDDING_METHOD_AVG,
               hidden_layer_index=-1, pbar='tqdm'):
-        """
-        Embeds each sample in the given `data_set`.
+        """Embeds each sample in the given `data_set`.
 
         The embedding is created by using hidden representation from the transformer model's
         representation in the hidden layer at the given `hidden_layer_index`.
@@ -138,9 +137,9 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
             Also return the class probabilities for `data_set`.
         embedding_method : str
             Embedding method to use [avg, cls].
-        hidden_layer_index : int
+        hidden_layer_index : int, default=-1
             Index of the hidden layer.
-        pbar : 'tqdm' or None
+        pbar : 'tqdm' or None, default='tqdm'
             Displays a progress bar if 'tqdm' is passed.
 
         Returns
@@ -207,10 +206,9 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
     def __init__(self, transformer_model, num_classes, multi_label=False, num_epochs=10, lr=2e-5,
                  mini_batch_size=12, validation_set_size=0.1, validations_per_epoch=1,
-                 no_validation_set_action='sample', early_stopping_no_improvement=5,
-                 early_stopping_acc=-1, model_selection=True, fine_tuning_arguments=None,
-                 device=None, memory_fix=1, class_weight=None, verbosity=VERBOSITY_MORE_VERBOSE,
-                 cache_dir='.active_learning_lib_cache/'):
+                 early_stopping_no_improvement=5, early_stopping_acc=-1, model_selection=True,
+                 fine_tuning_arguments=None, device=None, memory_fix=1, class_weight=None,
+                 verbosity=VERBOSITY_MORE_VERBOSE, cache_dir='.active_learning_lib_cache/'):
         """
         Parameters
         ----------
@@ -218,36 +216,36 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             Settings for transformer model, tokenizer and config.
         num_classes : int
             Number of classes.
-        num_epochs : int
+        multi_label : bool, default=False
+            If `False`, the classes are mutually exclusive, i.e. the prediction step results in
+            exactly one predicted label per instance.
+        num_epochs : int, default=10
             Epochs to train.
-        lr : float
+        lr : float, default=2e-5
             Learning rate.
-        mini_batch_size : int
+        mini_batch_size : int, default=12
             Size of mini batches during training.
-
-        validation_set_size : float
-            The sizes of the validation as a fraction of the training set if no validation set
-            is passed and `no_validation_set_action` is set to 'sample'.
-        validations_per_epoch : int
+        validation_set_size : float, default=0.1
+            The sizes of the validation as a fraction of the training set.
+        validations_per_epoch : int, default=1
             Defines how of the validation set is evaluated during the training of a single epoch.
-        no_validation_set_action : {'sample', 'none}
-            Defines what should be done of no validation set is given.
-        early_stopping_no_improvement :
-
-        early_stopping_acc :
-
-        model_selection :
-
-        fine_tuning_arguments : FineTuningArguments
-
-        device : str or torch.device
+        early_stopping_no_improvement : int, default=5
+            Number of epochs of no improvement in validation loss until early stopping is triggered.
+        early_stopping_acc : float, default=-1
+            Accuracy threshold in the interval (0, 1] whose exceeding triggers early stopping.
+        model_selection : bool, default=True
+            If True, model selects first saves the model after each epoch. At the end of the
+            training step the model with the lowest validation error is selected.
+        fine_tuning_arguments : FineTuningArguments or None, default=None
+            Fine tuning arguments.
+        device : str or torch.device, device=None
             Torch device on which the computation will be performed.
-        memory_fix : int
-            If this value if greater zero, every `memory_fix`-many epochs the cuda cache will be
-            emptied to force unused GPU memory being released.
-
-        class_weight : 'balanced' or None
-
+        memory_fix : int, default=1
+            If this value is greater than zero, every `memory_fix`-many epochs the cuda cache will
+            be emptied to force unused GPU memory being released.
+        class_weight : 'balanced' or None, default=None
+            If 'balanced', then the loss function is weighted inversely proportional to the
+            label distribution to the current train set.
         """
         super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size)
 
@@ -266,10 +264,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         self.validation_set_size = validation_set_size
         self.validations_per_epoch = validations_per_epoch
-        # 'sample' or 'none'
-        self.no_validation_set_action = no_validation_set_action
 
-        # Huggingface
         self.transformer_model = transformer_model
 
         # Other
@@ -297,13 +292,13 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         ----------
         train_set : TransformersDataset
             Training set.
-        validation_set : TransformersDataset
+        validation_set : TransformersDataset, default=None
             A validation set used for validation during training, or `None`. If `None`, the fit
             operation will split apart a subset of the trainset as a validation set, whose size
             is set by `self.validation_set_size`.
-        optimizer : torch.optim.optimizer.Optimizer
+        optimizer : torch.optim.optimizer.Optimizer or None, default=None
             A pytorch optimizer.
-        scheduler :torch.optim._LRScheduler
+        scheduler : torch.optim._LRScheduler or None, default=None
             A pytorch scheduler.
 
         Returns
@@ -418,38 +413,11 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         for epoch in range(start_epoch, num_epochs):
             start_time = datetime.datetime.now()
 
-            if self.memory_fix and (epoch + 1) % self.memory_fix == 0:
-                torch.cuda.empty_cache()
-
-            self.model.train()
-
-            # TODO: extract this block after introducing a shared return type
-            if self.validations_per_epoch > 1:
-                num_batches = len(sub_train) // self.mini_batch_size \
-                              + int(len(sub_train) % self.mini_batch_size > 0)
-                if self.validations_per_epoch > num_batches:
-                    warnings.warn(
-                        f'validations_per_epoch={self.validations_per_epoch} is greater than '
-                        f'the maximum possible batches of {num_batches}',
-                        RuntimeWarning)
-                    validate_every = 1
-                else:
-                    validate_every = int(num_batches / self.validations_per_epoch)
-
-                train_loss, train_acc, valid_loss, valid_acc = self._train_loop_process_batches(
-                    sub_train,
-                    optimizer,
-                    scheduler,
-                    validate_every=validate_every,
-                    validation_set=sub_valid)
-            else:
-                train_loss, train_acc = self._train_loop_process_batches(
-                    sub_train,
-                    optimizer,
-                    scheduler)
-
-                if sub_valid is not None:
-                    valid_loss, valid_acc = self.validate(sub_valid)
+            train_acc, train_loss, valid_acc, valid_loss = self._train_loop_epoch(sub_train,
+                                                                                  sub_valid,
+                                                                                  epoch,
+                                                                                  optimizer,
+                                                                                  scheduler)
 
             timedelta = datetime.datetime.now() - start_time
 
@@ -479,6 +447,41 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
             if stopped:
                 break
+
+    def _train_loop_epoch(self, sub_train, sub_valid, epoch, optimizer, scheduler):
+
+        if self.memory_fix and (epoch + 1) % self.memory_fix == 0:
+            torch.cuda.empty_cache()
+
+        self.model.train()
+        if self.validations_per_epoch > 1:
+            num_batches = len(sub_train) // self.mini_batch_size \
+                          + int(len(sub_train) % self.mini_batch_size > 0)
+            if self.validations_per_epoch > num_batches:
+                warnings.warn(
+                    f'validations_per_epoch={self.validations_per_epoch} is greater than '
+                    f'the maximum possible batches of {num_batches}',
+                    RuntimeWarning)
+                validate_every = 1
+            else:
+                validate_every = int(num_batches / self.validations_per_epoch)
+
+            train_loss, train_acc, valid_loss, valid_acc = self._train_loop_process_batches(
+                sub_train,
+                optimizer,
+                scheduler,
+                validate_every=validate_every,
+                validation_set=sub_valid)
+        else:
+            train_loss, train_acc = self._train_loop_process_batches(
+                sub_train,
+                optimizer,
+                scheduler)
+
+            if sub_valid is not None:
+                valid_loss, valid_acc = self.validate(sub_valid)
+
+        return train_acc, train_loss, valid_acc, valid_loss
 
     def _train_loop_process_batches(self, sub_train_, optimizer, scheduler, validate_every=None,
                                     validation_set=None):
@@ -601,7 +604,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         ----------
         data_set : small_text.integrations.transformers.TransformerDataset
             A dataset on whose instances predictions are made.
-        return_proba : bool
+        return_proba : bool, default=False
             If True, additionally returns the confidence distribution over all classes.
 
         Returns
@@ -609,7 +612,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         predictions : np.ndarray[np.int32] or csr_matrix[np.int32]
             List of predictions if the classifier was fitted on single-label data,
             otherwise a sparse matrix of predictions.
-        probas : np.ndarray[np.float32] (optional)
+        probas : np.ndarray[np.float32], optional
             List of probabilities (or confidence estimates) if `return_proba` is True.
         """
         return super().predict(data_set, return_proba=return_proba)
