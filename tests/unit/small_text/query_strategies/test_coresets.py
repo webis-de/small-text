@@ -81,7 +81,7 @@ class GreedyCoresetTest(unittest.TestCase, SamplingStrategiesTests):
         strategy = self._get_query_strategy()
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
 
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices_unlabeled = []
@@ -152,7 +152,7 @@ class LightweightCoresetTest(unittest.TestCase, SamplingStrategiesTests):
         strategy = self._get_query_strategy()
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
 
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices_unlabeled = []

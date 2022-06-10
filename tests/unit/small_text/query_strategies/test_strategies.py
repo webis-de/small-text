@@ -139,7 +139,7 @@ class RandomSamplingTest(unittest.TestCase, SamplingStrategiesTests):
         strategy = RandomSampling()
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
 
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices_unlabeled = []
@@ -172,7 +172,7 @@ class BreakingTiesTest(unittest.TestCase, SamplingStrategiesTests):
         clf_mock.predict_proba = Mock(return_value=proba)
 
         dataset = SklearnDataset(np.random.rand(proba.shape[0], 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=proba.shape[0]))
         strategy = self._get_query_strategy()
         indices = strategy.query(clf_mock, dataset, np.arange(0, 4), np.array([]), np.array([]), n=2)
 
@@ -193,7 +193,7 @@ class BreakingTiesTest(unittest.TestCase, SamplingStrategiesTests):
         clf_mock.predict_proba = Mock(return_value=proba)
 
         dataset = SklearnDataset(np.random.rand(proba.shape[0], 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=proba.shape[0]))
         strategy = self._get_query_strategy()
         indices = strategy.query(clf_mock,
                                  dataset,
@@ -232,7 +232,7 @@ class LeastConfidenceTest(unittest.TestCase, SamplingStrategiesTests):
         clf_mock.predict_proba = Mock(return_value=proba)
 
         dataset = SklearnDataset(np.random.rand(proba.shape[0], 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=proba.shape[0]))
         strategy = self._get_query_strategy()
         indicies = strategy.query(clf_mock,
                                   dataset,
@@ -258,7 +258,7 @@ class LeastConfidenceTest(unittest.TestCase, SamplingStrategiesTests):
         clf_mock.predict_proba = Mock(return_value=proba)
 
         dataset = SklearnDataset(np.random.rand(proba.shape[0], 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=proba.shape[0]))
         strategy = self._get_query_strategy()
         indicies = strategy.query(clf_mock,
                                   dataset,
@@ -297,7 +297,7 @@ class PredictionEntropyTest(unittest.TestCase, SamplingStrategiesTests):
         clf_mock.predict_proba = Mock(return_value=proba)
 
         dataset = SklearnDataset(np.random.rand(proba.shape[0], 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=proba.shape[0]))
         strategy = self._get_query_strategy()
         indicies = strategy.query(clf_mock,
                                   dataset,
@@ -324,7 +324,7 @@ class PredictionEntropyTest(unittest.TestCase, SamplingStrategiesTests):
         clf_mock.predict_proba = Mock(return_value=proba)
 
         dataset = SklearnDataset(np.random.rand(proba.shape[0], 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=proba.shape[0]))
         strategy = self._get_query_strategy()
         indicies = strategy.query(clf_mock,
                                   dataset,
@@ -362,7 +362,7 @@ class SubSamplingTest(unittest.TestCase, SamplingStrategiesTests):
         strategy = self._get_query_strategy()
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
 
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices_unlabeled = []
@@ -419,7 +419,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
     def test_query_with_precomputed_embeddings(self, num_samples=100):
         clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, 2)
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices = np.arange(num_samples)
         mask = np.isin(indices, indices_labeled)
@@ -439,7 +439,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
     def test_query_when_embed_has_return_proba(self, num_samples=100):
         clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, 2)
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices = np.arange(num_samples)
         mask = np.isin(indices, indices_labeled)
@@ -471,7 +471,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
     def test_query_when_embed_has_no_return_proba(self, num_samples=100):
         clf = SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC, 2)
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices = np.arange(num_samples)
         mask = np.isin(indices, indices_labeled)
@@ -503,7 +503,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
     def test_query_with_nonexistent_embed_kwargs_and_no_return_proba(self, num_samples=100):
         clf = SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC, 2)
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices = np.arange(num_samples)
         mask = np.isin(indices, indices_labeled)
@@ -521,7 +521,7 @@ class EmbeddingBasedQueryStrategyTest(unittest.TestCase):
     def test_query_with_nonexistent_embed_kwargs_and_return_proba(self, num_samples=20):
         clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, 2)
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices = np.arange(num_samples)
         mask = np.isin(indices, indices_labeled)
@@ -544,7 +544,7 @@ class EmbeddingKMeansTest(unittest.TestCase):
         clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, num_classes)
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
 
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices_unlabeled = np.array([i for i in np.arange(100) if i not in set(indices_labeled)])
@@ -563,7 +563,7 @@ class EmbeddingKMeansTest(unittest.TestCase):
         clf = ConfidenceEnhancedLinearSVC()
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
 
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices_unlabeled = np.array([i for i in np.arange(100) if i not in set(indices_labeled)])
@@ -591,7 +591,7 @@ class EmbeddingKMeansTest(unittest.TestCase):
         clf = ConfidenceEnhancedLinearSVC()
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
 
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices_unlabeled = np.array([i for i in np.arange(100) if i not in set(indices_labeled)])
@@ -614,7 +614,7 @@ class EmbeddingKMeansTest(unittest.TestCase):
         clf = ConfidenceEnhancedLinearSVC()
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
 
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices_unlabeled = np.array(
@@ -646,7 +646,7 @@ class ContrastiveActiveLearningTest(unittest.TestCase):
         clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, num_classes)
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
 
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices_unlabeled = np.array([i for i in np.arange(100) if i not in set(indices_labeled)])
@@ -663,7 +663,7 @@ class ContrastiveActiveLearningTest(unittest.TestCase):
         clf = SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC, 2)
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
         embeddings = np.random.rand(num_samples, embedding_dim)
 
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
@@ -680,7 +680,7 @@ class ContrastiveActiveLearningTest(unittest.TestCase):
         clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, 2)
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
 
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices_unlabeled = np.array([i for i in np.arange(100) if i not in set(indices_labeled)])
@@ -704,7 +704,7 @@ class ContrastiveActiveLearningTest(unittest.TestCase):
         clf = SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC, 2)
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
 
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices_unlabeled = np.array([i for i in np.arange(100) if i not in set(indices_labeled)])
@@ -728,7 +728,7 @@ class ContrastiveActiveLearningTest(unittest.TestCase):
         clf = ConfidenceEnhancedLinearSVC()
 
         dataset = SklearnDataset(np.random.rand(num_samples, 10),
-                                 np.random.randint(0, high=2, size=10))
+                                 np.random.randint(0, high=2, size=num_samples))
 
         indices_labeled = np.random.choice(np.arange(100), size=10, replace=False)
         indices_unlabeled = np.array(

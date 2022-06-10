@@ -91,20 +91,31 @@ class TestTransformerBasedClassification(unittest.TestCase):
         early_stopping_no_improvement = 10
         early_stopping_acc = 0.99
         model_selection = True
-        fine_tuning_arguments = FineTuningArguments('bert-base-uncased')
+        fine_tuning_arguments = FineTuningArguments(5e-5, 0.99)
         device = 'cuda'
         memory_fix = 1
         class_weight = 'balanced'
         verbosity = VERBOSITY_MORE_VERBOSE,
         cache_dir = '.active_learning_lib_cache/'
 
-        classifier = TransformerBasedClassification(model_args,
-                                                    num_classes,
-                                                    num_epochs=num_epochs,
-                                                    lr=lr,
-                                                    mini_batch_size=mini_batch_size,
-                                                    validation_set_size=validation_set_size,
-                                                    validations_per_epoch=validations_per_epoch)
+        classifier = TransformerBasedClassification(
+            model_args,
+            num_classes,
+            num_epochs=num_epochs,
+            lr=lr,
+            mini_batch_size=mini_batch_size,
+            validation_set_size=validation_set_size,
+            validations_per_epoch=validations_per_epoch,
+            early_stopping_no_improvement=early_stopping_no_improvement,
+            early_stopping_acc=early_stopping_acc,
+            model_selection=model_selection,
+            fine_tuning_arguments=fine_tuning_arguments,
+            device=device,
+            memory_fix=memory_fix,
+            class_weight=class_weight,
+            verbosity=verbosity,
+            cache_dir=cache_dir
+        )
 
         self.assertEqual(num_classes, classifier.num_classes)
         self.assertEqual(multi_label, classifier.multi_label)
