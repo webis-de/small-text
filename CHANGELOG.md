@@ -1,9 +1,13 @@
 # Changelog
 
-## [Next] - unreleased
+## [1.0.0rc1] - unreleased
+
+This is a release candidate before the upcoming 1.0.0 release, which mainly consists of cleanup work.
 
 ### Changed
 
+- Datasets:
+  - `SklearnDataset` now checks if the dimensions of the features and labels match.
 - Query Strategies:
   - [ExpectedGradientLengthMaxWord](https://github.com/webis-de/small-text/blob/master/small_text/integrations/pytorch/query_strategies/strategies.py): Cleaned up code and added checks to detect invalid configurations.
 
