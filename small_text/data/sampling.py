@@ -12,6 +12,8 @@ def multilabel_stratified_subsets_sampling(y, n_samples=10):
     ----------
     y : scipy.sparse.csr_matrix
         List of labels.
+    n_samples : int, default=10
+        Number of indices to sample.
 
     Returns
     -------
@@ -42,10 +44,12 @@ def stratified_sampling(y, n_samples=10, enforce_min_occurrence=True):
     Parameters
     ----------
     y : numpy.ndarray or scipy.sparse.csr_matrix
-        List of labels.
-    n_samples : int
+        Dense or sparse matrix of of labels.
+    n_samples : int, default=10
         Number of indices to sample.
-    enforce_min_occurrence : bool
+    enforce_min_occurrence : bool, default=True
+        Ensures that at least one sample from each class (provided it is present in the data)
+        is included in the stratified sample.
 
     Returns
     -------
@@ -56,9 +60,6 @@ def stratified_sampling(y, n_samples=10, enforce_min_occurrence=True):
     -----
     Only useful for experimental simulations (Requires label knowledge).
     """
-    # TODO: prevent other types? warn?
-    # if not isinstance(y, np.ndarray):
-    #    y = np.array(y)
     _assert_sample_size(y, n_samples)
 
     # num classes according to the labels
@@ -99,6 +100,8 @@ def balanced_sampling(y, n_samples=10):
     ----------
     y : list of int or numpy.ndarray
         List of labels.
+    n_samples : int, default=10
+        Number of indices to sample.
 
     Returns
     -------
