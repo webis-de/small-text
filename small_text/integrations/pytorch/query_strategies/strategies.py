@@ -213,9 +213,7 @@ class ExpectedGradientLengthMaxWord(ExpectedGradientLength):
         params = params[0].grad
 
         word_indices = self._words[k]
-        # <unk> and <pad> are currently not omitted
-        # TODO: magic number 2(= len([<unk>, <pad>])
-        # word_indices = word_indices[torch.gt(word_indices, 1)]
+        # special tokens (such as <unk> and <pad>) are currently not omitted
         params = params.index_select(index=word_indices, dim=0)
 
         norms = torch.norm(params, p=2, dim=1)
