@@ -25,6 +25,7 @@ def get_splits(train_set, validation_set, multi_label=False, validation_set_size
     validation_set_size : float, default=0.1
         Specifies the size of the validation set (as a percentage of the training set). Only
         used if a new split is created.
+
     Returns
     -------
     sub_train : Dataset
@@ -34,7 +35,7 @@ def get_splits(train_set, validation_set, multi_label=False, validation_set_size
     """
     if validation_set is None:
         if multi_label:
-            # TODO: adapt sampling for multi-label
+            # note: this is not an optimal multi-label strategy right now
             sub_train, sub_valid = split_data(train_set, y=train_set.y.indices, strategy='random',
                                               validation_set_size=validation_set_size)
         else:
@@ -62,7 +63,7 @@ def prediction_result(proba, multi_label, num_classes, enc=None, return_proba=Fa
         A multi-label binarizer which is (optionally) used if `multi-label` is `True`. It is only
         intended to be used in combination with
         `small_text.integrations.pytorch.classifiers.PytorchClassifier`-based classifiers.
-    return_proba : bool
+    return_proba : bool, default=False
         Also returns the probability if `True`. This is intended to be used with `multi_label=True`
         where it returns a sparse matrix with only the probabilities for the predicted labels. For
         the single-label case this simply returns the given `proba` input.
