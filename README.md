@@ -3,7 +3,8 @@
 [![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.0.0b4)](https://small-text.readthedocs.io/en/v1.0.0b4/) 
 ![Maintained Yes](https://img.shields.io/badge/maintained-yes-green)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
-![GitHub](https://img.shields.io/github/license/webis-de/small-text)
+[![MIT License](https://img.shields.io/github/license/webis-de/small-text)](LICENSE)
+[![Twitter URL](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fwebis-de%2Fsmall-text)](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fwebis-de%2Fsmall-text)
 
 <p align="center">
 <img width="372" height="80" src="https://raw.githubusercontent.com/webis-de/small-text/master/docs/_static/small-text-logo.png" alt="small-text logo" />
@@ -12,7 +13,7 @@
 > Active Learning for Text Classifcation in Python.
 <hr>
 
-[Installation](#installation) | [Quick Start](#quick-start) | [Changelog][changelog] | [**Docs**][documentation_main]
+[Installation](#installation) | [Quick Start](#quick-start) | [Contribution](CONTRIBUTING.md) | [Changelog][changelog] | [**Docs**][documentation_main]
 
 Small-Text provides state-of-the-art **Active Learning** for Text Classification. 
 Several pre-implemented Query Strategies, Initialization Strategies, and Stopping Critera are provided, 
