@@ -1,7 +1,7 @@
 # Contributing to Small-Text
 
-Contributions are always welcome. We need help, among others, in the form of code or 
-documentation.
+Happy to see you here. Contributions are always welcome. We need help, among others, 
+in the form of code or documentation.
 
 ❤️ Even if you tend to doubt yourself, we encourage you to try and pick a small part 
 of small-text that can be improved.
@@ -14,9 +14,10 @@ of small-text that can be improved.
 ## Table of Contents
 
 1. [How to Contribute](#how-to-contribute)
-2. [Development](#development)
-3. [Documentation](#documentation)
-4. [Workflows](#workflows)
+2. [Support us](#support-us)
+3. [Development](#development)
+4. [Documentation](#documentation)
+5. [Workflows](#workflows)
 
 ---
 
@@ -36,6 +37,35 @@ the pull request so that a second person can review this.*
 ---
 
 ## How to Contribute
+
+For contributions, there are both code and non-code contributions. Both are equally welcome.
+As a small token of appreciation, with your first contribution you can put yourself on the [list of contributors](CONTRIBUTORS.md)
+(if the commit contributes to code or documentation).
+
+### Types of Contribution
+
+- Report Bugs
+- Suggest Enhancements
+- Documentation
+- Code
+
+### Support us
+
+Apart from contributions, if you like our project you can also support us by:
+
+- Consider giving us a github star
+- Use small-text in your applications or experiments.
+- Write a blog post small-text or your specific use case
+- Share small-text on Twitter or LinkedIn.
+
+### How to work on an issue (bug, feature, documentation, other)
+ 
+1. Search for an existing issue related to your problem.
+   If none exists yet then create an issue stating the problem and that you are working on it.
+2. Fork the repository. Create a new branch that branches off the **dev** branch.
+3. Apply your changes.
+4. Make sure the unit / integration tests succeed.
+5. Create a pull request. (You can also create the pull requets earlier if you mark it as "work in progress").
 
 ### Pull Request Checklist
 
@@ -75,6 +105,38 @@ sphinx-build . _build/ -b linkcheck
 sphinx-build . _build/ -b doctest
 ```
 
+### Testing
+
+If you do this for the first time you have to install the development dependencies:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+#### Running the unit tests
+
+```bash
+pytest -m 'not optional' --cov small_text --cov-append tests/unit/
+```
+
+Without pytorch tests:
+
+```bash
+pytest -m 'not pytorch and not optional' --cov small_text --cov-append tests/unit/
+```
+
+#### Running the integration tests:
+
+```bash
+pytest -m 'not optional' --cov small_text --cov-append tests/integration
+```
+
+Without pytorch tests:
+
+```bash
+pytest -m 'not pytorch and not optional' --cov small_text --cov-append tests/integration
+```
+
 ### Continuous Integration
 
 We use a CI Pipeline which is unfortunately not public yet, but this might change in the future.
@@ -95,8 +157,8 @@ See the subsection under [Development](#development) on [how to build the docume
 
 ### Documentation Conventions
 
-The paradigma here is that 1. the same thing should unambiguously be referred to in the same way 
-(i.e. don't use different names or spellings for one single concept) and 2. similar things should be treated in the same way.
+The same thing should unambiguously be referred to in the same way 
+(i.e. don't use different names or spellings for one single concept) and similar things should be treated in the same way.
 
 #### General
 
