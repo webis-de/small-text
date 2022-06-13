@@ -36,7 +36,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 ## News
 
 - **Release Candidate 1** ([v1.0.0rc1][changelog_1.0.0rc1]) - June 13, 2022
-  - Clean up and preparation for v1.0.0 which will be next 🎉.
+  - Clean up and preparation for v1.0.0, which will come next 🎉.
 
 - **May Beta Release** ([v1.0.0b4][changelog_1.0.0b4]) - May 04, 2022
   - Two new query strategies: [DiscriminativeActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py), 
