@@ -4,13 +4,15 @@
 Initialization
 ==============
 
-Initialization strategies provide the initial labelings from which the first classifier is created.
-They are merely intended for experimental purposes and therefore some of them may require knowledge about the true labels.
+Initialization (sampling) strategies provide the initial labelings from which the first classifier is created.
+Some of them may require knowledge about the true labels and therefore they are merely intended for experimental purposes.
+
+In an application setting you must provide an initial set of labels instead (or use a cold start approach, which is not yet supported).
 
 Initialization Strategies
 -------------------------
 
-For single-label scenarios:
+For the single-label scenario:
 
 * :py:func:`random_initialization`
 * :py:func:`random_initialization_balanced`

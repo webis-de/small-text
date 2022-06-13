@@ -238,7 +238,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             training step the model with the lowest validation error is selected.
         fine_tuning_arguments : FineTuningArguments or None, default=None
             Fine tuning arguments.
-        device : str or torch.device, device=None
+        device : str or torch.device, default=None
             Torch device on which the computation will be performed.
         memory_fix : int, default=1
             If this value is greater than zero, every `memory_fix`-many epochs the cuda cache will

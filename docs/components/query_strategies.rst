@@ -2,7 +2,8 @@
 Query Strategies
 ================
 
-Query strategies select data samples from the set of unlabeled data.
+Query strategies select data samples from the set of unlabeled data, i.e. they decide which samples
+should be labeled next.
 
 Overview
 ========
@@ -35,6 +36,27 @@ Pytorch
 * :py:class:`ExpectedGradientLengthMaxWord`
 * :py:class:`ExpectedGradientLengthLayer`
 * :py:class:`BADGE`
+
+Interface
+=========
+
+The query strategy interface revolves around the :code:`query()` method.
+A query strategy can make use of any of the given positional arguments but does not need to.
+
+.. literalinclude:: ../../small_text/query_strategies/strategies.py
+   :pyobject: QueryStrategy
+
+
+- A query strategy can use the classifier :code:`clf` to make a decision.
+- The **full** dataset (i.e. all samples regardless of whether they are labeled or not) is given by :code:`dataset`.
+- The partition into labeled and unlabeled data is handled indirectly via indices (:code:`indices_unlabeled` and :code:`indices_labeled`).
+
+  .. note:: All indices together must not necessarily be complete,
+            i.e. they full set of indices {1, 2, ..., len(dataset)} is not always without gaps.
+            This allows the active learner to ignore samples which should remain part of the dataset
+            but are not suited for active learning.
+- The argument :code:`y` represent the current labels.
+- The number of samples to query can be controlled with the keyword argument :code:`n`.
 
 
 Helpers
@@ -101,6 +123,7 @@ Base
 
 .. autoclass:: RandomSampling
 
+----
 
 Pytorch Integration
 -------------------

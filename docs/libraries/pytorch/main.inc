@@ -13,3 +13,6 @@ Example
 =======
 
 A code example showing a pytorch multiclass classification is given in :file:`examples/examplecode/pytorch_multiclass_classification.py`.
+
+.. literalinclude:: ../../examples/examplecode/pytorch_multiclass_classification.py
+   :language: python

@@ -23,6 +23,18 @@ except ImportError:
 class ExpectedGradientLength(QueryStrategy):
     """Selects instances by expected gradient length [Set07]_."""
     def __init__(self, num_classes, batch_size=50, device='cuda', pbar='tqdm'):
+        """
+        Parameters
+        ----------
+        num_classes : int
+            Number of classes.
+        batch_size : int, default=50
+            Batch size in which the query strategy scores the instances.
+        device : str or torch.device, default=None
+            Torch device on which the computation will be performed.
+        pbar : 'tqdm' or None, default='tqdm'
+            Displays a progress bar if 'tqdm' is passed.
+        """
         self.batch_size = batch_size
         self.num_classes = num_classes
         self.device = device
@@ -265,10 +277,15 @@ class ExpectedGradientLengthLayer(ExpectedGradientLength):
 
 @constraints(classification_type='single-label')
 class BADGE(EmbeddingBasedQueryStrategy):
-    """
-    Implements "Batch Active learning by Diverse Gradient Embedding" (BADGE) [AZK+20]_.
+    """Implements "Batch Active learning by Diverse Gradient Embedding" (BADGE) [AZK+20]_.
     """
     def __init__(self, num_classes):
+        """
+        Parameters
+        ----------
+        num_classes : int
+            Number of classes.
+        """
         self.num_classes = num_classes
 
     def sample(self, clf, dataset, indices_unlabeled, indices_labeled, y, n, embeddings,

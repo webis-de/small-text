@@ -20,7 +20,7 @@ def random_initialization(x, n_samples=10):
 
     Returns
     -------
-    indices : np.array[int]
+    indices : np.ndarray[int]
         Indices relative to x.
     """
     return np.random.choice(list_length(x), size=n_samples, replace=False)
@@ -41,7 +41,7 @@ def random_initialization_stratified(y, n_samples=10, multilabel_strategy='label
 
     Returns
     -------
-    indices : np.array[int]
+    indices : np.ndarray[int]
         Indices relative to y.
 
     See Also
@@ -69,10 +69,9 @@ def random_initialization_balanced(y, n_samples=10):
     n_samples : int, default=10
         Number of samples to draw.
 
-
     Returns
     -------
-    indices : np.array[int]
+    indices : np.ndarray[int]
         Indices relative to y.
 
     Notes

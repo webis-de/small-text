@@ -1,6 +1,6 @@
 [![PyPI](https://img.shields.io/pypi/v/small-text)](https://pypi.org/project/small-text/)
 [![codecov](https://codecov.io/gh/webis-de/small-text/branch/master/graph/badge.svg?token=P86CPABQOL)](https://codecov.io/gh/webis-de/small-text)
-[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.0.0b4)](https://small-text.readthedocs.io/en/v1.0.0b4/) 
+[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.0.0rc1)](https://small-text.readthedocs.io/en/v1.0.0rc1/) 
 ![Maintained Yes](https://img.shields.io/badge/maintained-yes-green)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 [![MIT License](https://img.shields.io/github/license/webis-de/small-text)](LICENSE)
@@ -35,6 +35,9 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
+- **Release Candidate 1** ([v1.0.0rc1][changelog_1.0.0rc1]) - June 13, 2022
+  - Clean up and preparation for v1.0.0 which will be next 🎉.
+
 - **May Beta Release** ([v1.0.0b4][changelog_1.0.0b4]) - May 04, 2022
   - Two new query strategies: [DiscriminativeActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py), 
     [SEALS](https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py).
@@ -44,10 +47,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 - **March Beta Release** ([v1.0.0b3][changelog_1.0.0b3]) - March 06, 2022
   - Consolidated interfaces: renamed and unified some arguments before v1.0.0.
   - New query strategy: [ContrastiveActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b3/small_text/query_strategies/strategies.py).  
-
-- 🎉 **Beta Release** ([v1.0.0b1][changelog_1.0.0b1]) - February 22, 2022
-  - New features: multi-label classification and stopping criteria are now supported.
-  - Added/revised large parts of the documentation.
+  
 
 [For a complete list of changes, see the change log.][changelog]
 
@@ -126,11 +126,11 @@ A preprint which introduces small-text is available here:
 [MIT License](LICENSE)
 
 
-[documentation_main]: https://small-text.readthedocs.io/en/v1.0.0b4/
-[documentation_install]: https://small-text.readthedocs.io/en/v1.0.0b4/install.html
-[documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.0.0b4/components/query_strategies.html
-[documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.0.0b4/reproducibility_notes.html
+[documentation_main]: https://small-text.readthedocs.io/en/v1.0.0rc1/
+[documentation_install]: https://small-text.readthedocs.io/en/v1.0.0rc1/install.html
+[documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.0.0rc1/components/query_strategies.html
+[documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.0.0rc1/reproducibility_notes.html
 [changelog]: https://small-text.readthedocs.io/en/latest/changelog.html
-[changelog_1.0.0b1]: https://small-text.readthedocs.io/en/latest/changelog.html#b1-2022-02-22
 [changelog_1.0.0b3]: https://small-text.readthedocs.io/en/latest/changelog.html#b3-2022-03-06
 [changelog_1.0.0b4]: https://small-text.readthedocs.io/en/latest/changelog.html#b4-2022-05-04
+[changelog_1.0.0rc1]: https://small-text.readthedocs.io/en/latest/changelog.html#rc1-2022-06-13
