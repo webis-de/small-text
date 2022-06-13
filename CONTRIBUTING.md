@@ -194,9 +194,12 @@ The following steps need to be done before a new release can be created.
 - Check every step of the above Pull Request Checklist
 - Check if the CI Pipeline runs successfully
 - Run the sphinx doctests
-
   - ```bash
     sphinx-build SOURCEDIR OUTPUTDIR -b doctest
+    ```
+- Run sphinx linkcheck:
+  - ```bash
+    sphinx-build SOURCEDIR OUTPUTDIR -b linkcheck
     ```
 
 ### Create a Release
@@ -204,7 +207,7 @@ The following steps need to be done before a new release can be created.
 - Create a git tag: `v<VERSION>` (e.g., v1.0.0)
 - Push tags and code to github
 - Create new version at Read the Docs
-  - Run sphinx linkcheck:
+  - Run sphinx linkcheck (yes, again):
   - ```bash
     sphinx-build SOURCEDIR OUTPUTDIR -b linkcheck
     ```
