@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0] - 2022-06-14
+## Version 1.0.0 - 2022-06-14
 
 First stable release.
 
