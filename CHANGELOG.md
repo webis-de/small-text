@@ -1,8 +1,8 @@
 # Changelog
 
-## [1.0.0rc1] - 2022-06-13
+## [1.0.0] - 2022-06-14
 
-This is a release candidate before the upcoming 1.0.0 release, which mainly consists of cleanup work.
+First stable release.
 
 ### Changed
 
@@ -12,6 +12,8 @@ This is a release candidate before the upcoming 1.0.0 release, which mainly cons
   - [ExpectedGradientLengthMaxWord](https://github.com/webis-de/small-text/blob/master/small_text/integrations/pytorch/query_strategies/strategies.py): Cleaned up code and added checks to detect invalid configurations.
 - Documentation:
   - The documentation is now available in full width.
+- Repository:
+  - Versions in this can now be referenced using the respective [Zenodo DOI](https://zenodo.org/record/6641063).
 
 ## [1.0.0b4] - 2022-05-04
 
