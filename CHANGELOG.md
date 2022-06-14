@@ -9,7 +9,7 @@ First stable release.
 - Datasets:
   - `SklearnDataset` now checks if the dimensions of the features and labels match.
 - Query Strategies:
-  - [ExpectedGradientLengthMaxWord](https://github.com/webis-de/small-text/blob/master/small_text/integrations/pytorch/query_strategies/strategies.py): Cleaned up code and added checks to detect invalid configurations.
+  - [ExpectedGradientLengthMaxWord](https://github.com/webis-de/small-text/blob/main/small_text/integrations/pytorch/query_strategies/strategies.py): Cleaned up code and added checks to detect invalid configurations.
 - Documentation:
   - The documentation is now available in full width.
 - Repository:
