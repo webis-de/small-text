@@ -59,7 +59,7 @@ def get_splits(train_set, validation_set, weights=None, multi_label=False, valid
     return result
 
 
-def prediction_result(proba, multi_label, num_classes, enc=None, return_proba=False):
+def prediction_result(proba, multi_label, num_classes, enc=None, return_proba=False, multilabel_probabilities='thresholded'):
     """Helper method which returns a single- or multi-label prediction result.
 
     Parameters
@@ -79,6 +79,10 @@ def prediction_result(proba, multi_label, num_classes, enc=None, return_proba=Fa
         Also returns the probability if `True`. This is intended to be used with `multi_label=True`
         where it returns a sparse matrix with only the probabilities for the predicted labels. For
         the single-label case this simply returns the given `proba` input.
+    multilabel_probabilities: string, default='all'
+        Only relevant if return_proba=True and multilabel=True.
+        If 'all' probabilities for each label is returned as a numpy array shape(samples,labels)
+        If 'thresholded' only probabilities of successfully predicted labels are returned in a sparce matrix.
 
     Returns
     -------
@@ -97,7 +101,7 @@ def prediction_result(proba, multi_label, num_classes, enc=None, return_proba=Fa
             predictions = [multihot_to_list(row) for row in predictions_binarized]
         predictions = list_to_csr(predictions, shape=(len(predictions), num_classes))
 
-        if return_proba:
+        if return_proba and multilabel_probabilities == 'thresholded':
             data = proba[predictions_binarized.astype(bool)]
             proba = csr_matrix((data, predictions.indices, predictions.indptr),
                                shape=predictions.shape,

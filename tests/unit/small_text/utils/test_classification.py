@@ -51,14 +51,14 @@ class ClassificationUtilsTest(unittest.TestCase):
         ]))
         assert_csr_matrix_equal(expected, result)
 
-    def test_prediction_result_multilabel_with_proba(self):
+    def test_prediction_result_multilabel_with_proba_thresholded(self):
         proba = np.array([
             [0.1, 0.2, 0.6, 0.1],
             [0.25, 0.25, 0.25, 0.25],
             [0.3, 0.3, 0.2, 0.2],
             [0.3, 0.2, 0.5, 0.1],
         ])
-        result, proba_result = prediction_result(proba, True, proba.shape[1], return_proba=True)
+        result, proba_result = prediction_result(proba, True, proba.shape[1], return_proba=True, multilabel_probabilities='thresholded')
         expected = csr_matrix(np.array([
             [0, 0, 1, 0],
             [0, 0, 0, 0],
@@ -73,6 +73,29 @@ class ClassificationUtilsTest(unittest.TestCase):
             [0, 0, 0, 0],
         ]))
         assert_csr_matrix_equal(expected_proba, proba_result)
+
+    def test_prediction_result_multilabel_with_all_proba(self):
+        proba = np.array([
+            [0.1, 0.2, 0.6, 0.1],
+            [0.25, 0.25, 0.25, 0.25],
+            [0.3, 0.3, 0.2, 0.2],
+            [0.3, 0.2, 0.5, 0.1],
+        ])
+        result, proba_result = prediction_result(proba, True, proba.shape[1], return_proba=True, multilabel_probabilities='all')
+        expected = csr_matrix(np.array([
+            [0, 0, 1, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ]))
+        assert_csr_matrix_equal(expected, result)
+        expected_proba = np.array([
+               [0.1, 0.2, 0.6, 0.1],
+               [0.25, 0.25, 0.25, 0.25],
+               [0.3, 0.3, 0.2, 0.2],
+               [0.3, 0.2, 0.5, 0.1]
+        ])
+        assert_array_equal(expected_proba, proba_result)
 
     def test_prediction_result_multilabel_with_enc(self):
         all_labels = [[0], [0, 1], [2, 3]]

@@ -112,7 +112,7 @@ class SklearnClassifier(Classifier):
         self.model.fit(train_set.x, y, **fit_kwargs)
         return self
 
-    def predict(self, data_set, return_proba=False):
+    def predict(self, data_set, return_proba=False, multilabel_probabilities='thresholded'):
         """
         Predicts the labels for the given dataset.
 
@@ -122,14 +122,20 @@ class SklearnClassifier(Classifier):
             A dataset for which the labels are to be predicted.
         return_proba : bool, default=False
             If `True`, also returns a probability-like class distribution.
+        multilabel_probabilities: string, default='all'
+            Only relevant if return_proba=True and multilabel=True.
+            If 'all' probabilities for each label is returned as a numpy array shape(samples,labels)
+            If 'thresholded' only probabilities of successfully predicted labels are returned in a sparce matrix.
 
         Returns
         -------
         predictions : np.ndarray[np.int32] or csr_matrix[np.int32]
             List of predictions if the classifier was fitted on multi-label data,
             otherwise a sparse matrix of predictions.
-        probas : np.ndarray[np.float32]
-            List of probabilities (or confidence estimates) if `return_proba` is True.
+        probas : np.ndarray[np.float32] or csr_matrix (optional)
+            List of probabilities (or confidence estimates) if `return_proba` is True and binary classification or multi-class classification.
+            csr_matrix if multilabel classidication and multilabel_probabilities = 'thresholded'
+            List of lists if multilabel classidication and multilabel_probabilities = 'all'
         """
         if len(data_set) == 0:
             return empty_result(self.multi_label, self.num_classes, return_prediction=True,
@@ -138,7 +144,7 @@ class SklearnClassifier(Classifier):
         proba = self.model.predict_proba(data_set.x)
 
         return prediction_result(proba, self.multi_label, self.num_classes, enc=None,
-                                 return_proba=return_proba)
+                                 return_proba=return_proba, multilabel_probabilities=multilabel_probabilities)
 
     def predict_proba(self, data_set):
         if len(data_set) == 0:
@@ -161,7 +167,7 @@ class ConfidenceEnhancedLinearSVC(LinearSVC):
         self.linearsvc_kwargs = dict() if linearsvc_kwargs is None else linearsvc_kwargs
         super().__init__(**self.linearsvc_kwargs)
 
-    def predict(self, x, return_proba=False):
+    def predict(self, x, return_proba=False, **kwargs):
 
         if return_proba:
             proba = self.predict_proba(x)

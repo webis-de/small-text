@@ -50,7 +50,7 @@ class PytorchClassifier(Classifier):
     def fit(self, train_set, validation_set=None, weights=None, **kwargs):
         pass
 
-    def predict(self, data_set, return_proba=False):
+    def predict(self, data_set, return_proba=False, multilabel_probabilities='thresholded'):
         """
         Parameters
         ----------
@@ -72,7 +72,7 @@ class PytorchClassifier(Classifier):
                                 return_proba=return_proba)
 
         proba = self.predict_proba(data_set)
-        predictions = prediction_result(proba, self.multi_label, self.num_classes, enc=self.enc_)
+        predictions = prediction_result(proba, self.multi_label, self.num_classes, enc=self.enc_, multilabel_probabilities=multilabel_probabilities)
 
         if return_proba:
             return predictions, proba
