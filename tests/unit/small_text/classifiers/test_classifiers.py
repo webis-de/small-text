@@ -18,20 +18,16 @@ class _ClassifierBaseFunctionalityTest(object):
     def _is_multi_label(self):
         raise NotImplementedError()
 
-    def test_fit_where_y_train_contains_unlabeled(self):
+    def test_fit_with_invalid_weights(self):
         train_set = random_sklearn_dataset(10,
                                            num_classes=3 if self._is_multi_label() else 2,
                                            multi_label=self._is_multi_label())
 
-        if self._is_multi_label():
-            train_set.y = csr_matrix(np.array([[LABEL_UNLABELED] * 3] * 10))
-        else:
-            train_set.y = np.array([LABEL_UNLABELED] * 10)
-
         classifier = self._get_clf()
+        weights = np.random.randn(len(train_set)-1)
 
-        with self.assertRaisesRegex(ValueError, 'Training set labels must be labeled'):
-            classifier.fit(train_set)
+        with self.assertRaisesRegex(ValueError, 'Training data and weights must have'):
+            classifier.fit(train_set, weights=weights)
 
     def test_predict_on_empty_data(self):
         train_set = random_sklearn_dataset(10,
@@ -71,6 +67,21 @@ class SklearnClassifierSingleLabelTest(unittest.TestCase, _ClassifierBaseFunctio
 
     def _is_multi_label(self):
         return False
+
+    def test_fit_where_y_train_contains_unlabeled(self):
+        train_set = random_sklearn_dataset(10,
+                                           num_classes=3 if self._is_multi_label() else 2,
+                                           multi_label=self._is_multi_label())
+
+        if self._is_multi_label():
+            train_set.y = csr_matrix(np.array([[LABEL_UNLABELED] * 3] * 10))
+        else:
+            train_set.y = np.array([LABEL_UNLABELED] * 10)
+
+        classifier = self._get_clf()
+
+        with self.assertRaisesRegex(ValueError, 'Training set labels must be labeled'):
+            classifier.fit(train_set)
 
     def test_fit_with_multi_label_data_on_single_label_classifier(self):
         train_set = SklearnDataset(*random_matrix_data('dense',

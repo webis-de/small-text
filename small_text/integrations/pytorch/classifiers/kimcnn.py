@@ -35,8 +35,9 @@ except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
 
-def kimcnn_collate_fn(batch, enc=None, max_seq_len=60, padding_idx=0, filter_padding=0):
-
+def kimcnn_collate_fn(batch, enc=None, use_sample_weights=False, max_seq_len=60, padding_idx=0,
+                      filter_padding=0):
+    # TODO: torch.no_grad()?
     def prepare_tensor(t):
         t_sub = t[:max_seq_len-2*filter_padding]
         return torch.cat([t_sub.new_zeros(filter_padding) + padding_idx,
@@ -50,10 +51,18 @@ def kimcnn_collate_fn(batch, enc=None, max_seq_len=60, padding_idx=0, filter_pad
         multi_hot = enc.transform(labels)
         label = torch.tensor(multi_hot, dtype=float)
     else:
-        label = torch.tensor([entry[PytorchTextClassificationDataset.INDEX_LABEL] for entry in batch])
-    text = torch.stack([prepare_tensor(t) for t, _ in batch], 0)
+        label = torch.tensor([entry[PytorchTextClassificationDataset.INDEX_LABEL]
+                              for entry in batch])
+    text = torch.stack([prepare_tensor(entry[PytorchTextClassificationDataset.INDEX_TEXT])
+                        for entry in batch], 0)
 
-    return text, label
+    if use_sample_weights:
+        weights = torch.tensor([entry[-1]
+                                for entry in batch])
+    else:
+        weights = torch.ones(text.size(0), device=text.device)
+
+    return text, label, weights
 
 
 class KimCNNEmbeddingMixin(EmbeddingMixin):
@@ -75,7 +84,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
         tensors = []
         proba = []
         with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
-            for text, _ in dataset_iter:
+            for text, *_ in dataset_iter:
                 batch_len = text.size(0)
                 text = text.to(self.device, non_blocking=True)
 
@@ -194,7 +203,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         self.model_selection = None
         self.enc_ = None
 
-    def fit(self, train_set, validation_set=None, optimizer=None, scheduler=None):
+    def fit(self, train_set, validation_set=None, weights=None, optimizer=None, scheduler=None):
         """Trains the model using the given train set.
 
         Parameters
@@ -203,8 +212,10 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             The dataset used for training the model.
         validation_set : PytorchTextClassificationDataset
             A validation set used for validation during training, or `None`. If `None`, the fit
-            operation will split apart a subset of the trainset as a validation set, whose size
+            operation will split apart a subset of the train set as a validation set, whose size
             is set by `self.validation_set_size`.
+        weights : np.ndarray[np.float32] or None, default=None
+            Sample weights or None.
         optimizer : torch.optim.optimizer.Optimizer
             A pytorch optimizer.
         scheduler :torch.optim._LRScheduler
@@ -215,10 +226,24 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         self : KimCNNClassifier
             Returns the current classifier with a fitted model.
         """
-        check_training_data(train_set, validation_set)
+        check_training_data(train_set, validation_set, weights=weights)
 
-        sub_train, sub_valid = get_splits(train_set, validation_set, multi_label=self.multi_label,
-                                          validation_set_size=self.validation_set_size)
+        if weights is not None:
+            sub_train, sub_valid, sub_train_weights = get_splits(
+                train_set,
+                validation_set,
+                weights=weights,
+                multi_label=self.multi_label,
+                validation_set_size=self.validation_set_size
+            )
+        else:
+            sub_train, sub_valid = get_splits(
+                train_set,
+                validation_set,
+                multi_label=self.multi_label,
+                validation_set_size=self.validation_set_size
+            )
+            sub_train_weights = None
 
         fit_optimizer = optimizer if optimizer is not None else self.optimizer
         fit_scheduler = scheduler if scheduler is not None else self.scheduler
@@ -229,11 +254,12 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             self.enc_ = self.enc_.fit(labels)
 
         self.class_weights_ = self.initialize_class_weights(sub_train)
-        self.criterion = self.get_default_criterion()
+        self.criterion = self._get_default_criterion(self.class_weights_,
+                                                     use_sample_weights=weights is not None)
 
-        return self._fit_main(sub_train, sub_valid, fit_optimizer, fit_scheduler)
+        return self._fit_main(sub_train, sub_valid, sub_train_weights, fit_optimizer, fit_scheduler)
 
-    def _fit_main(self, sub_train, sub_valid, optimizer, scheduler):
+    def _fit_main(self, sub_train, sub_valid, weights, optimizer, scheduler):
         if self.model is None:
             encountered_num_classes = get_num_labels(sub_train.y)
 
@@ -257,7 +283,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
         self.model = self.model.to(self.device)
         with tempfile.TemporaryDirectory() as tmp_dir:
-            res = self._train(sub_train, sub_valid, tmp_dir, optimizer, scheduler)
+            res = self._train(sub_train, sub_valid, weights, tmp_dir, optimizer, scheduler)
 
             model_path, _ = self.model_selection.select_best()
             self.model.load_state_dict(torch.load(model_path))
@@ -279,7 +305,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         params = [param for param in self.model.parameters() if param.requires_grad]
         return params, Adadelta(params, lr=base_lr, eps=1e-8)
 
-    def _train(self, sub_train, sub_valid, tmp_dir, optimizer, scheduler):
+    def _train(self, sub_train, sub_valid, weights, tmp_dir, optimizer, scheduler):
 
         min_loss = float('inf')
         no_loss_reduction = 0
@@ -292,7 +318,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             start_time = datetime.datetime.now()
 
             self.model.train()
-            train_loss, train_acc = self._train_func(sub_train, optimizer, scheduler)
+            train_loss, train_acc = self._train_func(sub_train, weights, optimizer, scheduler)
 
             self.model.eval()
             valid_loss, valid_acc = self.validate(sub_valid)
@@ -326,19 +352,25 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
         return self
 
-    def _create_collate_fn(self):
-        return partial(kimcnn_collate_fn, enc=self.enc_, padding_idx=self.padding_idx,
-                       max_seq_len=self.max_seq_len, filter_padding=self.filter_padding)
+    def _create_collate_fn(self, use_sample_weights=False):
+        return partial(kimcnn_collate_fn, enc=self.enc_, use_sample_weights=use_sample_weights,
+                       padding_idx=self.padding_idx, max_seq_len=self.max_seq_len,
+                       filter_padding=self.filter_padding)
 
-    def _train_func(self, sub_train_, optimizer, scheduler):
+    def _train_func(self, sub_train_, weights, optimizer, scheduler):
 
         train_loss = 0.
         train_acc = 0.
 
-        train_iter = dataloader(sub_train_.data, self.mini_batch_size, self._create_collate_fn())
+        data = sub_train_.data
+        if weights is not None:
+            data = [d + (weights[i],) for i, d in enumerate(data)]
 
-        for i, (text, cls) in enumerate(train_iter):
-            loss, acc = self._train_single_batch(text, cls, optimizer)
+        train_iter = dataloader(data, self.mini_batch_size,
+                                self._create_collate_fn(use_sample_weights=weights is not None))
+
+        for i, (text, cls, weight) in enumerate(train_iter):
+            loss, acc = self._train_single_batch(text, cls, weight, optimizer)
             scheduler.step()
 
             train_loss += loss
@@ -346,14 +378,14 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
         return train_loss / len(sub_train_), train_acc / len(sub_train_)
 
-    def _train_single_batch(self, text, cls, optimizer):
+    def _train_single_batch(self, text, cls, weight, optimizer):
 
         train_loss = 0.
         train_acc = 0.
 
         optimizer.zero_grad()
 
-        text, cls = text.to(self.device), cls.to(self.device)
+        text, cls, weight = text.to(self.device), cls.to(self.device), weight.to(self.device)
         output = self.model(text)
 
         with torch.no_grad():
@@ -362,11 +394,15 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             else:
                 target = cls
         loss = self.criterion(output, target)
+        loss = loss * weight
+        loss = loss.mean()
 
         loss.backward()
 
+        # TODO: no_grad not necessary here
         with torch.no_grad():
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), 3)
+            # TODO: Remove this
             self.model.fc.weight.div_(torch.norm(self.model.fc.weight, dim=1, keepdim=True))
 
         optimizer.step()
@@ -401,8 +437,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         valid_iter = dataloader(validation_set.data, self.mini_batch_size, self._create_collate_fn(),
                                 train=False)
 
-        for x, cls in valid_iter:
-            x, cls = x.to(self.device), cls.to(self.device)
+        for x, cls, weight, *_ in valid_iter:
+            x, cls, weight = x.to(self.device), cls.to(self.device), weight.to(self.device)
 
             with torch.no_grad():
                 if self.num_classes == 2:
@@ -412,6 +448,9 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
                 output = self.model(x)
                 loss = self.criterion(output, target)
+                loss = loss * weight
+                loss = loss.mean()
+
                 valid_loss += loss.item()
 
                 acc += self.sum_up_accuracy_(output, cls)
@@ -453,7 +492,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         logits_transform = torch.sigmoid if self.multi_label else partial(F.softmax, dim=1)
 
         with torch.no_grad():
-            for text, _ in test_iter:
+            for text, *_ in test_iter:
                 text = text.to(self.device)
 
                 predictions += logits_transform(self.model.forward(text)).to('cpu').tolist()

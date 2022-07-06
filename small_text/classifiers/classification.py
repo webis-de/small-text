@@ -16,13 +16,15 @@ class Classifier(ABC):
     """
 
     @abstractmethod
-    def fit(self, train_set):
+    def fit(self, train_set, weights=None):
         """Trains the model using the given train set.
 
         Parameters
         ----------
         train_set : Dataset
             The dataset used for training the model.
+        weights : np.ndarray[np.float32] or None, default=None
+            Sample weights or None.
         """
         pass
 
@@ -79,20 +81,24 @@ class SklearnClassifier(Classifier):
         self.num_classes = num_classes
         self.multi_label = multi_label
 
-    def fit(self, train_set):
+    def fit(self, train_set, weights=None):
         """Trains the model using the given train set.
 
         Parameters
         ----------
         train_set : SklearnDataset
             The dataset used for training the model.
+        weights : np.ndarray[np.float32] or None, default=None
+            Sample weights or None.
 
         Returns
         -------
         clf : SklearnClassifier
             Returns the current classifier with a fitted model.
         """
-        check_training_data(train_set, None)
+        check_training_data(train_set, None, weights=weights)
+        if self.multi_label and weights is not None:
+            raise ValueError('Sample weights are not supported for multi-label SklearnClassifier.')
 
         y = train_set.y
         if self.multi_label and not is_multilabel(y):
@@ -102,7 +108,8 @@ class SklearnClassifier(Classifier):
             raise ValueError('Invalid input: Given labeling is recognized as multi-label labeling '
                              'but the classifier is set to single-label mode')
 
-        self.model.fit(train_set.x, y)
+        fit_kwargs = dict() if self.multi_label else dict({'sample_weight': weights})
+        self.model.fit(train_set.x, y, **fit_kwargs)
         return self
 
     def predict(self, data_set, return_proba=False):
@@ -121,7 +128,7 @@ class SklearnClassifier(Classifier):
         predictions : np.ndarray[np.int32] or csr_matrix[np.int32]
             List of predictions if the classifier was fitted on multi-label data,
             otherwise a sparse matrix of predictions.
-        probas : np.ndarray[np.float32] (optional)
+        probas : np.ndarray[np.float32]
             List of probabilities (or confidence estimates) if `return_proba` is True.
         """
         if len(data_set) == 0:

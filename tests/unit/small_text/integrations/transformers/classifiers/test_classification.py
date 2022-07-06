@@ -213,6 +213,18 @@ class TestTransformerBasedClassification(unittest.TestCase):
             fit_main_mock.assert_called()
             self.assertIsNotNone(classifier.class_weights_)
 
+    def test_fit_with_invalid_sample_weights(self):
+        dataset = random_transformer_dataset(10)
+
+        model_args = TransformerModelArguments('bert-base-uncased')
+        classifier = TransformerBasedClassification(model_args, 2)
+
+        weights = np.random.randn(len(dataset))
+        weights[0] = -1
+
+        with self.assertRaisesRegex(ValueError, 'Weights must be greater zero.'):
+            classifier.fit(dataset, weights=weights)
+
     def test_predict_on_empty_data(self):
         test_set = TransformersDataset([], None)
 

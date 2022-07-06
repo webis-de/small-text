@@ -20,8 +20,6 @@ class _SklearnClassifierBaseTest(object):
         raise NotImplementedError('get_clf() must be overridden')
 
     def test_fit_and_predict(self):
-        """Admittedly, This tests predict and predict_proba together in order to
-        avoid mul"""
         ds = self.get_dataset()
         clf = self.get_clf()
 
@@ -48,6 +46,25 @@ class LinearSVCSingleLabelTest(unittest.TestCase, _SklearnClassifierBaseTest):
     def get_clf(self):
         return SklearnClassifier(ConfidenceEnhancedLinearSVC(), 3)
 
+    def test_fit_and_predict_with_weights(self):
+        ds = self.get_dataset()
+        clf = self.get_clf()
+
+        weights = np.random.randn(len(ds))
+        weights = weights - weights.min() + 1e-8
+
+        clf.fit(ds, weights=weights)
+        check_is_fitted(clf.model)
+
+        predictions = clf.predict(ds)
+        if isinstance(ds.y, csr_matrix):
+            self.assertTrue(isinstance(predictions, csr_matrix))
+        else:
+            self.assertTrue(isinstance(predictions, np.ndarray))
+
+        proba = clf.predict_proba(ds)
+        self.assertTrue(isinstance(proba, np.ndarray))
+
 
 @pytest.mark.pytorch
 class LinearSVCMultiLabelTest(unittest.TestCase, _SklearnClassifierBaseTest):
@@ -58,3 +75,13 @@ class LinearSVCMultiLabelTest(unittest.TestCase, _SklearnClassifierBaseTest):
 
     def get_clf(self):
         return SklearnClassifier(ConfidenceEnhancedLinearSVC(), 3, multi_label=True)
+
+    def test_fit_and_predict_with_weights(self):
+        ds = self.get_dataset()
+        clf = self.get_clf()
+
+        weights = np.random.randn(len(ds))
+        weights = weights - weights.min() + 1e-8
+
+        with self.assertRaisesRegex(ValueError, 'Sample weights are not supported'):
+            clf.fit(ds, weights=weights)

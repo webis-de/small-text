@@ -8,10 +8,10 @@ from tests.utils.datasets import random_text_classification_dataset
 
 try:
     import torch
-    from torch.nn import CrossEntropyLoss
-    from torch.nn import BCEWithLogitsLoss
+    from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss
 
     from small_text.integrations.pytorch.classifiers import PytorchClassifier
+    from small_text.integrations.pytorch.utils.loss import LossAdapter2DTo1D
 
     class SimplePytorchClassifier(PytorchClassifier):
         """Simple subclass to allow instantiation."""
@@ -77,8 +77,8 @@ class SimplePytorchClassifierTest(unittest.TestCase):
         mock_is_available.return_value = True
 
         clf = SimplePytorchClassifier(2)
-        clf.class_weights_ = torch.ones(2)
-        loss = clf.get_default_criterion()
+        class_weights = torch.ones(2)
+        loss = clf._get_default_criterion(class_weights)
         self.assertTrue(isinstance(loss, BCEWithLogitsLoss))
 
     @patch('torch.cuda.is_available')
@@ -88,8 +88,8 @@ class SimplePytorchClassifierTest(unittest.TestCase):
         mock_is_available.return_value = True
 
         clf = SimplePytorchClassifier(3)
-        clf.class_weights_ = torch.ones(3)
-        loss = clf.get_default_criterion()
+        class_weights = torch.ones(3)
+        loss = clf._get_default_criterion(class_weights)
         self.assertTrue(isinstance(loss, CrossEntropyLoss))
 
     @patch('torch.cuda.is_available')
@@ -99,9 +99,57 @@ class SimplePytorchClassifierTest(unittest.TestCase):
         mock_is_available.return_value = True
 
         clf = SimplePytorchClassifier(3, multi_label=True)
-        clf.class_weights_ = torch.ones(3)
-        loss = clf.get_default_criterion()
+        class_weights = torch.ones(3)
+        loss = clf._get_default_criterion(class_weights)
         self.assertTrue(isinstance(loss, BCEWithLogitsLoss))
+
+    @patch('torch.cuda.is_available')
+    @patch('torch.cuda.current_device')
+    def test_get_default_criterion_use_sample_weights_binary(self,
+                                                             mock_current_device,
+                                                             mock_is_available):
+        mock_current_device.return_value = '0'
+        mock_is_available.return_value = True
+
+        clf = SimplePytorchClassifier(2)
+        class_weights = torch.ones(2)
+        loss = clf._get_default_criterion(class_weights, use_sample_weights=True)
+        self.assertTrue(isinstance(loss, LossAdapter2DTo1D))
+        self.assertEqual('none', loss.reduction)
+
+        self.assertTrue(isinstance(loss.base_loss_fct, BCEWithLogitsLoss))
+        self.assertEqual('none', loss.base_loss_fct.reduction)
+
+    @patch('torch.cuda.is_available')
+    @patch('torch.cuda.current_device')
+    def test_get_default_criterion_use_sample_weights_multiclass(self,
+                                                                 mock_current_device,
+                                                                 mock_is_available):
+        mock_current_device.return_value = '0'
+        mock_is_available.return_value = True
+
+        clf = SimplePytorchClassifier(3)
+        class_weights = torch.ones(3)
+        loss = clf._get_default_criterion(class_weights, use_sample_weights=True)
+        self.assertTrue(isinstance(loss, CrossEntropyLoss))
+        self.assertEqual('none', loss.reduction)
+
+    @patch('torch.cuda.is_available')
+    @patch('torch.cuda.current_device')
+    def test_get_default_criterion_use_sample_weights_multilabel(self,
+                                                                 mock_current_device,
+                                                                 mock_is_available):
+        mock_current_device.return_value = '0'
+        mock_is_available.return_value = True
+
+        clf = SimplePytorchClassifier(3, multi_label=True)
+        class_weights = torch.ones(3)
+        loss = clf._get_default_criterion(class_weights, use_sample_weights=True)
+        self.assertTrue(isinstance(loss, LossAdapter2DTo1D))
+        self.assertEqual('none', loss.reduction)
+
+        self.assertTrue(isinstance(loss.base_loss_fct, BCEWithLogitsLoss))
+        self.assertEqual('none', loss.base_loss_fct.reduction)
 
     @patch('torch.cuda.is_available')
     @patch('torch.cuda.current_device')

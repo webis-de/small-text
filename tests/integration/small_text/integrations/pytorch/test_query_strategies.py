@@ -60,7 +60,8 @@ class QueryStrategiesTest(unittest.TestCase):
 
     def _simple_exhaustive_active_learning_test(self, query_strategy, query_size=10,
                                                 num_classes=6, num_initial=30):
-        dataset = random_text_classification_dataset(num_samples=200, max_length=10, num_classes=num_classes)
+        dataset = random_text_classification_dataset(num_samples=200, max_length=10,
+                                                     num_classes=num_classes)
 
         self.assertFalse(dataset[0].x[PytorchTextClassificationDataset.INDEX_TEXT].is_cuda)
         clf_factory = KimCNNFactory('kimcnn',
@@ -74,7 +75,7 @@ class QueryStrategiesTest(unittest.TestCase):
 
         for _ in range(3):
             active_learner.query()
-            active_learner.update(np.random.randint(2, size=query_size))
+            active_learner.update(np.random.randint(num_classes, size=query_size))
 
         self.assertEqual(query_size * 3 + num_initial, active_learner.indices_labeled.shape[0])
 

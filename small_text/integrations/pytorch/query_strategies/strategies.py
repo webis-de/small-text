@@ -62,7 +62,7 @@ class ExpectedGradientLength(QueryStrategy):
 
         offset = 0
         with default_tensor_type(torch.FloatTensor), pbar_context as pbar:
-            for i, (dataset, _) in enumerate(dataset_iter):
+            for i, (dataset, *_) in enumerate(dataset_iter):
                 self.compute_gradient_lengths(clf, criterion, gradient_lengths, offset, dataset)
 
                 batch_len = dataset.size(0)

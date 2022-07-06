@@ -15,6 +15,7 @@ try:
 
     from small_text.integrations.pytorch.utils.data import get_class_weights
     from small_text.utils.classification import empty_result, prediction_result
+    from small_text.integrations.pytorch.utils.loss import LossAdapter2DTo1D
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
@@ -46,7 +47,7 @@ class PytorchClassifier(Classifier):
                 logging.info('torch.cuda.current_device(): %s', torch.cuda.current_device())
 
     @abstractmethod
-    def fit(self, train_set, validation_set=None, **kwargs):
+    def fit(self, train_set, validation_set=None, weights=None, **kwargs):
         pass
 
     def predict(self, data_set, return_proba=False):
@@ -93,12 +94,16 @@ class PytorchClassifier(Classifier):
         """
         pass
 
-    def get_default_criterion(self):
+    def _get_default_criterion(self, class_weights, use_sample_weights=False):
 
+        reduction = 'none' if use_sample_weights else 'mean'
         if self.multi_label or self.num_classes == 2:
-            return BCEWithLogitsLoss(pos_weight=self.class_weights_)
+            loss = BCEWithLogitsLoss(pos_weight=class_weights, reduction=reduction)
+            if use_sample_weights:
+                loss = LossAdapter2DTo1D(loss)
+            return loss
         else:
-            return CrossEntropyLoss(weight=self.class_weights_)
+            return CrossEntropyLoss(weight=class_weights, reduction=reduction)
 
     def _get_optimizer_and_scheduler(self, optimizer, scheduler, num_epochs, sub_train):
 

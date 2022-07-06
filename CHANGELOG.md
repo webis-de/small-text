@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 1.1.0 - unreleased
+
+## Added
+
+- Classification:
+  - All classifiers now support weighting of training samples.
+
 ## Version 1.0.0 - 2022-06-14
 
 First stable release.

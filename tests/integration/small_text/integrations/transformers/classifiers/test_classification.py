@@ -174,6 +174,20 @@ class _TransformerBasedClassificationTest(object):
         self.assertIsNotNone(clf.class_weights_)
         self.assertIsNotNone(clf.model)
 
+    def test_fit_with_sample_weight(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        clf = TransformerBasedClassification(model_args,
+                                             4,
+                                             multi_label=self.multi_label,
+                                             num_epochs=1)
+
+        train_set = self._get_dataset(num_samples=20)
+        weights = np.random.randn(len(train_set))
+        weights = weights - weights.min() + 1e-8
+
+        clf.fit(train_set, weights=weights)
+        self.assertIsNotNone(clf.model)
+
     def test_fit_with_finetuning_args_and_scheduler_kwargs(self):
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         finetuning_args = FineTuningArguments(5e-2, 0.99)

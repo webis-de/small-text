@@ -6,7 +6,7 @@ from small_text.data.datasets import split_data
 from small_text.utils.labels import list_to_csr
 
 
-def get_splits(train_set, validation_set, multi_label=False, validation_set_size=0.1):
+def get_splits(train_set, validation_set, weights=None, multi_label=False, validation_set_size=0.1):
     """Helper method to ensure that a validation set is available after calling this method.
     This is only necessary when the previous code did not select a validation set prior to this,
     otherwise the passed `validation_set` variable is not None and no action is necessary here.
@@ -33,18 +33,30 @@ def get_splits(train_set, validation_set, multi_label=False, validation_set_size
     sub_valid : Dataset
         A subset used for validation. Defaults to `validation_set` is
     """
-    if validation_set is None:
+    has_validation_set = validation_set is not None
+    if has_validation_set:
+        indices_train = np.arange(len(train_set))
+        result = train_set, validation_set
+    else:
         if multi_label:
             # note: this is not an optimal multi-label strategy right now
-            sub_train, sub_valid = split_data(train_set, y=train_set.y.indices, strategy='random',
-                                              validation_set_size=validation_set_size)
+            indices_train, indices_valid = split_data(train_set,
+                                                      y=train_set.y.indices,
+                                                      strategy='random',
+                                                      validation_set_size=validation_set_size,
+                                                      return_indices=True)
         else:
-            sub_train, sub_valid = split_data(train_set, y=train_set.y, strategy='stratified',
-                                              validation_set_size=validation_set_size)
-    else:
-        sub_train, sub_valid = train_set, validation_set
+            indices_train, indices_valid = split_data(train_set,
+                                                      y=train_set.y,
+                                                      strategy='stratified',
+                                                      validation_set_size=validation_set_size,
+                                                      return_indices=True)
+        result = train_set[indices_train], train_set[indices_valid]
 
-    return sub_train, sub_valid
+    if weights is not None:
+        result += (weights,) if not has_validation_set else (weights[indices_train],)
+
+    return result
 
 
 def prediction_result(proba, multi_label, num_classes, enc=None, return_proba=False):

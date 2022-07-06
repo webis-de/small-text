@@ -202,3 +202,15 @@ class KimCNNTest(unittest.TestCase):
         proba = clf.predict_proba(test_set)
         self.assertEqual(0, proba.shape[0])
         self.assertTrue(np.issubdtype(proba.dtype, np.float))
+
+    def test_fit_with_invalid_sample_weights(self):
+        train_set = random_text_classification_dataset(8)
+        validation_set = random_text_classification_dataset(8)
+
+        classifier = self._get_clf()
+
+        weights = np.random.randn(len(train_set))
+        weights[0] = -1
+
+        with self.assertRaisesRegex(ValueError, 'Weights must be greater zero.'):
+            classifier.fit(train_set, validation_set=validation_set, weights=weights)
