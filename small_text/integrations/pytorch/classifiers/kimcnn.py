@@ -458,7 +458,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
         return valid_loss / len(validation_set), acc / len(validation_set)
 
-    def predict(self, data_set, return_proba=False):
+    def predict(self, data_set, return_proba=False, sparse_proba=True):
         """
         Predicts the labels for the given dataset.
 
@@ -468,6 +468,10 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             A dataset on whose instances predictions are made.
         return_proba : bool
             If True, additionally returns the confidence distribution over all classes.
+        sparse_proba: bool, default=True
+            Only relevant if return_proba=True and multilabel=True.
+            If False probabilities for each label is returned as a numpy array shape(samples,labels)
+            If True only probabilities of successfully predicted labels are returned in a sparce matrix.
 
         Returns
         -------
@@ -477,7 +481,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         probas : np.ndarray[np.float32] (optional)
             List of probabilities (or confidence estimates) if `return_proba` is True.
         """
-        return super().predict(data_set, return_proba=return_proba)
+        return super().predict(data_set, return_proba=return_proba, sparse_proba=sparse_proba)
 
     def predict_proba(self, test_set):
         if len(test_set) == 0:

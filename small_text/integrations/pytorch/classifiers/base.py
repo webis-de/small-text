@@ -50,7 +50,7 @@ class PytorchClassifier(Classifier):
     def fit(self, train_set, validation_set=None, weights=None, **kwargs):
         pass
 
-    def predict(self, data_set, return_proba=False, multilabel_probabilities='thresholded'):
+    def predict(self, data_set, return_proba=False, sparse_proba=True):
         """
         Parameters
         ----------
@@ -58,6 +58,10 @@ class PytorchClassifier(Classifier):
             A dataset on whose instances predictions are made.
         return_proba : bool
             If True, additionally returns the confidence distribution over all classes.
+        sparse_proba: bool, default=True
+            Only relevant if return_proba=True and multilabel=True.
+            If False probabilities for each label is returned as a numpy array shape(samples,labels)
+            If True only probabilities of successfully predicted labels are returned in a sparce matrix.
 
         Returns
         -------
@@ -72,7 +76,7 @@ class PytorchClassifier(Classifier):
                                 return_proba=return_proba)
 
         proba = self.predict_proba(data_set)
-        predictions = prediction_result(proba, self.multi_label, self.num_classes, enc=self.enc_, multilabel_probabilities=multilabel_probabilities)
+        predictions = prediction_result(proba, self.multi_label, self.num_classes, enc=self.enc_,sparse_proba=sparse_proba)
 
         if return_proba:
             return predictions, proba
