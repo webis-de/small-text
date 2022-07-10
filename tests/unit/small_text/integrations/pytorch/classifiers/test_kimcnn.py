@@ -13,6 +13,7 @@ try:
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
     from small_text.integrations.pytorch.datasets import PytorchDatasetView
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
+
     from tests.utils.datasets import random_text_classification_dataset
 except PytorchNotFoundError:
     pass

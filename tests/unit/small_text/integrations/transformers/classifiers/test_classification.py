@@ -10,6 +10,9 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.logging import VERBOSITY_MORE_VERBOSE
 
 try:
+    from torch.optim import AdamW
+    from transformers import get_linear_schedule_with_warmup
+
     from small_text.integrations.transformers.classifiers.classification import \
         FineTuningArguments, TransformerModelArguments, TransformerBasedClassification
     from small_text.integrations.pytorch.datasets import PytorchDatasetView
@@ -138,7 +141,7 @@ class TestTransformerBasedClassification(unittest.TestCase):
         train_set = random_transformer_dataset(10)
         train_set.y = np.array([LABEL_UNLABELED] * 10)
 
-        model_args = TransformerModelArguments('bert-base-uncased')
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         classifier = TransformerBasedClassification(model_args, 2)
         with self.assertRaisesRegex(ValueError, 'Training set labels must be labeled'):
             classifier.fit(train_set)
@@ -148,7 +151,7 @@ class TestTransformerBasedClassification(unittest.TestCase):
         validation_set = random_transformer_dataset(2)
         validation_set.y = np.array([LABEL_UNLABELED] * 2)
 
-        model_args = TransformerModelArguments('bert-base-uncased')
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         classifier = TransformerBasedClassification(model_args, 2)
         with self.assertRaisesRegex(ValueError, 'Validation set labels must be labeled'):
             classifier.fit(train_set, validation_set=validation_set)
@@ -171,7 +174,7 @@ class TestTransformerBasedClassification(unittest.TestCase):
     def test_fit_without_validation_set(self):
         dataset = random_transformer_dataset(10)
 
-        model_args = TransformerModelArguments('bert-base-uncased')
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         classifier = TransformerBasedClassification(model_args, 2)
         with patch.object(classifier, '_fit_main') as fit_main_mock:
             classifier.fit(dataset)
@@ -188,7 +191,7 @@ class TestTransformerBasedClassification(unittest.TestCase):
         train = random_transformer_dataset(8)
         valid = random_transformer_dataset(2)
 
-        model_args = TransformerModelArguments('bert-base-uncased')
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         classifier = TransformerBasedClassification(model_args, 2)
         with patch.object(classifier, '_fit_main') as fit_main_mock:
             classifier.fit(train, validation_set=valid)
@@ -205,7 +208,7 @@ class TestTransformerBasedClassification(unittest.TestCase):
     def test_fit_with_class_weighting(self):
         dataset = random_transformer_dataset(10)
 
-        model_args = TransformerModelArguments('bert-base-uncased')
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         classifier = TransformerBasedClassification(model_args, 2,
                                                     class_weight='balanced')
         with patch.object(classifier, '_fit_main') as fit_main_mock:
@@ -216,7 +219,7 @@ class TestTransformerBasedClassification(unittest.TestCase):
     def test_fit_with_invalid_sample_weights(self):
         dataset = random_transformer_dataset(10)
 
-        model_args = TransformerModelArguments('bert-base-uncased')
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         classifier = TransformerBasedClassification(model_args, 2)
 
         weights = np.random.randn(len(dataset))
@@ -225,10 +228,38 @@ class TestTransformerBasedClassification(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Weights must be greater zero.'):
             classifier.fit(dataset, weights=weights)
 
+    def test_fit_with_optimizer_and_scheduler(self):
+        dataset = random_transformer_dataset(10)
+
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args, 2)
+
+        classifier.fit(dataset)
+
+        params = [param for param in classifier.model.parameters()
+                  if param.requires_grad]
+
+        optimizer = AdamW(params, lr=5e-5)
+        steps = (len(dataset) // classifier.mini_batch_size) \
+            + int(len(dataset) % classifier.mini_batch_size != 0)
+
+        scheduler = get_linear_schedule_with_warmup(optimizer, 0.1 * steps, steps)
+
+        with patch.object(classifier, '_train', wraps=classifier._train) as train_mock:
+            classifier.fit(dataset, optimizer=optimizer, scheduler=scheduler)
+
+            train_mock.assert_called()
+
+            call_args = train_mock.call_args[0]
+            self.assertEqual(1, train_mock.call_count)
+
+            self.assertEqual(optimizer, call_args[4])
+            self.assertEqual(scheduler, call_args[5])
+
     def test_predict_on_empty_data(self):
         test_set = TransformersDataset([], None)
 
-        model_args = TransformerModelArguments('bert-base-uncased')
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         clf = TransformerBasedClassification(model_args, 2)
         # here would be a clf.fit call, which omit due to the runtime costs
 
@@ -239,7 +270,7 @@ class TestTransformerBasedClassification(unittest.TestCase):
     def test_predict_proba_on_empty_data(self):
         test_set = TransformersDataset([], None)
 
-        model_args = TransformerModelArguments('bert-base-uncased')
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         clf = TransformerBasedClassification(model_args, 2)
         # here would be a clf.fit call, which omit due to the runtime costs
 

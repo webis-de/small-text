@@ -367,7 +367,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             self.initialize_transformer(self.cache_dir)
 
         check_optimizer_and_scheduler_config(optimizer, scheduler)
-        scheduler = scheduler if scheduler is None else 'linear'
+        scheduler = scheduler if scheduler is not None else 'linear'
 
         optimizer, scheduler = self._get_optimizer_and_scheduler(optimizer,
                                                                  scheduler,

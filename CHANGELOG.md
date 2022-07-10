@@ -7,6 +7,11 @@
 - Classification:
   - All classifiers now support weighting of training samples.
 
+### Fixed
+- Classification:
+  - `KimCNNClassifier.fit()` and `TransformerBasedClassification.fit()` now correctly
+    process the `scheduler` keyword argument ([#16](https://github.com/webis-de/small-text/issues/16)).
+
 ## Version 1.0.0 - 2022-06-14
 
 First stable release.

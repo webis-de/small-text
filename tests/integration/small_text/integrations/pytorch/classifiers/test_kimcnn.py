@@ -2,6 +2,7 @@ import unittest
 import pytest
 
 import numpy as np
+from unittest.mock import patch
 
 from unittest import mock
 from unittest.mock import Mock
@@ -11,6 +12,9 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
     import torch
+
+    from torch.optim import AdamW
+    from transformers import get_linear_schedule_with_warmup
 
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
     from tests.utils.datasets import random_text_classification_dataset
@@ -124,3 +128,33 @@ class KimCNNClassifierTest(unittest.TestCase):
 
             model_eval_spy.assert_called()
             model_train_spy.assert_called_once_with(False)
+
+    def test_fit_with_optimizer_and_scheduler(self):
+        ds = self._get_dataset()
+
+        num_classes = 4
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        classifier = KimCNNClassifier(num_classes,
+                                      multi_label=self.multi_label,
+                                      embedding_matrix=embedding_matrix)
+
+        classifier.fit(ds)
+
+        params = [param for param in classifier.model.parameters()
+                  if param.requires_grad]
+
+        optimizer = AdamW(params, lr=5e-5)
+        steps = (len(ds) // classifier.mini_batch_size) \
+            + int(len(ds) % classifier.mini_batch_size != 0)
+
+        scheduler = get_linear_schedule_with_warmup(optimizer, 0.1 * steps, steps)
+
+        with patch.object(classifier, '_train', wraps=classifier._train) as train_mock:
+            classifier.fit(ds, optimizer=optimizer, scheduler=scheduler)
+            train_mock.assert_called()
+
+            call_args = train_mock.call_args[0]
+            self.assertEqual(1, train_mock.call_count)
+
+            self.assertEqual(optimizer, call_args[4])
+            self.assertEqual(scheduler, call_args[5])
