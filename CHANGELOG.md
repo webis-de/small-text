@@ -4,6 +4,10 @@
 
 ## Added
 
+- General:
+  - Small-Text package is now available via [conda-forge](https://anaconda.org/conda-forge/small-text). 
+  
+
 - Classification:
   - All classifiers now support weighting of training samples.
 
