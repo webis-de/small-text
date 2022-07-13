@@ -23,6 +23,7 @@ General
 * :py:class:`~small_text.query_strategies.coresets.LightweightCoreset`
 * :py:class:`ContrastiveActiveLearning`
 * :py:class:`DiscriminativeActiveLearning`
+* :py:class:`CategoryVectorInconsistencyAndRanking`
 * :py:class:`SEALS`
 * :py:class:`RandomSampling`
 

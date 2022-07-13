@@ -39,9 +39,13 @@ Bibliography
    Universal Language Model Fine-tuning for Text Classification.
    In Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics, pages 328–339.
 
+.. [RCV18] Oscar Reyes, Carlos Morell, and Sebastián Ventura. 2018.
+   Effective Active Learning Strategy for Multi-Label Learning.
+   Neurocomputing 273, pages 494–508.
+
 .. [AB19] Michael Altschuler and Michael Bloodgood. 2019.
    Stopping Active Learning based on Predicted Change of F Measure for Text Classification.
-   In: International Conference on Semantic Computing (ICSC 2019).
+   In International Conference on Semantic Computing (ICSC 2019).
 
 .. [GS19] Daniel Gissin and Shai Shalev-Shwartz. 2019.
    Discriminative Active Learning.
@@ -52,7 +56,7 @@ Bibliography
    International Conference on Learning Representations 2020 (ICLR 2020).
 
 .. [YLB20] Michelle Yuan, Hsuan-Tien Lin, and Jordan Boyd-Graber. 2020.
-   Cold-start Active Learning through Self-supervised Language Modeling
+   Cold-start Active Learning through Self-supervised Language Modeling.
    In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)
    Association for Computational Linguistics, pages 7935–7948.
 

@@ -10,6 +10,10 @@
 
 - Classification:
   - All classifiers now support weighting of training samples.
+  
+
+- Query Strategies:
+  - New multi-label strategy: [CategoryVectorInconsistencyAndRanking](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/query_strategies/multi_label.py)
 
 ### Fixed
 - Classification:

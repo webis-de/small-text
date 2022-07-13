@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
+from scipy.sparse import csr_matrix
 from sklearn.preprocessing import normalize
 from unittest.mock import patch, Mock
 
@@ -76,6 +77,9 @@ class SamplingStrategiesTests(object):
     def _get_query_strategy(self):
         raise NotImplementedError()
 
+    def _is_multi_label(self):
+        return False
+
     def test_simple_query(self):
         """Tests a query of n=5."""
         indices = self._query(self._get_query_strategy(),
@@ -101,7 +105,10 @@ class SamplingStrategiesTests(object):
             self._query(self._get_query_strategy(), n=11)
 
     def _query(self, strategy, num_samples=20, n=10, **kwargs):
-        dataset = random_sklearn_dataset(num_samples, vocab_size=10)
+        num_classes = 5 if self._is_multi_label() else 2
+        dataset = random_sklearn_dataset(num_samples, vocab_size=10,
+                                         multi_label=self._is_multi_label(),
+                                         num_classes=num_classes)
 
         indices_labeled = np.random.choice(np.arange(num_samples), size=10, replace=False)
         indices_unlabeled = np.array([i for i in range(len(dataset))
@@ -112,7 +119,13 @@ class SamplingStrategiesTests(object):
             proba = np.random.random_sample((num_samples, 2))
             clf_mock.predict_proba = Mock(return_value=proba)
 
-        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+        if self._is_multi_label():
+            y = csr_matrix(np.array([
+                [0, 0], [1, 0], [0, 1], [1, 1], [1, 1],
+                [1, 0], [0, 0], [1, 1], [0, 1], [0, 0]
+            ]))
+        else:
+            y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
         self.assertEqual(indices_labeled.shape[0], y.shape[0])
 
         return strategy.query(clf_mock, dataset, indices_unlabeled, indices_labeled, y, n=n,
