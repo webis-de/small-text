@@ -37,6 +37,10 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
+- **Use Small-Text from the Rubrix User Interface** - July 16th, 2022
+  - We are happy to announce that great team at [rubrix][rubrix] has worked hard to provide a  
+    comprehensive [tutorial on how to use small-text from within the rubrix user interface][rubrix_al_tutorial].
+
 - **Version 1.0.0** ([v1.0.0][changelog_1.0.0]) - June 13, 2022
   - We're out of beta 🎉!
   - This release mainly consists of code cleanup, documentation, and repository organization.
@@ -46,10 +50,6 @@ which can be easily mixed and matched to build active learning experiments or ap
     [SEALS](https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py).
   - `Dataset` interface now has a `clone()` method.
   - Added a concept for [optional dependencies](https://small-text.readthedocs.io/en/v1.0.0b4/install.html#optional-dependencies).
-
-- **March Beta Release** ([v1.0.0b3][changelog_1.0.0b3]) - March 06, 2022
-  - Consolidated interfaces: renamed and unified some arguments before v1.0.0.
-  - New query strategy: [ContrastiveActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b3/small_text/query_strategies/strategies.py).  
   
 
 [For a complete list of changes, see the change log.][changelog]
@@ -86,6 +86,11 @@ or check out the notebooks.
 | --- | -------- | --- |
 | 1 | [Intro: Active Learning for Text Classification with Small-Text](examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/master/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
 | 2 | [Using Stopping Criteria for Active Learning](examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/master/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) |
+
+### Showcase
+
+- [Tutorial: 👂 Learn actively, and listen carefully to small-text.][rubrix_al_tutorial] (Use small-text conveniently from the rubrix UI.)  
+
 ## Documentation
 
 Read the latest documentation [here][documentation_main]. Noteworthy pages include:
@@ -134,6 +139,7 @@ A preprint which introduces small-text is available here:
 [documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.0.0/components/query_strategies.html
 [documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.0.0/reproducibility_notes.html
 [changelog]: https://small-text.readthedocs.io/en/latest/changelog.html
-[changelog_1.0.0b3]: https://small-text.readthedocs.io/en/latest/changelog.html#b3-2022-03-06
 [changelog_1.0.0b4]: https://small-text.readthedocs.io/en/latest/changelog.html#b4-2022-05-04
 [changelog_1.0.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-0-0-2022-06-14
+[rubrix]: https://github.com/recognai/rubrix
+[rubrix_al_tutorial]: https://rubrix.readthedocs.io/en/stable/tutorials/active_learning_with_small_text.html
