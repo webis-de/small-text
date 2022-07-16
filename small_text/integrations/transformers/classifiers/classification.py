@@ -637,7 +637,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         return valid_loss / len(validation_set), acc / len(validation_set)
 
-    def predict(self, data_set, return_proba=False):
+    def predict(self, data_set, return_proba=False, sparse_proba=True):
         """
         Parameters
         ----------
@@ -653,8 +653,12 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             otherwise a sparse matrix of predictions.
         probas : np.ndarray[np.float32], optional
             List of probabilities (or confidence estimates) if `return_proba` is True.
+        sparse_proba: bool, default=True
+            Only relevant if return_proba=True and multilabel=True.
+            If False probabilities for each label is returned as a numpy array shape(samples,labels)
+            If True only probabilities of successfully predicted labels are returned in a sparce matrix.
         """
-        return super().predict(data_set, return_proba=return_proba)
+        return super().predict(data_set, return_proba=return_proba, sparse_proba=sparse_proba)
 
     def predict_proba(self, test_set):
         if len(test_set) == 0:
