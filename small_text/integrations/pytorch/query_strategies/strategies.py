@@ -13,7 +13,7 @@ try:
     import torch
     import torch.nn.functional as F  # noqa: N812
 
-    from small_text.integrations.pytorch.utils.misc import assert_layer_exists, default_tensor_type
+    from small_text.integrations.pytorch.utils.misc import assert_layer_exists
     from small_text.integrations.pytorch.utils.data import dataloader
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
@@ -61,7 +61,7 @@ class ExpectedGradientLength(QueryStrategy):
         pbar_context = build_pbar_context('tqdm', tqdm_kwargs={'total': list_length(dataset)})
 
         offset = 0
-        with default_tensor_type(torch.FloatTensor), pbar_context as pbar:
+        with pbar_context as pbar:
             for i, (dataset, *_) in enumerate(dataset_iter):
                 self.compute_gradient_lengths(clf, criterion, gradient_lengths, offset, dataset)
 
