@@ -184,7 +184,7 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
     def _create_embeddings(self, tensors, batch, embedding_method='avg', hidden_layer_index=-1):
 
-        text, masks, _ = batch
+        text, masks, *_ = batch
         text = text.to(self.device, non_blocking=True)
         masks = masks.to(self.device, non_blocking=True)
 

@@ -29,7 +29,6 @@ except (ImportError, PytorchNotFoundError):
         pass
 
 
-@pytest.mark.skip
 @pytest.mark.pytorch
 @parameterized_class([{'embedding_method': 'avg', 'num_classes': 2},
                       {'embedding_method': 'cls', 'num_classes': 2},
