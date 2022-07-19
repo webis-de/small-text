@@ -27,6 +27,10 @@ class CategoryVectorInconsistencyAndRankingTest(unittest.TestCase):
         self.assertEqual(prediction_threshold, query_strategy.prediction_threshold)
         self.assertEqual(epsilon, query_strategy.epsilon)
 
+    def test_entropy(self):
+        query_strategy = CategoryVectorInconsistencyAndRanking()
+        self.assertEqual(0, query_strategy._entropy(0, 10))
+
     def test_str(self):
         query_strategy = CategoryVectorInconsistencyAndRanking()
         self.assertEqual(
