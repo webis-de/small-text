@@ -38,7 +38,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 ## News
 
 - **Use Small-Text from the Rubrix User Interface** - July 16th, 2022
-  - We are happy to announce that great team at [rubrix][rubrix] has worked hard to provide a  
+  - We are happy to announce that the great team at [rubrix][rubrix] has worked hard to provide a  
     comprehensive [tutorial on how to use small-text from within the rubrix user interface][rubrix_al_tutorial].
 
 - **Version 1.0.0** ([v1.0.0][changelog_1.0.0]) - June 13, 2022
@@ -89,7 +89,7 @@ or check out the notebooks.
 
 ### Showcase
 
-- [Tutorial: 👂 Learn actively, and listen carefully to small-text.][rubrix_al_tutorial] (Use small-text conveniently from the rubrix UI.)  
+- [Tutorial: 👂 Learn actively, and listen carefully to small-text.][rubrix_al_tutorial] (Use small-text conveniently from the [rubrix][rubrix] UI.)  
 
 ## Documentation
 
