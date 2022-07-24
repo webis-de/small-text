@@ -1,4 +1,5 @@
 import logging
+import warnings
 
 from collections import OrderedDict
 from pathlib import Path
@@ -18,6 +19,10 @@ except ImportError:
 class Metric(object):
 
     def __init__(self, name, lower_is_better=True):
+        warnings.warn(
+            'Metric class is deprecated since 1.1.0 and will be removed in 2.0.0',
+            DeprecationWarning,
+            stacklevel=2)
         """
         Represents any metric.
 
@@ -38,6 +43,10 @@ class PytorchModelSelection(object):
     IDX_EPOCH = -2
 
     def __init__(self, save_directory, metrics, sort_by_idx=0):
+        warnings.warn(
+            'PytorchModelSelection class is deprecated since 1.1.0 and will be removed in 2.0.0',
+            DeprecationWarning,
+            stacklevel=2)
         validate_metrics(metrics)
 
         if isinstance(save_directory, Path):
@@ -97,6 +106,11 @@ class PytorchModelSelection(object):
 
 
 def validate_metrics(metrics):
+    warnings.warn(
+        'validate_metrics() is deprecated since 1.1.0 and will be removed in 2.0.0',
+        DeprecationWarning,
+        stacklevel=2)
+
     if not isinstance(metrics, list):
         raise ValueError('Argument "metrics" must be a list')
 
