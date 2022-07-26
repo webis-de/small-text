@@ -11,6 +11,7 @@ from parameterized import parameterized_class
 from scipy.sparse import issparse
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from small_text.training.early_stopping import EarlyStopping, NoopEarlyStopping
 from tests.utils.datasets import twenty_news_transformers
 from tests.utils.testing import assert_array_not_equal
 
@@ -315,6 +316,101 @@ class _TransformerBasedClassificationTest(object):
                 str(w_.message) == expected_warning and w_.category == RuntimeWarning
                 for w_ in w])
             self.assertTrue(found_warning)
+
+    def test_fit_with_early_stopping(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args,
+                                                    4,
+                                                    multi_label=self.multi_label,
+                                                    class_weight='balanced',
+                                                    num_epochs=2)
+
+        train_set = self._get_dataset(num_samples=10)
+        validation_set = self._get_dataset(num_samples=10)
+
+        early_stopping = EarlyStopping('val_loss')
+
+        with mock.patch.object(early_stopping,
+                               'check_early_stop',
+                               wraps=early_stopping.check_early_stop) as check_early_stop_spy:
+
+            classifier.fit(train_set, validation_set=validation_set, early_stopping=early_stopping)
+            self.assertEqual(2, check_early_stop_spy.call_count)
+            for i in range(2):
+                self.assertEqual(i+1, check_early_stop_spy.call_args_list[i].args[0])
+                self.assertTrue('train_acc' in check_early_stop_spy.call_args_list[i].args[1])
+                self.assertTrue('train_loss' in check_early_stop_spy.call_args_list[i].args[1])
+                self.assertTrue('val_acc' in check_early_stop_spy.call_args_list[i].args[1])
+                self.assertTrue('val_loss' in check_early_stop_spy.call_args_list[i].args[1])
+
+    def test_fit_with_early_stopping_with_validations_per_epoch(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args,
+                                                    4,
+                                                    multi_label=self.multi_label,
+                                                    class_weight='balanced',
+                                                    num_epochs=2,
+                                                    mini_batch_size=5,
+                                                    validations_per_epoch=2)
+
+        train_set = self._get_dataset(num_samples=10)
+        validation_set = self._get_dataset(num_samples=10)
+
+        early_stopping = EarlyStopping('val_loss')
+
+        with mock.patch.object(early_stopping,
+                               'check_early_stop',
+                               wraps=early_stopping.check_early_stop) as check_early_stop_spy:
+
+            classifier.fit(train_set, validation_set=validation_set, early_stopping=early_stopping)
+            # 2 "intermediate" validations with val_acc/vall_los only + one final one per epoch
+            self.assertEqual(6, check_early_stop_spy.call_count)
+            for i in range(6):
+                self.assertEqual(i // 3 + 1, check_early_stop_spy.call_args_list[i].args[0])
+                self.assertTrue('val_acc' in check_early_stop_spy.call_args_list[i].args[1])
+                self.assertTrue('val_loss' in check_early_stop_spy.call_args_list[i].args[1])
+                if (i+1) % 3 == 0:
+                    self.assertTrue('train_acc' in check_early_stop_spy.call_args_list[i].args[1])
+                    self.assertTrue('train_loss' in check_early_stop_spy.call_args_list[i].args[1])
+
+    def test_fit_with_early_stopping_default(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args,
+                                                    4,
+                                                    multi_label=self.multi_label,
+                                                    class_weight='balanced',
+                                                    num_epochs=1)
+
+        train_set = self._get_dataset(num_samples=10)
+        validation_set = self._get_dataset(num_samples=10)
+
+        with patch.object(classifier, '_fit_main', wraps=classifier._fit_main) as fit_main_spy:
+            classifier.fit(train_set, validation_set=validation_set)
+
+            self.assertEqual(1, fit_main_spy.call_count)
+            early_stopping_arg = fit_main_spy.call_args_list[0].args[3]
+            self.assertTrue(isinstance(early_stopping_arg, EarlyStopping))
+            self.assertEqual('val_loss', early_stopping_arg.monitor)
+            self.assertEqual(5, early_stopping_arg.patience)
+
+    def test_fit_with_early_stopping_disabled(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args,
+                                                    4,
+                                                    multi_label=self.multi_label,
+                                                    class_weight='balanced',
+                                                    num_epochs=1)
+
+        train_set = self._get_dataset(num_samples=10)
+        validation_set = self._get_dataset(num_samples=10)
+
+        with patch.object(classifier,
+                          '_fit_main',
+                          wraps=classifier._fit_main) as fit_main_spy:
+            classifier.fit(train_set, validation_set=validation_set, early_stopping='none')
+
+            self.assertEqual(1, fit_main_spy.call_count)
+            self.assertTrue(isinstance(fit_main_spy.call_args_list[0].args[3], NoopEarlyStopping))
 
 
 @pytest.mark.pytorch

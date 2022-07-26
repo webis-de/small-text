@@ -6,9 +6,9 @@ from unittest.mock import patch
 
 from unittest import mock
 from unittest.mock import Mock
-from parameterized import parameterized_class
 from scipy.sparse import issparse
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from small_text.training.early_stopping import EarlyStopping, NoopEarlyStopping
 
 try:
     import torch
@@ -22,10 +22,7 @@ except PytorchNotFoundError:
     pass
 
 
-@pytest.mark.pytorch
-@parameterized_class([{'multi_label': True},
-                      {'multi_label': False}])
-class KimCNNClassifierTest(unittest.TestCase):
+class _KimCNNClassifierTest(object):
 
     def _get_dataset(self, num_samples=100, num_classes=4):
         return random_text_classification_dataset(num_samples, max_length=60, num_classes=num_classes,
@@ -129,6 +126,76 @@ class KimCNNClassifierTest(unittest.TestCase):
             model_eval_spy.assert_called()
             model_train_spy.assert_called_once_with(False)
 
+    def test_fit_with_early_stopping(self):
+        dataset = self._get_dataset(num_samples=20, num_classes=4)
+
+        train_set = dataset[0:10]
+        validation_set = dataset[10:]
+
+        num_classes = 4
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        classifier = KimCNNClassifier(num_classes,
+                                      multi_label=self.multi_label,
+                                      embedding_matrix=embedding_matrix,
+                                      num_epochs=2)
+
+        early_stopping = EarlyStopping('val_loss')
+
+        with mock.patch.object(early_stopping,
+                               'check_early_stop',
+                               wraps=early_stopping.check_early_stop) as check_early_stop_spy:
+
+            classifier.fit(train_set, validation_set=validation_set, early_stopping=early_stopping)
+            self.assertEqual(2, check_early_stop_spy.call_count)
+            for i in range(2):
+                self.assertEqual(i+1, check_early_stop_spy.call_args_list[i].args[0])
+                self.assertTrue('train_acc' in check_early_stop_spy.call_args_list[i].args[1])
+
+    def test_fit_with_early_stopping_default(self):
+        dataset = self._get_dataset(num_samples=20, num_classes=4)
+
+        train_set = dataset[0:10]
+        validation_set = dataset[10:]
+
+        num_classes = 4
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        classifier = KimCNNClassifier(num_classes,
+                                      multi_label=self.multi_label,
+                                      embedding_matrix=embedding_matrix,
+                                      num_epochs=2)
+
+        with patch.object(classifier,
+                          '_fit_main',
+                          wraps=classifier._fit_main) as fit_main_spy:
+            classifier.fit(train_set, validation_set=validation_set)
+
+            self.assertEqual(1, fit_main_spy.call_count)
+            early_stopping_arg = fit_main_spy.call_args_list[0].args[3]
+            self.assertTrue(isinstance(early_stopping_arg, EarlyStopping))
+            self.assertEqual('val_loss', early_stopping_arg.monitor)
+            self.assertEqual(5, early_stopping_arg.patience)
+
+    def test_fit_with_early_stopping_disabled(self):
+        dataset = self._get_dataset(num_samples=20, num_classes=4)
+
+        train_set = dataset[0:10]
+        validation_set = dataset[10:]
+
+        num_classes = 4
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        classifier = KimCNNClassifier(num_classes,
+                                      multi_label=self.multi_label,
+                                      embedding_matrix=embedding_matrix,
+                                      num_epochs=2)
+
+        with patch.object(classifier,
+                          '_fit_main',
+                          wraps=classifier._fit_main) as fit_main_spy:
+            classifier.fit(train_set, validation_set=validation_set, early_stopping='none')
+
+            self.assertEqual(1, fit_main_spy.call_count)
+            self.assertTrue(isinstance(fit_main_spy.call_args_list[0].args[3], NoopEarlyStopping))
+
     def test_fit_with_optimizer_and_scheduler(self):
         ds = self._get_dataset()
 
@@ -140,8 +207,7 @@ class KimCNNClassifierTest(unittest.TestCase):
 
         classifier.fit(ds)
 
-        params = [param for param in classifier.model.parameters()
-                  if param.requires_grad]
+        params = [param for param in classifier.model.parameters() if param.requires_grad]
 
         optimizer = AdamW(params, lr=5e-5)
         steps = (len(ds) // classifier.mini_batch_size) \
@@ -158,3 +224,17 @@ class KimCNNClassifierTest(unittest.TestCase):
 
             self.assertEqual(optimizer, call_args[4])
             self.assertEqual(scheduler, call_args[5])
+
+
+@pytest.mark.pytorch
+class KimCNNClassifierSingleLabelTest(unittest.TestCase, _KimCNNClassifierTest):
+
+    def setUp(self):
+        self.multi_label = False
+
+
+@pytest.mark.pytorch
+class KimCNNClassifierMultiLabelTest(unittest.TestCase, _KimCNNClassifierTest):
+
+    def setUp(self):
+        self.multi_label = True

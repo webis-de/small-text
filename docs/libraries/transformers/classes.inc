@@ -3,7 +3,10 @@
 Classification
 ==============
 .. autoclass:: small_text.integrations.transformers.classifiers.classification.FineTuningArguments
-    :members:
+   :special-members: __init__
+   :members:
 
 .. autoclass:: small_text.integrations.transformers.classifiers.classification.TransformerBasedClassification
-    :members:
+   :special-members: __init__
+   :members:
+

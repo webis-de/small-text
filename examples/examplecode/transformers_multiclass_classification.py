@@ -5,6 +5,7 @@ import numpy as np
 from transformers import AutoTokenizer
 
 from small_text.active_learner import PoolBasedActiveLearner
+from small_text.training.early_stopping import EarlyStopping
 from small_text.initialization import random_initialization_balanced
 from small_text.integrations.transformers import TransformerModelArguments
 from small_text.integrations.transformers.classifiers.factories import TransformerBasedClassificationFactory
@@ -26,7 +27,9 @@ def main(num_iterations=10):
     num_classes = len(TWENTY_NEWS_SUBCATEGORIES)
     clf_factory = TransformerBasedClassificationFactory(TRANSFORMER_MODEL,
                                                         num_classes,
-                                                        kwargs=dict({'device': 'cuda'}))
+                                                        kwargs=dict({
+                                                            'device': 'cuda'
+                                                        }))
     query_strategy = RandomSampling()
 
     # Prepare some data
@@ -40,6 +43,8 @@ def main(num_iterations=10):
     # Active learner
     active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
     indices_labeled = initialize_active_learner(active_learner, train.y)
+
+    active_learner.classifier.fit(train, early_stopping=EarlyStopping('train_acc', threshold=0.8))
 
     try:
         perform_active_learning(active_learner, train, indices_labeled, test, num_iterations)

@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from small_text.base import LABEL_UNLABELED
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from small_text.training.early_stopping import EarlyStopping, SequentialEarlyStopping
 from small_text.utils.logging import VERBOSITY_MORE_VERBOSE
 
 try:
@@ -227,6 +228,70 @@ class TestTransformerBasedClassification(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, 'Weights must be greater zero.'):
             classifier.fit(dataset, weights=weights)
+
+    # TODO: remove this in 2.0.0
+    def test_fit_with_early_stopping_fallback_default_kwargs(self):
+        train = random_transformer_dataset(8)
+        valid = random_transformer_dataset(2)
+
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args, 2)
+        with patch.object(classifier, '_fit_main') as fit_main_mock:
+            classifier.fit(train, validation_set=valid)
+            fit_main_mock.assert_called()
+            self.assertIsNone(classifier.class_weights_)
+
+            call_args = fit_main_mock.call_args[0]
+            self.assertTrue(isinstance(call_args[3], EarlyStopping))
+            self.assertEqual('val_loss', call_args[3].monitor)
+            self.assertEqual(5, call_args[3].patience)
+
+    # TODO: remove this in 2.0.0
+    def test_fit_with_early_stopping_fallback_deprecated_kwargs(self):
+        train = random_transformer_dataset(8)
+        valid = random_transformer_dataset(2)
+
+        early_stopping_no_improvement = 8
+        early_stopping_acc = 0.98
+
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(
+            model_args,
+            2,
+            early_stopping_no_improvement=early_stopping_no_improvement,
+            early_stopping_acc=early_stopping_acc)
+        with patch.object(classifier, '_fit_main') as fit_main_mock:
+            classifier.fit(train, validation_set=valid)
+            fit_main_mock.assert_called()
+            self.assertIsNone(classifier.class_weights_)
+
+            call_args = fit_main_mock.call_args[0]
+            self.assertTrue(isinstance(call_args[3], SequentialEarlyStopping))
+
+            first_handler = call_args[3].early_stopping_handlers[0]
+            self.assertEqual('val_loss', first_handler.monitor)
+            self.assertEqual(early_stopping_no_improvement, first_handler.patience)
+
+            second_handler = call_args[3].early_stopping_handlers[1]
+            self.assertEqual('train_acc', second_handler.monitor)
+            self.assertEqual(early_stopping_no_improvement, second_handler.patience)
+
+    # TODO: remove this in 2.0.0
+    def test_fit_with_early_stopping_and_fall_back_simultaneously(self):
+        dataset = random_transformer_dataset(10)
+
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        early_stopping = EarlyStopping('val_loss')
+
+        classifier = TransformerBasedClassification(model_args, 2,
+                                                    early_stopping_no_improvement=7)
+        with self.assertWarnsRegex(UserWarning, r'Both the fit\(\) argument early_stopping'):
+            classifier.fit(dataset, early_stopping=early_stopping)
+
+        classifier = TransformerBasedClassification(model_args, 2,
+                                                    early_stopping_acc=0.98)
+        with self.assertWarnsRegex(UserWarning, r'Both the fit\(\) argument early_stopping'):
+            classifier.fit(dataset, early_stopping=early_stopping)
 
     def test_fit_with_optimizer_and_scheduler(self):
         dataset = random_transformer_dataset(10)

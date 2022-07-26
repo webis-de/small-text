@@ -5,6 +5,11 @@ from abc import abstractmethod
 
 from small_text.classifiers.classification import Classifier
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from small_text.training.early_stopping import (
+    EarlyStopping,
+    NoopEarlyStopping,
+    SequentialEarlyStopping
+)
 
 try:
     import torch
@@ -104,6 +109,34 @@ class PytorchClassifier(Classifier):
             return loss
         else:
             return CrossEntropyLoss(weight=class_weights, reduction=reduction)
+
+    def _get_default_early_stopping(self, early_stopping, early_stopping_no_improvement,
+                                    early_stopping_acc, validations_per_epoch,
+                                    kwarg_no_improvement_name='early_stopping_no_improvement'):
+        # TODO:
+        if early_stopping is None:
+            patience = early_stopping_no_improvement * validations_per_epoch
+            if early_stopping_no_improvement == 5 and early_stopping_acc == -1:
+                early_stopping = EarlyStopping('val_loss', patience=patience)
+            elif early_stopping_no_improvement == 0 and early_stopping_acc == -1:
+                early_stopping = NoopEarlyStopping()
+            else:
+                early_stopping = SequentialEarlyStopping([
+                    EarlyStopping('val_loss', patience=patience),
+                    # TODO: disable patience here?
+                    EarlyStopping('train_acc', patience=patience, threshold=early_stopping_acc)
+                ])
+        elif early_stopping == 'none':
+            early_stopping = NoopEarlyStopping()
+        else:
+            if early_stopping_no_improvement != 5 or early_stopping_acc != -1:
+                warnings.warn(f'Both the fit() argument early_stopping and the __init__() '
+                              f'arguments "{kwarg_no_improvement_name}" / "early_stopping_acc" '
+                              f'have been used. In this case the fit() argument takes precedence. '
+                              f'The __init__() arguments are deprecated, so please use the '
+                              f'early stopping argument in fit() instead.',
+                              UserWarning)
+        return early_stopping
 
     def _get_optimizer_and_scheduler(self, optimizer, scheduler, num_epochs, sub_train):
 

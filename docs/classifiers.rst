@@ -1,6 +1,6 @@
-==============
-Classification
-==============
+===========
+Classifiers
+===========
 
 In order to use different models, query strategies, and stopping criteria from the active learner,
 we provide classification abstractions to allow for a unified interface.

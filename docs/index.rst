@@ -29,7 +29,6 @@ Getting Started
    install
    active_learning
    data_structures
-   classification
 
 - Start: :doc:`install` | :doc:`Active Learning Overview<active_learning>`
 - Examples: `Notebooks <https://github.com/webis-de/small-text/tree/main/examples/notebooks>`_ | `Code Examples <https://github.com/webis-de/small-text/tree/main/examples/examplecode>`_
@@ -42,6 +41,14 @@ Getting Started
    components/initialization
    components/query_strategies
    components/stopping_criteria
+
+.. toctree::
+   :caption: Classification
+   :maxdepth: 1
+   :hidden:
+
+   classifiers
+   components/training
 
 .. toctree::
    :caption: Integrations
