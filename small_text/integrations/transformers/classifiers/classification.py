@@ -12,6 +12,7 @@ from sklearn.preprocessing import MultiLabelBinarizer
 
 from small_text.classifiers.classification import EmbeddingMixin
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from small_text.training.early_stopping import NoopStoppingHandler
 from small_text.utils.classification import empty_result, get_splits
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data, list_length
@@ -290,7 +291,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         self.enc_ = None
 
-    def fit(self, train_set, validation_set=None, weights=None, optimizer=None, scheduler=None):
+    def fit(self, train_set, validation_set=None, weights=None, early_stopping=None,
+            optimizer=None, scheduler=None):
         """
         Trains the model using the given train set.
 
@@ -304,6 +306,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             is set by `self.validation_set_size`.
         weights : np.ndarray[np.float32] or None, default=None
             Sample weights or None.
+        early_stopping : ... or None
+            A strategy for early stopping.
         optimizer : torch.optim.optimizer.Optimizer or None, default=None
             A pytorch optimizer.
         scheduler : torch.optim._LRScheduler or None, default=None
@@ -350,9 +354,10 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.criterion = self._get_default_criterion(self.class_weights_,
                                                      use_sample_weights=weights is not None)
 
-        return self._fit_main(sub_train, sub_valid, sub_train_weights, fit_optimizer, fit_scheduler)
+        return self._fit_main(sub_train, sub_valid, sub_train_weights, early_stopping,
+                              fit_optimizer, fit_scheduler)
 
-    def _fit_main(self, sub_train, sub_valid, weights, optimizer, scheduler):
+    def _fit_main(self, sub_train, sub_valid, weights, early_stopping, optimizer, scheduler):
         if self.model is None:
             encountered_num_classes = get_num_labels(sub_train.y)
 
@@ -366,6 +371,11 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
             self.initialize_transformer(self.cache_dir)
 
+        if early_stopping is None:
+            early_stopping = NoopStoppingHandler()
+
+        early_stopping.reset()
+
         check_optimizer_and_scheduler_config(optimizer, scheduler)
         scheduler = scheduler if scheduler is not None else 'linear'
 
@@ -376,7 +386,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.model = self.model.to(self.device)
 
         with tempfile.TemporaryDirectory(dir=get_tmp_dir_base()) as tmp_dir:
-            res = self._train(sub_train, sub_valid, weights, tmp_dir, optimizer, scheduler)
+            res = self._train(sub_train, sub_valid, weights, early_stopping, optimizer, scheduler,
+                              tmp_dir)
             self._perform_model_selection(sub_valid)
 
         return res
@@ -413,66 +424,55 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         return params, AdamW(params, lr=base_lr, eps=1e-8)
 
-    def _train(self, sub_train, sub_valid, weights, tmp_dir, optimizer, scheduler):
+    def _train(self, sub_train, sub_valid, weights, early_stopping, optimizer, scheduler,
+               tmp_dir):
 
         metrics = [Metric('valid_loss', True), Metric('valid_acc', False),
                    Metric('train_loss', True), Metric('train_acc', False)]
         self.model_selection_manager = PytorchModelSelection(Path(tmp_dir), metrics)
 
-        start_epoch = 0
-        self._train_loop(sub_train, sub_valid, weights, optimizer, scheduler, start_epoch,
+
+        self._train_loop(sub_train, sub_valid, weights, early_stopping, optimizer, scheduler,
                          self.num_epochs, self.model_selection_manager)
 
         return self
 
-    def _train_loop(self, sub_train, sub_valid, weights, optimizer, scheduler, start_epoch,
+    def _train_loop(self, sub_train, sub_valid, weights, early_stopping, optimizer, scheduler,
                     num_epochs, model_selection_manager):
 
-        min_loss = float('inf')
-        no_loss_reduction = 0
+        stop = False
+        for epoch in range(0, num_epochs):
+            if not stop:
+                start_time = datetime.datetime.now()
 
-        stopped = False
+                train_acc, train_loss, valid_acc, valid_loss, stop = self._train_loop_epoch(epoch,
+                                                                                            sub_train,
+                                                                                            sub_valid,
+                                                                                            weights,
+                                                                                            early_stopping,
+                                                                                            epoch,
+                                                                                            optimizer,
+                                                                                            scheduler)
 
-        for epoch in range(start_epoch, num_epochs):
-            start_time = datetime.datetime.now()
+                timedelta = datetime.datetime.now() - start_time
 
-            train_acc, train_loss, valid_acc, valid_loss = self._train_loop_epoch(sub_train,
-                                                                                  sub_valid,
-                                                                                  weights,
-                                                                                  epoch,
-                                                                                  optimizer,
-                                                                                  scheduler)
+                self._log_epoch(epoch, timedelta, sub_train, sub_valid, train_acc, train_loss,
+                                valid_acc, valid_loss)
 
-            timedelta = datetime.datetime.now() - start_time
+                monitorables = {
+                    'train_acc':train_acc,
+                    'train_loss': train_loss,
+                    'val_acc': valid_acc,
+                    'val_loss': valid_loss
+                }
+                stop = early_stopping.check_early_stop(epoch, monitorables)
+                if sub_valid is not None:
+                    model_selection_manager.add_model(self.model, epoch + 1, valid_acc=valid_acc,
+                                                      valid_loss=valid_loss, train_acc=train_acc,
+                                                      train_loss=train_loss)
 
-            self._log_epoch(epoch, timedelta, sub_train, sub_valid, train_acc, train_loss,
-                            valid_acc, valid_loss)
-
-            if sub_valid is not None:
-                if self.early_stopping_no_improvement > 0:
-                    if valid_loss < min_loss:
-                        no_loss_reduction = 0
-                        min_loss = valid_loss
-                    else:
-                        no_loss_reduction += 1
-
-                        if no_loss_reduction >= self.early_stopping_no_improvement:
-                            logging.info(f'Early stopping after {epoch + 1} epochs')
-                            stopped = True
-
-                if not stopped and self.early_stopping_acc > 0:
-                    if train_acc > self.early_stopping_acc:
-                        logging.info(f'Early stopping due to high train acc: {train_acc}')
-                        stopped = True
-
-                model_selection_manager.add_model(self.model, epoch + 1, valid_acc=valid_acc,
-                                                  valid_loss=valid_loss, train_acc=train_acc,
-                                                  train_loss=train_loss)
-
-            if stopped:
-                break
-
-    def _train_loop_epoch(self, sub_train, sub_valid, weights, epoch, optimizer, scheduler):
+    def _train_loop_epoch(self, num_epoch, sub_train, sub_valid, weights, early_stopping, epoch,
+                          optimizer, scheduler):
 
         if self.memory_fix and (epoch + 1) % self.memory_fix == 0:
             torch.cuda.empty_cache()
@@ -489,28 +489,23 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                 validate_every = 1
             else:
                 validate_every = int(num_batches / self.validations_per_epoch)
-
-            train_loss, train_acc, valid_loss, valid_acc = self._train_loop_process_batches(
-                sub_train,
-                weights,
-                optimizer,
-                scheduler,
-                validate_every=validate_every,
-                validation_set=sub_valid)
         else:
-            train_loss, train_acc = self._train_loop_process_batches(
-                sub_train,
-                weights,
-                optimizer,
-                scheduler)
+            validate_every = None
 
-            if sub_valid is not None:
-                valid_loss, valid_acc = self.validate(sub_valid)
+        train_loss, train_acc, valid_loss, valid_acc, stop = self._train_loop_process_batches(
+            num_epoch,
+            sub_train,
+            sub_valid,
+            weights,
+            early_stopping,
+            optimizer,
+            scheduler,
+            validate_every=validate_every)
 
-        return train_acc, train_loss, valid_acc, valid_loss
+        return train_acc, train_loss, valid_acc, valid_loss, stop
 
-    def _train_loop_process_batches(self, sub_train_, weights, optimizer, scheduler,
-                                    validate_every=None, validation_set=None):
+    def _train_loop_process_batches(self, num_epoch, sub_train_, sub_valid_, weights, early_stopping,
+                                    optimizer, scheduler, validate_every=None):
 
         train_loss = 0.
         train_acc = 0.
@@ -524,6 +519,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         train_iter = dataloader(data, self.mini_batch_size,
                                 self._create_collate_fn(use_sample_weights=weights is not None))
 
+        stop = False
+
         for i, (x, masks, cls, weight) in enumerate(train_iter):
             loss, acc = self._train_single_batch(x, masks, cls, weight, optimizer)
             scheduler.step()
@@ -532,15 +529,37 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             train_acc += acc
 
             if validate_every and i % validate_every == 0:
-                valid_loss, valid_acc = self.validate(validation_set)
+                valid_loss, valid_acc = self.validate(sub_valid_)
                 valid_losses.append(valid_loss)
                 valid_accs.append(valid_acc)
 
+                monitorables = dict({
+                    'train_loss': train_loss,
+                    'train_acc': train_acc,
+                    'val_loss': valid_loss,
+                    'val_acc': valid_acc
+                })
+                stop = stop or early_stopping.check_early_stop(num_epoch,
+                                                               monitorables,
+                                                               epoch_finished=False)
+
         if validate_every:
-            return train_loss / len(sub_train_), train_acc / len(sub_train_), \
-                   np.mean(valid_losses), np.mean(valid_accs)
+            valid_loss, valid_acc = np.mean(valid_losses), np.mean(valid_accs)
+            return train_loss / len(sub_train_), train_acc / len(sub_train_), valid_loss, valid_acc
+
         else:
-            return train_loss / len(sub_train_), train_acc / len(sub_train_)
+            valid_loss, valid_acc = None, None
+            if validate_every is None and sub_valid_ is not None:
+                valid_loss, valid_acc = self.validate(sub_valid_)
+            monitorables = dict({
+                'train_loss': train_loss,
+                'train_acc': train_acc,
+                'val_loss': valid_loss,
+                'val_acc': valid_acc
+            })
+            stop = early_stopping.check_early_stop(num_epoch, monitorables)
+            return train_loss / len(sub_train_), train_acc / len(sub_train_), valid_loss, \
+                   valid_acc, stop
 
     def _create_collate_fn(self, use_sample_weights=False):
         return partial(transformers_collate_fn, enc=self.enc_, use_sample_weights=use_sample_weights)
