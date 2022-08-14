@@ -2,6 +2,7 @@ import logging
 import warnings
 
 from abc import abstractmethod
+from pathlib import Path
 
 from small_text.classifiers.classification import Classifier
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
@@ -10,6 +11,7 @@ from small_text.training.early_stopping import (
     NoopEarlyStopping,
     SequentialEarlyStopping
 )
+from small_text.training.model_selection import ModelSelection, NoopModelSelection
 
 try:
     import torch
@@ -33,7 +35,25 @@ def check_optimizer_and_scheduler_config(optimizer, scheduler):
         raise ValueError('You must also pass an optimizer if you pass a scheduler to fit()')
 
 
-class PytorchClassifier(Classifier):
+class PytorchModelSelectionMixin(object):
+
+    def _save_model(self, model_selection, epoch, model_id, train_acc, train_loss,
+                    valid_acc, valid_loss, stop, tmp_dir):
+
+        measure_values = {'train_acc': train_acc, 'train_loss': train_loss,
+                          'val_acc': valid_acc, 'val_loss': valid_loss}
+        model_path = Path(tmp_dir).joinpath(f'model_{model_id}.pt'.format(epoch))
+        torch.save(self.model.state_dict(), model_path)
+        model_selection.add_model(epoch, model_id, model_path, measure_values,
+                                  fields={ModelSelection.EARLY_STOPPING_FIELD: stop})
+
+    def _perform_model_selection(self, model_selection):
+        model_selection_result = model_selection.select()
+        if model_selection_result.epoch > 0 and model_selection_result.epoch != self.num_epochs:
+            self.model.load_state_dict(torch.load(model_selection_result.model_path))
+
+
+class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
 
     def __init__(self, multi_label=False, device=None, mini_batch_size=32):
 
@@ -137,6 +157,13 @@ class PytorchClassifier(Classifier):
                               f'early stopping argument in fit() instead.',
                               UserWarning)
         return early_stopping
+
+    @staticmethod
+    def _get_default_model_selection(model_selection):
+        if model_selection == 'none':
+            return NoopModelSelection()
+
+        return ModelSelection()
 
     def _get_optimizer_and_scheduler(self, optimizer, scheduler, num_epochs, sub_train):
 

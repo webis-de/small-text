@@ -12,10 +12,15 @@ from sklearn.preprocessing import MultiLabelBinarizer
 
 from small_text.classifiers.classification import EmbeddingMixin
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from small_text.training.model_selection import ModelSelection
 from small_text.utils.classification import empty_result, get_splits
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data, list_length
 from small_text.utils.datetime import format_timedelta
+from small_text.utils.deprecation import (
+    early_stopping_deprecation_warning,
+    model_selection_deprecation_warning
+)
 from small_text.utils.labels import csr_to_list, get_num_labels
 from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
 from small_text.utils.system import get_tmp_dir_base
@@ -32,9 +37,7 @@ try:
         check_optimizer_and_scheduler_config,
         PytorchClassifier
     )
-    from small_text.integrations.pytorch.model_selection import Metric, PytorchModelSelection
     from small_text.integrations.pytorch.utils.data import dataloader
-    from small_text.integrations.pytorch.utils.misc import early_stopping_deprecation_warning
     from small_text.integrations.transformers.datasets import TransformersDataset
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
@@ -263,6 +266,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         """
         super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size)
         early_stopping_deprecation_warning(early_stopping_no_improvement, early_stopping_acc)
+        model_selection_deprecation_warning(model_selection)
 
         with verbosity_logger():
             self.logger = logging.getLogger(__name__)
@@ -300,7 +304,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.enc_ = None
 
     def fit(self, train_set, validation_set=None, weights=None, early_stopping=None,
-            optimizer=None, scheduler=None):
+            model_selection=None, optimizer=None, scheduler=None):
         """Trains the model using the given train set.
 
         Parameters
@@ -313,8 +317,10 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             is set by `self.validation_set_size`.
         weights : np.ndarray[np.float32] or None, default=None
             Sample weights or None.
-        early_stopping : EarlyStoppingHandler or None
-            A strategy for early stopping.
+        early_stopping : EarlyStoppingHandler or 'none'
+            A strategy for early stopping. Passing 'none' disables early stopping.
+        model_selection : ModelSelectionHandler or 'none'
+            A model selection handler. Passing 'none' disables model selection.
         optimizer : torch.optim.optimizer.Optimizer or None, default=None
             A pytorch optimizer.
         scheduler : torch.optim._LRScheduler or None, default=None
@@ -355,6 +361,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             self.early_stopping_acc,
             self.validations_per_epoch,
             kwarg_no_improvement_name='early_stopping_no_improvement')
+        model_selection = self._get_default_model_selection(model_selection)
 
         fit_optimizer = optimizer if optimizer is not None else self.optimizer
         fit_scheduler = scheduler if scheduler is not None else self.scheduler
@@ -369,9 +376,10 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                                                      use_sample_weights=weights is not None)
 
         return self._fit_main(sub_train, sub_valid, sub_train_weights, early_stopping,
-                              fit_optimizer, fit_scheduler)
+                              model_selection, fit_optimizer, fit_scheduler)
 
-    def _fit_main(self, sub_train, sub_valid, weights, early_stopping, optimizer, scheduler):
+    def _fit_main(self, sub_train, sub_valid, weights, early_stopping, model_selection,
+                  optimizer, scheduler):
         if self.model is None:
             encountered_num_classes = get_num_labels(sub_train.y)
 
@@ -395,11 +403,11 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.model = self.model.to(self.device)
 
         with tempfile.TemporaryDirectory(dir=get_tmp_dir_base()) as tmp_dir:
-            res = self._train(sub_train, sub_valid, weights, early_stopping, optimizer, scheduler,
-                              tmp_dir)
-            self._perform_model_selection(sub_valid)
+            self._train(sub_train, sub_valid, weights, early_stopping, model_selection,
+                        optimizer, scheduler, tmp_dir)
+            self._perform_model_selection(model_selection)
 
-        return res
+        return self
 
     def initialize_transformer(self, cache_dir):
 
@@ -433,23 +441,11 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         return params, AdamW(params, lr=base_lr, eps=1e-8)
 
-    def _train(self, sub_train, sub_valid, weights, early_stopping, optimizer, scheduler,
-               tmp_dir):
-
-        metrics = [Metric('valid_loss', True), Metric('valid_acc', False),
-                   Metric('train_loss', True), Metric('train_acc', False)]
-        self.model_selection_manager = PytorchModelSelection(Path(tmp_dir), metrics)
-
-        self._train_loop(sub_train, sub_valid, weights, early_stopping, optimizer, scheduler,
-                         self.num_epochs, self.model_selection_manager)
-
-        return self
-
-    def _train_loop(self, sub_train, sub_valid, weights, early_stopping, optimizer, scheduler,
-                    num_epochs, model_selection_manager):
+    def _train(self, sub_train, sub_valid, weights, early_stopping, model_selection, optimizer,
+               scheduler, tmp_dir):
 
         stop = False
-        for epoch in range(0, num_epochs):
+        for epoch in range(0, self.num_epochs):
             if not stop:
                 start_time = datetime.datetime.now()
 
@@ -458,24 +454,20 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                                                                                             sub_valid,
                                                                                             weights,
                                                                                             early_stopping,
-                                                                                            epoch,
+                                                                                            model_selection,
                                                                                             optimizer,
-                                                                                            scheduler)
+                                                                                            scheduler,
+                                                                                            tmp_dir)
 
                 timedelta = datetime.datetime.now() - start_time
 
                 self._log_epoch(epoch, timedelta, sub_train, sub_valid, train_acc, train_loss,
                                 valid_acc, valid_loss)
 
-                if sub_valid is not None:
-                    model_selection_manager.add_model(self.model, epoch+1, valid_acc=valid_acc,
-                                                      valid_loss=valid_loss, train_acc=train_acc,
-                                                      train_loss=train_loss)
+    def _train_loop_epoch(self, num_epoch, sub_train, sub_valid, weights, early_stopping,
+                          model_selection, optimizer, scheduler, tmp_dir):
 
-    def _train_loop_epoch(self, num_epoch, sub_train, sub_valid, weights, early_stopping, epoch,
-                          optimizer, scheduler):
-
-        if self.memory_fix and (epoch + 1) % self.memory_fix == 0:
+        if self.memory_fix and (num_epoch + 1) % self.memory_fix == 0:
             torch.cuda.empty_cache()
 
         self.model.train()
@@ -499,14 +491,17 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             sub_valid,
             weights,
             early_stopping,
+            model_selection,
             optimizer,
             scheduler,
+            tmp_dir,
             validate_every=validate_every)
 
         return train_acc, train_loss, valid_acc, valid_loss, stop
 
     def _train_loop_process_batches(self, num_epoch, sub_train_, sub_valid_, weights, early_stopping,
-                                    optimizer, scheduler, validate_every=None):
+                                    model_selection, optimizer, scheduler, tmp_dir,
+                                    validate_every=None):
 
         train_loss = 0.
         train_acc = 0.
@@ -521,9 +516,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                                 self._create_collate_fn(use_sample_weights=weights is not None))
 
         stop = False
-        # TODO: model selection
 
-        for i, (x, masks, cls, weight) in enumerate(train_iter):
+        for i, (x, masks, cls, weight, *_) in enumerate(train_iter):
             if not stop:
                 loss, acc = self._train_single_batch(x, masks, cls, weight, optimizer)
                 scheduler.step()
@@ -541,6 +535,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                         'val_acc': valid_acc
                     })
                     stop = stop or early_stopping.check_early_stop(num_epoch+1, measured_values)
+                    self._save_model(model_selection, num_epoch+1, f'{num_epoch}-b{i+1}',
+                                     train_acc, train_loss, valid_acc, valid_loss, stop, tmp_dir)
 
         if validate_every:
             valid_loss, valid_acc = np.mean(valid_losses), np.mean(valid_accs)
@@ -552,13 +548,15 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         train_loss = train_loss / len(sub_train_)
         train_acc = train_acc / len(sub_train_)
 
-        measured_values = dict({
+        measured_values = {
             'train_loss': train_loss,
             'train_acc': train_acc,
             'val_loss': valid_loss,
             'val_acc': valid_acc
-        })
+        }
         stop = early_stopping.check_early_stop(num_epoch+1, measured_values)
+        self._save_model(model_selection, num_epoch+1, f'{num_epoch}-0',
+                         train_acc, train_loss, valid_acc, valid_loss, stop, tmp_dir)
         return train_loss, train_acc, valid_loss, valid_acc, stop
 
     def _create_collate_fn(self, use_sample_weights=False):
@@ -603,21 +601,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         loss = self.criterion(logits, target)
 
         return logits, loss
-
-    def _perform_model_selection(self, sub_valid):
-        if sub_valid is not None:
-            if self.model_selection:
-                self._select_best_model()
-            else:
-                self._select_last_model()
-
-    def _select_best_model(self):
-        model_path, _ = self.model_selection_manager.select_best()
-        self.model.load_state_dict(torch.load(model_path))
-
-    def _select_last_model(self):
-        model_path, _ = self.model_selection_manager.select_last()
-        self.model.load_state_dict(torch.load(model_path))
 
     def _log_epoch(self, epoch, timedelta, sub_train, sub_valid, train_acc, train_loss, valid_acc, valid_loss):
         if sub_valid is not None:

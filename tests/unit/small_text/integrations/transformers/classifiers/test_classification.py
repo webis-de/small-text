@@ -318,8 +318,8 @@ class TestTransformerBasedClassification(unittest.TestCase):
             call_args = train_mock.call_args[0]
             self.assertEqual(1, train_mock.call_count)
 
-            self.assertEqual(optimizer, call_args[4])
-            self.assertEqual(scheduler, call_args[5])
+            self.assertEqual(optimizer, call_args[5])
+            self.assertEqual(scheduler, call_args[6])
 
     def test_predict_on_empty_data(self):
         test_set = TransformersDataset([], None)

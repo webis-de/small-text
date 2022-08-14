@@ -20,7 +20,8 @@ class Metric(object):
 
     def __init__(self, name, lower_is_better=True):
         warnings.warn(
-            'Metric class is deprecated since 1.1.0 and will be removed in 2.0.0',
+            'small_text.integrations.pytorch.Metric is deprecated since 1.1.0 '
+            'and will be removed in 2.0.0',
             DeprecationWarning,
             stacklevel=2)
         """

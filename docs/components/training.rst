@@ -113,3 +113,12 @@ Implementations
 
 .. autoclass:: NoopEarlyStopping
     :members:
+
+
+Model Selection
+===============
+
+Interface
+---------
+.. literalinclude:: ../../small_text/training/model_selection.py
+   :pyobject: ModelSelectionManager

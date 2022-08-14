@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import patch
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from small_text.training.model_selection import ModelSelection, NoopModelSelection
 from tests.utils.datasets import random_text_classification_dataset
 
 try:
@@ -150,6 +151,24 @@ class SimplePytorchClassifierTest(unittest.TestCase):
 
         self.assertTrue(isinstance(loss.base_loss_fct, BCEWithLogitsLoss))
         self.assertEqual('none', loss.base_loss_fct.reduction)
+
+    def test_get_model_selection_default(self):
+        model_selection = None
+        model_selection = SimplePytorchClassifier._get_default_model_selection(model_selection)
+
+        self.assertTrue(isinstance(model_selection, ModelSelection))
+        self.assertEqual(4, len(model_selection.metrics))
+        metric_names = set([metric.name for metric in model_selection.metrics])
+        for metric_name in ['val_loss', 'val_acc', 'train_loss', 'train_acc']:
+            self.assertTrue(metric_name in metric_names)
+
+        self.assertEqual(1, len(model_selection._fields_config))
+        self.assertTrue(model_selection._fields_config['early_stop'] == bool)
+
+    def test_get_default_model_selection_none(self):
+        model_selection = 'none'
+        model_selection = SimplePytorchClassifier._get_default_model_selection(model_selection)
+        self.assertTrue(isinstance(model_selection, NoopModelSelection))
 
     @patch('torch.cuda.is_available')
     @patch('torch.cuda.current_device')

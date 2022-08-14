@@ -15,6 +15,7 @@ from small_text.integrations.pytorch.models.kimcnn import KimCNN
 from small_text.utils.classification import empty_result, get_splits
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data, list_length
+from small_text.utils.deprecation import early_stopping_deprecation_warning
 from small_text.utils.labels import csr_to_list, get_num_labels
 from small_text.utils.datetime import format_timedelta
 from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
@@ -28,10 +29,9 @@ try:
     from small_text.integrations.pytorch.classifiers.base import (
         check_optimizer_and_scheduler_config
     )
+    from small_text.integrations.pytorch.classifiers.base import PytorchModelSelectionMixin
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
-    from small_text.integrations.pytorch.model_selection import Metric, PytorchModelSelection
     from small_text.integrations.pytorch.utils.data import dataloader
-    from small_text.integrations.pytorch.utils.misc import early_stopping_deprecation_warning
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
@@ -250,7 +250,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         self.enc_ = None
 
     def fit(self, train_set, validation_set=None, weights=None, early_stopping=None,
-            optimizer=None, scheduler=None):
+            model_selection=None, optimizer=None, scheduler=None):
         """Trains the model using the given train set.
 
         Parameters
@@ -263,8 +263,10 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             is set by `self.validation_set_size`.
         weights : np.ndarray[np.float32] or None, default=None
             Sample weights or None.
-        early_stopping : EarlyStoppingHandler or None
-            A strategy for early stopping.
+        early_stopping : EarlyStoppingHandler or 'none'
+            A strategy for early stopping. Passing 'none' disables early stopping.
+        model_selection : ModelSelectionHandler or 'none'
+            A model selection handler. Passing 'none' disables model selection.
         optimizer : torch.optim.optimizer.Optimizer
             A pytorch optimizer.
         scheduler :torch.optim._LRScheduler
@@ -300,6 +302,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             self.early_stopping_acc,
             1,
             kwarg_no_improvement_name='early_stopping')
+        model_selection = self._get_default_model_selection(model_selection)
 
         fit_optimizer = optimizer if optimizer is not None else self.optimizer
         fit_scheduler = scheduler if scheduler is not None else self.scheduler
@@ -314,9 +317,10 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                                                      use_sample_weights=weights is not None)
 
         return self._fit_main(sub_train, sub_valid, sub_train_weights, early_stopping,
-                              fit_optimizer, fit_scheduler)
+                              model_selection, fit_optimizer, fit_scheduler)
 
-    def _fit_main(self, sub_train, sub_valid, weights, early_stopping, optimizer, scheduler):
+    def _fit_main(self, sub_train, sub_valid, weights, early_stopping, model_selection,
+                  optimizer, scheduler):
         if self.model is None:
             encountered_num_classes = get_num_labels(sub_train.y)
 
@@ -340,13 +344,11 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
         self.model = self.model.to(self.device)
         with tempfile.TemporaryDirectory() as tmp_dir:
-            res = self._train(sub_train, sub_valid, weights, early_stopping, optimizer, scheduler,
-                              tmp_dir)
+            self._train(sub_train, sub_valid, weights, early_stopping, model_selection,
+                        optimizer, scheduler, tmp_dir)
+            self._perform_model_selection(model_selection)
 
-            model_path, _ = self.model_selection.select_best()
-            self.model.load_state_dict(torch.load(model_path))
-
-        return res
+        return self
 
     def initialize_kimcnn_model(self, sub_train):
         vocab_size = len(sub_train.vocab)
@@ -363,11 +365,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         params = [param for param in self.model.parameters() if param.requires_grad]
         return params, Adadelta(params, lr=base_lr, eps=1e-8)
 
-    def _train(self, sub_train, sub_valid, weights, early_stopping, optimizer, scheduler, tmp_dir):
-
-        metrics = [Metric('valid_loss', True), Metric('valid_acc', False),
-                   Metric('train_loss', True), Metric('train_acc', False)]
-        self.model_selection = PytorchModelSelection(tmp_dir, metrics=metrics)
+    def _train(self, sub_train, sub_valid, weights, early_stopping, model_selection, optimizer,
+               scheduler, tmp_dir):
 
         stop = False
         for epoch in range(self.num_epochs):
@@ -375,7 +374,10 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                 start_time = datetime.datetime.now()
 
                 self.model.train()
-                train_loss, train_acc = self._train_func(sub_train, weights, optimizer, scheduler)
+                train_loss, train_acc = self._train_func(sub_train,
+                                                         weights,
+                                                         optimizer,
+                                                         scheduler)
 
                 self.model.eval()
                 valid_loss, valid_acc = self.validate(sub_valid)
@@ -389,16 +391,14 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                                  verbosity=VERBOSITY_MORE_VERBOSE)
 
                 measured_values = {
-                    'train_acc': train_acc,
                     'train_loss': train_loss,
-                    'val_acc': valid_acc,
-                    'val_loss': valid_loss
+                    'train_acc': train_acc,
+                    'val_loss': valid_loss,
+                    'val_acc': valid_acc
                 }
-                stop = early_stopping.check_early_stop(epoch+1, measured_values)
-                if not stop:
-                    self.model_selection.add_model(self.model, epoch+1, valid_acc=valid_acc,
-                                                   valid_loss=valid_loss, train_acc=train_acc,
-                                                   train_loss=train_loss)
+                stop = early_stopping.check_early_stop(epoch + 1, measured_values)
+                self._save_model(model_selection, epoch + 1, f'{epoch}-0',
+                                 train_acc, train_loss, valid_acc, valid_loss, stop, tmp_dir)
 
         return self
 

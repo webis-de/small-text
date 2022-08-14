@@ -89,6 +89,7 @@ class EarlyStopping(EarlyStoppingHandler):
             raise ValueError('Invalid value encountered: '
                              '"min_delta" needs to be greater than zero.')
 
+        # TODO: allow negative patience to deactivate it
         if patience <= 0:
             raise ValueError('Invalid value encountered: '
                              '"patience" needs to be greater or equal 1.')

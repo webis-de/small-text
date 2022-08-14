@@ -12,6 +12,7 @@ from scipy.sparse import issparse
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.training.early_stopping import EarlyStopping, NoopEarlyStopping
+from small_text.training.model_selection import ModelSelection, NoopModelSelection
 from tests.utils.datasets import twenty_news_transformers
 from tests.utils.testing import assert_array_not_equal
 
@@ -145,8 +146,8 @@ class _TransformerBasedClassificationTest(object):
                                           multi_label=self.multi_label)
 
     @patch.object(TransformerBasedClassification, '_train')
-    @patch.object(TransformerBasedClassification, '_select_best_model')
-    def test_fit(self, select_best_model_mock, fake_train):
+    @patch.object(TransformerBasedClassification, '_perform_model_selection')
+    def test_fit(self, perform_model_selection_mock, fake_train):
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         clf = TransformerBasedClassification(model_args,
                                              4,
@@ -159,7 +160,7 @@ class _TransformerBasedClassificationTest(object):
         # basically tests _get_layer_params for now
 
         fake_train.assert_called()
-        select_best_model_mock.assert_called()
+        perform_model_selection_mock.assert_called()
 
     def test_fit_with_class_weight(self):
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
@@ -411,6 +412,43 @@ class _TransformerBasedClassificationTest(object):
 
             self.assertEqual(1, fit_main_spy.call_count)
             self.assertTrue(isinstance(fit_main_spy.call_args_list[0].args[3], NoopEarlyStopping))
+
+    def test_fit_with_model_selection_default(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args,
+                                                    4,
+                                                    multi_label=self.multi_label,
+                                                    class_weight='balanced',
+                                                    num_epochs=1)
+
+        train_set = self._get_dataset(num_samples=10)
+        validation_set = self._get_dataset(num_samples=10)
+
+        with patch.object(classifier, '_fit_main', wraps=classifier._fit_main) as fit_main_spy:
+            classifier.fit(train_set, validation_set=validation_set)
+
+            self.assertEqual(1, fit_main_spy.call_count)
+            early_stopping_arg = fit_main_spy.call_args_list[0].args[4]
+            self.assertTrue(isinstance(early_stopping_arg, ModelSelection))
+
+    def test_fit_with_model_selection_disabled(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args,
+                                                    4,
+                                                    multi_label=self.multi_label,
+                                                    class_weight='balanced',
+                                                    num_epochs=1)
+
+        train_set = self._get_dataset(num_samples=10)
+        validation_set = self._get_dataset(num_samples=10)
+
+        with patch.object(classifier,
+                          '_fit_main',
+                          wraps=classifier._fit_main) as fit_main_spy:
+            classifier.fit(train_set, validation_set=validation_set, model_selection='none')
+
+            self.assertEqual(1, fit_main_spy.call_count)
+            self.assertTrue(isinstance(fit_main_spy.call_args_list[0].args[4], NoopModelSelection))
 
 
 @pytest.mark.pytorch

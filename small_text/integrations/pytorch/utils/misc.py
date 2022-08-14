@@ -18,20 +18,3 @@ def default_tensor_type(tensor_type):
 def assert_layer_exists(module, layer_name):
     if layer_name not in dict(module.named_modules()):
         raise ValueError(f'Given layer "{layer_name}" does not exist in the model!')
-
-
-def early_stopping_deprecation_warning(early_stopping_no_improvement, early_stopping_acc):
-    if early_stopping_no_improvement != 5:
-        warnings.warn(
-            'early_stopping_no_improvement class is deprecated since 1.1.0 '
-            'and will be removed in 2.0.0. Please use the "early_stopping" kwarg in fit () '
-            'instead.',
-            DeprecationWarning,
-            stacklevel=2)
-    if early_stopping_acc != -1:
-        warnings.warn(
-            'early_stopping_acc class is deprecated since 1.1.0 '
-            'and will be removed in 2.0.0. Please use the "early_stopping" kwarg in fit () '
-            'instead.',
-            DeprecationWarning,
-            stacklevel=2)
