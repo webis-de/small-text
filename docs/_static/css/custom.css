@@ -10,7 +10,7 @@
    max-width: none !important;
 }
 
-.wy-nav-content div[role=navigation] {
+.wy-nav-content > .rst-content > div[role=navigation] {
    padding-right: 100px;
 }
 
