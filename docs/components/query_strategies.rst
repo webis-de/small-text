@@ -23,7 +23,7 @@ General
 * :py:class:`~small_text.query_strategies.coresets.LightweightCoreset`
 * :py:class:`ContrastiveActiveLearning`
 * :py:class:`DiscriminativeActiveLearning`
-* :py:class:`CategoryVectorInconsistencyAndRanking`
+* :py:class:`~small_text.query_strategies.multi_label.CategoryVectorInconsistencyAndRanking`
 * :py:class:`SEALS`
 * :py:class:`RandomSampling`
 
@@ -118,6 +118,15 @@ Base
 
 .. autoclass:: DiscriminativeActiveLearning
     :special-members: __init__
+
+.. py:module:: small_text.query_strategies.multi_label
+    :noindex:
+
+.. autoclass:: CategoryVectorInconsistencyAndRanking
+    :special-members: __init__
+
+.. py:module:: small_text.query_strategies.strategies
+    :noindex:
 
 .. autoclass:: SEALS
     :special-members: __init__
