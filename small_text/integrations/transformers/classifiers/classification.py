@@ -6,13 +6,11 @@ import warnings
 import numpy as np
 
 from functools import partial
-from pathlib import Path
 
 from sklearn.preprocessing import MultiLabelBinarizer
 
 from small_text.classifiers.classification import EmbeddingMixin
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.training.model_selection import ModelSelection
 from small_text.utils.classification import empty_result, get_splits
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data, list_length
@@ -405,7 +403,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         with tempfile.TemporaryDirectory(dir=get_tmp_dir_base()) as tmp_dir:
             self._train(sub_train, sub_valid, weights, early_stopping, model_selection,
                         optimizer, scheduler, tmp_dir)
-            self._perform_model_selection(model_selection)
+            self._perform_model_selection(optimizer, model_selection)
 
         return self
 
@@ -535,7 +533,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                         'val_acc': valid_acc
                     })
                     stop = stop or early_stopping.check_early_stop(num_epoch+1, measured_values)
-                    self._save_model(model_selection, num_epoch+1, f'{num_epoch}-b{i+1}',
+                    self._save_model(optimizer, model_selection, f'{num_epoch}-b{i+1}',
                                      train_acc, train_loss, valid_acc, valid_loss, stop, tmp_dir)
 
         if validate_every:
@@ -555,7 +553,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             'val_acc': valid_acc
         }
         stop = early_stopping.check_early_stop(num_epoch+1, measured_values)
-        self._save_model(model_selection, num_epoch+1, f'{num_epoch}-0',
+        self._save_model(optimizer, model_selection, f'{num_epoch}-b0',
                          train_acc, train_loss, valid_acc, valid_loss, stop, tmp_dir)
         return train_loss, train_acc, valid_loss, valid_acc, stop
 

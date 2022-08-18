@@ -37,20 +37,27 @@ def check_optimizer_and_scheduler_config(optimizer, scheduler):
 
 class PytorchModelSelectionMixin(object):
 
-    def _save_model(self, model_selection, epoch, model_id, train_acc, train_loss,
+    def _save_model(self, optimizer, model_selection, model_id, train_acc, train_loss,
                     valid_acc, valid_loss, stop, tmp_dir):
 
-        measure_values = {'train_acc': train_acc, 'train_loss': train_loss,
+        measured_values = {'train_acc': train_acc, 'train_loss': train_loss,
                           'val_acc': valid_acc, 'val_loss': valid_loss}
-        model_path = Path(tmp_dir).joinpath(f'model_{model_id}.pt'.format(epoch))
+        model_path = Path(tmp_dir).joinpath(f'model_{model_id}.pt')
         torch.save(self.model.state_dict(), model_path)
-        model_selection.add_model(epoch, model_id, model_path, measure_values,
-                                  fields={ModelSelection.EARLY_STOPPING_FIELD: stop})
+        optimizer_path = model_path.with_suffix('.pt.optimizer')
+        torch.save(optimizer.state_dict(), optimizer_path)
+        model_selection.add_model(model_id, model_path, measured_values,
+                                  fields={ModelSelection.FIELD_NAME_EARLY_STOPPING: stop})
 
-    def _perform_model_selection(self, model_selection):
+    def _perform_model_selection(self, optimizer, model_selection):
         model_selection_result = model_selection.select()
-        if model_selection_result.epoch > 0 and model_selection_result.epoch != self.num_epochs:
+        # TODO: can we test the load_state_dict() calls here?
+        if model_selection_result is not None:
+            # this currently does not check if this model is the last one (and thus does not need
+            #   to be reloaded
             self.model.load_state_dict(torch.load(model_selection_result.model_path))
+            optimizer_path = model_selection_result.model_path.with_suffix('.pt.optimizer')
+            optimizer.load_state_dict(torch.load(optimizer_path))
 
 
 class PytorchClassifier(PytorchModelSelectionMixin, Classifier):

@@ -77,6 +77,8 @@ html_theme_options = {
 
 autodoc_member_order = 'bysource'
 
+autodoc_preserve_defaults = True
+
 # -- sphinx.ext.autosectionlabel------ ----------------------------------------
 
 autosectionlabel_prefix_document = True

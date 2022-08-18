@@ -29,7 +29,6 @@ try:
     from small_text.integrations.pytorch.classifiers.base import (
         check_optimizer_and_scheduler_config
     )
-    from small_text.integrations.pytorch.classifiers.base import PytorchModelSelectionMixin
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.pytorch.utils.data import dataloader
 except ImportError:
@@ -346,7 +345,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._train(sub_train, sub_valid, weights, early_stopping, model_selection,
                         optimizer, scheduler, tmp_dir)
-            self._perform_model_selection(model_selection)
+            self._perform_model_selection(optimizer, model_selection)
 
         return self
 
@@ -397,7 +396,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                     'val_acc': valid_acc
                 }
                 stop = early_stopping.check_early_stop(epoch + 1, measured_values)
-                self._save_model(model_selection, epoch + 1, f'{epoch}-0',
+                self._save_model(optimizer, model_selection, f'{epoch}-0',
                                  train_acc, train_loss, valid_acc, valid_loss, stop, tmp_dir)
 
         return self
