@@ -9,8 +9,10 @@
   
 - Classification:
   - All classifiers now support weighting of training samples.
-  - [Early stopping](https://small-text.readthedocs.io/en/v1.1.0/components/classification.html) has been reworked, improved, and documented ([#18](https://github.com/webis-de/small-text/issues/18)).
+  - [Early stopping](https://small-text.readthedocs.io/en/v1.1.0/components/training.html) has been reworked, improved, and documented ([#18](https://github.com/webis-de/small-text/issues/18)).
+  - [Model selection](https://small-text.readthedocs.io/en/v1.1.0/components/training.html) has been reworked and documented.
   - **[!]** `KimCNNClassifier.__init()__`: The default value of the (now deprecated) keyword argument `early_stopping_acc` has been changed from `0.98` to `-1` in order to match `TransformerBasedClassification`.
+  - **[!]** Removed weight renormalization after gradient clipping.
 
 - Query Strategies:
   - New multi-label strategy: [CategoryVectorInconsistencyAndRanking](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/query_strategies/multi_label.py)

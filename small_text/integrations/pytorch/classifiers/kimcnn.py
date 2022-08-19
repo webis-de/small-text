@@ -449,11 +449,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
         loss.backward()
 
-        # TODO: no_grad not necessary here
-        with torch.no_grad():
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), 3)
-            # TODO: Remove this
-            self.model.fc.weight.div_(torch.norm(self.model.fc.weight, dim=1, keepdim=True))
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), 3)
 
         optimizer.step()
 
