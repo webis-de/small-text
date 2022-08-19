@@ -19,6 +19,7 @@ from small_text.utils.deprecation import early_stopping_deprecation_warning
 from small_text.utils.labels import csr_to_list, get_num_labels
 from small_text.utils.datetime import format_timedelta
 from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
+from small_text.utils.system import get_tmp_dir_base
 
 
 try:
@@ -342,7 +343,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                                                                  sub_train)
 
         self.model = self.model.to(self.device)
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with tempfile.TemporaryDirectory(dir=get_tmp_dir_base()) as tmp_dir:
             self._train(sub_train, sub_valid, weights, early_stopping, model_selection,
                         optimizer, scheduler, tmp_dir)
             self._perform_model_selection(optimizer, model_selection)
