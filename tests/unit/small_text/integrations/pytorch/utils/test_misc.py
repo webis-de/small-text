@@ -14,6 +14,8 @@ except (ImportError, PytorchNotFoundError):
 class MiscUtilsTest(unittest.TestCase):
 
     def test_default_tensor_type(self):
-        with self.assertWarnsRegex(DeprecationWarning, r'default_tensor_type\(\) is deprecated'):
+        with self.assertWarnsRegex(DeprecationWarning,
+                                   r'The function default_tensor_type has been deprecated in 1.1.0 '
+                                   r'and will be removed in 2.0.0.'):
             with default_tensor_type(torch.FloatTensor):
                 torch.Tensor([0])

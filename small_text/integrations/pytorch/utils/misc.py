@@ -1,14 +1,12 @@
-import warnings
 import torch
 
 from contextlib import contextmanager
+from small_text.utils.deprecation import deprecated
 
 
+@deprecated(deprecated_in='1.1.0', to_be_removed_in='2.0.0')
 @contextmanager
 def default_tensor_type(tensor_type):
-    warnings.warn('default_tensor_type() is deprecated since 1.1.0 and will be removed in 2.0.0',
-                  DeprecationWarning,
-                  stacklevel=2)
     default_type = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
     torch.set_default_tensor_type(tensor_type)
     yield

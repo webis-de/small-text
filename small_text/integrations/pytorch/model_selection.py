@@ -1,10 +1,10 @@
 import logging
-import warnings
 
 from collections import OrderedDict
 from pathlib import Path
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from small_text.utils.deprecation import deprecated
 
 
 logger = logging.getLogger(__name__)
@@ -16,14 +16,10 @@ except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
 
+@deprecated(deprecated_in='1.1.0', to_be_removed_in='2.0.0')
 class Metric(object):
 
     def __init__(self, name, lower_is_better=True):
-        warnings.warn(
-            'small_text.integrations.pytorch.Metric is deprecated since 1.1.0 '
-            'and will be removed in 2.0.0',
-            DeprecationWarning,
-            stacklevel=2)
         """
         Represents any metric.
 
@@ -39,17 +35,12 @@ class Metric(object):
         self.lower_is_better = lower_is_better
 
 
+@deprecated(deprecated_in='1.1.0', to_be_removed_in='2.0.0')
 class PytorchModelSelection(object):
 
     IDX_EPOCH = -2
 
     def __init__(self, save_directory, metrics, sort_by_idx=0):
-        warnings.warn(
-            'PytorchModelSelection class is deprecated since 1.1.0 and will be removed in 2.0.0',
-            DeprecationWarning,
-            stacklevel=2)
-        validate_metrics(metrics)
-
         if isinstance(save_directory, Path):
             self.save_directory = save_directory
         else:
@@ -106,11 +97,8 @@ class PytorchModelSelection(object):
         return tuple(data)
 
 
+@deprecated(deprecated_in='1.1.0', to_be_removed_in='2.0.0')
 def validate_metrics(metrics):
-    warnings.warn(
-        'validate_metrics() is deprecated since 1.1.0 and will be removed in 2.0.0',
-        DeprecationWarning,
-        stacklevel=2)
 
     if not isinstance(metrics, list):
         raise ValueError('Argument "metrics" must be a list')
