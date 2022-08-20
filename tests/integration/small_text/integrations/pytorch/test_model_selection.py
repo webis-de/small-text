@@ -45,17 +45,6 @@ class ModelSelectionTest(unittest.TestCase):
             self.assertIsNotNone(model_selection.models)
             self.assertEqual(0, len(model_selection.models))
 
-    def test_model_selection_init_invalid_type(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with self.assertRaises(ValueError):
-                PytorchModelSelection(tmpdir, 'INVALID_ARG')
-
-    def test_model_selection_init_invalid_metric(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with self.assertRaises(ValueError):
-                PytorchModelSelection(tmpdir, [Metric('valid_loss', lower_is_better=True),
-                                               'INVALID_ARG'])
-
     def test_model_selection_add_model_missing_kwargs(self):
         with tempfile.TemporaryDirectory() as tmp_dir_name:
             metrics = [Metric('valid_loss', lower_is_better=True),
