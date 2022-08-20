@@ -41,7 +41,7 @@ class PytorchModelSelectionMixin(object):
                     valid_acc, valid_loss, stop, tmp_dir):
 
         measured_values = {'train_acc': train_acc, 'train_loss': train_loss,
-                          'val_acc': valid_acc, 'val_loss': valid_loss}
+                           'val_acc': valid_acc, 'val_loss': valid_loss}
         model_path = Path(tmp_dir).joinpath(f'model_{model_id}.pt')
         torch.save(self.model.state_dict(), model_path)
         optimizer_path = model_path.with_suffix('.pt.optimizer')

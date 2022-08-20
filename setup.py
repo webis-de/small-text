@@ -45,7 +45,8 @@ setup(name='small-text',
             'scipy',
             'numpy>=1.20.0',
             'scikit-learn>=0.24.1',
-            'tqdm'
+            'tqdm',
+            'packaging'
       ],
       extras_require={
             'pytorch': PYTORCH_DEPENDENCIES,
