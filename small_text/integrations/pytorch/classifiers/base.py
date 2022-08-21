@@ -11,6 +11,7 @@ from small_text.training.early_stopping import (
     NoopEarlyStopping,
     EarlyStoppingOrCondition
 )
+from small_text.training.metrics import Metric
 from small_text.training.model_selection import ModelSelection, NoopModelSelection
 
 try:
@@ -140,18 +141,19 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
     def _get_default_early_stopping(self, early_stopping, early_stopping_no_improvement,
                                     early_stopping_acc, validations_per_epoch,
                                     kwarg_no_improvement_name='early_stopping_no_improvement'):
-        # TODO:
+
         if early_stopping is None:
             patience = early_stopping_no_improvement * validations_per_epoch
             if early_stopping_no_improvement == 5 and early_stopping_acc == -1:
-                early_stopping = EarlyStopping('val_loss', patience=patience)
+                early_stopping = EarlyStopping(Metric('val_loss'), patience=patience)
             elif early_stopping_no_improvement == 0 and early_stopping_acc == -1:
                 early_stopping = NoopEarlyStopping()
             else:
                 early_stopping = EarlyStoppingOrCondition([
-                    EarlyStopping('val_loss', patience=patience),
-                    # TODO: disable patience here?
-                    EarlyStopping('train_acc', patience=patience, threshold=early_stopping_acc)
+                    EarlyStopping(Metric('val_loss'), patience=patience),
+                    EarlyStopping(Metric('train_acc', lower_is_better=False),
+                                  patience=-1,
+                                  threshold=early_stopping_acc)
                 ])
         elif early_stopping == 'none':
             early_stopping = NoopEarlyStopping()

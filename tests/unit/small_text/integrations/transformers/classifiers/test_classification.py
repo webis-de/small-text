@@ -8,6 +8,7 @@ from unittest.mock import patch
 from small_text.base import LABEL_UNLABELED
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.training.early_stopping import EarlyStopping, EarlyStoppingOrCondition
+from small_text.training.metrics import Metric
 from small_text.utils.logging import VERBOSITY_MORE_VERBOSE
 
 try:
@@ -243,7 +244,7 @@ class TestTransformerBasedClassification(unittest.TestCase):
 
             call_args = fit_main_mock.call_args[0]
             self.assertTrue(isinstance(call_args[3], EarlyStopping))
-            self.assertEqual('val_loss', call_args[3].monitor)
+            self.assertEqual('val_loss', call_args[3].metric.name)
             self.assertEqual(5, call_args[3].patience)
 
     # TODO: remove this in 2.0.0
@@ -269,19 +270,19 @@ class TestTransformerBasedClassification(unittest.TestCase):
             self.assertTrue(isinstance(call_args[3], EarlyStoppingOrCondition))
 
             first_handler = call_args[3].early_stopping_handlers[0]
-            self.assertEqual('val_loss', first_handler.monitor)
+            self.assertEqual('val_loss', first_handler.metric.name)
             self.assertEqual(early_stopping_no_improvement, first_handler.patience)
 
             second_handler = call_args[3].early_stopping_handlers[1]
-            self.assertEqual('train_acc', second_handler.monitor)
-            self.assertEqual(early_stopping_no_improvement, second_handler.patience)
+            self.assertEqual('train_acc', second_handler.metric.name)
+            self.assertEqual(-1, second_handler.patience)
 
     # TODO: remove this in 2.0.0
     def test_fit_with_early_stopping_and_fall_back_simultaneously(self):
         dataset = random_transformer_dataset(10)
 
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
-        early_stopping = EarlyStopping('val_loss')
+        early_stopping = EarlyStopping(Metric('val_loss'))
 
         classifier = TransformerBasedClassification(model_args, 2,
                                                     early_stopping_no_improvement=7)

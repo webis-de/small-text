@@ -48,12 +48,12 @@ class EarlyStopping(EarlyStoppingHandler):
 
     .. versionadded:: 1.1.0
     """
-    def __init__(self, monitor, min_delta=1e-14, patience=5, threshold=0.0):
+    def __init__(self, metric, min_delta=1e-14, patience=5, threshold=0.0):
         """
         Parameters
         ----------
-        monitor : {'valid_loss', 'valid_acc', 'train_loss', 'train_acc'}
-            The measured value which will be monitored for early stopping.
+        metric : small_text.training.metrics.Metric
+            The measured training metric which will be monitored for early stopping.
         min_delta : float, default=1e-14
             The minimum absolute value to consider a change in the masured value as an
             improvement.
@@ -67,14 +67,14 @@ class EarlyStopping(EarlyStoppingHandler):
             the given threshold. Disable threshold-based stopping by setting the threshold to
             a value lesser than or equal zero.
         """
-        self._validate_arguments(monitor, min_delta, patience, threshold)
+        self._validate_arguments(metric, min_delta, patience, threshold)
 
         self._dtype = {
             'names': ['epoch', 'count', 'train_acc', 'train_loss', 'val_acc', 'val_loss'],
             'formats': [int, int, float, float, float, float]
         }
 
-        self.monitor = monitor
+        self.metric = metric
         self.min_delta = min_delta
         self.patience = patience
         self.threshold = threshold
@@ -82,11 +82,7 @@ class EarlyStopping(EarlyStoppingHandler):
         self._index_best = -1
         self._history = np.empty((0,), dtype=self._dtype)
 
-    def _validate_arguments(self, monitor, min_delta, patience, threshold):
-        if monitor not in ['train_acc', 'train_loss', 'val_acc', 'val_loss']:
-            raise ValueError(f'Unsupported metric "{monitor}". '
-                             'Valid values: [train_acc, train_loss, val_acc, val_loss]')
-
+    def _validate_arguments(self, metric, min_delta, patience, threshold):
         if min_delta < 0:
             raise ValueError('Invalid value encountered: '
                              '"min_delta" needs to be greater than zero.')
@@ -95,7 +91,7 @@ class EarlyStopping(EarlyStoppingHandler):
             raise ValueError('Invalid configuration encountered: '
                              'Either "patience" or "threshold" must be enabled.')
 
-        if '_acc' in monitor and (threshold < 0.0 or threshold > 1.0):
+        if '_acc' in metric.name and (threshold < 0.0 or threshold > 1.0):
             raise ValueError('Invalid value encountered: '
                              '"threshold" needs to be within the interval [0, 1] '
                              'for accuracy metrics.')
@@ -120,15 +116,15 @@ class EarlyStopping(EarlyStoppingHandler):
 
         self._history = self.add_to_history(epoch, measured_values)
 
-        greater_is_better = '_acc' in self.monitor
-        monitor_sign = 1 if greater_is_better else -1
+        metric_sign = -1 if self.metric.lower_is_better else 1
 
-        measured_value = measured_values.get(self.monitor, None)
+        measured_value = measured_values.get(self.metric.name, None)
         has_crossed_threshold = measured_value is not None and \
-            np.sign(measured_value - self.threshold) == monitor_sign
+            np.sign(measured_value - self.threshold) == metric_sign
         if self.threshold > 0 and has_crossed_threshold:
             logging.debug(f'Early stopping: Threshold exceeded. '
-                          f'[value={measured_values[self.monitor]}, threshold={self.threshold}]')
+                          f'[value={measured_values[self.metric.name]}, '
+                          f'threshold={self.threshold}]')
             return True
         elif measured_value is None:
             return False
@@ -140,25 +136,25 @@ class EarlyStopping(EarlyStoppingHandler):
         if self.patience < 0:
             return False
         else:
-            return self._check_for_improvement(measured_values, monitor_sign)
+            return self._check_for_improvement(measured_values, metric_sign)
 
-    def _check_for_improvement(self, measured_values, monitor_sign):
-        previous_best = self._history[self.monitor][self._index_best]
+    def _check_for_improvement(self, measured_values, metric_sign):
+        previous_best = self._history[self.metric.name][self._index_best]
         index_last = self._history.shape[0] - 1
 
-        delta = measured_values[self.monitor] - previous_best
+        delta = measured_values[self.metric.name] - previous_best
         delta_sign = np.sign(delta)
 
         if self.min_delta > 0:
-            improvement = delta_sign == monitor_sign and np.abs(delta) >= self.min_delta
+            improvement = delta_sign == metric_sign and np.abs(delta) >= self.min_delta
         else:
-            improvement = delta_sign == monitor_sign
+            improvement = delta_sign == metric_sign
 
         if improvement:
             self._index_best = index_last
             return False
         else:
-            history_since_previous_best = self._history[self._index_best + 1:][self.monitor]
+            history_since_previous_best = self._history[self._index_best + 1:][self.metric.name]
             rows_not_nan = np.logical_not(np.isnan(history_since_previous_best))
             if rows_not_nan.sum() > self.patience:
                 logging.debug(f'Early stopping: Patience exceeded.'

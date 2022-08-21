@@ -36,9 +36,10 @@ Example Usage
 
 .. testcode::
 
-   from small_text.training.early_stopping import EarlyStopping, SequentialEarlyStopping
+   from small_text.training.early_stopping import EarlyStopping
+   from small_text.training.metrics import Metric
 
-   early_stopping = EarlyStopping('val_loss', patience=2)
+   early_stopping = EarlyStopping(Metric('val_loss'), patience=2)
 
    print(early_stopping.check_early_stop(1, {'val_loss': 0.060}))
    print(early_stopping.check_early_stop(2, {'val_loss': 0.061}))  # no improvement, don't stop
@@ -59,9 +60,10 @@ Example Usage
 
 .. testcode::
 
-   from small_text.training.early_stopping import EarlyStopping, SequentialEarlyStopping
+   from small_text.training.early_stopping import EarlyStopping
+   from small_text.training.metrics import Metric
 
-   early_stopping = EarlyStopping('val_acc', patience=1)
+   early_stopping = EarlyStopping(Metric('val_acc', lower_is_better=False), patience=1)
 
    print(early_stopping.check_early_stop(1, {'val_acc': 0.80}))
    print(early_stopping.check_early_stop(3, {'val_acc': 0.79}))  # no improvement, don't stop
@@ -84,20 +86,22 @@ Combining Early Stopping Conditions
 
 What if we want to early stop based on either one of two conditions? For example,
 if validation loss does not change during the last 3 checks or training accuracy crosses `0.99`?
-This can be easily done by using :py:class:`SequentialEarlyStopping`
+This can be easily done by using :py:class:`EarlyStoppingOrCondition`
 which sequentially applies a list of early stopping handlers.
 
 .. testcode::
 
-   from small_text.training.early_stopping import EarlyStopping, SequentialEarlyStopping
+   from small_text.training.early_stopping import EarlyStopping, EarlyStoppingOrCondition
+   from small_text.training.metrics import Metric
 
-   early_stopping = SequentialEarlyStopping([
-       EarlyStopping('val_loss', patience=3),
-       EarlyStopping('train_acc', threshold=0.99)
+   early_stopping = EarlyStoppingOrCondition([
+       EarlyStopping(Metric('val_loss'), patience=3),
+       EarlyStopping(Metric('train_acc', lower_is_better=False), threshold=0.99)
    ])
 
-:py:class:`SequentialEarlyStopping`  returns `True`, i.e. triggers an early stop, iff at least one of the early stopping handlers
-within the given list returns `True`.
+:py:class:`EarlyStoppingOrCondition`  returns `True`, i.e. triggers an early stop, iff at least one of the early stopping handlers
+within the given list returns `True`. Similarly, we have :py:class:`EarlyStoppingAndCondition`
+which stops only when all of the early stopping handlers return `True`.
 
 Implementations
 ---------------

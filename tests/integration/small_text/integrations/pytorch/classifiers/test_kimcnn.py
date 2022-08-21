@@ -9,6 +9,7 @@ from unittest.mock import Mock
 from scipy.sparse import issparse
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.training.early_stopping import EarlyStopping, NoopEarlyStopping
+from small_text.training.metrics import Metric
 from small_text.training.model_selection import ModelSelection, NoopModelSelection
 
 try:
@@ -140,7 +141,7 @@ class _KimCNNClassifierTest(object):
                                       embedding_matrix=embedding_matrix,
                                       num_epochs=2)
 
-        early_stopping = EarlyStopping('val_loss')
+        early_stopping = EarlyStopping(Metric('val_loss'))
 
         with mock.patch.object(early_stopping,
                                'check_early_stop',
@@ -173,7 +174,7 @@ class _KimCNNClassifierTest(object):
             self.assertEqual(1, fit_main_spy.call_count)
             early_stopping_arg = fit_main_spy.call_args_list[0].args[3]
             self.assertTrue(isinstance(early_stopping_arg, EarlyStopping))
-            self.assertEqual('val_loss', early_stopping_arg.monitor)
+            self.assertEqual('val_loss', early_stopping_arg.metric.name)
             self.assertEqual(5, early_stopping_arg.patience)
 
     def test_fit_with_early_stopping_disabled(self):
