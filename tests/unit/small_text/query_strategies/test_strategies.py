@@ -406,19 +406,17 @@ class EmbeddingBasedQueryStrategyImplementation(EmbeddingBasedQueryStrategy):
 
 class SklearnClassifierWithRandomEmbeddings(SklearnClassifier):
 
-    def embed(self, dataset, embed_dim=5, return_proba=False, pbar=None):
-        self.embeddings_ = np.random.rand(len(dataset), embed_dim)
+    def embed(self, dataset, embed_dim=5, pbar=None):
         _unused = pbar  # noqa:F841
-        if return_proba:
-            return self.embeddings_, np.random.rand(len(dataset), self.num_classes)
+        self.embeddings_ = np.random.rand(len(dataset), embed_dim)
         return self.embeddings_
 
 
 class SklearnClassifierWithRandomEmbeddingsAndProba(SklearnClassifier):
 
     def embed(self, dataset, return_proba=False, embed_dim=5, pbar=None):
-
         self.embeddings_ = np.random.rand(len(dataset), embed_dim)
+        _unused = pbar  # noqa:F841
         if return_proba:
             self.proba_ = np.random.rand(len(dataset))
             return self.embeddings_, self.proba_
@@ -673,6 +671,7 @@ class ContrastiveActiveLearningTest(unittest.TestCase):
         self.assertIsNotNone(indices)
         self.assertEqual(n, indices.shape[0])
 
+    # TODO: kwargs embeddings is not really usable for ContrastiveActiveLearning()
     def test_query_with_precomputed_embeddings(self, n=10, num_samples=100, embedding_dim=20):
 
         query_strategy = ContrastiveActiveLearning()

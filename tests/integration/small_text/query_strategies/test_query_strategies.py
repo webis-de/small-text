@@ -25,19 +25,19 @@ from small_text.query_strategies import (
 )
 from tests.unit.small_text.query_strategies.test_strategies import (
     SamplingStrategiesTests,
-    SklearnClassifierWithRandomEmbeddings
+    SklearnClassifierWithRandomEmbeddingsAndProba
 )
 
 from tests.utils.datasets import random_sklearn_dataset, random_matrix_data
 from tests.utils.object_factory import get_initialized_active_learner
 
 
-class SklearnClassifierWithRandomEmbeddingsFactory(SklearnClassifierFactory):
+class SklearnClassifierWithRandomEmbeddingsAndProbaFactory(SklearnClassifierFactory):
 
     def new(self):
-        return SklearnClassifierWithRandomEmbeddings(clone(self.base_estimator),
-                                                     self.num_classes,
-                                                     **self.kwargs)
+        return SklearnClassifierWithRandomEmbeddingsAndProba(clone(self.base_estimator),
+                                                             self.num_classes,
+                                                             **self.kwargs)
 
 
 class QueryStrategiesExhaustiveIntegrationTest(object):
@@ -46,7 +46,7 @@ class QueryStrategiesExhaustiveIntegrationTest(object):
         return random_sklearn_dataset(60, multi_label=multi_label, num_classes=num_classes)
 
     def _get_factory(self, num_classes, multi_label=False):
-        return SklearnClassifierWithRandomEmbeddingsFactory(
+        return SklearnClassifierWithRandomEmbeddingsAndProbaFactory(
             ConfidenceEnhancedLinearSVC(),
             num_classes,
             kwargs={'multi_label': multi_label}
@@ -123,7 +123,7 @@ class QueryStrategiesTest(QueryStrategiesExhaustiveIntegrationTest, unittest.Tes
 class SEALSTest(unittest.TestCase, SamplingStrategiesTests):
 
     def _get_clf(self):
-        return SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC(), 2)
+        return SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC(), 2)
 
     def _get_query_strategy(self):
         return SEALS(LeastConfidence(), k=5)
