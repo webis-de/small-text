@@ -35,10 +35,11 @@ class GeneralEarlyStoppingTest(object):
         with self.assertRaisesRegex(ValueError, 'Unsupported metric'):
             EarlyStopping('unknown_metric')
 
-    def test_init_invalid_patience(self):
+    def test_init_invalid_config(self):
         with self.assertRaisesRegex(ValueError,
-                                    'Invalid value encountered: "patience" needs to be'):
-            EarlyStopping(self.get_monitor(), patience=0)
+                                    'Invalid configuration encountered: '
+                                    'Either "patience" or "threshold" must be enabled.'):
+            EarlyStopping(self.get_monitor(), patience=-1, threshold=-1)
 
     def test_init_invalid_min_delta(self):
         with self.assertRaisesRegex(ValueError,
@@ -59,8 +60,8 @@ class LossBasedEarlyStoppingTest(object):
 
     def test_init_default(self):
         stopping_handler = EarlyStopping(self.get_monitor())
-        self.assertIsNotNone(stopping_handler.history)
-        self.assertEqual((0,), stopping_handler.history.shape)
+        self.assertIsNotNone(stopping_handler._history)
+        self.assertEqual((0,), stopping_handler._history.shape)
         self.assertEqual(self.get_monitor(), stopping_handler.monitor)
         self.assertEqual(1e-14, stopping_handler.min_delta)
         self.assertEqual(5, stopping_handler.patience)
@@ -69,12 +70,17 @@ class LossBasedEarlyStoppingTest(object):
     def test_check_early_stop_loss_threshold(self):
         stopping_handler = EarlyStopping(self.get_monitor(), threshold=0.1,
                                          patience=2)
-        self.assertTrue(stopping_handler.check_early_stop(1, {self.get_monitor(): 0.05}))
+        self.assertFalse(stopping_handler.check_early_stop(1, {self.get_monitor(): 0.1}))
+        self.assertTrue(stopping_handler.check_early_stop(2, {self.get_monitor(): 0.05}))
 
-        stopping_handler = EarlyStopping(self.get_monitor(), threshold=0.1,
-                                         patience=2)
+    def test_check_early_stop_loss_threshold_zero(self):
+        stopping_handler = EarlyStopping(self.get_monitor(), threshold=0)
+
         self.assertFalse(stopping_handler.check_early_stop(1, {self.get_monitor(): 0.2}))
-        self.assertTrue(stopping_handler.check_early_stop(2, {self.get_monitor(): 0.009}))
+
+        stopping_handler = EarlyStopping(self.get_monitor(), threshold=0)
+
+        self.assertFalse(stopping_handler.check_early_stop(1, {self.get_monitor():  0.2}))
 
     def test_check_early_stop_loss_patience_and_stop(self):
         stopping_handler = EarlyStopping(self.get_monitor(), patience=2)
@@ -83,6 +89,13 @@ class LossBasedEarlyStoppingTest(object):
         self.assertFalse(stopping_handler.check_early_stop(2, {self.get_monitor(): 0.068}))
         self.assertFalse(stopping_handler.check_early_stop(3, {self.get_monitor(): 0.067}))
         self.assertTrue(stopping_handler.check_early_stop(4, {self.get_monitor(): 0.066}))
+
+    def test_check_early_stop_loss_patience_zero(self):
+        stopping_handler = EarlyStopping(self.get_monitor(), patience=0)
+
+        self.assertFalse(stopping_handler.check_early_stop(1, {self.get_monitor(): 0.065}))
+        self.assertFalse(stopping_handler.check_early_stop(2, {self.get_monitor(): 0.064}))
+        self.assertTrue(stopping_handler.check_early_stop(3, {self.get_monitor(): 0.068}))
 
     def test_check_early_stop_loss_min_delta(self):
         stopping_handler = EarlyStopping(self.get_monitor(), patience=2, min_delta=0)
@@ -161,8 +174,8 @@ class AccuracyBasedEarlyStoppingTest(object):
 
     def test_init_default(self):
         stopping_handler = EarlyStopping(self.get_monitor())
-        self.assertIsNotNone(stopping_handler.history)
-        self.assertEqual((0,), stopping_handler.history.shape)
+        self.assertIsNotNone(stopping_handler._history)
+        self.assertEqual((0,), stopping_handler._history.shape)
         self.assertEqual(self.get_monitor(), stopping_handler.monitor)
         self.assertEqual(1e-14, stopping_handler.min_delta)
         self.assertEqual(5, stopping_handler.patience)
@@ -177,11 +190,6 @@ class AccuracyBasedEarlyStoppingTest(object):
                                     'Invalid value encountered: \"threshold\" needs to be'):
             EarlyStopping(self.get_monitor(), threshold=1.01)
 
-    def test_check_early_stop_acc_no_patience(self):
-        with self.assertRaisesRegex(ValueError,
-                                    'Invalid value encountered: \"patience\" needs to be'):
-            EarlyStopping(self.get_monitor(), min_delta=0.01, patience=0)
-
     def test_check_early_stop_acc_threshold(self):
         stopping_handler = EarlyStopping(self.get_monitor(), threshold=0.9,
                                          patience=2)
@@ -193,6 +201,12 @@ class AccuracyBasedEarlyStoppingTest(object):
         self.assertFalse(stopping_handler.check_early_stop(1, {self.get_monitor(): 0.80}))
         self.assertTrue(stopping_handler.check_early_stop(2, {self.get_monitor(): 0.91}))
 
+    def test_check_early_stop_acc_threshold_zero(self):
+        stopping_handler = EarlyStopping(self.get_monitor(), threshold=0)
+
+        self.assertFalse(stopping_handler.check_early_stop(1, {self.get_monitor(): 0.91}))
+        self.assertFalse(stopping_handler.check_early_stop(2, {self.get_monitor(): 0.91}))
+
     def test_check_early_stop_acc_patience_and_stop(self):
         stopping_handler = EarlyStopping(self.get_monitor(), patience=2)
 
@@ -200,6 +214,13 @@ class AccuracyBasedEarlyStoppingTest(object):
         self.assertFalse(stopping_handler.check_early_stop(2, {self.get_monitor(): 0.64}))
         self.assertFalse(stopping_handler.check_early_stop(3, {self.get_monitor(): 0.63}))
         self.assertTrue(stopping_handler.check_early_stop(4, {self.get_monitor(): 0.65}))
+
+    def test_check_early_stop_acc_patience_zero(self):
+        stopping_handler = EarlyStopping(self.get_monitor(), patience=0)
+
+        self.assertFalse(stopping_handler.check_early_stop(1, {self.get_monitor(): 0.65}))
+        self.assertFalse(stopping_handler.check_early_stop(2, {self.get_monitor(): 0.66}))
+        self.assertTrue(stopping_handler.check_early_stop(3, {self.get_monitor(): 0.64}))
 
     def test_check_early_stop_loss_min_delta(self):
         stopping_handler = EarlyStopping(self.get_monitor(), patience=2, min_delta=0)

@@ -44,7 +44,7 @@ class NoopEarlyStopping(EarlyStoppingHandler):
 
 class EarlyStopping(EarlyStoppingHandler):
     """A default early stopping implementation which supports stopping based on thresholds
-    or based on (lack of) improvement.
+    or based on patience-based improvement.
 
     .. versionadded:: 1.1.0
     """
@@ -58,16 +58,18 @@ class EarlyStopping(EarlyStoppingHandler):
             The minimum absolute value to consider a change in the masured value as an
             improvement.
         patience : int, default=5
-            The maxim number of steps (i.e. calls to `check_early_stop()`) which can yield no
-            improvement.
+            The maximum number of steps (i.e. calls to `check_early_stop()`) which can yield no
+            improvement. Disable patience-based improvement monitoring by setting patience to
+            a value less than zero.
         threshold : float, default=0.0
             If greater zero, then early stopping is triggered as soon as the current measured value
             crosses ('valid_acc', 'train_acc') or falls below ('valid_loss', 'train_loss')
-            the given threshold.
+            the given threshold. Disable threshold-based stopping by setting the threshold to
+            a value lesser than or equal zero.
         """
         self._validate_arguments(monitor, min_delta, patience, threshold)
 
-        self.dtype = {
+        self._dtype = {
             'names': ['epoch', 'count', 'train_acc', 'train_loss', 'val_acc', 'val_loss'],
             'formats': [int, int, float, float, float, float]
         }
@@ -77,8 +79,8 @@ class EarlyStopping(EarlyStoppingHandler):
         self.patience = patience
         self.threshold = threshold
 
-        self.index_best = -1
-        self.history = np.empty((0,), dtype=self.dtype)
+        self._index_best = -1
+        self._history = np.empty((0,), dtype=self._dtype)
 
     def _validate_arguments(self, monitor, min_delta, patience, threshold):
         if monitor not in ['train_acc', 'train_loss', 'val_acc', 'val_loss']:
@@ -89,10 +91,9 @@ class EarlyStopping(EarlyStoppingHandler):
             raise ValueError('Invalid value encountered: '
                              '"min_delta" needs to be greater than zero.')
 
-        # TODO: allow negative patience to deactivate it
-        if patience <= 0:
-            raise ValueError('Invalid value encountered: '
-                             '"patience" needs to be greater or equal 1.')
+        if patience < 0 and threshold <= 0:
+            raise ValueError('Invalid configuration encountered: '
+                             'Either "patience" or "threshold" must be enabled.')
 
         if '_acc' in monitor and (threshold < 0.0 or threshold > 1.0):
             raise ValueError('Invalid value encountered: '
@@ -117,7 +118,7 @@ class EarlyStopping(EarlyStoppingHandler):
         if epoch <= 0:
             raise ValueError('Argument "epoch" must be greater than zero.')
 
-        self.history = self.add_to_history(epoch, measured_values)
+        self._history = self.add_to_history(epoch, measured_values)
 
         greater_is_better = '_acc' in self.monitor
         monitor_sign = 1 if greater_is_better else -1
@@ -132,15 +133,18 @@ class EarlyStopping(EarlyStoppingHandler):
         elif measured_value is None:
             return False
 
-        if len(self.history) == 1:
-            self.index_best = 0
+        if len(self._history) == 1:
+            self._index_best = 0
             return False
 
-        return self._check_for_improvement(measured_values, monitor_sign)
+        if self.patience < 0:
+            return False
+        else:
+            return self._check_for_improvement(measured_values, monitor_sign)
 
     def _check_for_improvement(self, measured_values, monitor_sign):
-        previous_best = self.history[self.monitor][self.index_best]
-        index_last = self.history.shape[0] - 1
+        previous_best = self._history[self.monitor][self._index_best]
+        index_last = self._history.shape[0] - 1
 
         delta = measured_values[self.monitor] - previous_best
         delta_sign = np.sign(delta)
@@ -151,25 +155,25 @@ class EarlyStopping(EarlyStoppingHandler):
             improvement = delta_sign == monitor_sign
 
         if improvement:
-            self.index_best = index_last
+            self._index_best = index_last
             return False
         else:
-            history_since_previous_best = self.history[self.index_best+1:][self.monitor]
+            history_since_previous_best = self._history[self._index_best + 1:][self.monitor]
             rows_not_nan = np.logical_not(np.isnan(history_since_previous_best))
             if rows_not_nan.sum() > self.patience:
                 logging.debug(f'Early stopping: Patience exceeded.'
-                              f'{{value={index_last-self.index_best}, patience={self.patience}}}')
+                              f'{{value={index_last-self._index_best}, patience={self.patience}}}')
                 return True
             return False
 
     def add_to_history(self, epoch, measured_values):
-        count = (self.history['epoch'] == epoch).sum()
+        count = (self._history['epoch'] == epoch).sum()
         tuple_measured_values = (measured_values.get('train_acc', None),
                                  measured_values.get('train_loss', None),
                                  measured_values.get('val_acc', None),
                                  measured_values.get('val_loss', None))
-        return np.append(self.history,
-                         np.array((epoch, count) + tuple_measured_values, dtype=self.dtype))
+        return np.append(self._history,
+                         np.array((epoch, count) + tuple_measured_values, dtype=self._dtype))
 
 
 class SequentialEarlyStopping(EarlyStoppingHandler):
