@@ -3,7 +3,8 @@ import unittest
 from small_text.training.early_stopping import (
     EarlyStopping,
     NoopEarlyStopping,
-    SequentialEarlyStopping
+    EarlyStoppingAndCondition,
+    EarlyStoppingOrCondition
 )
 
 
@@ -292,10 +293,10 @@ class EarlyStoppingTrainAccTest(unittest.TestCase,
         return 'train_acc'
 
 
-class SequentialEarlyStoppingTest(unittest.TestCase):
+class EarlyStoppingOrConditionTest(unittest.TestCase):
 
     def test_check_early_stop(self):
-        stopping_handler = SequentialEarlyStopping([
+        stopping_handler = EarlyStoppingOrCondition([
             EarlyStopping('val_loss', patience=2),
             EarlyStopping('train_acc', patience=5)
         ])
@@ -307,9 +308,36 @@ class SequentialEarlyStoppingTest(unittest.TestCase):
         self.assertTrue(check_early_stop(4, {'val_loss': 0.07, 'train_acc': 0.70}))
 
     def test_check_early_stop_no_stop(self):
-        stopping_handler = SequentialEarlyStopping([
+        stopping_handler = EarlyStoppingOrCondition([
             EarlyStopping('val_loss', patience=5),
             EarlyStopping('train_acc', patience=5)
+        ])
+
+        check_early_stop = stopping_handler.check_early_stop
+        self.assertFalse(check_early_stop(1, {'val_loss': 0.07, 'train_acc': 0.68}))
+        self.assertFalse(check_early_stop(2, {'val_loss': 0.08, 'train_acc': 0.69}))
+        self.assertFalse(check_early_stop(3, {'val_loss': 0.07, 'train_acc': 0.70}))
+        self.assertFalse(check_early_stop(4, {'val_loss': 0.07, 'train_acc': 0.70}))
+
+
+class EarlyStoppingAndConditionTest(unittest.TestCase):
+
+    def test_check_early_stop(self):
+        stopping_handler = EarlyStoppingAndCondition([
+            EarlyStopping('val_loss', patience=2),
+            EarlyStopping('train_acc', threshold=0.7)
+        ])
+
+        check_early_stop = stopping_handler.check_early_stop
+        self.assertFalse(check_early_stop(1, {'val_loss': 0.07, 'train_acc': 0.68}))
+        self.assertFalse(check_early_stop(2, {'val_loss': 0.08, 'train_acc': 0.69}))
+        self.assertFalse(check_early_stop(3, {'val_loss': 0.07, 'train_acc': 0.70}))
+        self.assertTrue(check_early_stop(4, {'val_loss': 0.07, 'train_acc': 0.71}))
+
+    def test_check_early_stop_no_stop(self):
+        stopping_handler = EarlyStoppingAndCondition([
+            EarlyStopping('val_loss', patience=5),
+            EarlyStopping('train_acc', threshold=0.7)
         ])
 
         check_early_stop = stopping_handler.check_early_stop

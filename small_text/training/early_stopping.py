@@ -176,10 +176,43 @@ class EarlyStopping(EarlyStoppingHandler):
                          np.array((epoch, count) + tuple_measured_values, dtype=self._dtype))
 
 
-class SequentialEarlyStopping(EarlyStoppingHandler):
+class EarlyStoppingOrCondition(EarlyStoppingHandler):
     """A sequential early stopping handler which bases its response on a list of sub handlers.
     As long as one early stopping handler returns `True` the aggregated response will be `True`,
-    i.e. the answer is the list of sub answers combined by a logical or.
+    i.e. the answer is the combination of single answers aggregated by a logical or.
+
+    .. versionadded:: 1.1.0
+    """
+    def __init__(self, early_stopping_handlers):
+        """
+        Parameters
+        ----------
+        early_stopping_handlers : list of EarlyStoppingHandler
+            A list of early stopping (sub-)handlers.
+        """
+        self.early_stopping_handlers = early_stopping_handlers
+
+    def check_early_stop(self, epoch, measured_values):
+        """Checks if the training should be stopped early. The decision is made based on
+        the masured values of one or more quantitative metrics over time.
+
+        Parameters
+        ----------
+        epoch : int
+            The number of the current epoch (1-indexed). Multiple checks per epoch are allowed.
+        measured_values : dict of str to float
+            A dictionary of measured values.
+        """
+        results = []
+        for early_stopping_handler in self.early_stopping_handlers:
+            results.append(early_stopping_handler.check_early_stop(epoch, measured_values))
+        return np.any(results)
+
+
+class EarlyStoppingAndCondition(EarlyStoppingHandler):
+    """A sequential early stopping handler which bases its response on a list of sub handlers.
+    Whenever all sub early stopping handler return `True` the aggregated response will be `True`,
+    i.e. the answer is the combination of single answers aggregated by a logical and.
 
     .. versionadded:: 1.1.0
     """

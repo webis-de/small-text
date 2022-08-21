@@ -9,7 +9,7 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.training.early_stopping import (
     EarlyStopping,
     NoopEarlyStopping,
-    SequentialEarlyStopping
+    EarlyStoppingOrCondition
 )
 from small_text.training.model_selection import ModelSelection, NoopModelSelection
 
@@ -148,7 +148,7 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
             elif early_stopping_no_improvement == 0 and early_stopping_acc == -1:
                 early_stopping = NoopEarlyStopping()
             else:
-                early_stopping = SequentialEarlyStopping([
+                early_stopping = EarlyStoppingOrCondition([
                     EarlyStopping('val_loss', patience=patience),
                     # TODO: disable patience here?
                     EarlyStopping('train_acc', patience=patience, threshold=early_stopping_acc)

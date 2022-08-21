@@ -114,8 +114,11 @@ Implementations
    best value, and for loss metrics when the respective metric has not fallen below the previous
    best value respectively.
 
+.. autoclass:: EarlyStoppingAndCondition
+    :special-members: __init__
+    :members:
 
-.. autoclass:: SequentialEarlyStopping
+.. autoclass:: EarlyStoppingOrCondition
     :special-members: __init__
     :members:
 

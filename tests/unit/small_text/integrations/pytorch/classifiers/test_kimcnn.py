@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from small_text.base import LABEL_UNLABELED
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.training.early_stopping import EarlyStopping, SequentialEarlyStopping
+from small_text.training.early_stopping import EarlyStopping, EarlyStoppingOrCondition
 
 try:
     import torch
@@ -251,7 +251,7 @@ class KimCNNTest(unittest.TestCase):
             self.assertIsNone(classifier.class_weights_)
 
             call_args = fit_main_mock.call_args[0]
-            self.assertTrue(isinstance(call_args[3], SequentialEarlyStopping))
+            self.assertTrue(isinstance(call_args[3], EarlyStoppingOrCondition))
 
             first_handler = call_args[3].early_stopping_handlers[0]
             self.assertEqual('val_loss', first_handler.monitor)
