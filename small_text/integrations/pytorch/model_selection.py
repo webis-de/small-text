@@ -4,7 +4,7 @@ from collections import OrderedDict
 from pathlib import Path
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.utils.deprecation import deprecated
+from small_text.utils.annotations import deprecated
 
 
 logger = logging.getLogger(__name__)

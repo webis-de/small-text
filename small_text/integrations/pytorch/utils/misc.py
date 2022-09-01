@@ -1,7 +1,7 @@
 import torch
 
 from contextlib import contextmanager
-from small_text.utils.deprecation import deprecated
+from small_text.utils.annotations import deprecated
 
 
 @deprecated(deprecated_in='1.1.0', to_be_removed_in='2.0.0')

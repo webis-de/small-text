@@ -12,6 +12,12 @@ class DeprecationError(ValueError):
     pass
 
 
+class ExperimentalWarning(UserWarning):
+    """Shown when functions or classes are used that have been marked
+    with the @experimental decorator."""
+    pass
+
+
 def deprecated(func_or_class=None, deprecated_in=None, to_be_removed_in=None, replacement=None):
     if deprecated_in is None:
         raise ValueError('Keyword argument \'deprecated_in\' must be set.')
@@ -43,6 +49,25 @@ def deprecated(func_or_class=None, deprecated_in=None, to_be_removed_in=None, re
                           f'{removed_in}{full_stop}{replacement_text}',
                           DeprecationWarning,
                           stacklevel=2)
+            return func_or_class(*args, **kwargs)
+        return wrapper
+    return _decorator(func_or_class) if callable(func_or_class) else _decorator
+
+
+def experimental(func_or_class=None):
+    if func_or_class is not None:
+        if not inspect.isclass(func_or_class) and not inspect.isfunction(func_or_class):
+            raise ValueError('The @deprecated decorator requires a function or class')
+
+    def _decorator(func_or_class):
+        subject = 'class' if inspect.isclass(func_or_class) else 'function'
+
+        @wraps(func_or_class)
+        def wrapper(*args, **kwargs):
+            warnings.warn(f'The {subject} {func_or_class.__name__} is experimental '
+                          f'and maybe subject to change soon.',
+                          ExperimentalWarning)
+
             return func_or_class(*args, **kwargs)
         return wrapper
     return _decorator(func_or_class) if callable(func_or_class) else _decorator

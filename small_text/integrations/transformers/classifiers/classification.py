@@ -15,7 +15,7 @@ from small_text.utils.classification import empty_result, get_splits
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data, list_length
 from small_text.utils.datetime import format_timedelta
-from small_text.utils.deprecation import (
+from small_text.utils.annotations import (
     early_stopping_deprecation_warning,
     model_selection_deprecation_warning
 )

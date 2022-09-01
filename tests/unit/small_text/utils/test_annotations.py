@@ -3,7 +3,12 @@ import unittest
 from packaging import version
 from unittest.mock import patch
 
-from small_text.utils.deprecation import deprecated, DeprecationError
+from small_text.utils.annotations import (
+    deprecated,
+    experimental,
+    DeprecationError,
+    ExperimentalWarning
+)
 
 
 class DeprecationUtilsTest(unittest.TestCase):
@@ -28,7 +33,7 @@ class DeprecationUtilsTest(unittest.TestCase):
             def another_func():
                 pass
 
-    @patch('small_text.utils.deprecation.get_version')
+    @patch('small_text.utils.annotations.get_version')
     def test_func_failure_of_removal(self, get_version_mock):
         get_version_mock.return_value = version.parse('10.0.0')
 
@@ -39,7 +44,7 @@ class DeprecationUtilsTest(unittest.TestCase):
             def myfunc(somearg, other=123):
                 return somearg == 'foo' and other == 123
 
-    @patch('small_text.utils.deprecation.get_version')
+    @patch('small_text.utils.annotations.get_version')
     def test_class_failure_of_removal(self, get_version_mock):
         get_version_mock.return_value = version.parse('10.0.0')
 
@@ -51,7 +56,7 @@ class DeprecationUtilsTest(unittest.TestCase):
                 pass
 
     def test_deprecate_function(self):
-        from small_text.utils.deprecation import deprecated
+        from small_text.utils.annotations import deprecated
 
         @deprecated(deprecated_in='1.0.0')
         def myfunc(somearg, other=123):
@@ -62,7 +67,7 @@ class DeprecationUtilsTest(unittest.TestCase):
             self.assertTrue(myfunc('foo'))
 
     def test_deprecate_function_with_removed_in(self):
-        from small_text.utils.deprecation import deprecated
+        from small_text.utils.annotations import deprecated
 
         @deprecated(deprecated_in='1.0.0', to_be_removed_in='2.0.0')
         def myfunc(somearg, other=123):
@@ -74,7 +79,7 @@ class DeprecationUtilsTest(unittest.TestCase):
             self.assertTrue(myfunc('foo'))
 
     def test_deprecate_function_with_replacement(self):
-        from small_text.utils.deprecation import deprecated
+        from small_text.utils.annotations import deprecated
 
         @deprecated(deprecated_in='1.0.0', replacement='otherpkg.my.other_func()')
         def myfunc(somearg, other=123):
@@ -86,7 +91,7 @@ class DeprecationUtilsTest(unittest.TestCase):
             self.assertTrue(myfunc('foo'))
 
     def test_deprecate_function_with_removed_in_and_replacement(self):
-        from small_text.utils.deprecation import deprecated
+        from small_text.utils.annotations import deprecated
 
         @deprecated(deprecated_in='1.0.0', to_be_removed_in='2.0.0',
                     replacement='otherpkg.my.other_func()')
@@ -100,7 +105,7 @@ class DeprecationUtilsTest(unittest.TestCase):
             self.assertTrue(myfunc('foo'))
 
     def test_deprecate_class(self):
-        from small_text.utils.deprecation import deprecated
+        from small_text.utils.annotations import deprecated
 
         @deprecated(deprecated_in='1.0.0')
         class MyClass(object):
@@ -111,7 +116,7 @@ class DeprecationUtilsTest(unittest.TestCase):
             MyClass()
 
     def test_deprecate_class_with_removed_in(self):
-        from small_text.utils.deprecation import deprecated
+        from small_text.utils.annotations import deprecated
 
         @deprecated(deprecated_in='1.0.0', to_be_removed_in='2.0.0')
         class MyClass(object):
@@ -123,7 +128,7 @@ class DeprecationUtilsTest(unittest.TestCase):
             MyClass()
 
     def test_deprecate_class_with_replacement(self):
-        from small_text.utils.deprecation import deprecated
+        from small_text.utils.annotations import deprecated
 
         @deprecated(deprecated_in='1.0.0', replacement='otherpkg.my.other_func()')
         class MyClass(object):
@@ -135,7 +140,7 @@ class DeprecationUtilsTest(unittest.TestCase):
             MyClass()
 
     def test_deprecate_class_with_removed_in_and_replacement(self):
-        from small_text.utils.deprecation import deprecated
+        from small_text.utils.annotations import deprecated
 
         @deprecated(deprecated_in='1.0.0', to_be_removed_in='2.0.0',
                     replacement='otherpkg.my.other_func()')
@@ -147,3 +152,26 @@ class DeprecationUtilsTest(unittest.TestCase):
                                    r'and will be removed in 2\.0\.0\. '
                                    r'Please use otherpkg\.my\.other_func\(\) instead\.'):
             MyClass()
+
+
+class ExperimentalDecoratorTest(unittest.TestCase):
+
+    def test_experimental_class(self):
+        @experimental()
+        class MyClass(object):
+            pass
+
+        with self.assertWarnsRegex(ExperimentalWarning,
+                                   r'The class MyClass is experimental '
+                                   r'and maybe subject to change soon.'):
+            MyClass()
+
+    def test_experimental_function(self):
+        @experimental()
+        def my_func():
+            pass
+
+        with self.assertWarnsRegex(ExperimentalWarning,
+                                   r'The function my_func is experimental '
+                                   r'and maybe subject to change soon.'):
+            my_func()
