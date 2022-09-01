@@ -193,14 +193,16 @@ The following steps need to be done before a new release can be created.
 
 - Check every step of the above Pull Request Checklist
 - Check if the CI Pipeline runs successfully
-- Run the sphinx doctests
-  - ```bash
-    sphinx-build SOURCEDIR OUTPUTDIR -b doctest
-    ```
-- Run sphinx linkcheck:
-  - ```bash
-    sphinx-build SOURCEDIR OUTPUTDIR -b linkcheck
-    ```
+- Documentation
+  - Check if conda versions in docs/install.rst match those in setup.py
+  - Run the sphinx doctests
+    - ```bash
+      sphinx-build SOURCEDIR OUTPUTDIR -b doctest
+      ```
+  - Run sphinx linkcheck:
+    - ```bash
+      sphinx-build SOURCEDIR OUTPUTDIR -b linkcheck
+      ```
 
 ### Create a Release
 
