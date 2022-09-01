@@ -4,11 +4,19 @@
 Installation
 ============
 
-You can easily install small-text using pip:
+You can easily install small-text using pip or conda:
+
+**Using Pip**
 
 .. code-block:: console
 
     pip install small-text
+
+**Using Conda**
+
+.. code-block:: console
+
+    conda install small-text
 
 This installs a minimal setup **without** any integrations. By installing the :ref:`integrations<install:Optional Integrations>`
 you can enable larger scopes of gpu-based functionality.
@@ -16,6 +24,8 @@ Further :ref:`optional dependencies<install:Optional Dependencies>`, i.e. depend
 and are not installed by default (to avoid bloated dependencies), might be required.
 
 .. _installation-optional-dependencies:
+
+----
 
 Optional Integrations
 =====================
@@ -33,11 +43,19 @@ Dependending on the classifier of your choice, you might need additional python 
 Pytorch Integration
 -------------------
 
+**Using Pip**
+
 To enable the Pytorch Integration, install the library with the `pytorch` extra:
 
 .. code-block:: console
 
     pip install small-text[pytorch]
+
+**Using Conda**
+
+.. code-block:: console
+
+    conda install small-text "torch>=1.6.0" "torchtext>=0.7.0"
 
 .. note:: After installation, make sure the installed `torchtext and Pytorch versions are compatible <https://github.com/pytorch/text#user-content-installation>`_.
 
@@ -46,15 +64,24 @@ To enable the Pytorch Integration, install the library with the `pytorch` extra:
 Transformers Integration
 ------------------------
 
+**Using Pip**
+
 To enable the Transformers Integration, install the library with the `transformers` extra:
 
 .. code-block:: console
 
     pip install small-text[transformers]
 
+**Using Conda**
+
+.. code-block:: console
+
+    conda install small-text "torch>=1.6.0" "torchtext>=0.7.0" "transformers>=4.0.0"
 
 The Transformers Integration also requires Pytorch, so installing this automatically
 entails an installation of the Pytorch Integration.
+
+----
 
 Optional Dependencies
 =====================
