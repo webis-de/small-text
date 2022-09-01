@@ -6,7 +6,7 @@ prune examples
 include small_text/version.json
 
 include LICENSE
-include LICENSE-THIRDPARTY
+include THIRDPARTY-CODE
 include DCO.md CONTRIBUTING.md
 
 global-exclude *.py[cod] __pycache__/* *.so *.dylib
