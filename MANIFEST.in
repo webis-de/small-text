@@ -7,7 +7,10 @@ include small_text/version.json
 
 include LICENSE
 include THIRDPARTY-CODE
-include DCO.md CONTRIBUTING.md
+include CHANGELOG.md
+include CONTRIBUTING.md
+include CONTRIBUTORS.md
+include DCO.md
 
 global-exclude *.py[cod] __pycache__/* *.so *.dylib
 prune docs/_build
