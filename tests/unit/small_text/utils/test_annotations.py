@@ -166,6 +166,15 @@ class ExperimentalDecoratorTest(unittest.TestCase):
                                    r'and maybe subject to change soon.'):
             MyClass()
 
+        @experimental
+        class MyOtherClass(object):
+            pass
+
+        with self.assertWarnsRegex(ExperimentalWarning,
+                                   r'The class MyOtherClass is experimental '
+                                   r'and maybe subject to change soon.'):
+            MyClass()
+
     def test_experimental_function(self):
         @experimental()
         def my_func():
@@ -175,3 +184,12 @@ class ExperimentalDecoratorTest(unittest.TestCase):
                                    r'The function my_func is experimental '
                                    r'and maybe subject to change soon.'):
             my_func()
+
+        @experimental
+        def my_other_func():
+            pass
+
+        with self.assertWarnsRegex(ExperimentalWarning,
+                                   r'The function my_other_func is experimental '
+                                   r'and maybe subject to change soon.'):
+            my_other_func()
