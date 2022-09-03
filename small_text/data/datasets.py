@@ -328,7 +328,9 @@ class SklearnDataset(Dataset):
 
 
         .. seealso::
-           `scikit-learn docs: Vectorizer API reference <https://scikit-learn.org/stable/modules/classes.html#module-sklearn.feature_extraction.text>`_
+           `scikit-learn docs: Vectorizer API reference
+           <https://scikit-learn.org/stable/modules/classes.html
+           #module-sklearn.feature_extraction.text>`_
 
         .. warning::
            This functionality is still experimental and may be subject to change.

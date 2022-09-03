@@ -59,7 +59,7 @@ def random_labels(num_samples, num_classes, multi_label=False):
         y.data[np.s_[:]] = 1
         y = y.astype(int)
     else:
-        y = np.random.randint(0, high=num_classes, size=x.shape[0])
+        y = np.random.randint(0, high=num_classes, size=num_samples)
     return y
 
 

@@ -3,8 +3,6 @@
 Note:
 This examples requires the datasets library.
 """
-import numpy as np
-
 from transformers import AutoTokenizer
 
 from small_text.active_learner import PoolBasedActiveLearner

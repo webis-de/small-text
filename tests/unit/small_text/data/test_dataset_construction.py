@@ -55,8 +55,9 @@ class SklearnDatasetConstructionSingleLabelTest(unittest.TestCase):
         labels = np.array([random_labeling(3) for _ in range(10)])
 
         vectorizer = TfidfVectorizer()
-        vectorizer.fit(texts)  # usually we would not call fit here but a fitted vocab is required
-                               # before calling transform()
+        # usually we would not call fit here but a fitted vocab is required
+        # before calling transform()
+        vectorizer.fit(texts)
 
         with patch.object(vectorizer,
                           'transform',
@@ -117,8 +118,9 @@ class SklearnDatasetConstructionMultiLabelTest(unittest.TestCase):
         labels = random_labels(10, 3, multi_label=True)
 
         vectorizer = TfidfVectorizer()
-        vectorizer.fit(texts)  # usually we would not call fit here but a fitted vocab is required
-                               # before calling transform()
+        # usually we would not call fit here but a fitted vocab is required
+        # before calling transform()
+        vectorizer.fit(texts)
 
         with patch.object(vectorizer,
                           'transform',
