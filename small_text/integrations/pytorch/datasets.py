@@ -1,12 +1,14 @@
 import numpy as np
 
 from abc import ABC, abstractmethod
+from scipy.sparse import csr_matrix
 from small_text.base import LABEL_UNLABELED
 from small_text.data import DatasetView
 from small_text.data.datasets import check_size, get_updated_target_labels
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.utils.labels import list_to_csr
+from small_text.utils.annotations import experimental
+from small_text.utils.labels import csr_to_list, list_to_csr
 
 try:
     import torch
@@ -296,6 +298,71 @@ class PytorchTextClassificationDataset(PytorchDataset):
         else:
             self._data = data
             return self
+
+    @classmethod
+    @experimental
+    def from_arrays(cls, texts, y, text_field, target_labels=None, train=True):
+        """Constructs a new PytorchTextClassificationDataset from the given text and label arrays.
+
+        Parameters
+        ----------
+        texts : list of str or np.ndarray[str]
+            List of text documents.
+        y : np.ndarray[int] or scipy.sparse.csr_matrix
+            List of labels where each label belongs to the features of the respective row.
+            Depending on the type of `y` the resulting dataset will be single-label (`np.ndarray`)
+            or multi-label (`scipy.sparse.csr_matrix`).
+        text_field : torchtext.data.field.Field or torchtext.legacy.data.field.Field
+            A torchtext field used for preprocessing the text and building the vocabulary.
+        vocab : object
+            A torch
+        target_labels : numpy.ndarray[int] or None, default=None
+            List of possible labels. Will be directly passed to the datset constructor.
+        train : bool
+            If `True` fits the vectorizer and transforms the data, otherwise just transforms the
+            data.
+
+        Returns
+        -------
+        dataset : PytorchTextClassificationDataset
+            A dataset constructed from the given texts and labels.
+
+
+        .. warning::
+           This functionality is still experimental and may be subject to change.
+
+        .. versionadded:: 1.1.0
+        """
+        unk_token_idx = 0  # TODO: check this index
+
+        if not train and not hasattr(text_field, 'vocab'):
+            raise ValueError('Vocab must have been built when using this function '
+                             'to obtain test data.')
+
+        texts_preprocessed = [text_field.preprocess(text) for text in texts]
+
+        if train:
+            text_field.build_vocab(texts_preprocessed)
+            assert text_field.vocab.itos[0] == '<unk>'
+            assert text_field.vocab.itos[1] == '<pad>'
+
+        multi_label = isinstance(y, csr_matrix)
+        if multi_label:
+            y = csr_to_list(y)
+
+        vocab = text_field.vocab
+
+        data = [
+            (
+                torch.LongTensor([vocab.stoi[token] if token in vocab.stoi else unk_token_idx
+                                 for token in text_preprocessed]),
+                y[i]
+            )
+            for i, text_preprocessed in enumerate(texts_preprocessed)
+        ]
+
+        return PytorchTextClassificationDataset(data, vocab, multi_label=multi_label,
+                                                target_labels=target_labels)
 
     def __getitem__(self, item):
         return PytorchTextClassificationDatasetView(self, item)

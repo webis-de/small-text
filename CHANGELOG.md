@@ -14,6 +14,9 @@
   - **[!]** `KimCNNClassifier.__init()__`: The default value of the (now deprecated) keyword argument `early_stopping_acc` has been changed from `0.98` to `-1` in order to match `TransformerBasedClassification`.
   - **[!]** Removed weight renormalization after gradient clipping.
 
+- Datasets:
+  - Added `from_arrays()` to `SklearnDataset`, `PytorchTextClassificationDataset`, and `TransformersDataset` to construct datasets more conveniently.
+
 - Query Strategies:
   - New multi-label strategy: [CategoryVectorInconsistencyAndRanking](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/query_strategies/multi_label.py)
 

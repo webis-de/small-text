@@ -28,7 +28,7 @@ Getting Started
 
    install
    active_learning
-   data_structures
+   datasets
 
 - Start: :doc:`install` | :doc:`Active Learning Overview<active_learning>`
 - Examples: `Notebooks <https://github.com/webis-de/small-text/tree/main/examples/notebooks>`_ | `Code Examples <https://github.com/webis-de/small-text/tree/main/examples/examplecode>`_

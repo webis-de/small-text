@@ -1,9 +1,11 @@
 import numpy as np
 
+from scipy.sparse import csr_matrix
 from small_text.base import LABEL_UNLABELED
 from small_text.data.datasets import check_size, get_updated_target_labels
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.utils.labels import list_to_csr
+from small_text.utils.annotations import experimental
+from small_text.utils.labels import csr_to_list, list_to_csr
 
 try:
     import torch
@@ -180,6 +182,68 @@ class TransformersDataset(PytorchDataset):
         else:
             self._data = data
             return self
+
+    @classmethod
+    @experimental
+    def from_arrays(cls, texts, y, tokenizer, target_labels=None, max_length=512):
+        """Constructs a new TransformersDataset from the given text and label arrays.
+
+        Parameters
+        ----------
+        texts : list of str or np.ndarray[str]
+            List of text documents.
+        y : np.ndarray[int] or scipy.sparse.csr_matrix
+            List of labels where each label belongs to the features of the respective row.
+            Depending on the type of `y` the resulting dataset will be single-label (`np.ndarray`)
+            or multi-label (`scipy.sparse.csr_matrix`).
+        tokenizer : tokenizers.Tokenizer
+            A huggingface tokenizer.
+        target_labels : numpy.ndarray[int] or None, default=None
+            List of possible labels. Will be directly passed to the datset constructor.
+        max_length : int
+            Maximum sequence length.
+        train : bool
+            If `True` fits the vectorizer and transforms the data, otherwise just transforms the
+            data.
+
+        Returns
+        -------
+        dataset : TransformersDataset
+            A dataset constructed from the given texts and labels.
+
+
+        .. warning::
+           This functionality is still experimental and may be subject to change.
+
+        .. versionadded:: 1.1.0
+        """
+        data_out = []
+
+        multi_label = isinstance(y, csr_matrix)
+        if multi_label:
+            y = csr_to_list(y)
+
+        for i, doc in enumerate(texts):
+            encoded_dict = tokenizer.encode_plus(
+                doc,
+                add_special_tokens=True,
+                padding='max_length',
+                max_length=max_length,
+                return_attention_mask=True,
+                return_tensors='pt',
+                truncation='longest_first'
+            )
+
+            if multi_label:
+                data_out.append((encoded_dict['input_ids'],
+                                 encoded_dict['attention_mask'],
+                                 np.sort(y[i])))
+            else:
+                data_out.append((encoded_dict['input_ids'],
+                                 encoded_dict['attention_mask'],
+                                 y[i]))
+
+        return TransformersDataset(data_out, multi_label=multi_label, target_labels=target_labels)
 
     def __getitem__(self, item):
         return TransformersDatasetView(self, item)

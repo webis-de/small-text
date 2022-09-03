@@ -3,7 +3,7 @@ import numpy as np
 from small_text.active_learner import PoolBasedActiveLearner
 from small_text.utils.labels import list_to_csr
 
-from tests.utils.datasets import random_labels
+from tests.utils.datasets import random_labeling
 
 
 def get_initialized_active_learner(clf_factory, query_strategy, dataset, initial_indices=10,
@@ -16,7 +16,7 @@ def get_initialized_active_learner(clf_factory, query_strategy, dataset, initial
 
     if multi_label:
         y_initial = [[i] for i in np.arange(num_classes)] + \
-                    [random_labels(num_classes, multi_label=multi_label)
+                    [random_labeling(num_classes, multi_label=multi_label)
                      for _ in range(initial_indices - num_classes)]
         y_initial = list_to_csr(y_initial, (len(y_initial), num_classes))
     else:

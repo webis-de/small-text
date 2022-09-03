@@ -42,7 +42,8 @@ def random_matrix_data(matrix_type, label_type, num_samples=100, num_dimension=4
     return x, y
 
 
-def random_labels(num_classes, multi_label=False):
+# TODO: is this obsolete?
+def random_labeling(num_classes, multi_label=False):
     label_values = np.arange(num_classes)
     if multi_label:
         num_labels = np.random.randint(num_classes)
@@ -50,6 +51,16 @@ def random_labels(num_classes, multi_label=False):
     else:
         label = np.random.randint(num_classes)
     return label
+
+
+def random_labels(num_samples, num_classes, multi_label=False):
+    if multi_label:
+        y = sparse.random(num_samples, num_classes, density=0.5, format='csr')
+        y.data[np.s_[:]] = 1
+        y = y.astype(int)
+    else:
+        y = np.random.randint(0, high=num_classes, size=x.shape[0])
+    return y
 
 
 def random_sklearn_dataset(num_samples, vocab_size=60, num_classes=2, multi_label=False):
@@ -120,13 +131,13 @@ def random_text_classification_dataset(num_samples=10, max_length=60, num_classe
     if multi_label:
         data = [(
                     torch.randint(vocab_size, (max_length,), dtype=dtype, device=device),
-                    np.sort(random_labels(num_classes, multi_label)).tolist()
+                    np.sort(random_labeling(num_classes, multi_label)).tolist()
                  )
                 for _ in range(num_samples)]
     else:
         data = [
             (torch.randint(10, (max_length,), dtype=dtype, device=device),
-             random_labels(num_classes, multi_label))
+             random_labeling(num_classes, multi_label))
             for _ in range(num_samples)]
 
     data = assure_all_labels_occur(data, num_classes, multi_label=multi_label)
@@ -179,9 +190,9 @@ def random_transformer_dataset(num_samples, max_length=60, num_classes=2, multi_
             torch.tensor([0] * (max_length - sample_length), dtype=dtype)
         ]).unsqueeze(0)
         if multi_label:
-            labels = np.sort(random_labels(num_classes, multi_label))
+            labels = np.sort(random_labeling(num_classes, multi_label))
         else:
-            labels = random_labels(num_classes, multi_label)
+            labels = random_labeling(num_classes, multi_label)
 
         data.append((text, mask, labels))
 

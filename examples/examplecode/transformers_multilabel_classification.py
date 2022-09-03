@@ -12,8 +12,8 @@ from small_text.exceptions import ActiveLearnerException
 from small_text.initialization import random_initialization_stratified
 from small_text.integrations.transformers import TransformerModelArguments
 from small_text.integrations.transformers.classifiers.factories import TransformerBasedClassificationFactory
-from small_text.query_strategies import PoolExhaustedException, EmptyPoolException
-from small_text.query_strategies import RandomSampling
+from small_text.query_strategies import PoolExhaustedException, EmptyPoolException, RandomSampling
+from small_text.utils.labels import list_to_csr
 
 from examplecode.data.example_data_multilabel import (
     get_train_test
@@ -47,9 +47,13 @@ def main(num_iterations=10):
     train, test = get_train_test()
 
     tokenizer = AutoTokenizer.from_pretrained(TRANSFORMER_MODEL.model, cache_dir='.cache/')
-    train = preprocess_data(tokenizer, train['text'], train['labels'], multi_label=True)
+    train = preprocess_data(tokenizer,
+                            train['text'],
+                            list_to_csr(train['labels'], (len(train), num_classes)))
 
-    test = preprocess_data(tokenizer, test['text'], test['labels'], multi_label=True)
+    test = preprocess_data(tokenizer,
+                           test['text'],
+                           list_to_csr(test['labels'], (len(test), num_classes)))
 
     # Active learner
     active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
@@ -75,10 +79,8 @@ def perform_active_learning(active_learner, train, indices_labeled, test, num_it
         # Return the labels for the current query to the active learner.
         active_learner.update(y)
 
-        indices_labeled = np.concatenate([indices_queried, indices_labeled])
-
-        print('Iteration #{:d} ({} samples)'.format(i, len(indices_labeled)))
-        evaluate_multi_label(active_learner, train[indices_labeled], test)
+        print('Iteration #{:d} ({} samples)'.format(i, len(active_learner.indices_labeled)))
+        evaluate_multi_label(active_learner, train[active_learner.indices_labeled], test)
 
 
 def initialize_active_learner(active_learner, y_train):

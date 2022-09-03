@@ -6,6 +6,7 @@ from scipy.sparse import issparse
 
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.data.sampling import stratified_sampling, balanced_sampling
+from small_text.utils.annotations import experimental
 from small_text.utils.labels import get_flattened_unique_labels
 
 
@@ -219,7 +220,7 @@ class SklearnDataset(Dataset):
         ----------
         x : numpy.ndarray or scipy.sparse.csr_matrix
             Dense or sparse feature matrix.
-        y : numpy.ndarray[int]
+        y : numpy.ndarray[int] or scipy.sparse.csr_matrix
             List of labels where each label belongs to the features of the respective row.
         target_labels : numpy.ndarray[int] or None, default=None
             List of possible labels. Will be inferred from `y` if `None` is passed."""
@@ -298,6 +299,48 @@ class SklearnDataset(Dataset):
             y = np.copy(self._y)
 
         return SklearnDataset(x, y, target_labels=np.copy(self._target_labels))
+
+    @classmethod
+    @experimental
+    def from_arrays(cls, texts, y, vectorizer, target_labels=None, train=True):
+        """Constructs a new SklearnDataset from the given text and label arrays.
+
+        Parameters
+        ----------
+        texts : list of str or np.ndarray[str]
+            List of text documents.
+        y : np.ndarray[int] or scipy.sparse.csr_matrix
+            List of labels where each label belongs to the features of the respective row.
+            Depending on the type of `y` the resulting dataset will be single-label (`np.ndarray`)
+            or multi-label (`scipy.sparse.csr_matrix`).
+        vectorizer : object
+            A scikit-learn vectorizer which is used to construct the feature matrix.
+        target_labels : numpy.ndarray[int] or None, default=None
+            List of possible labels. Will be directly passed to the datset constructor.
+        train : bool
+            If `True` fits the vectorizer and transforms the data, otherwise just transforms the
+            data.
+
+        Returns
+        -------
+        dataset : SklearnDataset
+            A dataset constructed from the given texts and labels.
+
+
+        .. seealso::
+           `scikit-learn docs: Vectorizer API reference <https://scikit-learn.org/stable/modules/classes.html#module-sklearn.feature_extraction.text>`_
+
+        .. warning::
+           This functionality is still experimental and may be subject to change.
+
+        .. versionadded:: 1.1.0
+        """
+        if train:
+            x = vectorizer.fit_transform(texts)
+        else:
+            x = vectorizer.transform(texts)
+
+        return SklearnDataset(x, y, target_labels=target_labels)
 
     def __getitem__(self, item):
         return SklearnDatasetView(self, item)

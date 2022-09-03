@@ -44,7 +44,20 @@ def csr_to_list(mat):
 
 
 def list_to_csr(label_list, shape, dtype=np.int64):
+    """Converts the given list of lists of labels into a sparse matrix.
 
+    Parameter
+    ---------
+    label_list : list of list of int
+        List of lists of labels.
+    shape : tuple
+        Target matrix shape.
+
+    Returns
+    -------
+    result : scipy.sparse.csr_matrix
+        A sparse matrix of the given input.
+    """
     if np.all(np.array([len(item) for item in label_list]) == 0):
         return csr_matrix(shape, dtype=dtype)
 

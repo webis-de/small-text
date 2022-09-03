@@ -54,10 +54,8 @@ def perform_active_learning(active_learner, train, indices_labeled, test, num_it
         # Return the labels for the current query to the active learner.
         active_learner.update(y)
 
-        indices_labeled = np.concatenate([indices_queried, indices_labeled])
-
         print('Iteration #{:d} ({} samples)'.format(i, len(indices_labeled)))
-        evaluate(active_learner, train[indices_labeled], test)
+        evaluate(active_learner, train[active_learner.indices_labeled], test)
 
 
 def initialize_active_learner(active_learner, y_train):

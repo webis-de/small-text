@@ -1,6 +1,6 @@
-===============
-Data Structures
-===============
+========
+Datasets
+========
 
 Small-Text's basic data structures for data are called :py:class:`Datasets<small_text.data.datasets.Dataset>` and
 represent text data for :doc:`single-label and multi-label classification<classifiers>`.

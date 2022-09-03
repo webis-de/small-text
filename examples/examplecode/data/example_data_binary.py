@@ -11,7 +11,7 @@ def get_train_test():
 def preprocess_data(train, test):
     vectorizer = TfidfVectorizer(stop_words='english')
 
-    x_train = vectorizer.fit_transform(train.data)
-    x_test = vectorizer.transform(test.data)
+    ds_train = SklearnDataset.from_arrays(train.data, train.target, vectorizer, train=True)
+    ds_test = SklearnDataset.from_arrays(test.data, test.target, vectorizer, train=False)
 
-    return SklearnDataset(x_train, train.target), SklearnDataset(x_test, test.target)
+    return ds_train, ds_test

@@ -31,7 +31,7 @@ Pytorch Integration
 .. currentmodule:: small_text.integrations.pytorch.datasets
 
 .. autoclass:: PytorchTextClassificationDataset
-    :members: x, y, target_labels, data, vocab, to
+    :members: x, y, target_labels, data, vocab, clone, to, from_arrays
     :member-order: bysource
     :special-members: __init__
 
@@ -42,5 +42,6 @@ Transformers Integration
 .. currentmodule:: small_text.integrations.transformers.datasets
 
 .. autoclass:: TransformersDataset
-    :members: x, y, target_labels, data, to
+    :members: x, y, target_labels, data, clone, to, from_arrays
+    :member-order: bysource
     :special-members: __init__
