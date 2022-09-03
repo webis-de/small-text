@@ -173,7 +173,7 @@ class ExperimentalDecoratorTest(unittest.TestCase):
         with self.assertWarnsRegex(ExperimentalWarning,
                                    r'The class MyOtherClass is experimental '
                                    r'and maybe subject to change soon.'):
-            MyClass()
+            MyOtherClass()
 
     def test_experimental_function(self):
         @experimental()
