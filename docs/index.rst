@@ -103,7 +103,7 @@ License
 
    api/active_learner
    api/classifier
-   api/data_set
+   api/dataset
 
 
 .. toctree::
