@@ -16,7 +16,7 @@ try:
     import torch
 
     from torch.optim import AdamW
-    from transformers import get_linear_schedule_with_warmup
+    from torch.optim.lr_scheduler import LambdaLR
 
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
     from tests.utils.datasets import random_text_classification_dataset
@@ -256,10 +256,7 @@ class _KimCNNClassifierTest(object):
         params = [param for param in classifier.model.parameters() if param.requires_grad]
 
         optimizer = AdamW(params, lr=5e-5)
-        steps = (len(ds) // classifier.mini_batch_size) \
-            + int(len(ds) % classifier.mini_batch_size != 0)
-
-        scheduler = get_linear_schedule_with_warmup(optimizer, 0.1 * steps, steps)
+        scheduler = LambdaLR(optimizer, lambda _: 1)
 
         with patch.object(classifier, '_train', wraps=classifier._train) as train_mock:
             classifier.fit(ds, optimizer=optimizer, scheduler=scheduler)
