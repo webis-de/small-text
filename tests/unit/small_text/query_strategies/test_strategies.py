@@ -116,13 +116,17 @@ class SamplingStrategiesTests(object):
 
         clf_mock = self._get_clf()
         if clf_mock is not None:
-            proba = np.random.random_sample((num_samples, 2))
-            clf_mock.predict_proba = Mock(return_value=proba)
+            def predict_proba_side_effect(dataset):
+                return np.random.random_sample((len(dataset), num_classes))
+            clf_mock.predict_proba = Mock(side_effect=predict_proba_side_effect)
 
         if self._is_multi_label():
             y = csr_matrix(np.array([
-                [0, 0], [1, 0], [0, 1], [1, 1], [1, 1],
-                [1, 0], [0, 0], [1, 1], [0, 1], [0, 0]
+                [0, 0, 0, 1, 0], [1, 0, 1, 1, 1],
+                [0, 1, 0, 0, 0], [1, 1, 0, 1, 0],
+                [1, 1, 1, 0, 0], [1, 0, 0, 1, 0],
+                [1, 0, 0, 0, 0], [1, 1, 1, 1, 1],
+                [0, 1, 0, 1, 0], [0, 0, 0, 0, 0]
             ]))
         else:
             y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
