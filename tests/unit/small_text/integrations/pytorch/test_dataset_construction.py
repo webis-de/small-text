@@ -1,4 +1,6 @@
 import unittest
+import pytest
+
 import numpy as np
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
@@ -22,6 +24,7 @@ def get_text_field():
     return text_field
 
 
+@pytest.mark.pytorch
 class PytorchTextClassificationDatasetSingleLabelTest(unittest.TestCase):
 
     def test_from_arrays_with_lists(self):
@@ -80,6 +83,7 @@ class PytorchTextClassificationDatasetSingleLabelTest(unittest.TestCase):
                                                          train=False)
 
 
+@pytest.mark.pytorch
 class PytorchTextClassificationDatasetMultiLabelTest(unittest.TestCase):
 
     def test_from_arrays_with_lists(self):

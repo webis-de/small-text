@@ -1,17 +1,20 @@
 import unittest
+import pytest
+
 import numpy as np
-from transformers import AutoTokenizer
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from tests.utils.datasets import random_labeling, random_labels
 
 
 try:
+    from transformers import AutoTokenizer
     from small_text.integrations.transformers.datasets import TransformersDataset
 except (PytorchNotFoundError, ModuleNotFoundError):
     pass
 
 
+@pytest.mark.pytorch
 class TransformersDatasetSingleLabelTest(unittest.TestCase):
 
     def test_from_arrays_with_lists(self):
@@ -45,6 +48,7 @@ class TransformersDatasetSingleLabelTest(unittest.TestCase):
         self.assertEqual(10, len(dataset))
 
 
+@pytest.mark.pytorch
 class TransformersDatasetMultiLabelTest(unittest.TestCase):
 
     def test_from_arrays_with_lists(self):
