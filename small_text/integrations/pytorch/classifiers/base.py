@@ -105,7 +105,7 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
                                 return_proba=return_proba)
 
         proba = self.predict_proba(data_set)
-        predictions = prediction_result(proba, self.multi_label, self.num_classes, enc=self.enc_)
+        predictions = prediction_result(proba, self.multi_label, self.num_classes)
 
         if return_proba:
             return predictions, proba

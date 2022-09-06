@@ -36,8 +36,8 @@ except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
 
-def kimcnn_collate_fn(batch, enc=None, use_sample_weights=False, max_seq_len=60, padding_idx=0,
-                      filter_padding=0):
+def kimcnn_collate_fn(batch, multi_label=None, num_classes=None, use_sample_weights=False,
+                      max_seq_len=60, padding_idx=0, filter_padding=0):
     # TODO: torch.no_grad()?
     def prepare_tensor(t):
         t_sub = t[:max_seq_len-2*filter_padding]
@@ -47,9 +47,10 @@ def kimcnn_collate_fn(batch, enc=None, use_sample_weights=False, max_seq_len=60,
                           t_sub.new_zeros(filter_padding) + padding_idx],
                          0)
 
-    if enc is not None:
-        labels = [entry[PytorchTextClassificationDataset.INDEX_LABEL] for entry in batch]
-        multi_hot = enc.transform(labels)
+    if multi_label:
+        multi_hot = [[0 if i not in set(entry[PytorchTextClassificationDataset.INDEX_LABEL]) else 1
+                      for i in range(num_classes)]
+                     for entry in batch]
         label = torch.tensor(multi_hot, dtype=float)
     else:
         label = torch.tensor([entry[PytorchTextClassificationDataset.INDEX_LABEL]
@@ -403,7 +404,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         return self
 
     def _create_collate_fn(self, use_sample_weights=False):
-        return partial(kimcnn_collate_fn, enc=self.enc_, use_sample_weights=use_sample_weights,
+        return partial(kimcnn_collate_fn, multi_label=self.multi_label,
+                       num_classes=self.num_classes, use_sample_weights=use_sample_weights,
                        padding_idx=self.padding_idx, max_seq_len=self.max_seq_len,
                        filter_padding=self.filter_padding)
 

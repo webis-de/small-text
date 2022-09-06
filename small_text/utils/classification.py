@@ -3,6 +3,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 from small_text.data.datasets import split_data
+from small_text.utils.annotations import prediction_result_enc_warning
 from small_text.utils.labels import list_to_csr
 
 
@@ -59,7 +60,7 @@ def get_splits(train_set, validation_set, weights=None, multi_label=False, valid
     return result
 
 
-def prediction_result(proba, multi_label, num_classes, enc=None, return_proba=False):
+def prediction_result(proba, multi_label, num_classes, return_proba=False, enc=None):
     """Helper method which returns a single- or multi-label prediction result.
 
     Parameters
@@ -71,14 +72,12 @@ def prediction_result(proba, multi_label, num_classes, enc=None, return_proba=Fa
         otherwise for a single-label classification.
     num_classes : int
         The number of classes.
-    enc : sklearn.preprocessing.MultiLabelBinarizer, default=None
-        A multi-label binarizer which is (optionally) used if `multi-label` is `True`. It is only
-        intended to be used in combination with
-        `small_text.integrations.pytorch.classifiers.PytorchClassifier`-based classifiers.
     return_proba : bool, default=False
         Also returns the probability if `True`. This is intended to be used with `multi_label=True`
         where it returns a sparse matrix with only the probabilities for the predicted labels. For
         the single-label case this simply returns the given `proba` input.
+    enc : None
+        Deprecated since 1.1.0. Argument will be removed in 2.0.0.
 
     Returns
     -------
@@ -87,14 +86,15 @@ def prediction_result(proba, multi_label, num_classes, enc=None, return_proba=Fa
     proba : np.ndarray[float] or csr_matrix[np.float64]
         An empty ndarray of predictions if `return_prediction` is True.
     """
+    prediction_result_enc_warning(enc)
+
     if multi_label:
         predictions_binarized = np.where(proba > 0.5, 1, 0)
-        if enc is not None:
-            predictions = enc.inverse_transform(predictions_binarized)
-        else:
-            def multihot_to_list(x):
-                return [i for i, item in enumerate(x) if item > 0]
-            predictions = [multihot_to_list(row) for row in predictions_binarized]
+
+        def multihot_to_list(x):
+            return [i for i, item in enumerate(x) if item > 0]
+
+        predictions = [multihot_to_list(row) for row in predictions_binarized]
         predictions = list_to_csr(predictions, shape=(len(predictions), num_classes))
 
         if return_proba:

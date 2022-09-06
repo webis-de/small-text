@@ -74,6 +74,7 @@ class ClassificationUtilsTest(unittest.TestCase):
         ]))
         assert_csr_matrix_equal(expected_proba, proba_result)
 
+    # TODO: remove this in 2.0.0
     def test_prediction_result_multilabel_with_enc(self):
         all_labels = [[0], [0, 1], [2, 3]]
         enc = MultiLabelBinarizer()
@@ -85,7 +86,9 @@ class ClassificationUtilsTest(unittest.TestCase):
             [0.3, 0.3, 0.2, 0.2],
             [0.3, 0.2, 0.5, 0.1],
         ])
-        result = prediction_result(proba, True, proba.shape[1], enc=enc)
+        with self.assertWarnsRegex(DeprecationWarning,
+                                   'The enc keyword argument has been deprecated since 1.1.0'):
+            result = prediction_result(proba, True, proba.shape[1], enc=enc)
         expected = csr_matrix(np.array([
             [0, 0, 1, 0],
             [0, 0, 0, 0],
@@ -94,6 +97,7 @@ class ClassificationUtilsTest(unittest.TestCase):
         ]))
         assert_csr_matrix_equal(expected, result)
 
+    # TODO: remove this in 2.0.0
     def test_prediction_result_multilabel_with_enc_and_proba(self):
         all_labels = [[0], [0, 1], [2, 3]]
         enc = MultiLabelBinarizer()
@@ -105,8 +109,11 @@ class ClassificationUtilsTest(unittest.TestCase):
             [0.3, 0.3, 0.2, 0.2],
             [0.3, 0.2, 0.5, 0.1],
         ])
-        result, proba_result = prediction_result(proba, True, proba.shape[1], enc=enc,
-                                                 return_proba=True)
+
+        with self.assertWarnsRegex(DeprecationWarning,
+                                   'The enc keyword argument has been deprecated since 1.1.0'):
+            result, proba_result = prediction_result(proba, True, proba.shape[1], enc=enc,
+                                                     return_proba=True)
         expected = csr_matrix(np.array([
             [0, 0, 1, 0],
             [0, 0, 0, 0],

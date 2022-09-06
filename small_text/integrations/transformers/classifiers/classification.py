@@ -7,8 +7,6 @@ import numpy as np
 
 from functools import partial
 
-from sklearn.preprocessing import MultiLabelBinarizer
-
 from small_text.classifiers.classification import EmbeddingMixin
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.classification import empty_result, get_splits
@@ -41,13 +39,14 @@ except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
 
-def transformers_collate_fn(batch, enc=None, use_sample_weights=False):
+def transformers_collate_fn(batch, multi_label=None, num_classes=None, use_sample_weights=False):
     with torch.no_grad():
         text = torch.cat([entry[TransformersDataset.INDEX_TEXT] for entry in batch], dim=0)
         masks = torch.cat([entry[TransformersDataset.INDEX_MASK] for entry in batch], dim=0)
-        if enc is not None:
-            labels = [entry[TransformersDataset.INDEX_LABEL] for entry in batch]
-            multi_hot = enc.transform(labels)
+        if multi_label:
+            multi_hot = [[0 if i not in set(entry[TransformersDataset.INDEX_LABEL]) else 1
+                         for i in range(num_classes)]
+                         for entry in batch]
             label = torch.tensor(multi_hot, dtype=float)
         else:
             label = torch.tensor([entry[TransformersDataset.INDEX_LABEL] for entry in batch])
@@ -299,8 +298,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.model = None
         self.model_selection_manager = None
 
-        self.enc_ = None
-
     def fit(self, train_set, validation_set=None, weights=None, early_stopping=None,
             model_selection=None, optimizer=None, scheduler=None):
         """Trains the model using the given train set.
@@ -363,11 +360,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         fit_optimizer = optimizer if optimizer is not None else self.optimizer
         fit_scheduler = scheduler if scheduler is not None else self.scheduler
-
-        if self.multi_label:
-            self.enc_ = MultiLabelBinarizer()
-            labels = csr_to_list(sub_train.y)
-            self.enc_ = self.enc_.fit(labels)
 
         self.class_weights_ = self.initialize_class_weights(sub_train)
         self.criterion = self._get_default_criterion(self.class_weights_,
@@ -558,7 +550,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         return train_loss, train_acc, valid_loss, valid_acc, stop
 
     def _create_collate_fn(self, use_sample_weights=False):
-        return partial(transformers_collate_fn, enc=self.enc_, use_sample_weights=use_sample_weights)
+        return partial(transformers_collate_fn, multi_label=self.multi_label,
+                       num_classes=self.num_classes, use_sample_weights=use_sample_weights)
 
     def _train_single_batch(self, x, masks, cls, weight, optimizer):
 
