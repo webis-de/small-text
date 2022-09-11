@@ -5,7 +5,7 @@ from small_text.base import LABEL_UNLABELED
 from small_text.data.datasets import check_size, get_updated_target_labels
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.annotations import experimental
-from small_text.utils.labels import csr_to_list, list_to_csr
+from small_text.utils.labels import csr_to_list, list_to_csr, get_num_labels
 
 try:
     import torch
@@ -28,9 +28,11 @@ class TransformersDatasetView(PytorchDatasetView):
             data = [(torch.clone(d[TransformersDataset.INDEX_TEXT]),
                      torch.clone(d[TransformersDataset.INDEX_MASK]),
                      np.copy(d[TransformersDataset.INDEX_LABEL])) for d in self.data]
+
+        target_labels = None if self.dataset.track_target_labels else np.copy(self.target_labels)
         return TransformersDataset(data,
                                    multi_label=self.is_multi_label,
-                                   target_labels=np.copy(self.target_labels))
+                                   target_labels=target_labels)
 
 
 class TransformersDataset(PytorchDataset):
@@ -70,18 +72,25 @@ class TransformersDataset(PytorchDataset):
             self._infer_target_labels()
 
     def _infer_target_labels(self):
-        inferred_target_labels = self._get_flattened_unique_labels()
-        self.target_labels = inferred_target_labels
-
-    def _get_flattened_unique_labels(self):
-        if self.multi_label:
-            labels = np.concatenate([d[self.INDEX_LABEL] for d in self._data
-                                     if d[self.INDEX_LABEL] is not None
-                                     and len(d[self.INDEX_LABEL].shape) > 0])
-            labels = np.unique(labels)
+        if len(self._data) == 0:
+            self.target_labels = np.array([0])
         else:
-            labels = np.unique([d[self.INDEX_LABEL] for d in self._data])
-        return labels
+            unique_labels = np.unique(self._get_flattened_labels())
+            if unique_labels.shape[0] > 0:
+                max_label_id = unique_labels.max()
+                self.target_labels = np.arange(max_label_id + 1)
+            else:
+                self.target_labels = np.array([0])
+
+    def _get_flattened_labels(self):
+        label_list = [d[self.INDEX_LABEL] if d[self.INDEX_LABEL] is not None else []
+                      for d in self._data]
+        if self.multi_label:
+            label_list = [label for lst in label_list for label in lst]
+
+        label_list = [label for label in label_list if label > LABEL_UNLABELED]
+
+        return label_list
 
     @property
     def x(self):
@@ -103,7 +112,12 @@ class TransformersDataset(PytorchDataset):
         if self.multi_label:
             label_list = [d[self.INDEX_LABEL] if d[self.INDEX_LABEL] is not None else []
                           for d in self._data]
-            return list_to_csr(label_list, shape=(len(self.data), len(self._target_labels)))
+            if self.track_target_labels:
+                # TODO: int() cast should not be necessary here
+                num_classes = int(self.target_labels.max()) + 1
+            else:
+                num_classes = len(self.target_labels)
+            return list_to_csr(label_list, shape=(len(self.data), num_classes))
         else:
             return np.array([d[self.INDEX_LABEL] if d[self.INDEX_LABEL] is not None
                              else LABEL_UNLABELED
@@ -128,7 +142,19 @@ class TransformersDataset(PytorchDataset):
                 self._data[i] = (self._data[i][self.INDEX_TEXT],
                                  self._data[i][self.INDEX_MASK],
                                  _y)
-        self.target_labels = get_updated_target_labels(self.is_multi_label, y, self.target_labels)
+
+        if self.track_target_labels:
+            self.target_labels = get_updated_target_labels(self.is_multi_label,
+                                                           y,
+                                                           self.target_labels)
+        else:
+            max_label_id = get_num_labels(y) - 1
+            max_target_labels_id = self.target_labels.max()
+            if max_label_id > max_target_labels_id:
+                raise ValueError(f'Error while assigning new labels to dataset: '
+                                 f'Encountered label with id {max_label_id} which is outside of '
+                                 f'the configured set of target labels (whose maximum label is '
+                                 f'is {max_target_labels_id}) [track_target_labels=False]')
 
     @property
     def data(self):
@@ -151,7 +177,7 @@ class TransformersDataset(PytorchDataset):
 
     @target_labels.setter
     def target_labels(self, target_labels):
-        encountered_labels = self._get_flattened_unique_labels()
+        encountered_labels = np.unique(self._get_flattened_labels())
         if np.setdiff1d(encountered_labels, target_labels).shape[0] > 0:
             raise ValueError('Cannot remove existing labels from target_labels as long as they '
                              'still exists in the data. Create a new dataset instead.')
@@ -166,9 +192,11 @@ class TransformersDataset(PytorchDataset):
             data = [(torch.clone(d[self.INDEX_TEXT]),
                      torch.clone(d[self.INDEX_MASK]),
                      np.copy(d[self.INDEX_LABEL])) for d in self._data]
+
+        target_labels = None if self.track_target_labels else np.copy(self._target_labels)
         return TransformersDataset(data,
                                    multi_label=self.multi_label,
-                                   target_labels=np.copy(self._target_labels))
+                                   target_labels=target_labels)
 
     def to(self, other, non_blocking=False, copy=False):
 

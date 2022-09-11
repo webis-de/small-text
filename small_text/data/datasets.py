@@ -4,6 +4,7 @@ from abc import ABCMeta, abstractmethod
 from scipy.sparse import csr_matrix
 from scipy.sparse import issparse
 
+from small_text.base import LABEL_UNLABELED
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.data.sampling import stratified_sampling, balanced_sampling
 from small_text.utils.annotations import experimental
@@ -186,9 +187,18 @@ class SklearnDatasetView(DatasetView):
         else:
             y = np.copy(self.y)
 
+        dataset = self
+        while hasattr(dataset, 'dataset'):
+            dataset = dataset.dataset
+
+        if dataset.track_target_labels:
+            target_labels = None
+        else:
+            target_labels = np.copy(dataset._target_labels)
+
         return SklearnDataset(x,
                               y,
-                              target_labels=np.copy(self.target_labels))
+                              target_labels=target_labels)
 
     def __getitem__(self, item):
         return self.obj_class(self, item)
@@ -239,7 +249,21 @@ class SklearnDataset(Dataset):
             self._infer_target_labels()
 
     def _infer_target_labels(self):
-        self.target_labels = get_flattened_unique_labels(self)
+        if self.x.shape[0] == 0:
+            self.target_labels = np.array([0])
+        else:
+            unique_labels = np.unique(self._get_flattened_labels())
+            if unique_labels.shape[0] > 0:
+                max_label_id = unique_labels.max()
+                self.target_labels = np.arange(max_label_id+1)
+            else:
+                self.target_labels = np.array([0])
+
+    def _get_flattened_labels(self):
+        if self.multi_label:
+            return self.y.indices
+        else:
+            return self.y[np.argwhere(self.y > LABEL_UNLABELED)]
 
     @property
     def x(self):
@@ -266,7 +290,16 @@ class SklearnDataset(Dataset):
         check_dataset_and_labels(self.x, y)
         self._y = y
 
-        self.target_labels = get_updated_target_labels(self.is_multi_label, y, self.target_labels)
+        if self.track_target_labels:
+            self.target_labels = get_updated_target_labels(self.is_multi_label, y, self.target_labels)
+        else:
+            max_label_id = np.max(y)
+            max_target_labels_id = self.target_labels.max()
+            if  max_label_id > max_target_labels_id:
+                raise ValueError(f'Error while assigning new labels to dataset: '
+                                 f'Encountered label with id {max_label_id} which is outside of '
+                                 f'the configured set of target labels (whose maximum label is '
+                                 f'is {max_target_labels_id}) [track_target_labels=False]')
 
     @property
     def is_multi_label(self):
@@ -285,6 +318,10 @@ class SklearnDataset(Dataset):
 
     @target_labels.setter
     def target_labels(self, target_labels):
+        encountered_labels = get_flattened_unique_labels(self)
+        if np.setdiff1d(encountered_labels, target_labels).shape[0] > 0:
+            raise ValueError('Cannot remove existing labels from target_labels as long as they '
+                             'still exists in the data. Create a new dataset instead.')
         self._target_labels = target_labels
 
     def clone(self):
@@ -298,7 +335,12 @@ class SklearnDataset(Dataset):
         else:
             y = np.copy(self._y)
 
-        return SklearnDataset(x, y, target_labels=np.copy(self._target_labels))
+        if self.track_target_labels:
+            target_labels = None
+        else:
+            target_labels = np.copy(self._target_labels)
+
+        return SklearnDataset(x, y, target_labels=target_labels)
 
     @classmethod
     @experimental

@@ -62,6 +62,8 @@ def stratified_sampling(y, n_samples=10, enforce_min_occurrence=True):
     """
     _assert_sample_size(y, n_samples)
 
+    # TODO: check for gaps in given labels
+
     # num classes according to the labels
     num_classes = np.max(y) + 1
 
@@ -115,6 +117,8 @@ def balanced_sampling(y, n_samples=10):
     _assert_sample_size(y, n_samples)
     if not isinstance(y, np.ndarray):
         y = np.array(y)
+
+    # TODO: check for gaps in given labels
 
     # num classes according to the labels
     num_classes = np.max(y) + 1

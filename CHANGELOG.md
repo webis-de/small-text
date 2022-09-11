@@ -33,6 +33,10 @@
   - `KimCNNClassifier.fit()` and `TransformerBasedClassification.fit()` now correctly
     process the `scheduler` keyword argument ([#16](https://github.com/webis-de/small-text/issues/16)).
 
+### Removed
+- Removed the strict check that every target label has to occur in the training data.
+  - This is intended for multi-label settings with many labels; apart from that it is still recommended to make sure that all labels occur. 
+
 ## Version 1.0.0 - 2022-06-14
 
 First stable release.

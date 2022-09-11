@@ -3,6 +3,7 @@ from scipy.sparse import csr_matrix
 from scipy.sparse import vstack
 
 from small_text.base import LABEL_UNLABELED
+from small_text.utils.annotations import deprecated
 
 
 def get_num_labels(y):
@@ -72,6 +73,7 @@ def list_to_csr(label_list, shape, dtype=np.int64):
     return csr_matrix((data, (row_ind, col_ind)), shape=shape, dtype=dtype)
 
 
+@deprecated(deprecated_in='1.1.0', to_be_removed_in='2.0.0')
 def get_flattened_unique_labels(dataset):
     if dataset.is_multi_label:
         labels = np.unique(dataset.y.indices)

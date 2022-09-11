@@ -8,6 +8,7 @@ from scipy.sparse import csr_matrix
 from numpy.testing import assert_array_equal
 from parameterized import parameterized_class
 
+from small_text.base import LABEL_UNLABELED
 from small_text.integrations.pytorch.datasets import PytorchDatasetView
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from tests.utils.testing import (
@@ -54,6 +55,50 @@ class TransformersDatasetTest(unittest.TestCase):
         ds = self._random_data()
         self.assertIsNotNone(ds._data)
 
+    def test_init_when_some_samples_are_unlabeled(self):
+        ds = self._random_data(num_samples=self.NUM_SAMPLES)
+        if self.multi_label:
+            data_list = list(ds.data[2])
+            data_list[TransformersDataset.INDEX_LABEL] = []
+            ds.data[2] = tuple(data_list)
+        else:
+            data_list = list(ds.data[2])
+            data_list[TransformersDataset.INDEX_LABEL] = LABEL_UNLABELED
+            ds.data[2] = tuple(data_list)
+
+        if self.target_labels not in ['explicit', 'inferred']:
+            raise ValueError('Invalid test parameter value for target_labels:' + self.target_labels)
+
+        target_labels = None if self.target_labels == 'inferred' else ds.target_labels
+
+        # passes when no exeption is raised here
+        TransformersDataset(ds.data,
+                            multi_label=self.multi_label,
+                            target_labels=target_labels)
+
+    def test_init_when_all_samples_are_unlabeled(self):
+        ds = self._random_data(num_samples=self.NUM_SAMPLES)
+        if self.multi_label:
+            for i in range(len(ds)):
+                data_list = list(ds.data[i])
+                data_list[TransformersDataset.INDEX_LABEL] = []
+                ds.data[i] = tuple(data_list)
+        else:
+            for i in range(len(ds)):
+                data_list = list(ds.data[i])
+                data_list[TransformersDataset.INDEX_LABEL] = LABEL_UNLABELED
+                ds.data[i] = tuple(data_list)
+
+        if self.target_labels not in ['explicit', 'inferred']:
+            raise ValueError('Invalid test parameter value for target_labels:' + self.target_labels)
+
+        target_labels = None if self.target_labels == 'inferred' else ds.target_labels
+
+        # passes when no exeption is raised here
+        TransformersDataset(ds.data,
+                            multi_label=self.multi_label,
+                            target_labels=target_labels)
+
     def test_get_features(self):
         ds = self._random_data()
         self.assertEqual(self.NUM_SAMPLES, len(ds.x))
@@ -89,15 +134,23 @@ class TransformersDatasetTest(unittest.TestCase):
         else:
             assert_array_not_equal(ds.y, ds_new.y)
 
-        ds.y = ds_new.y
-
-        if self.multi_label:
-            assert_csr_matrix_equal(ds.y, ds_new.y)
+        if self.target_labels == 'explicit':
+            with self.assertRaisesRegex(ValueError, 'Error while assigning new labels'):
+                ds.y = ds_new.y
         else:
-            assert_array_equal(ds.y, ds_new.y)
-            self.assertTrue(isinstance(ds.y, np.ndarray))
-            self.assertEqual(self.NUM_SAMPLES, ds.y.shape[0])
-        assert_array_equal(np.arange(self.NUM_LABELS+1), ds.target_labels)
+            ds.y = ds_new.y
+
+            if self.multi_label:
+                assert_csr_matrix_equal(ds.y, ds_new.y)
+            else:
+                assert_array_equal(ds.y, ds_new.y)
+                self.assertTrue(isinstance(ds.y, np.ndarray))
+                self.assertEqual(self.NUM_SAMPLES, ds.y.shape[0])
+
+            if self.target_labels == 'explicit':
+                assert_array_equal(np.arange(self.NUM_LABELS), ds.target_labels)
+            else:
+                assert_array_equal(np.arange(self.NUM_LABELS+1), ds.target_labels)
 
     def test_set_labels_with_mismatching_data_length(self):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
@@ -146,6 +199,15 @@ class TransformersDatasetTest(unittest.TestCase):
 
         assert_array_equal(ds.target_labels, ds_cloned.target_labels)
 
+        # test propagation of target_labels setting
+        if self.target_labels == 'explicit':
+            self.assertFalse(ds.track_target_labels)
+            self.assertFalse(ds_cloned.track_target_labels)
+            assert_array_equal(ds.target_labels, ds_cloned.target_labels)
+        else:
+            self.assertTrue(ds.track_target_labels)
+            self.assertTrue(ds_cloned.track_target_labels)
+
         # mutability test
         ds_cloned.x[0][0] += 1
         assert_list_of_tensors_not_equal(self, ds.x, ds_cloned.x)
@@ -156,7 +218,7 @@ class TransformersDatasetTest(unittest.TestCase):
             ds_cloned.y = csr_matrix(y_tmp)
             assert_array_not_equal(ds.y.indices, ds_cloned.y.indices)
         else:
-            ds_cloned.y += 1
+            ds_cloned.y = (ds_cloned.y + 1) % (ds_cloned.y.max() + 1)
             assert_array_not_equal(ds.y, ds_cloned.y)
 
         ds_cloned.target_labels = np.arange(10)
@@ -208,8 +270,56 @@ class _TransformersDatasetViewTest(_PytorchDatasetViewTest):
     def default_result_size(self):
         return self.NUM_SAMPLES
 
+    def _clone_test(self, ds_view):
+        ds_cloned = ds_view.clone()
+        self.assertTrue(isinstance(ds_cloned, self.dataset_class))
 
-class TransformersDatasetViewSingleLabelTest(unittest.TestCase, _TransformersDatasetViewTest):
+        self.assertTrue(np.all([
+            torch.equal(t, t_cloned)
+            for t, t_cloned in zip(ds_view.x, ds_cloned.x)
+        ]))
+        if self.multi_label:
+            if self.target_labels == 'explicit':
+                assert_csr_matrix_equal(ds_view.y, ds_cloned.y)
+        else:
+            assert_array_equal(ds_view.y, ds_cloned.y)
+        if self.target_labels == 'explicit':
+            assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+
+        # test propagation of target_labels setting
+        if self.target_labels == 'explicit':
+            self.assertFalse(ds_view.dataset.track_target_labels)
+            self.assertFalse(ds_cloned.track_target_labels)
+            assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+        else:
+            self.assertTrue(ds_view.dataset.track_target_labels)
+            self.assertTrue(ds_cloned.track_target_labels)
+
+        # mutability test
+        ds_cloned.x[0][0] += 1
+        assert_list_of_tensors_not_equal(self, ds_view.x, ds_cloned.x)
+
+        if self.multi_label:
+            y_tmp = ds_cloned.y.todense()
+            y_tmp = (y_tmp + 1) % 2
+            ds_cloned.y = csr_matrix(y_tmp, shape=ds_view.y.shape)
+            try:
+                assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
+            except (AssertionError, ValueError):
+                print()
+                assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
+        else:
+            ds_cloned.y = (ds_cloned.y + 1) % 2
+            assert_array_not_equal(ds_view.y, ds_cloned.y)
+
+        ds_cloned.target_labels = np.arange(10)
+        assert_array_not_equal(ds_view.target_labels, ds_cloned.target_labels)
+
+
+class TransformersDatasetViewSingleLabelExplicitTest(unittest.TestCase, _TransformersDatasetViewTest):
+
+    def setUp(self):
+        self.target_labels = 'explicit'
 
     def _dataset(self, num_labels=3):
         assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW
@@ -218,12 +328,33 @@ class TransformersDatasetViewSingleLabelTest(unittest.TestCase, _TransformersDat
         dataset = random_transformer_dataset(num_samples=self.NUM_SAMPLES,
                                              multi_label=self.multi_label,
                                              num_classes=num_labels,
-                                             target_labels='explicit')
+                                             target_labels=self.target_labels)
 
         return dataset
 
 
-class TransformersDatasetViewMultiLabelTest(unittest.TestCase, _TransformersDatasetViewTest):
+class TransformersDatasetViewSingleLabelInferredTest(unittest.TestCase,
+                                                     _TransformersDatasetViewTest):
+
+    def setUp(self):
+        self.target_labels = 'inferred'
+
+    def _dataset(self, num_labels=3):
+        assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW
+        self.multi_label = False
+
+        dataset = random_transformer_dataset(num_samples=self.NUM_SAMPLES,
+                                             multi_label=self.multi_label,
+                                             num_classes=num_labels,
+                                             target_labels=self.target_labels)
+
+        return dataset
+
+
+class TransformersDatasetViewMultiLabelExplicitTest(unittest.TestCase, _TransformersDatasetViewTest):
+
+    def setUp(self):
+        self.target_labels = 'explicit'
 
     def _dataset(self, num_labels=3):
         assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW
@@ -232,6 +363,23 @@ class TransformersDatasetViewMultiLabelTest(unittest.TestCase, _TransformersData
         dataset = random_transformer_dataset(num_samples=self.NUM_SAMPLES,
                                              multi_label=self.multi_label,
                                              num_classes=num_labels,
-                                             target_labels='explicit')
+                                             target_labels=self.target_labels)
+
+        return dataset
+
+
+class TransformersDatasetViewMultiLabelInferredTest(unittest.TestCase, _TransformersDatasetViewTest):
+
+    def setUp(self):
+        self.target_labels = 'inferred'
+
+    def _dataset(self, num_labels=3):
+        assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW
+        self.multi_label = True
+
+        dataset = random_transformer_dataset(num_samples=self.NUM_SAMPLES,
+                                             multi_label=self.multi_label,
+                                             num_classes=num_labels,
+                                             target_labels=self.target_labels)
 
         return dataset

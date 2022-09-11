@@ -9,6 +9,7 @@ from scipy.sparse import csr_matrix
 from numpy.testing import assert_array_equal
 from parameterized import parameterized_class
 
+from small_text.base import LABEL_UNLABELED
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from tests.utils.datasets import random_text_classification_dataset
@@ -61,6 +62,52 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
                                               ds_rnd.vocab,
                                               target_labels=ds_rnd.target_labels)
         assert_array_equal(np.array([0, 1]), ds.target_labels)
+
+    def test_init_when_some_samples_are_unlabeled(self):
+        ds = self._random_data(num_samples=self.NUM_SAMPLES)
+        if self.multi_label:
+            data_list = list(ds.data[2])
+            data_list[PytorchTextClassificationDataset.INDEX_LABEL] = []
+            ds.data[2] = tuple(data_list)
+        else:
+            data_list = list(ds.data[2])
+            data_list[PytorchTextClassificationDataset.INDEX_LABEL] = LABEL_UNLABELED
+            ds.data[2] = tuple(data_list)
+
+        if self.target_labels not in ['explicit', 'inferred']:
+            raise ValueError('Invalid test parameter value for target_labels:' + self.target_labels)
+
+        target_labels = None if self.target_labels == 'inferred' else ds.target_labels
+
+        # passes when no exeption is raised here
+        PytorchTextClassificationDataset(ds.data,
+                                         ds.vocab,
+                                         multi_label=self.multi_label,
+                                         target_labels=target_labels)
+
+    def test_init_when_all_samples_are_unlabeled(self):
+        ds = self._random_data(num_samples=self.NUM_SAMPLES)
+        if self.multi_label:
+            for i in range(len(ds)):
+                data_list = list(ds.data[i])
+                data_list[PytorchTextClassificationDataset.INDEX_LABEL] = []
+                ds.data[i] = tuple(data_list)
+        else:
+            for i in range(len(ds)):
+                data_list = list(ds.data[i])
+                data_list[PytorchTextClassificationDataset.INDEX_LABEL] = LABEL_UNLABELED
+                ds.data[i] = tuple(data_list)
+
+        if self.target_labels not in ['explicit', 'inferred']:
+            raise ValueError('Invalid test parameter value for target_labels:' + self.target_labels)
+
+        target_labels = None if self.target_labels == 'inferred' else ds.target_labels
+
+        # passes when no exeption is raised here
+        PytorchTextClassificationDataset(ds.data,
+                                         ds.vocab,
+                                         multi_label=self.multi_label,
+                                         target_labels=target_labels)
 
     def test_get_features(self):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
@@ -159,7 +206,17 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
             assert_csr_matrix_equal(ds.y, ds_cloned.y)
         else:
             assert_array_equal(ds.y, ds_cloned.y)
-        assert_array_equal(ds.target_labels, ds_cloned.target_labels)
+        if self.target_labels == 'explicit':
+            assert_array_equal(ds.target_labels, ds_cloned.target_labels)
+
+        # test propagation of target_labels setting
+        if self.target_labels == 'explicit':
+            self.assertFalse(ds.track_target_labels)
+            self.assertFalse(ds_cloned.track_target_labels)
+            assert_array_equal(ds.target_labels, ds_cloned.target_labels)
+        else:
+            self.assertTrue(ds.track_target_labels)
+            self.assertTrue(ds_cloned.track_target_labels)
 
         # mutability test
         ds_cloned.x[0][0] += 1
@@ -369,10 +426,20 @@ class _PytorchDatasetViewTest(object):
             for t, t_cloned in zip(ds_view.x, ds_cloned.x)
         ]))
         if self.multi_label:
-            assert_csr_matrix_equal(ds_view.y, ds_cloned.y)
+            if self.target_labels == 'explicit':
+                assert_csr_matrix_equal(ds_view.y, ds_cloned.y)
         else:
             assert_array_equal(ds_view.y, ds_cloned.y)
         assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+
+        # test propagation of target_labels setting
+        if self.target_labels == 'explicit':
+            self.assertFalse(ds_view.dataset.track_target_labels)
+            self.assertFalse(ds_cloned.track_target_labels)
+            assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+        else:
+            self.assertTrue(ds_view.dataset.track_target_labels)
+            self.assertTrue(ds_cloned.track_target_labels)
 
         # mutability test
         ds_cloned.x[0][0] += 1
@@ -385,10 +452,9 @@ class _PytorchDatasetViewTest(object):
             try:
                 assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
             except (AssertionError, ValueError):
-                print()
                 assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
         else:
-            ds_cloned.y += 1
+            ds_cloned.y = ((ds_cloned.y + 1) % 2)
             assert_array_not_equal(ds_view.y, ds_cloned.y)
 
         ds_cloned.target_labels = np.arange(10)
@@ -457,11 +523,59 @@ class _PytorchTextClassificationDatasetViewTest(_PytorchDatasetViewTest):
     def default_result_size(self):
         return self.NUM_SAMPLES
 
+    def _clone_test(self, ds_view):
+        ds_cloned = ds_view.clone()
+        self.assertTrue(isinstance(ds_cloned, self.dataset_class))
 
-class PytorchTextClassificationDatasetViewSingleLabelTest(
+        self.assertTrue(np.all([
+            torch.equal(t, t_cloned)
+            for t, t_cloned in zip(ds_view.x, ds_cloned.x)
+        ]))
+        if self.multi_label:
+            if self.target_labels == 'explicit':
+                assert_csr_matrix_equal(ds_view.y, ds_cloned.y)
+        else:
+            assert_array_equal(ds_view.y, ds_cloned.y)
+        if self.target_labels == 'explicit':
+            assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+
+        # test propagation of target_labels setting
+        if self.target_labels == 'explicit':
+            self.assertFalse(ds_view.dataset.track_target_labels)
+            self.assertFalse(ds_cloned.track_target_labels)
+            assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+        else:
+            self.assertTrue(ds_view.dataset.track_target_labels)
+            self.assertTrue(ds_cloned.track_target_labels)
+
+        # mutability test
+        ds_cloned.x[0][0] += 1
+        assert_list_of_tensors_not_equal(self, ds_view.x, ds_cloned.x)
+
+        if self.multi_label:
+            y_tmp = ds_cloned.y.todense()
+            y_tmp = (y_tmp + 1) % 2
+            ds_cloned.y = csr_matrix(y_tmp, shape=ds_view.y.shape)
+            try:
+                assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
+            except (AssertionError, ValueError):
+                print()
+                assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
+        else:
+            ds_cloned.y += 1
+            assert_array_not_equal(ds_view.y, ds_cloned.y)
+
+        ds_cloned.target_labels = np.arange(10)
+        assert_array_not_equal(ds_view.target_labels, ds_cloned.target_labels)
+
+
+class PytorchTextClassificationDatasetViewSingleLabelExplicitTest(
     unittest.TestCase,
     _PytorchTextClassificationDatasetViewTest
 ):
+    def setUp(self):
+        self.target_labels = 'explicit'
+
     def _dataset(self, num_labels=3):
         assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW
         self.multi_label = False
@@ -469,12 +583,35 @@ class PytorchTextClassificationDatasetViewSingleLabelTest(
         dataset = random_text_classification_dataset(num_samples=self.NUM_SAMPLES,
                                                      multi_label=self.multi_label,
                                                      num_classes=num_labels,
-                                                     target_labels='explicit')
+                                                     target_labels=self.target_labels)
         return dataset
 
 
-class PytorchTextClassificationDatasetViewMultiLabelTest(unittest.TestCase,
-                                                         _PytorchTextClassificationDatasetViewTest):
+class PytorchTextClassificationDatasetViewSingleLabelInferredTest(
+    unittest.TestCase,
+    _PytorchTextClassificationDatasetViewTest
+):
+    def setUp(self):
+        self.target_labels = 'inferred'
+
+    def _dataset(self, num_labels=3):
+        assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW
+        self.multi_label = False
+
+        dataset = random_text_classification_dataset(num_samples=self.NUM_SAMPLES,
+                                                     multi_label=self.multi_label,
+                                                     num_classes=num_labels,
+                                                     target_labels=self.target_labels)
+        return dataset
+
+
+class PytorchTextClassificationDatasetViewMultiLabelExplicitTest(
+    unittest.TestCase,
+    _PytorchTextClassificationDatasetViewTest
+):
+
+    def setUp(self):
+        self.target_labels = 'explicit'
 
     def _dataset(self, num_labels=3):
         assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW
@@ -483,14 +620,99 @@ class PytorchTextClassificationDatasetViewMultiLabelTest(unittest.TestCase,
         dataset = random_text_classification_dataset(num_samples=self.NUM_SAMPLES,
                                                      multi_label=self.multi_label,
                                                      num_classes=num_labels,
-                                                     target_labels='explicit')
+                                                     target_labels=self.target_labels)
         return dataset
 
 
-class NestedPytorchDatasetViewSingleLabelTest(unittest.TestCase,
-                                              _PytorchTextClassificationDatasetViewTest):
+class PytorchTextClassificationDatasetViewMultiLabelInferredTest(
+    unittest.TestCase,
+    _PytorchTextClassificationDatasetViewTest
+):
+
+    def setUp(self):
+        self.target_labels = 'inferred'
+
+    def _dataset(self, num_labels=3):
+        assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW
+        self.multi_label = True
+
+        dataset = random_text_classification_dataset(num_samples=self.NUM_SAMPLES,
+                                                     multi_label=self.multi_label,
+                                                     num_classes=num_labels,
+                                                     target_labels=self.target_labels)
+        return dataset
+
+
+class _NestedPytorchTextClassificationDatasetViewTest(_PytorchDatasetViewTest):
+
+    @property
+    def dataset_class(self):
+        return PytorchTextClassificationDataset
+
+    @property
+    def dataset_view_class(self):
+        return PytorchTextClassificationDatasetView
+
+    @property
+    def default_result_size(self):
+        return self.NUM_SAMPLES
+
+    def _clone_test(self, ds_view):
+        ds_cloned = ds_view.clone()
+        self.assertTrue(isinstance(ds_cloned, self.dataset_class))
+
+        self.assertTrue(np.all([
+            torch.equal(t, t_cloned)
+            for t, t_cloned in zip(ds_view.x, ds_cloned.x)
+        ]))
+        if self.multi_label:
+            if self.target_labels == 'explicit':
+                assert_csr_matrix_equal(ds_view.y, ds_cloned.y)
+        else:
+            assert_array_equal(ds_view.y, ds_cloned.y)
+        if self.target_labels == 'explicit':
+            assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+
+        # test propagation of target_labels setting
+        if self.target_labels == 'explicit':
+            # TODO: we would not need a third nesting level here (caused by indexing)
+            self.assertFalse(ds_view.dataset.dataset.dataset.track_target_labels)
+            self.assertFalse(ds_cloned.track_target_labels)
+            assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+        else:
+            # TODO: we would not need a third nesting level here (caused by indexing)
+            self.assertTrue(ds_view.dataset.dataset.dataset.track_target_labels)
+            self.assertTrue(ds_cloned.track_target_labels)
+
+        # mutability test
+        ds_cloned.x[0][0] += 1
+        assert_list_of_tensors_not_equal(self, ds_view.x, ds_cloned.x)
+
+        if self.multi_label:
+            y_tmp = ds_cloned.y.todense()
+            y_tmp = (y_tmp + 1) % 2
+            ds_cloned.y = csr_matrix(y_tmp, shape=ds_view.y.shape)
+            try:
+                assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
+            except (AssertionError, ValueError):
+                print()
+                assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
+        else:
+            ds_cloned.y += 1
+            assert_array_not_equal(ds_view.y, ds_cloned.y)
+
+        ds_cloned.target_labels = np.arange(10)
+        assert_array_not_equal(ds_view.target_labels, ds_cloned.target_labels)
+
+
+class NestedPytorchTextClassificationDatasetViewSingleLabelExplicitTest(
+    unittest.TestCase,
+    _NestedPytorchTextClassificationDatasetViewTest):
 
     NUM_SAMPLES_VIEW_OUTER = 17
+
+    def setUp(self):
+        self.target_labels = 'explicit'
 
     def _dataset(self, num_labels=2):
         assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW_OUTER > self.NUM_SAMPLES_VIEW
@@ -499,7 +721,7 @@ class NestedPytorchDatasetViewSingleLabelTest(unittest.TestCase,
         ds = random_text_classification_dataset(num_samples=self.NUM_SAMPLES,
                                                 multi_label=self.multi_label,
                                                 num_classes=num_labels,
-                                                target_labels='explicit')
+                                                target_labels=self.target_labels)
         ds_view_inner = PytorchTextClassificationDatasetView(ds, np.s_[:self.NUM_SAMPLES_VIEW_OUTER])
         return PytorchTextClassificationDatasetView(ds_view_inner, np.s_[:self.NUM_SAMPLES_VIEW])
 
@@ -508,11 +730,15 @@ class NestedPytorchDatasetViewSingleLabelTest(unittest.TestCase,
         return self.NUM_SAMPLES_VIEW
 
 
-class NestedPytorchTextClassificationDatasetViewMultiLabelTest(
-    unittest.TestCase, _PytorchTextClassificationDatasetViewTest
+class NestedPytorchTextClassificationDatasetViewMultiLabelInferredTest(
+    unittest.TestCase,
+    _NestedPytorchTextClassificationDatasetViewTest
 ):
     NUM_SAMPLES_VIEW_INNER = 17
     """Size of the inner view."""
+
+    def setUp(self):
+        self.target_labels = 'inferred'
 
     def _dataset(self, num_labels=2):
         assert self.NUM_SAMPLES > self.NUM_SAMPLES_VIEW_INNER > self.NUM_SAMPLES_VIEW
@@ -521,7 +747,7 @@ class NestedPytorchTextClassificationDatasetViewMultiLabelTest(
         ds = random_text_classification_dataset(num_samples=self.NUM_SAMPLES,
                                                 multi_label=self.multi_label,
                                                 num_classes=num_labels,
-                                                target_labels='explicit')
+                                                target_labels=self.target_labels)
         ds_view_inner = PytorchTextClassificationDatasetView(ds, np.s_[:self.NUM_SAMPLES_VIEW_INNER])
         return PytorchTextClassificationDatasetView(ds_view_inner, np.s_[:self.NUM_SAMPLES_VIEW])
 

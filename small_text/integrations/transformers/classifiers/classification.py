@@ -376,11 +376,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             if self.num_classes is None:
                 self.num_classes = encountered_num_classes
 
-            if self.num_classes != encountered_num_classes:
-                raise ValueError('Conflicting information about the number of classes: '
-                                 'expected: {}, encountered: {}'.format(self.num_classes,
-                                                                        encountered_num_classes))
-
             self.initialize_transformer(self.cache_dir)
 
         check_optimizer_and_scheduler_config(optimizer, scheduler)

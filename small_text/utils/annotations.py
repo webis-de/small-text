@@ -57,7 +57,7 @@ def deprecated(func_or_class=None, deprecated_in=None, to_be_removed_in=None, re
 def experimental(func_or_class=None):
     if func_or_class is not None:
         if not inspect.isclass(func_or_class) and not inspect.isfunction(func_or_class):
-            raise ValueError('The @deprecated decorator requires a function or class')
+            raise ValueError('The @experimental decorator requires a function or class')
 
     def _decorator(func_or_class):
         subject = 'class' if inspect.isclass(func_or_class) else 'function'

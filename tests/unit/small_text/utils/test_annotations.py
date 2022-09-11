@@ -13,7 +13,7 @@ from small_text.utils.annotations import (
 
 class DeprecationUtilsTest(unittest.TestCase):
 
-    def test_deprecate_invalid_target(self):
+    def test_deprecated_invalid_target(self):
         with self.assertRaisesRegex(ValueError,
                                     'The @deprecated decorator requires a function or class'):
             deprecated(42, deprecated_in='1.0.0')
@@ -21,7 +21,7 @@ class DeprecationUtilsTest(unittest.TestCase):
         # This cannot be prevented with the current mechanism but does not raise an error as well
         deprecated(None, deprecated_in='1.0.0')
 
-    def test_deprecate_invalid_usage(self):
+    def test_deprecated_invalid_usage(self):
         with self.assertRaisesRegex(ValueError,
                                     r'Keyword argument \'deprecated_in\' must be set.'):
             @deprecated()
@@ -155,6 +155,14 @@ class DeprecationUtilsTest(unittest.TestCase):
 
 
 class ExperimentalDecoratorTest(unittest.TestCase):
+
+    def test_experimental_invalid_target(self):
+        with self.assertRaisesRegex(ValueError,
+                                    'The @experimental decorator requires a function or class'):
+            experimental(42)
+
+        # This cannot be prevented with the current mechanism but does not raise an error as well
+        experimental(None)
 
     def test_experimental_class(self):
         @experimental()

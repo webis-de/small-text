@@ -158,21 +158,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Validation set labels must be labeled'):
             classifier.fit(train_set, validation_set=validation_set)
 
-    def test_fit_with_label_information_mismatch(self):
-        num_classes_configured = 3
-        num_classes_to_be_encountered = 2
-
-        train_set = random_transformer_dataset(8, num_classes=num_classes_to_be_encountered)
-        validation_set = random_transformer_dataset(2, num_classes=num_classes_to_be_encountered)
-
-        model_args = TransformerModelArguments('bert-base-uncased')
-        classifier = TransformerBasedClassification(model_args, num_classes_configured)
-
-        with self.assertRaisesRegex(ValueError,
-                                    'Conflicting information about the number of classes: '
-                                    'expected: 3, encountered: 2'):
-            classifier.fit(train_set, validation_set=validation_set)
-
     def test_fit_without_validation_set(self):
         dataset = random_transformer_dataset(10)
 

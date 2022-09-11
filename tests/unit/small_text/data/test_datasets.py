@@ -15,10 +15,14 @@ from small_text.data.datasets import SklearnDataset, DatasetView, SklearnDataset
 from small_text.data.datasets import split_data
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.data import balanced_sampling, stratified_sampling
+from small_text.utils.labels import csr_to_list, list_to_csr
 
 from tests.utils.datasets import random_matrix_data, random_sklearn_dataset
-from tests.utils.testing import assert_array_not_equal
-from tests.utils.testing import assert_labels_equal
+from tests.utils.testing import (
+    assert_array_not_equal,
+    assert_labels_equal,
+    assert_csr_matrix_not_equal
+)
 
 
 class IsMultiLabelTest(unittest.TestCase):
@@ -42,9 +46,10 @@ class IsMultiLabelTest(unittest.TestCase):
                       {'matrix_type': 'dense', 'labels_type': 'sparse', 'target_labels': 'inferred'}])
 class SklearnDatasetTest(unittest.TestCase):
 
+    NUM_LABELS = 2
     NUM_SAMPLES = 100
 
-    def _dataset(self, num_samples=100, return_data=False, num_labels=2):
+    def _dataset(self, num_samples=100, return_data=False, num_labels=NUM_LABELS):
         x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=num_samples,
                                   num_labels=num_labels)
         if self.target_labels not in ['explicit', 'inferred']:
@@ -82,21 +87,39 @@ class SklearnDatasetTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Feature and label dimensions do not match'):
             SklearnDataset(x, y, target_labels=ds.target_labels)
 
+    # TODO: copy to kimcnn / transformers
     def test_init_when_some_samples_are_unlabeled(self):
-
         x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=self.NUM_SAMPLES)
 
         if self.labels_type == 'sparse':
-            y_data_new = y.data
-            y_data_new[0:10] = [LABEL_UNLABELED] * 10
-            y = csr_matrix((y_data_new, y.indices, y.indptr))
+            y_list = csr_to_list(y)
+            y_list[1] = []
+            y_list[2] = []
+            y = list_to_csr(y_list, y.shape)
         else:
             y[0:10] = [LABEL_UNLABELED] * 10
 
         if self.target_labels not in ['explicit', 'inferred']:
             raise ValueError('Invalid test parameter value for target_labels:' + self.target_labels)
 
-        target_labels = np.array([0, 1]) if self.target_labels == 'inferred' else np.unique(y[10:])
+        target_labels = None if self.target_labels == 'inferred' else np.arange(5)
+
+        # passes when no exeption is raised here
+        SklearnDataset(x, y, target_labels=target_labels)
+
+    # TODO: copy to kimcnn / transformers
+    def test_init_when_all_samples_are_unlabeled(self):
+        x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=self.NUM_SAMPLES)
+
+        if self.labels_type == 'sparse':
+            y = csr_matrix(y.shape, dtype=y.dtype)
+        else:
+            y[:] = LABEL_UNLABELED
+
+        if self.target_labels not in ['explicit', 'inferred']:
+            raise ValueError('Invalid test parameter value for target_labels:' + self.target_labels)
+
+        target_labels = None if self.target_labels == 'inferred' else np.arange(5)
 
         # passes when no exeption is raised here
         SklearnDataset(x, y, target_labels=target_labels)
@@ -147,16 +170,16 @@ class SklearnDatasetTest(unittest.TestCase):
     def test_set_labels(self, num_labels=2):
         ds, _, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True,
                                  num_labels=num_labels)
-        ds_new, _, y_new = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True,
-                                         num_labels=num_labels+1)
         if self.labels_type == 'sparse':
-            self.assertFalse(np.all(y == y_new.data))
+            y_new = ds.y.copy()
+            y_new.indices = (y_new.indices + 1) % self.NUM_LABELS
+            assert_csr_matrix_not_equal(ds.y, y_new)
         else:
-            self.assertFalse((y == y_new).all())
+            y_new = (ds.y + 1) % self.NUM_LABELS
+            assert_array_not_equal(ds.y, y_new)
 
-        ds.y = ds_new.y
+        ds.y = y_new
         assert_labels_equal(y_new, ds.y)
-        assert_array_equal(np.arange(num_labels+1), ds.target_labels)
 
     def test_set_labels_with_dimension_mismatch(self):
         ds, _, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
@@ -188,7 +211,18 @@ class SklearnDatasetTest(unittest.TestCase):
         expected_target_labels = np.array([0, 1])
         assert_array_equal(expected_target_labels, ds.target_labels)
 
-        new_target_labels = np.array([2, 3])
+        new_target_labels = np.array([0])
+        with self.assertRaisesRegex(ValueError, 'Cannot remove existing labels'):
+            ds.target_labels = new_target_labels
+
+        new_target_labels = np.array([0])
+
+        if self.labels_type == 'sparse':
+            y_new = ds.y.copy()
+            y_new = y_new[:, 0]
+            ds.y = y_new
+        else:
+            ds.y = np.array([0] * len(ds))
         ds.target_labels = new_target_labels
         assert_array_equal(new_target_labels, ds.target_labels)
 
@@ -204,6 +238,16 @@ class SklearnDatasetTest(unittest.TestCase):
             assert_array_equal(ds.y.indices, ds_cloned.y.indices)
         else:
             assert_array_equal(ds.y, ds_cloned.y)
+        if self.target_labels == 'explicit':
+            assert_array_equal(ds.target_labels, ds_cloned.target_labels)
+
+        # test propagation of target_labels setting
+        if self.target_labels == 'explicit':
+            self.assertFalse(ds.track_target_labels)
+            self.assertFalse(ds_cloned.track_target_labels)
+        else:
+            self.assertTrue(ds.track_target_labels)
+            self.assertTrue(ds_cloned.track_target_labels)
         assert_array_equal(ds.target_labels, ds_cloned.target_labels)
 
         # mutability test
@@ -214,10 +258,10 @@ class SklearnDatasetTest(unittest.TestCase):
             ds_cloned.x.data += 1
             self.assertFalse((ds.x != ds_cloned.x).nnz == 0)
         if self.labels_type == 'sparse':
-            ds_cloned.y.data += 1
-            assert_array_not_equal(ds.y.data, ds_cloned.y.data)
+            ds_cloned.y.indices = (ds_cloned.y.indices + 1) % self.NUM_LABELS
+            assert_array_not_equal(ds.y.indices, ds_cloned.y.indices)
         else:
-            ds_cloned.y += 1
+            ds_cloned.y = (ds_cloned.y + 1) % self.NUM_LABELS
             assert_array_not_equal(ds.y, ds_cloned.y)
         ds_cloned.target_labels = np.arange(10)
         assert_array_not_equal(ds.target_labels, ds_cloned.target_labels)
@@ -405,6 +449,20 @@ class _DatasetViewTest(object):
 
         self._clone_test(ds_view)
 
+    def test_clone_target_labels_inferred(self):
+        ds = self._dataset(num_samples=self.NUM_SAMPLES)
+
+        if self.labels_type == 'sparse':
+            # get first 5 rows which have at least one label
+            indptr_deltas = np.array([ds.y.indptr[i+1] - ds.y.indptr[i]
+                                     for i in range(ds.y.indptr.shape[0] - 1)])
+            index = np.where(indptr_deltas > 0)[0][:5]
+        else:
+            index = [1, 42, 56, 99]
+        ds_view = SklearnDatasetView(ds, index)
+
+        self._clone_test(ds_view)
+
     def _clone_test(self, ds_view):
         ds_cloned = ds_view.clone()
         self.assertTrue(isinstance(ds_cloned, SklearnDataset))
@@ -414,23 +472,34 @@ class _DatasetViewTest(object):
         else:
             self.assertTrue((ds_view.x != ds_cloned.x).nnz == 0)
         if self.labels_type == 'sparse':
-            assert_array_equal(ds_view.y.indices, ds_cloned.y.indices)
+            if self.target_labels == 'explicit':
+                assert_array_equal(ds_view.y.indices, ds_cloned.y.indices)
         else:
             assert_array_equal(ds_view.y, ds_cloned.y)
-        assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+        if self.target_labels == 'explicit':
+            assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+
+        # test propagation of target_labels setting
+        if self.target_labels == 'explicit':
+            self.assertFalse(ds_view.dataset.track_target_labels)
+            self.assertFalse(ds_cloned.track_target_labels)
+            assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+        else:
+            self.assertTrue(ds_view.dataset.track_target_labels)
+            self.assertTrue(ds_cloned.track_target_labels)
 
         # mutability test
         if self.matrix_type == 'dense':
-            ds_cloned.x += 1
+            ds_cloned.x = (ds_cloned.x + 1) % 2
             self.assertFalse((ds_view.x == ds_cloned.x).all())
         else:
-            ds_cloned.x.data += 1
+            ds_cloned.x.indices = (ds_cloned.x.indices + 1) % 2
             self.assertFalse((ds_view.x != ds_cloned.x).nnz == 0)
         if self.labels_type == 'sparse':
-            ds_cloned.y.data += 1
-            assert_array_not_equal(ds_view.y.data, ds_cloned.y.data)
+            ds_cloned.y.indices = (ds_cloned.y.indices + 1) % 2
+            assert_array_not_equal(ds_view.y.indices, ds_cloned.y.indices)
         else:
-            ds_cloned.y += 1
+            ds_cloned.y = (ds_cloned.y + 1) % 2
             assert_array_not_equal(ds_view.y, ds_cloned.y)
         ds_cloned.target_labels = np.arange(10)
         assert_array_not_equal(ds_view.target_labels, ds_cloned.target_labels)
@@ -476,10 +545,14 @@ class _DatasetViewTest(object):
             self.assertTrue((x[index] != result.x).nnz == 0)
 
 
-@parameterized_class([{'matrix_type': 'sparse', 'labels_type': 'dense'},
-                      {'matrix_type': 'sparse', 'labels_type': 'sparse'},
-                      {'matrix_type': 'dense', 'labels_type': 'dense'},
-                      {'matrix_type': 'dense', 'labels_type': 'sparse'}])
+@parameterized_class([{'matrix_type': 'sparse', 'labels_type': 'dense', 'target_labels': 'explicit'},
+                      {'matrix_type': 'sparse', 'labels_type': 'sparse', 'target_labels': 'explicit'},
+                      {'matrix_type': 'sparse', 'labels_type': 'dense', 'target_labels': 'inferred'},
+                      {'matrix_type': 'sparse', 'labels_type': 'sparse', 'target_labels': 'inferred'},
+                      {'matrix_type': 'dense', 'labels_type': 'dense', 'target_labels': 'explicit'},
+                      {'matrix_type': 'dense', 'labels_type': 'sparse', 'target_labels': 'explicit'},
+                      {'matrix_type': 'dense', 'labels_type': 'dense', 'target_labels': 'inferred'},
+                      {'matrix_type': 'dense', 'labels_type': 'sparse', 'target_labels': 'inferred'}])
 class SklearnDatasetViewTest(unittest.TestCase, _DatasetViewTest):
 
     NUM_SAMPLES = 100
@@ -492,11 +565,17 @@ class SklearnDatasetViewTest(unittest.TestCase, _DatasetViewTest):
         super().setUpClass()
 
     def _dataset(self, num_samples=100, return_data=False):
+        if self.target_labels not in ['explicit', 'inferred']:
+            raise ValueError(f'Invalid value: self.target_labels={self.target_labels}')
+
         x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=num_samples)
-        if isinstance(y, csr_matrix):
-            target_labels = np.unique(y.indices)
+        if self.target_labels == 'explicit':
+            if isinstance(y, csr_matrix):
+                target_labels = np.unique(y.indices)
+            else:
+                target_labels = np.unique(y)
         else:
-            target_labels = np.unique(y)
+            target_labels = None
 
         dataset = SklearnDataset(x, y, target_labels=target_labels)
 
@@ -506,10 +585,14 @@ class SklearnDatasetViewTest(unittest.TestCase, _DatasetViewTest):
             return dataset
 
 
-@parameterized_class([{'matrix_type': 'sparse', 'labels_type': 'dense'},
-                      {'matrix_type': 'sparse', 'labels_type': 'sparse'},
-                      {'matrix_type': 'dense', 'labels_type': 'dense'},
-                      {'matrix_type': 'dense', 'labels_type': 'sparse'}])
+@parameterized_class([{'matrix_type': 'sparse', 'labels_type': 'dense', 'target_labels': 'explicit'},
+                      {'matrix_type': 'sparse', 'labels_type': 'sparse', 'target_labels': 'explicit'},
+                      {'matrix_type': 'sparse', 'labels_type': 'dense', 'target_labels': 'inferred'},
+                      {'matrix_type': 'sparse', 'labels_type': 'sparse', 'target_labels': 'inferred'},
+                      {'matrix_type': 'dense', 'labels_type': 'dense', 'target_labels': 'explicit'},
+                      {'matrix_type': 'dense', 'labels_type': 'sparse', 'target_labels': 'explicit'},
+                      {'matrix_type': 'dense', 'labels_type': 'dense', 'target_labels': 'inferred'},
+                      {'matrix_type': 'dense', 'labels_type': 'sparse', 'target_labels': 'inferred'}])
 class NestedDatasetViewTest(unittest.TestCase, _DatasetViewTest):
 
     NUM_SAMPLES = 100
@@ -522,11 +605,17 @@ class NestedDatasetViewTest(unittest.TestCase, _DatasetViewTest):
         super().setUpClass()
 
     def _dataset(self, num_samples=100, return_data=False):
+        if self.target_labels not in ['explicit', 'inferred']:
+            raise ValueError(f'Invalid value: self.target_labels={self.target_labels}')
+
         x, y = random_matrix_data(self.matrix_type, self.labels_type, num_samples=num_samples)
-        if isinstance(y, csr_matrix):
-            target_labels = np.unique(y.indices)
+        if self.target_labels == 'explicit':
+            if isinstance(y, csr_matrix):
+                target_labels = np.unique(y.indices)
+            else:
+                target_labels = np.unique(y)
         else:
-            target_labels = np.unique(y)
+            target_labels = None
 
         dataset_view = SklearnDatasetView(
             SklearnDataset(x, y, target_labels=target_labels),
@@ -537,6 +626,45 @@ class NestedDatasetViewTest(unittest.TestCase, _DatasetViewTest):
             return dataset_view, x, y
         else:
             return dataset_view
+
+    def _clone_test(self, ds_view):
+        ds_cloned = ds_view.clone()
+        self.assertTrue(isinstance(ds_cloned, SklearnDataset))
+
+        if self.matrix_type == 'dense':
+            self.assertTrue((ds_view.x == ds_cloned.x).all())
+        else:
+            self.assertTrue((ds_view.x != ds_cloned.x).nnz == 0)
+        if self.labels_type == 'sparse':
+            if self.target_labels == 'explicit':
+                assert_array_equal(ds_view.y.indices, ds_cloned.y.indices)
+        else:
+            assert_array_equal(ds_view.y, ds_cloned.y)
+        if self.target_labels == 'explicit':
+            assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+
+        # test propagation of target_labels setting
+        if self.target_labels == 'explicit':
+            self.assertFalse(ds_cloned.track_target_labels)
+            assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
+        else:
+            self.assertTrue(ds_cloned.track_target_labels)
+
+        # mutability test
+        if self.matrix_type == 'dense':
+            ds_cloned.x = (ds_cloned.x + 1) % 2
+            self.assertFalse((ds_view.x == ds_cloned.x).all())
+        else:
+            ds_cloned.x.indices = (ds_cloned.x.indices + 1) % 2
+            self.assertFalse((ds_view.x != ds_cloned.x).nnz == 0)
+        if self.labels_type == 'sparse':
+            ds_cloned.y.indices = (ds_cloned.y.indices + 1) % 2
+            assert_array_not_equal(ds_view.y.indices, ds_cloned.y.indices)
+        else:
+            ds_cloned.y = (ds_cloned.y + 1) % 2
+            assert_array_not_equal(ds_view.y, ds_cloned.y)
+        ds_cloned.target_labels = np.arange(10)
+        assert_array_not_equal(ds_view.target_labels, ds_cloned.target_labels)
 
 
 class SplitDataTest(unittest.TestCase):

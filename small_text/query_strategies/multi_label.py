@@ -44,9 +44,9 @@ class CategoryVectorInconsistencyAndRanking(QueryStrategy):
         return np.array([indices_unlabeled[i] for i in indices_queried])
 
     def _compute_scores(self, indices_unlabeled, y, proba):
-        y_pred_unlabeled = (proba > self.prediction_threshold).astype(int)
+        y_pred = (proba > self.prediction_threshold).astype(int)
         vector_inconsistency_scores = self._compute_vector_inconsistency(y,
-                                                                         y_pred_unlabeled,
+                                                                         y_pred,
                                                                          proba.shape[1])
         ranking_scores = self._compute_ranking(indices_unlabeled, proba)
         return vector_inconsistency_scores * ranking_scores
