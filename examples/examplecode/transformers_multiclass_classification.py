@@ -11,6 +11,7 @@ from small_text.integrations.transformers import TransformerModelArguments
 from small_text.integrations.transformers.classifiers.factories import TransformerBasedClassificationFactory
 from small_text.query_strategies import PoolExhaustedException, EmptyPoolException
 from small_text.query_strategies import RandomSampling
+from small_text.training.metrics import Metric
 
 from examplecode.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 from examplecode.data.example_data_transformers import preprocess_data
@@ -43,8 +44,6 @@ def main(num_iterations=10):
     # Active learner
     active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
     indices_labeled = initialize_active_learner(active_learner, train.y)
-
-    active_learner.classifier.fit(train, early_stopping=EarlyStopping('train_acc', threshold=0.8))
 
     try:
         perform_active_learning(active_learner, train, indices_labeled, test, num_iterations)
