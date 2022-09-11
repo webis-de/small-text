@@ -24,6 +24,6 @@ def preprocess_data(train, test):
 
     ds_train = PytorchTextClassificationDataset.from_arrays(train.data, train.target, text_field)
     ds_test = PytorchTextClassificationDataset.from_arrays(test.data, test.target, text_field,
-                                                           vocab=ds_train.vocab, train=False)
+                                                           train=False)
 
     return ds_train, ds_test
