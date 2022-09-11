@@ -110,6 +110,7 @@ class QueryStrategiesTest(QueryStrategiesExhaustiveIntegrationTest, unittest.Tes
         query_strategy = LightweightCoreset()
         self._simple_exhaustive_active_learning_test(query_strategy, num_classes=3)
 
+    @pytest.mark.optional
     def test_seals(self):
         query_strategy = SEALS(LeastConfidence(), k=5)
         self._simple_exhaustive_active_learning_test(query_strategy, num_classes=3)
