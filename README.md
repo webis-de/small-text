@@ -36,6 +36,9 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
+- **Version 1.0.1** ([v1.0.1][changelog_1.0.1]) - September 12, 2022
+  - Small bug fix release that fixes notebook and example links that caused problems by pointing to the latest main branch.
+
 - **Version 1.0.0** ([v1.0.0][changelog_1.0.0]) - June 13, 2022
   - We're out of beta 🎉!
   - This release mainly consists of code cleanup, documentation, and repository organization.
@@ -46,10 +49,6 @@ which can be easily mixed and matched to build active learning experiments or ap
   - `Dataset` interface now has a `clone()` method.
   - Added a concept for [optional dependencies](https://small-text.readthedocs.io/en/v1.0.0b4/install.html#optional-dependencies).
 
-- **March Beta Release** ([v1.0.0b3][changelog_1.0.0b3]) - March 06, 2022
-  - Consolidated interfaces: renamed and unified some arguments before v1.0.0.
-  - New query strategy: [ContrastiveActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b3/small_text/query_strategies/strategies.py).  
-  
 
 [For a complete list of changes, see the change log.][changelog]
 
@@ -133,6 +132,6 @@ A preprint which introduces small-text is available here:
 [documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.0.0/components/query_strategies.html
 [documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.0.0/reproducibility_notes.html
 [changelog]: https://small-text.readthedocs.io/en/latest/changelog.html
-[changelog_1.0.0b3]: https://small-text.readthedocs.io/en/latest/changelog.html#b3-2022-03-06
 [changelog_1.0.0b4]: https://small-text.readthedocs.io/en/latest/changelog.html#b4-2022-05-04
 [changelog_1.0.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-0-0-2022-06-14
+[changelog_1.0.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-0-0-2022-09-12
