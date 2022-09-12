@@ -186,6 +186,7 @@ The following steps need to be done before a new release can be created.
 - README.md (Links "Notebooks" / "Code Examples")
   - Documentation Badge should link to the version of the most recent release (link AND img)
   - Link references at the bottom should point to the most recent release
+  - Notebook links should point to the most recent release
 - Set the version and date in CHANGELOG.md
   - Make sure the changelog is complete
 - Update the "News" section in README.md

@@ -84,8 +84,8 @@ or check out the notebooks.
 
 | # | Notebook | |
 | --- | -------- | --- |
-| 1 | [Intro: Active Learning for Text Classification with Small-Text](examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.0.0/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
-| 2 | [Using Stopping Criteria for Active Learning](examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.0.0/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) |
+| 1 | [Intro: Active Learning for Text Classification with Small-Text](https://github.com/webis-de/small-text/blob/v1.0.0/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.0.0/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
+| 2 | [Using Stopping Criteria for Active Learning](https://github.com/webis-de/small-text/blob/v1.0.0/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.0.0/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) |
 
 ### Showcase
 
