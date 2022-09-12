@@ -221,3 +221,4 @@ The following steps need to be done before a new release can be created.
     - Create a new Zenodo version and update DOI in README.md
     - Create a release on pypi
 - Create a release on github
+- Create a new condaforge release
