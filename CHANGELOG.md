@@ -37,6 +37,14 @@
 - Removed the strict check that every target label has to occur in the training data.
   - This is intended for multi-label settings with many labels; apart from that it is still recommended to make sure that all labels occur. 
 
+## Version 1.0.1 - 2022-09-12
+
+Minor bug fix release.
+
+### Fixed
+
+Links to notebooks and code examples will now always point to the latest release instead of the latest main branch.
+
 ## Version 1.0.0 - 2022-06-14
 
 First stable release.
