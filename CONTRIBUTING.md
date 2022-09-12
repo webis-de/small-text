@@ -215,6 +215,9 @@ The following steps need to be done before a new release can be created.
   - ```bash
     sphinx-build SOURCEDIR OUTPUTDIR -b linkcheck
     ```
+
 - Create a release on testpypi
-  - If successful: Create a release on pypi
+  - If successful:
+    - Create a new Zenodo version and update DOI in README.md
+    - Create a release on pypi
 - Create a release on github
