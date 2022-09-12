@@ -37,7 +37,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 ## News
 
 - **Version 1.0.1** ([v1.0.1][changelog_1.0.1]) - September 12, 2022
-  - Small bug fix release that fixes notebook and example links that caused problems by pointing to the latest main branch.
+  - Minor bug fix release that fixes notebook and code example links that caused problems by pointing to the latest main branch.
 
 - **Version 1.0.0** ([v1.0.0][changelog_1.0.0]) - June 13, 2022
   - We're out of beta 🎉!
