@@ -1,4 +1,4 @@
-[![PyPI](https://img.shields.io/pypi/v/small-text)](https://pypi.org/project/small-text/)
+[![PyPI](https://img.shields.io/pypi/v/small-text/v1.0.1)](https://pypi.org/project/small-text/)
 [![codecov](https://codecov.io/gh/webis-de/small-text/branch/master/graph/badge.svg?token=P86CPABQOL)](https://codecov.io/gh/webis-de/small-text)
 [![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.0.1)](https://small-text.readthedocs.io/en/v1.0.1/) 
 ![Maintained Yes](https://img.shields.io/badge/maintained-yes-green)
