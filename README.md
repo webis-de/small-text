@@ -1,6 +1,6 @@
 [![PyPI](https://img.shields.io/pypi/v/small-text)](https://pypi.org/project/small-text/)
 [![codecov](https://codecov.io/gh/webis-de/small-text/branch/master/graph/badge.svg?token=P86CPABQOL)](https://codecov.io/gh/webis-de/small-text)
-[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.0.0)](https://small-text.readthedocs.io/en/v1.0.0/) 
+[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.0.1)](https://small-text.readthedocs.io/en/v1.0.1/) 
 ![Maintained Yes](https://img.shields.io/badge/maintained-yes-green)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 [![MIT License](https://img.shields.io/github/license/webis-de/small-text)](LICENSE)
@@ -127,10 +127,10 @@ A preprint which introduces small-text is available here:
 [MIT License](LICENSE)
 
 
-[documentation_main]: https://small-text.readthedocs.io/en/v1.0.0/
-[documentation_install]: https://small-text.readthedocs.io/en/v1.0.0/install.html
-[documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.0.0/components/query_strategies.html
-[documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.0.0/reproducibility_notes.html
+[documentation_main]: https://small-text.readthedocs.io/en/v1.0.1/
+[documentation_install]: https://small-text.readthedocs.io/en/v1.0.1/install.html
+[documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.0.1/components/query_strategies.html
+[documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.0.1/reproducibility_notes.html
 [changelog]: https://small-text.readthedocs.io/en/latest/changelog.html
 [changelog_1.0.0b4]: https://small-text.readthedocs.io/en/latest/changelog.html#b4-2022-05-04
 [changelog_1.0.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-0-0-2022-06-14
