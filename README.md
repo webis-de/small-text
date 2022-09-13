@@ -40,7 +40,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 - **Version 1.0.1** ([v1.0.1][changelog_1.0.1]) - September 12, 2022
   - Minor bug fix release that fixes notebook and code example links that caused problems by pointing to the latest main branch.
 
-- **Use Small-Text from the Rubrix User Interface** - July 16th, 2022
+- **Use Small-Text from the Rubrix User Interface** - July 16, 2022
   - We are happy to announce that the great team at [rubrix][rubrix] has worked hard to provide a  
     comprehensive [tutorial on how to use small-text from within the rubrix user interface][rubrix_al_tutorial].
 
