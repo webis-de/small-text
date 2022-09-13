@@ -98,7 +98,7 @@ or check out the notebooks.
 
 Read the latest documentation [here][documentation_main]. Noteworthy pages include:
 
-- [Overview of Query Strategies][documentation_reproducibility_notes]
+- [Overview of Query Strategies][documentation_query_strategies]
 - [Reproducibility Notes][documentation_reproducibility_notes]
 
 
