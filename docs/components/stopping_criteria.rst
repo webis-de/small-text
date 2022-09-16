@@ -10,6 +10,7 @@ Pre-implemented Stopping Criteria
 =================================
 
 - :py:class:`~small_text.stopping_criteria.base.DeltaFScore`
+- :py:class:`~small_text.stopping_criteria.change.ClassificationChange`
 - :py:class:`~small_text.stopping_criteria.kappa.KappaAverage`
 
 Interface
@@ -39,5 +40,11 @@ Classes
 .. py:module:: small_text.stopping_criteria.base
 
 .. autoclass:: DeltaFScore
+    :special-members: __init__
+    :inherited-members:
+
+.. py:module:: small_text.stopping_criteria.change
+
+.. autoclass:: ClassificationChange
     :special-members: __init__
     :inherited-members:

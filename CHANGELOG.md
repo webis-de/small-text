@@ -20,6 +20,9 @@
 - Query Strategies:
   - New multi-label strategy: [CategoryVectorInconsistencyAndRanking](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/query_strategies/multi_label.py)
 
+- Stopping Criteria:
+  - New criterion: [ClassificationChange](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/stopping_criteria/change.py) 
+
 ### Deprecated
 
 - `small_text.integrations.pytorch.utils.misc.default_tensor_type()` is deprecated without replacement ([#2](https://github.com/webis-de/small-text/issues/2)).

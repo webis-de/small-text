@@ -21,6 +21,11 @@ Bibliography
    In 2008 IEEE Computer Society Conference on Computer Vision and Pattern Recognition Workshops,
    IEEE, pages 1–8.
 
+.. [ZWH08] Jingbo Zhu, Huizhen Wang, and Eduard Hovy. 2008.
+   Multi-Criteria-Based Strategy to Stop Active Learning for Data Annotation.
+   In Proceedings of the 22nd International Conference on Computational Linguistics (Coling 2008),
+   pages 1129–1136.
+
 .. [BV09] M. Bloodgood and K. Vijay-Shanker. 2009.
    A method for stopping active learning based on stabilizing predictions and the need for user-adjustable stopping.
    In Proceedings of the Thirteenth Conference on Computational Natural Language Learning (CoNLL '09).
