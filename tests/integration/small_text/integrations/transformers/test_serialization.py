@@ -11,7 +11,7 @@ from small_text.active_learner import PoolBasedActiveLearner
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.query_strategies import RandomSampling
 
-from small_text.integrations.transformers import TransformersDataset
+from small_text.integrations.transformers.datasets import TransformersDataset
 from tests.utils.object_factory import get_initialized_active_learner
 
 try:
