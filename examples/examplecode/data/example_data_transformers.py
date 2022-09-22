@@ -1,4 +1,4 @@
-from small_text.integrations.transformers.datasets import TransformersDataset
+from small_text import TransformersDataset
 
 
 def preprocess_data(tokenizer, texts, labels, max_length=500):

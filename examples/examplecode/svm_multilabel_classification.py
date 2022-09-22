@@ -2,12 +2,15 @@
 """
 import numpy as np
 
-from small_text.active_learner import PoolBasedActiveLearner
-from small_text.classifiers import ConfidenceEnhancedLinearSVC
-from small_text.classifiers.factories import SklearnClassifierFactory
-from small_text.data.sampling import multilabel_stratified_subsets_sampling
-from small_text.query_strategies import PoolExhaustedException, EmptyPoolException
-from small_text.query_strategies import RandomSampling
+from small_text import (
+    ConfidenceEnhancedLinearSVC,
+    EmptyPoolException,
+    PoolBasedActiveLearner,
+    PoolExhaustedException,
+    RandomSampling,
+    SklearnClassifierFactory,
+    multilabel_stratified_subsets_sampling
+)
 
 from examplecode.data.example_data_multilabel import (
     get_train_test,

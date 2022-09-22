@@ -1,5 +1,5 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
-from small_text.data import SklearnDataset
+from small_text import SklearnDataset
 
 from examplecode.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 

@@ -1,4 +1,4 @@
-from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
+from small_text import PytorchTextClassificationDataset
 
 from examplecode.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 

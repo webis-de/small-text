@@ -6,12 +6,15 @@ This examples requires gensim 3.8.x.
 import torch
 import numpy as np
 
-from small_text.active_learner import PoolBasedActiveLearner
-from small_text.exceptions import ActiveLearnerException
-from small_text.initialization import random_initialization_stratified
-from small_text.integrations.pytorch.classifiers.factories import KimCNNFactory
-from small_text.integrations.pytorch.query_strategies import ExpectedGradientLength
-from small_text.query_strategies import PoolExhaustedException, EmptyPoolException
+from small_text import (
+    ActiveLearnerException,
+    EmptyPoolException,
+    ExpectedGradientLength,
+    KimCNNFactory,
+    PoolBasedActiveLearner,
+    PoolExhaustedException,
+    random_initialization_stratified
+)
 
 from examplecode.data.example_data_multiclass import (
     get_train_test,

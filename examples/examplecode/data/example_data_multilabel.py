@@ -1,7 +1,6 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from small_text.data import SklearnDataset
-from small_text.utils.labels import list_to_csr
+from small_text import SklearnDataset, list_to_csr
 
 from examplecode.data.dataset_go_emotions import get_go_emotions_dataset
 

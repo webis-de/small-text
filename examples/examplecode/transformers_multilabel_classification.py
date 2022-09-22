@@ -5,13 +5,17 @@ This examples requires the datasets library.
 """
 from transformers import AutoTokenizer
 
-from small_text.active_learner import PoolBasedActiveLearner
-from small_text.exceptions import ActiveLearnerException
-from small_text.initialization import random_initialization_stratified
-from small_text.integrations.transformers import TransformerModelArguments
-from small_text.integrations.transformers.classifiers.factories import TransformerBasedClassificationFactory
-from small_text.query_strategies import PoolExhaustedException, EmptyPoolException, RandomSampling
-from small_text.utils.labels import list_to_csr
+from small_text import (
+    ActiveLearnerException,
+    EmptyPoolException,
+    PoolBasedActiveLearner,
+    PoolExhaustedException,
+    RandomSampling,
+    TransformerBasedClassificationFactory,
+    TransformerModelArguments,
+    list_to_csr,
+    random_initialization_stratified
+)
 
 from examplecode.data.example_data_multilabel import (
     get_train_test
