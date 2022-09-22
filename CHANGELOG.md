@@ -6,7 +6,11 @@
 
 - General:
   - Small-Text package is now available via [conda-forge](https://anaconda.org/conda-forge/small-text). 
-  
+  - Imports have been reorganized. You can import all public classes and methods from the top-level package (`small_text`):
+    ```
+    from small_text import PoolBasedActiveLearner
+    ```
+
 - Classification:
   - All classifiers now support weighting of training samples.
   - [Early stopping](https://small-text.readthedocs.io/en/v1.1.0/components/training.html) has been reworked, improved, and documented ([#18](https://github.com/webis-de/small-text/issues/18)).

@@ -21,3 +21,29 @@ from small_text.query_strategies.strategies import (
     DiscriminativeActiveLearning,
     SEALS
 )
+
+
+__all__ = [
+    'constraints',
+    'ClassificationType',
+    'EmptyPoolException',
+    'QueryException',
+    'PoolExhaustedException',
+    'QueryStrategy',
+    'RandomSampling',
+    'ConfidenceBasedQueryStrategy',
+    'BreakingTies',
+    'LeastConfidence',
+    'PredictionEntropy',
+    'SubsamplingQueryStrategy',
+    'EmbeddingBasedQueryStrategy',
+    'EmbeddingKMeans',
+    'ContrastiveActiveLearning',
+    'DiscriminativeActiveLearning',
+    'SEALS',
+    'greedy_coreset',
+    'GreedyCoreset',
+    'lightweight_coreset',
+    'LightweightCoreset',
+    'CategoryVectorInconsistencyAndRanking'
+]

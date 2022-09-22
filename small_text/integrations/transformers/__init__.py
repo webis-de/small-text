@@ -1,10 +1,25 @@
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
-    from small_text.integrations.transformers.datasets import TransformersDataset
     from small_text.integrations.transformers.classifiers.classification import (
+        transformers_collate_fn,
+        FineTuningArguments,
         TransformerModelArguments,
         TransformerBasedClassification,
-        TransformerBasedEmbeddingMixin)
+        TransformerBasedEmbeddingMixin
+    )
+    from small_text.integrations.transformers.datasets import (
+        TransformersDataset,
+        TransformersDatasetView
+    )
+    __all__ = [
+        'transformers_collate_fn',
+        'FineTuningArguments',
+        'TransformerModelArguments',
+        'TransformerBasedEmbeddingMixin',
+        'TransformerBasedClassification',
+        'TransformersDataset',
+        'TransformersDatasetView'
+    ]
 except PytorchNotFoundError:
-    pass
+    __all__ = []
