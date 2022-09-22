@@ -5,6 +5,10 @@ try:
         PytorchModelSelectionMixin,
         PytorchClassifier
     )
+    from small_text.integrations.pytorch.classifiers.factories import (
+        AbstractClassifierFactory,
+        KimCNNFactory
+    )
     from small_text.integrations.pytorch.classifiers.kimcnn import (
         kimcnn_collate_fn,
         KimCNNEmbeddingMixin,
@@ -26,6 +30,8 @@ try:
     __all__ = [
         'PytorchModelSelectionMixin',
         'PytorchClassifier',
+        'AbstractClassifierFactory',
+        'KimCNNFactory',
         'KimCNN',
         'kimcnn_collate_fn',
         'KimCNNEmbeddingMixin',

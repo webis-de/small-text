@@ -20,6 +20,10 @@ class ImportTest(unittest.TestCase):
         from small_text import ExpectedGradientLengthLayer
         from small_text import ExpectedGradientLengthMaxWord
 
+    def test_import_factories_module(self):
+        from small_text import AbstractClassifierFactory
+        from small_text import KimCNNFactory
+
     def test_import_datasets_module(self):
         from small_text import Dataset
         from small_text import DatasetView

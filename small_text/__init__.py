@@ -21,6 +21,23 @@ from small_text.stopping_criteria import *
 from small_text.training import *
 from small_text.utils import *
 
+from small_text.active_learner import (
+    ActiveLearner,
+    AbstractPoolBasedActiveLearner,
+    PoolBasedActiveLearner
+)
+from small_text.base import (
+    LABEL_UNLABELED,
+    LABEL_IGNORED,
+    OPTIONAL_DEPENDENCIES,
+    check_optional_dependency
+)
+from small_text.exceptions import (
+    ActiveLearnerException,
+    LearnerNotInitializedException,
+    MissingOptionalDependencyError
+)
+from small_text.version import get_version
 from small_text.utils.system import is_pytorch_available, is_transformers_available
 
 __all__ = (
@@ -32,6 +49,21 @@ __all__ = (
     training.__all__ +
     utils.__all__
 )
+
+
+__all__ = __all__ + [
+    'ActiveLearner',
+    'AbstractPoolBasedActiveLearner',
+    'PoolBasedActiveLearner',
+    'LABEL_UNLABELED',
+    'LABEL_IGNORED',
+    'OPTIONAL_DEPENDENCIES',
+    'check_optional_dependency',
+    'ActiveLearnerException',
+    'LearnerNotInitializedException',
+    'MissingOptionalDependencyError',
+    'get_version'
+]
 
 
 if is_pytorch_available():

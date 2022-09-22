@@ -15,3 +15,6 @@ class ImportsTest(unittest.TestCase):
         from small_text import TransformerModelArguments
         from small_text import TransformerBasedEmbeddingMixin
         from small_text import TransformerBasedClassification
+
+    def test_import_classifier_factories_modules(self):
+        from small_text import TransformerBasedClassificationFactory

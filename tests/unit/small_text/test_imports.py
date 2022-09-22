@@ -3,6 +3,19 @@ import unittest
 
 class ImportTest(unittest.TestCase):
 
+    def test_import_from_main_module(self):
+        from small_text import ActiveLearner
+        from small_text import AbstractPoolBasedActiveLearner
+        from small_text import PoolBasedActiveLearner
+        from small_text import LABEL_UNLABELED
+        from small_text import LABEL_IGNORED
+        from small_text import OPTIONAL_DEPENDENCIES
+        from small_text import check_optional_dependency
+        from small_text import ActiveLearnerException
+        from small_text import LearnerNotInitializedException
+        from small_text import MissingOptionalDependencyError
+        from small_text import get_version
+
     def test_import_classifiers_module(self):
         from small_text import Classifier
         from small_text import SklearnClassifier

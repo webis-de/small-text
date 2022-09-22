@@ -8,6 +8,9 @@ try:
         TransformerBasedClassification,
         TransformerBasedEmbeddingMixin
     )
+    from small_text.integrations.transformers.classifiers.factories import (
+        TransformerBasedClassificationFactory
+    )
     from small_text.integrations.transformers.datasets import (
         TransformersDataset,
         TransformersDatasetView
@@ -17,6 +20,7 @@ try:
         'FineTuningArguments',
         'TransformerModelArguments',
         'TransformerBasedEmbeddingMixin',
+        'TransformerBasedClassificationFactory',
         'TransformerBasedClassification',
         'TransformersDataset',
         'TransformersDatasetView'
