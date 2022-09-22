@@ -707,7 +707,8 @@ class _NestedPytorchTextClassificationDatasetViewTest(_PytorchDatasetViewTest):
 
 class NestedPytorchTextClassificationDatasetViewSingleLabelExplicitTest(
     unittest.TestCase,
-    _NestedPytorchTextClassificationDatasetViewTest):
+    _NestedPytorchTextClassificationDatasetViewTest
+):
 
     NUM_SAMPLES_VIEW_OUTER = 17
 

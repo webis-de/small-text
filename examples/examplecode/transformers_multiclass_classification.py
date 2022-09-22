@@ -5,13 +5,11 @@ import numpy as np
 from transformers import AutoTokenizer
 
 from small_text.active_learner import PoolBasedActiveLearner
-from small_text.training.early_stopping import EarlyStopping
 from small_text.initialization import random_initialization_balanced
 from small_text.integrations.transformers import TransformerModelArguments
 from small_text.integrations.transformers.classifiers.factories import TransformerBasedClassificationFactory
 from small_text.query_strategies import PoolExhaustedException, EmptyPoolException
 from small_text.query_strategies import RandomSampling
-from small_text.training.metrics import Metric
 
 from examplecode.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 from examplecode.data.example_data_transformers import preprocess_data

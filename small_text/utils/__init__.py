@@ -19,6 +19,7 @@ __all__ = [
     'DeprecationError',
     'ExperimentalWarning',
     'split_data',
+    'prediction_result',
     'empty_result',
     'init_kmeans_plusplus_safe',
     'build_pbar_context',

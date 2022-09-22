@@ -295,7 +295,7 @@ class SklearnDataset(Dataset):
         else:
             max_label_id = np.max(y)
             max_target_labels_id = self.target_labels.max()
-            if  max_label_id > max_target_labels_id:
+            if max_label_id > max_target_labels_id:
                 raise ValueError(f'Error while assigning new labels to dataset: '
                                  f'Encountered label with id {max_label_id} which is outside of '
                                  f'the configured set of target labels (whose maximum label is '

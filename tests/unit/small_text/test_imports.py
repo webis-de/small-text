@@ -24,7 +24,7 @@ class ImportTest(unittest.TestCase):
         from small_text import random_initialization_balanced
         from small_text import random_initialization_stratified
 
-    def test_import_query_strategies(self):
+    def test_import_query_strategies_module(self):
         from small_text import constraints
         from small_text import ClassificationType
         from small_text import EmptyPoolException
@@ -48,12 +48,12 @@ class ImportTest(unittest.TestCase):
         from small_text import LightweightCoreset
         from small_text import CategoryVectorInconsistencyAndRanking
 
-    def test_import_stopping_criteria(self):
+    def test_import_stopping_criteria_module(self):
         from small_text import ClassificationChange
         from small_text import DeltaFScore
         from small_text import KappaAverage
 
-    def test_import_stopping_criteria(self):
+    def test_import_training_module(self):
         from small_text import EarlyStoppingHandler
         from small_text import NoopEarlyStopping
         from small_text import EarlyStopping
@@ -65,15 +65,15 @@ class ImportTest(unittest.TestCase):
         from small_text import NoopModelSelection
         from small_text import ModelSelection
 
-    def test_import_utils(self):
+    def test_import_utils_module(self):
         from small_text import DeprecationError
         from small_text import ExperimentalWarning
         from small_text import split_data
+        from small_text import prediction_result
         from small_text import empty_result
         from small_text import init_kmeans_plusplus_safe
         from small_text import build_pbar_context
         from small_text import NullProgressBar
-        from small_text import build_pbar_context
         from small_text import check_training_data
         from small_text import list_length
         from small_text import get_num_labels
