@@ -34,3 +34,10 @@ technically works with all common neural networks. In the context of active lear
 text classification it has been shown to work in combination with the
 :py:class:`~small_text.integrations.pytorch.models.kimcnn.KimCNN` model [ZLW17]_
 and also with transformer models [EHG+20]_. For the latter it is, however, costly in terms of runtime.
+
+Stopping Criteria
+=================
+
+- :py:class:`~small_text.stopping_criteria.uncertainty.OverallUncertainty`:
+  The original implementation used the full unlabeled set as stopping set. Moreover, it is not
+  stated whether the specified threshold refer to normalized or unnormalized entropy values.

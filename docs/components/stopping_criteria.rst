@@ -6,12 +6,17 @@ Stopping Criteria
 
 Stopping criteria indicate when to exit the active learning loop.
 
+----
+
 Pre-implemented Stopping Criteria
 =================================
 
 - :py:class:`~small_text.stopping_criteria.base.DeltaFScore`
 - :py:class:`~small_text.stopping_criteria.change.ClassificationChange`
 - :py:class:`~small_text.stopping_criteria.kappa.KappaAverage`
+- :py:class:`~small_text.stopping_criteria.uncertainty.OverallUncertainty`
+
+----
 
 Interface
 =========
@@ -46,5 +51,11 @@ Classes
 .. py:module:: small_text.stopping_criteria.change
 
 .. autoclass:: ClassificationChange
+    :special-members: __init__
+    :inherited-members:
+
+.. py:module:: small_text.stopping_criteria.uncertainty
+
+.. autoclass:: OverallUncertainty
     :special-members: __init__
     :inherited-members:

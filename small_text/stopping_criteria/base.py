@@ -46,7 +46,7 @@ class DeltaFScore(StoppingCriterion):
             Defines number of iterations for which the predictions are taken into account, i.e.
             this stopping criterion only sees the last `window_size`-many states of the prediction
             array passed to `stop()`.
-        threshold : float, threshold=0.05
+        threshold : float, default=0.05
             The criterion stops when the predicted F-score falls below this threshold.
         """
         self.num_classes = num_classes

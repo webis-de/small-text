@@ -25,7 +25,8 @@
   - New multi-label strategy: [CategoryVectorInconsistencyAndRanking](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/query_strategies/multi_label.py)
 
 - Stopping Criteria:
-  - New criterion: [ClassificationChange](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/stopping_criteria/change.py) 
+  - New stopping criteria: [ClassificationChange](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/stopping_criteria/change.py) and
+    [OverallUncertainty](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/stopping_criteria/uncertainty.py).
 
 ### Deprecated
 

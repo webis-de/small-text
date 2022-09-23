@@ -65,6 +65,7 @@ class ImportTest(unittest.TestCase):
         from small_text import ClassificationChange
         from small_text import DeltaFScore
         from small_text import KappaAverage
+        from small_text import OverallUncertainty
 
     def test_import_training_module(self):
         from small_text import EarlyStoppingHandler

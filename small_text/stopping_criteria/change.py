@@ -17,7 +17,7 @@ class ClassificationChange(StoppingCriterion):
         """
         num_classes : int
             Number of classes.
-        threshold : float
+        threshold : float, default=0.0
             A percentage threshold of how many samples that are allowed to change.
         """
         if threshold < 0 or threshold > 1:
