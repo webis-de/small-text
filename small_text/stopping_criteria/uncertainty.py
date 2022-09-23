@@ -37,8 +37,6 @@ class OverallUncertainty(StoppingCriterion):
         normalized_prediction_entropy = prediction_entropy / np.log(self.num_classes)
         normalized_prediction_entropy = np.mean(normalized_prediction_entropy)
 
-        print(normalized_prediction_entropy)
-
         if normalized_prediction_entropy < self.threshold:
             return True
 
