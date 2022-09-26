@@ -11,6 +11,7 @@ from parameterized import parameterized_class
 from small_text.base import LABEL_UNLABELED
 from small_text.integrations.pytorch.datasets import PytorchDatasetView
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from tests.utils.misc import increase_dense_labels_safe
 from tests.utils.testing import (
     assert_array_not_equal,
     assert_csr_matrix_equal,
@@ -223,7 +224,7 @@ class TransformersDatasetTest(unittest.TestCase):
             ds_cloned.y = csr_matrix(y_tmp)
             assert_array_not_equal(ds.y.indices, ds_cloned.y.indices)
         else:
-            ds_cloned.y = (ds_cloned.y + 1) % (ds_cloned.y.max() + 1)
+            ds_cloned = increase_dense_labels_safe(ds_cloned)
             assert_array_not_equal(ds.y, ds_cloned.y)
 
         ds_cloned.target_labels = np.arange(10)
@@ -314,7 +315,7 @@ class _TransformersDatasetViewTest(_PytorchDatasetViewTest):
                 print()
                 assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
         else:
-            ds_cloned.y = (ds_cloned.y + 1) % 2
+            ds_cloned = increase_dense_labels_safe(ds_cloned)
             assert_array_not_equal(ds_view.y, ds_cloned.y)
 
         ds_cloned.target_labels = np.arange(10)

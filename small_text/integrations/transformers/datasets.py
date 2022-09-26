@@ -5,7 +5,7 @@ from small_text.base import LABEL_UNLABELED
 from small_text.data.datasets import check_size, check_target_labels, get_updated_target_labels
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.annotations import experimental
-from small_text.utils.labels import csr_to_list, list_to_csr, get_num_labels
+from small_text.utils.labels import csr_to_list, get_num_labels, list_to_csr
 
 try:
     import torch

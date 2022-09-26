@@ -13,6 +13,7 @@ from small_text.base import LABEL_UNLABELED
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from tests.utils.datasets import random_text_classification_dataset
+from tests.utils.misc import increase_dense_labels_safe
 from tests.utils.testing import (
     assert_array_not_equal,
     assert_csr_matrix_equal,
@@ -154,15 +155,19 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
         else:
             assert_array_not_equal(ds.y, ds_new.y)
 
-        ds.y = ds_new.y
-
-        if self.multi_label:
-            assert_csr_matrix_equal(ds.y, ds_new.y)
+        if self.target_labels == 'explicit':
+            with self.assertRaisesRegex(ValueError, 'Error while assigning new labels'):
+                ds.y = ds_new.y
         else:
-            assert_array_equal(ds.y, ds_new.y)
-            self.assertTrue(isinstance(ds.y, np.ndarray))
-            self.assertEqual(self.NUM_SAMPLES, ds.y.shape[0])
-        assert_array_equal(np.arange(self.NUM_LABELS+1), ds.target_labels)
+            ds.y = ds_new.y
+
+            if self.multi_label:
+                assert_csr_matrix_equal(ds.y, ds_new.y)
+            else:
+                assert_array_equal(ds.y, ds_new.y)
+                self.assertTrue(isinstance(ds.y, np.ndarray))
+                self.assertEqual(self.NUM_SAMPLES, ds.y.shape[0])
+            assert_array_equal(np.arange(self.NUM_LABELS+1), ds.target_labels)
 
     def test_set_labels_with_mismatching_data_length(self):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
@@ -233,7 +238,7 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
             ds_cloned.y = csr_matrix(y_tmp)
             assert_array_not_equal(ds.y.indices, ds_cloned.y.indices)
         else:
-            ds_cloned.y += 1
+            ds_cloned = increase_dense_labels_safe(ds_cloned)
             assert_array_not_equal(ds.y, ds_cloned.y)
 
         ds_cloned.target_labels = np.arange(10)
@@ -459,7 +464,7 @@ class _PytorchDatasetViewTest(object):
             except (AssertionError, ValueError):
                 assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
         else:
-            ds_cloned.y = ((ds_cloned.y + 1) % 2)
+            ds_cloned = increase_dense_labels_safe(ds_cloned)
             assert_array_not_equal(ds_view.y, ds_cloned.y)
 
         ds_cloned.target_labels = np.arange(10)
@@ -567,7 +572,7 @@ class _PytorchTextClassificationDatasetViewTest(_PytorchDatasetViewTest):
                 print()
                 assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
         else:
-            ds_cloned.y += 1
+            ds_cloned = increase_dense_labels_safe(ds_cloned)
             assert_array_not_equal(ds_view.y, ds_cloned.y)
 
         ds_cloned.target_labels = np.arange(10)
@@ -703,7 +708,7 @@ class _NestedPytorchTextClassificationDatasetViewTest(_PytorchDatasetViewTest):
                 print()
                 assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
         else:
-            ds_cloned.y += 1
+            ds_cloned = increase_dense_labels_safe(ds_cloned)
             assert_array_not_equal(ds_view.y, ds_cloned.y)
 
         ds_cloned.target_labels = np.arange(10)

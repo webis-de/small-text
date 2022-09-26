@@ -8,7 +8,7 @@ from small_text.data import DatasetView
 from small_text.data.datasets import check_size, check_target_labels, get_updated_target_labels
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.utils.annotations import experimental
-from small_text.utils.labels import csr_to_list, list_to_csr
+from small_text.utils.labels import csr_to_list, get_num_labels, list_to_csr
 
 
 class PytorchDataset(ABC):
@@ -243,7 +243,16 @@ class PytorchTextClassificationDataset(PytorchDataset):
             for i, _y in enumerate(y):
                 self._data[i] = (self._data[i][self.INDEX_TEXT], _y)
 
-        self.target_labels = get_updated_target_labels(self.is_multi_label, y, self.target_labels)
+        if self.track_target_labels:
+            self.target_labels = get_updated_target_labels(self.is_multi_label, y, self.target_labels)
+        else:
+            max_label_id = get_num_labels(y) - 1
+            max_target_labels_id = self.target_labels.max()
+            if max_label_id > max_target_labels_id:
+                raise ValueError(f'Error while assigning new labels to dataset: '
+                                 f'Encountered label with id {max_label_id} which is outside of '
+                                 f'the configured set of target labels (whose maximum label is '
+                                 f'is {max_target_labels_id}) [track_target_labels=False]')
 
     @property
     def data(self):
