@@ -12,7 +12,7 @@ try:
     from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss
 
     from small_text.integrations.pytorch.classifiers import PytorchClassifier
-    from small_text.integrations.pytorch.utils.loss import LossAdapter2DTo1D
+    from small_text.integrations.pytorch.utils.loss import _LossAdapter2DTo1D
 
     class SimplePytorchClassifier(PytorchClassifier):
         """Simple subclass to allow instantiation."""
@@ -115,7 +115,7 @@ class SimplePytorchClassifierTest(unittest.TestCase):
         clf = SimplePytorchClassifier(2)
         class_weights = torch.ones(2)
         loss = clf._get_default_criterion(class_weights, use_sample_weights=True)
-        self.assertTrue(isinstance(loss, LossAdapter2DTo1D))
+        self.assertTrue(isinstance(loss, _LossAdapter2DTo1D))
         self.assertEqual('none', loss.reduction)
 
         self.assertTrue(isinstance(loss.base_loss_fct, BCEWithLogitsLoss))
@@ -146,7 +146,7 @@ class SimplePytorchClassifierTest(unittest.TestCase):
         clf = SimplePytorchClassifier(3, multi_label=True)
         class_weights = torch.ones(3)
         loss = clf._get_default_criterion(class_weights, use_sample_weights=True)
-        self.assertTrue(isinstance(loss, LossAdapter2DTo1D))
+        self.assertTrue(isinstance(loss, _LossAdapter2DTo1D))
         self.assertEqual('none', loss.reduction)
 
         self.assertTrue(isinstance(loss.base_loss_fct, BCEWithLogitsLoss))

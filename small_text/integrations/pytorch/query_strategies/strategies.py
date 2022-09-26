@@ -13,7 +13,7 @@ try:
     import torch
     import torch.nn.functional as F  # noqa: N812
 
-    from small_text.integrations.pytorch.utils.misc import assert_layer_exists
+    from small_text.integrations.pytorch.utils.misc import _assert_layer_exists
     from small_text.integrations.pytorch.utils.data import dataloader
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
@@ -180,7 +180,7 @@ class ExpectedGradientLengthMaxWord(ExpectedGradientLength):
         if clf.model is None:
             raise ValueError('Initial model must be trained!')
 
-        assert_layer_exists(clf.model, self.layer_name)
+        _assert_layer_exists(clf.model, self.layer_name)
         modules = dict(clf.model.named_modules())
         if not isinstance(modules[self.layer_name], torch.nn.Embedding):
             raise ValueError(f'Given parameter (layer_name={self.layer_name}) '
@@ -261,7 +261,7 @@ class ExpectedGradientLengthLayer(ExpectedGradientLength):
 
     def compute_gradient_length(self, clf, sm, gradients, j, k):
 
-        assert_layer_exists(clf.model, self.layer_name)
+        _assert_layer_exists(clf.model, self.layer_name)
 
         modules = dict({name: module for name, module in clf.model.named_modules()})
         params = [param.grad.flatten() for param in modules[self.layer_name].parameters()

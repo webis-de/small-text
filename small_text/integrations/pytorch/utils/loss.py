@@ -6,7 +6,7 @@ except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
 
-class LossAdapter2DTo1D(_Loss):
+class _LossAdapter2DTo1D(_Loss):
 
     def __init__(self, base_loss_fct):
         super().__init__()

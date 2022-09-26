@@ -30,7 +30,7 @@ try:
     from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
 
     from small_text.integrations.pytorch.classifiers.base import (
-        check_optimizer_and_scheduler_config,
+        _check_optimizer_and_scheduler_config,
         PytorchClassifier
     )
     from small_text.integrations.pytorch.utils.data import dataloader
@@ -378,7 +378,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
             self.initialize_transformer(self.cache_dir)
 
-        check_optimizer_and_scheduler_config(optimizer, scheduler)
+        _check_optimizer_and_scheduler_config(optimizer, scheduler)
         scheduler = scheduler if scheduler is not None else 'linear'
 
         optimizer, scheduler = self._get_optimizer_and_scheduler(optimizer,

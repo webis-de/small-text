@@ -13,6 +13,6 @@ def default_tensor_type(tensor_type):
     torch.set_default_tensor_type(default_type)
 
 
-def assert_layer_exists(module, layer_name):
+def _assert_layer_exists(module, layer_name):
     if layer_name not in dict(module.named_modules()):
         raise ValueError(f'Given layer "{layer_name}" does not exist in the model!')

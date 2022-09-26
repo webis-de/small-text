@@ -28,7 +28,7 @@ try:
     from torch.optim import Adadelta
 
     from small_text.integrations.pytorch.classifiers.base import (
-        check_optimizer_and_scheduler_config
+        _check_optimizer_and_scheduler_config
     )
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.pytorch.utils.data import dataloader
@@ -330,7 +330,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
             self.initialize_kimcnn_model(sub_train)
 
-        check_optimizer_and_scheduler_config(optimizer, scheduler)
+        _check_optimizer_and_scheduler_config(optimizer, scheduler)
         scheduler = scheduler if scheduler is not None else None
 
         optimizer, scheduler = self._get_optimizer_and_scheduler(optimizer,

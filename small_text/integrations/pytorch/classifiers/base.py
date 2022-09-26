@@ -23,7 +23,7 @@ try:
 
     from small_text.integrations.pytorch.utils.data import get_class_weights
     from small_text.utils.classification import empty_result, prediction_result
-    from small_text.integrations.pytorch.utils.loss import LossAdapter2DTo1D
+    from small_text.integrations.pytorch.utils.loss import _LossAdapter2DTo1D
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
@@ -31,7 +31,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def check_optimizer_and_scheduler_config(optimizer, scheduler):
+def _check_optimizer_and_scheduler_config(optimizer, scheduler):
     if scheduler is not None and optimizer is None:
         raise ValueError('You must also pass an optimizer if you pass a scheduler to fit()')
 
@@ -133,7 +133,7 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
         if self.multi_label or self.num_classes == 2:
             loss = BCEWithLogitsLoss(pos_weight=class_weights, reduction=reduction)
             if use_sample_weights:
-                loss = LossAdapter2DTo1D(loss)
+                loss = _LossAdapter2DTo1D(loss)
             return loss
         else:
             return CrossEntropyLoss(weight=class_weights, reduction=reduction)

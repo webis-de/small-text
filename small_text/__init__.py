@@ -34,6 +34,7 @@ from small_text.base import (
 )
 from small_text.exceptions import (
     ActiveLearnerException,
+    ConstraintViolationError,
     LearnerNotInitializedException,
     MissingOptionalDependencyError
 )
@@ -60,6 +61,7 @@ __all__ = __all__ + [
     'OPTIONAL_DEPENDENCIES',
     'check_optional_dependency',
     'ActiveLearnerException',
+    'ConstraintViolationError',
     'LearnerNotInitializedException',
     'MissingOptionalDependencyError',
     'get_version'

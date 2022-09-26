@@ -12,6 +12,7 @@ class ImportTest(unittest.TestCase):
         from small_text import OPTIONAL_DEPENDENCIES
         from small_text import check_optional_dependency
         from small_text import ActiveLearnerException
+        from small_text import ConstraintViolationError
         from small_text import LearnerNotInitializedException
         from small_text import MissingOptionalDependencyError
         from small_text import get_version
@@ -25,12 +26,19 @@ class ImportTest(unittest.TestCase):
         from small_text import SklearnClassifierFactory
 
     def test_import_data_module(self):
+        from small_text import check_size
+        from small_text import check_dataset_and_labels
         from small_text import Dataset
         from small_text import DatasetView
+        from small_text import get_updated_target_labels
+        from small_text import is_multi_label
+        from small_text import select
         from small_text import SklearnDataset
+        from small_text import split_data
         from small_text import balanced_sampling
         from small_text import multilabel_stratified_subsets_sampling
         from small_text import stratified_sampling
+        from small_text import UnsupportedOperationException
 
     def test_import_initialization_module(self):
         from small_text import random_initialization
@@ -64,6 +72,8 @@ class ImportTest(unittest.TestCase):
     def test_import_stopping_criteria_module(self):
         from small_text import ClassificationChange
         from small_text import DeltaFScore
+        from small_text import StoppingCriterion
+        from small_text import check_window_based_predictions
         from small_text import KappaAverage
         from small_text import OverallUncertainty
 

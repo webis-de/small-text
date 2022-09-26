@@ -25,8 +25,8 @@ class ImportTest(unittest.TestCase):
         from small_text import KimCNNFactory
 
     def test_import_datasets_module(self):
-        from small_text import Dataset
-        from small_text import DatasetView
+        from small_text import PytorchDataset
+        from small_text import PytorchDatasetView
         from small_text import PytorchTextClassificationDataset
         from small_text import PytorchTextClassificationDatasetView
 
