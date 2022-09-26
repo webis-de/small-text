@@ -28,6 +28,7 @@ class ImportTest(unittest.TestCase):
     def test_import_data_module(self):
         from small_text import check_size
         from small_text import check_dataset_and_labels
+        from small_text import check_target_labels
         from small_text import Dataset
         from small_text import DatasetView
         from small_text import get_updated_target_labels

@@ -2,7 +2,7 @@ import numpy as np
 
 from scipy.sparse import csr_matrix
 from small_text.base import LABEL_UNLABELED
-from small_text.data.datasets import check_size, get_updated_target_labels
+from small_text.data.datasets import check_size, check_target_labels, get_updated_target_labels
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.annotations import experimental
 from small_text.utils.labels import csr_to_list, list_to_csr, get_num_labels
@@ -61,6 +61,8 @@ class TransformersDataset(PytorchDataset):
             entities such as the classifier. If `None`, the target labels will be inferred
             from the labels encountered in `self.data`.
         """
+        check_target_labels(target_labels)
+
         self._data = data
         self.multi_label = multi_label
 

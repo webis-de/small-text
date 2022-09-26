@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 
 from abc import ABCMeta, abstractmethod
@@ -21,6 +22,14 @@ def check_dataset_and_labels(x, y):
     if x.shape[0] != y.shape[0]:
         raise ValueError(f'Feature and label dimensions do not match: '
                          f'x.shape = {x.shape}, y.shape= {y.shape} ### {type(x)} / {type(y)}')
+
+
+def check_target_labels(target_labels):
+    if target_labels is None:
+        warnings.warn('Passing target_labels=None is discouraged as it can lead to '
+                      'unintended results in combination with indexing and cloning. '
+                      'Moreover, explicit target labels might be required in the '
+                      'next major version.')
 
 
 def get_updated_target_labels(is_multi_label, y, target_labels):
@@ -235,6 +244,7 @@ class SklearnDataset(Dataset):
         target_labels : numpy.ndarray[int] or None, default=None
             List of possible labels. Will be inferred from `y` if `None` is passed."""
         check_dataset_and_labels(x, y)
+        check_target_labels(target_labels)
 
         self._x = x
         self._y = y

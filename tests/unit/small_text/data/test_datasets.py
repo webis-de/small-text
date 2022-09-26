@@ -74,6 +74,11 @@ class SklearnDatasetTest(unittest.TestCase):
         else:
             self.assertFalse(ds.is_multi_label)
 
+    def test_init_with_target_label_warning(self):
+        if self.target_labels == 'inferred':
+            with self.assertWarnsRegex(UserWarning, 'Passing target_labels=None is discouraged'):
+                self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
+
     def test_init_with_dimension_mismatch(self):
         ds, x, y = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
 

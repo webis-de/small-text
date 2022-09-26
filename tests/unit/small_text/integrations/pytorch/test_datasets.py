@@ -63,6 +63,11 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
                                               target_labels=ds_rnd.target_labels)
         assert_array_equal(np.array([0, 1]), ds.target_labels)
 
+    def test_init_with_target_label_warning(self):
+        if self.target_labels == 'inferred':
+            with self.assertWarnsRegex(UserWarning, 'Passing target_labels=None is discouraged'):
+                self._random_data()
+
     def test_init_when_some_samples_are_unlabeled(self):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)
         if self.multi_label:

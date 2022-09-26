@@ -1,6 +1,7 @@
 from small_text.data.datasets import (
     check_size,
     check_dataset_and_labels,
+    check_target_labels,
     Dataset,
     DatasetView,
     get_updated_target_labels,
@@ -20,6 +21,7 @@ from small_text.data.exceptions import UnsupportedOperationException
 __all__ = [
     'check_size',
     'check_dataset_and_labels',
+    'check_target_labels',
     'Dataset',
     'DatasetView',
     'get_updated_target_labels',
