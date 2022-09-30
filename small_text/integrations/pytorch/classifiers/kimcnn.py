@@ -522,13 +522,13 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         """
         return super().predict(data_set, return_proba=return_proba)
 
-    def predict_proba(self, test_set):
-        if len(test_set) == 0:
+    def predict_proba(self, data_set):
+        if len(data_set) == 0:
             return empty_result(self.multi_label, self.num_classes, return_prediction=False,
                                 return_proba=True)
 
         self.model.eval()
-        test_iter = dataloader(test_set.data, self.mini_batch_size, self._create_collate_fn(),
+        test_iter = dataloader(data_set.data, self.mini_batch_size, self._create_collate_fn(),
                                train=False)
 
         predictions = []
