@@ -15,6 +15,7 @@ Pre-implemented Stopping Criteria
 - :py:class:`~small_text.stopping_criteria.change.ClassificationChange`
 - :py:class:`~small_text.stopping_criteria.kappa.KappaAverage`
 - :py:class:`~small_text.stopping_criteria.uncertainty.OverallUncertainty`
+- :py:class:`~small_text.stopping_criteria.utility.MaxIterations`
 
 ----
 
@@ -57,5 +58,12 @@ Classes
 .. py:module:: small_text.stopping_criteria.uncertainty
 
 .. autoclass:: OverallUncertainty
+    :special-members: __init__
+    :inherited-members:
+
+
+.. py:module:: small_text.stopping_criteria.utility
+
+.. autoclass:: MaxIterations
     :special-members: __init__
     :inherited-members:

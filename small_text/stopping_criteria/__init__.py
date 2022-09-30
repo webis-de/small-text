@@ -6,6 +6,7 @@ from small_text.stopping_criteria.base import (
 from small_text.stopping_criteria.change import ClassificationChange
 from small_text.stopping_criteria.kappa import KappaAverage
 from small_text.stopping_criteria.uncertainty import OverallUncertainty
+from small_text.stopping_criteria.utility import MaxIterations
 
 
 __all__ = [
@@ -14,5 +15,6 @@ __all__ = [
     'StoppingCriterion',
     'check_window_based_predictions',
     'KappaAverage',
-    'OverallUncertainty'
+    'OverallUncertainty',
+    'MaxIterations'
 ]
