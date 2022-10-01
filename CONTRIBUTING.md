@@ -219,6 +219,7 @@ The following steps need to be done before a new release can be created.
 - Create a release on testpypi
   - If successful:
     - Create a new Zenodo version and update DOI in README.md
+    - Delete and create the tag again at the current head commit
     - Create a release on pypi
 - Create a release on github
 - Create a new condaforge release
