@@ -19,14 +19,16 @@
   - **[!]** Removed weight renormalization after gradient clipping.
 
 - Datasets:
+  - The `target_labels` keyword argument in `__init()__` will now raise a warning if not passed.
   - Added `from_arrays()` to `SklearnDataset`, `PytorchTextClassificationDataset`, and `TransformersDataset` to construct datasets more conveniently.
 
 - Query Strategies:
   - New multi-label strategy: [CategoryVectorInconsistencyAndRanking](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/query_strategies/multi_label.py)
 
 - Stopping Criteria:
-  - New stopping criteria: [ClassificationChange](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/stopping_criteria/change.py) and
-    [OverallUncertainty](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/stopping_criteria/uncertainty.py).
+  - New stopping criteria: [ClassificationChange](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/stopping_criteria/change.py), 
+    [OverallUncertainty](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/stopping_criteria/uncertainty.py), and 
+    [MaxIterations](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/stopping_criteria/utility.py).
 
 ### Deprecated
 

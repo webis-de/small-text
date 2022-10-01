@@ -37,23 +37,22 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
-- **Version 1.0.1** ([v1.0.1][changelog_1.0.1]) - September 12, 2022
+- **Version 1.1.0** ([v1.1.0][changelog_1.1.0]): Highlights - October 01, 2022
+  - A small-text package on [conda-forge](https://anaconda.org/conda-forge/small-text) is now available.
+  - Early stopping and model selection have been reworked.
+  - One new query strategy and three new stopping criteria have been added.
+
+- **Version 1.0.1** ([v1.0.1][changelog_1.0.1]): Highlights - September 12, 2022
   - Minor bug fix release that fixes notebook and code example links that caused problems by pointing to the latest main branch.
 
 - **Use Small-Text from the Rubrix User Interface** - July 16, 2022
   - We are happy to announce that the great team at [rubrix][rubrix] has worked hard to provide a  
     comprehensive [tutorial on how to use small-text from within the rubrix user interface][rubrix_al_tutorial].
 
-- **Version 1.0.0** ([v1.0.0][changelog_1.0.0]) - June 13, 2022
+- **Version 1.0.0** ([v1.0.0][changelog_1.0.0]): Highlights - June 13, 2022
   - We're out of beta 🎉!
   - This release mainly consists of code cleanup, documentation, and repository organization.
 
-- **May Beta Release** ([v1.0.0b4][changelog_1.0.0b4]) - May 04, 2022
-  - Two new query strategies: [DiscriminativeActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py), 
-    [SEALS](https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py).
-  - `Dataset` interface now has a `clone()` method.
-  - Added a concept for [optional dependencies](https://small-text.readthedocs.io/en/v1.0.0b4/install.html#optional-dependencies).
-  
 
 [For a complete list of changes, see the change log.][changelog]
 
@@ -142,8 +141,8 @@ A preprint which introduces small-text is available here:
 [documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.1.0/components/query_strategies.html
 [documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.1.0/reproducibility_notes.html
 [changelog]: https://small-text.readthedocs.io/en/latest/changelog.html
-[changelog_1.0.0b4]: https://small-text.readthedocs.io/en/latest/changelog.html#b4-2022-05-04
 [changelog_1.0.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-0-0-2022-06-14
 [changelog_1.0.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-0-1-2022-09-12
+[changelog_1.1.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-1-0-2022-10-01
 [rubrix]: https://github.com/recognai/rubrix
 [rubrix_al_tutorial]: https://rubrix.readthedocs.io/en/stable/tutorials/active_learning_with_small_text.html
