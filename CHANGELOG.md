@@ -23,7 +23,7 @@
   - Added `from_arrays()` to `SklearnDataset`, `PytorchTextClassificationDataset`, and `TransformersDataset` to construct datasets more conveniently.
 
 - Query Strategies:
-  - New multi-label strategy: [CategoryVectorInconsistencyAndRanking](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/query_strategies/multi_label.py)
+  - New multi-label strategy: [CategoryVectorInconsistencyAndRanking](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/query_strategies/multi_label.py).
 
 - Stopping Criteria:
   - New stopping criteria: [ClassificationChange](https://github.com/webis-de/small-text/blob/v1.1.0/small_text/stopping_criteria/change.py), 
@@ -45,7 +45,7 @@
 
 ### Removed
 - Removed the strict check that every target label has to occur in the training data.
-  - This is intended for multi-label settings with many labels; apart from that it is still recommended to make sure that all labels occur. 
+  *(This is intended for multi-label settings with many labels; apart from that it is still recommended to make sure that all labels occur.)*
 
 ## Version 1.0.1 - 2022-09-12
 
