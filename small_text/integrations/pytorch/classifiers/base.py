@@ -52,10 +52,7 @@ class PytorchModelSelectionMixin(object):
 
     def _perform_model_selection(self, optimizer, model_selection):
         model_selection_result = model_selection.select()
-        # TODO: can we test the load_state_dict() calls here?
         if model_selection_result is not None:
-            # this currently does not check if this model is the last one (and thus does not need
-            #   to be reloaded
             self.model.load_state_dict(torch.load(model_selection_result.model_path))
             optimizer_path = model_selection_result.model_path.with_suffix('.pt.optimizer')
             optimizer.load_state_dict(torch.load(optimizer_path))

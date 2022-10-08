@@ -218,7 +218,11 @@ class ModelSelection(ModelSelectionManager):
         else:
             select_by = self.default_select_by
 
+        # valid rows are rows where no early stopping has been triggered
         valid_rows = np.not_equal(self.models[ModelSelection.FIELD_NAME_EARLY_STOPPING], True)
+        if not np.any(valid_rows):  # checks if we have no valid rows
+            return None
+
         rows = self.models[valid_rows]
 
         metrics_dict = {metric.name: metric for metric in self.metrics}
@@ -227,9 +231,6 @@ class ModelSelection(ModelSelectionManager):
             for key in reversed(select_by)
         )
         indices = np.lexsort(tuples)
-
-        if indices.shape[0] == 0:
-            return ModelSelectionResult(0, self.last_model_id, None, {})
 
         model_id = rows['model_id'][indices[0]]
         model_path = rows['model_path'][indices[0]]

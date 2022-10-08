@@ -123,6 +123,33 @@ class ModelSelectionTest(unittest.TestCase):
         self.assertEqual((1,), model_selection.models.shape)
         self.assertEqual(model_id, model_selection.last_model_id)
 
+    def test_select_with_single_model(self):
+        model_selection = ModelSelection()
+        measured_values_list = [
+            {'val_loss': 0.043, 'val_acc': 0.78, 'train_loss': 0.023, 'train_acc': 0.85}
+        ]
+        for i, measured_values in enumerate(measured_values_list):
+            model_selection.add_model(str(i+1), f'/any/path/to/model_{i+1}.bin',
+                                      measured_values)
+
+        model_selection_result = model_selection.select(select_by='val_loss')
+
+        self.assertEqual('1', model_selection_result.model_id)
+        self.assertEqual('/any/path/to/model_1.bin', model_selection_result.model_path)
+
+        self.assertEqual(4, len(model_selection_result.measured_values))
+        for key, val in measured_values_list[0].items():
+            self.assertEqual(val, model_selection_result.measured_values[key])
+
+        self.assertEqual(1, len(model_selection_result.fields))
+        self.assertFalse(model_selection_result.fields[ModelSelection.FIELD_NAME_EARLY_STOPPING])
+
+    def test_select_without_model(self):
+        model_selection = ModelSelection()
+
+        model_selection_result = model_selection.select(select_by='val_loss')
+        self.assertIsNone(model_selection_result)
+
     def test_add_model_missing_metrics(self):
         model_selection = ModelSelection()
         # val_loss is missing
@@ -239,6 +266,21 @@ class ModelSelectionTest(unittest.TestCase):
 
         self.assertEqual(1, len(model_selection_result.fields))
         self.assertFalse(model_selection_result.fields[ModelSelection.FIELD_NAME_EARLY_STOPPING])
+
+    def test_select_with_early_stopping_and_single_model(self):
+        model_selection = ModelSelection()
+        measured_values_list = [
+            {'val_loss': 0.043, 'val_acc': 0.78, 'train_loss': 0.023, 'train_acc': 0.85}
+        ]
+        fields = [
+            {ModelSelection.FIELD_NAME_EARLY_STOPPING: True}
+        ]
+        for i, measured_values in enumerate(measured_values_list):
+            model_selection.add_model(str(i+1), f'/any/path/to/model_{i+1}.bin',
+                                      measured_values, fields=fields[i])
+
+        model_selection_result = model_selection.select(select_by='val_loss')
+        self.assertIsNone(model_selection_result)
 
     def test_select_with_early_stopping_select_by_second_metric(self):
         model_selection = ModelSelection()
