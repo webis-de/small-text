@@ -2,6 +2,14 @@
 
 ---
 
+## Version 1.1.1 - unreleased
+
+### Fixed
+
+- Fixed model selection which raised an error in cases where no model needed to be selected ([#21](https://github.com/webis-de/small-text/issues/21)).
+
+---
+
 ## Version 1.1.0 - 2022-10-01
 
 ### Added
