@@ -1,5 +1,7 @@
 # Changelog
 
+---
+
 ## Version 1.1.0 - 2022-10-01
 
 ### Added
@@ -55,6 +57,8 @@ Minor bug fix release.
 
 Links to notebooks and code examples will now always point to the latest release instead of the latest main branch.
 
+---
+
 ## Version 1.0.0 - 2022-06-14
 
 First stable release.
@@ -69,6 +73,8 @@ First stable release.
   - The documentation is now available in full width.
 - Repository:
   - Versions in this can now be referenced using the respective [Zenodo DOI](https://zenodo.org/record/6641063).
+
+---
 
 ## [1.0.0b4] - 2022-05-04
 
@@ -100,6 +106,8 @@ First stable release.
 - `small_text.integrations.pytorch.utils.data`:
   - Method `get_class_weights()` now scales the resulting multi-class weights so that the smallest
     class weight is equal to `1.0`.
+
+---
 
 ## [1.0.0b3] - 2022-03-06
 
@@ -142,6 +150,7 @@ Bugfix release.
 
 - Fix links to the documentation in README.md and notebooks.
 
+---
 
 ## [1.0.0b1] - 2022-02-22
 
