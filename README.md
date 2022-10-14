@@ -1,7 +1,7 @@
-[![PyPI](https://img.shields.io/pypi/v/small-text/v1.1.0)](https://pypi.org/project/small-text/)
+[![PyPI](https://img.shields.io/pypi/v/small-text/v1.1.1)](https://pypi.org/project/small-text/)
 [![Conda Forge](https://img.shields.io/conda/v/conda-forge/small-text?label=conda-forge)](https://anaconda.org/conda-forge/small-text)
 [![codecov](https://codecov.io/gh/webis-de/small-text/branch/master/graph/badge.svg?token=P86CPABQOL)](https://codecov.io/gh/webis-de/small-text)
-[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.1.0)](https://small-text.readthedocs.io/en/v1.1.0/) 
+[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.1.1)](https://small-text.readthedocs.io/en/v1.1.1/) 
 ![Maintained Yes](https://img.shields.io/badge/maintained-yes-green)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 [![MIT License](https://img.shields.io/github/license/webis-de/small-text)](LICENSE)
@@ -37,21 +37,20 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
+- **Version 1.1.1** ([v1.1.1][changelog_1.1.1]) - October 14, 2022
+  - Fixes model selection which could raise an error under certain circumstances ([#21](https://github.com/webis-de/small-text/issues/21)).
+
 - **Version 1.1.0** ([v1.1.0][changelog_1.1.0]): Highlights - October 01, 2022
   - A small-text package on [conda-forge](https://anaconda.org/conda-forge/small-text) is now available.
   - Early stopping and model selection have been reworked.
   - One new query strategy and three new stopping criteria have been added.
 
-- **Version 1.0.1** ([v1.0.1][changelog_1.0.1]): Highlights - September 12, 2022
+- **Version 1.0.1** ([v1.0.1][changelog_1.0.1]) - September 12, 2022
   - Minor bug fix release that fixes notebook and code example links that caused problems by pointing to the latest main branch.
 
 - **Use Small-Text from the Rubrix User Interface** - July 16, 2022
   - We are happy to announce that the great team at [rubrix][rubrix] has worked hard to provide a  
     comprehensive [tutorial on how to use small-text from within the rubrix user interface][rubrix_al_tutorial].
-
-- **Version 1.0.0** ([v1.0.0][changelog_1.0.0]): Highlights - June 13, 2022
-  - We're out of beta 🎉!
-  - This release mainly consists of code cleanup, documentation, and repository organization.
 
 
 [For a complete list of changes, see the change log.][changelog]
@@ -86,8 +85,8 @@ or check out the notebooks.
 
 | # | Notebook | |
 | --- | -------- | --- |
-| 1 | [Intro: Active Learning for Text Classification with Small-Text](https://github.com/webis-de/small-text/blob/v1.1.0/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.0.0/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
-| 2 | [Using Stopping Criteria for Active Learning](https://github.com/webis-de/small-text/blob/v1.1.0/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.0.0/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) |
+| 1 | [Intro: Active Learning for Text Classification with Small-Text](https://github.com/webis-de/small-text/blob/v1.1.1/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.0.0/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
+| 2 | [Using Stopping Criteria for Active Learning](https://github.com/webis-de/small-text/blob/v1.1.1/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.0.0/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) |
 
 ### Showcase
 
@@ -136,13 +135,13 @@ A preprint which introduces small-text is available here:
 [MIT License](LICENSE)
 
 
-[documentation_main]: https://small-text.readthedocs.io/en/v1.1.0/
-[documentation_install]: https://small-text.readthedocs.io/en/v1.1.0/install.html
-[documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.1.0/components/query_strategies.html
-[documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.1.0/reproducibility_notes.html
+[documentation_main]: https://small-text.readthedocs.io/en/v1.1.1/
+[documentation_install]: https://small-text.readthedocs.io/en/v1.1.1/install.html
+[documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.1.1/components/query_strategies.html
+[documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.1.1/reproducibility_notes.html
 [changelog]: https://small-text.readthedocs.io/en/latest/changelog.html
-[changelog_1.0.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-0-0-2022-06-14
 [changelog_1.0.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-0-1-2022-09-12
 [changelog_1.1.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-1-0-2022-10-01
+[changelog_1.1.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-1-1-2022-10-14
 [rubrix]: https://github.com/recognai/rubrix
 [rubrix_al_tutorial]: https://rubrix.readthedocs.io/en/stable/tutorials/active_learning_with_small_text.html
