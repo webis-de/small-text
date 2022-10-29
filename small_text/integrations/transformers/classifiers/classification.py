@@ -9,7 +9,7 @@ from functools import partial
 
 from small_text.classifiers.classification import EmbeddingMixin
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.utils.classification import empty_result, get_splits
+from small_text.utils.classification import get_splits
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data, list_length
 from small_text.utils.datetime import format_timedelta
@@ -626,11 +626,12 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         return valid_loss / len(validation_set), acc / len(validation_set)
 
-    def predict(self, data_set, return_proba=False):
-        """
+    def predict(self, dataset, return_proba=False):
+        """Predicts the labels for the given dataset.
+
         Parameters
         ----------
-        data_set : small_text.integrations.transformers.TransformerDataset
+        dataset : TransformersDataset
             A dataset on whose instances predictions are made.
         return_proba : bool, default=False
             If True, additionally returns the confidence distribution over all classes.
@@ -643,9 +644,25 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         probas : np.ndarray[np.float32], optional
             List of probabilities (or confidence estimates) if `return_proba` is True.
         """
-        return super().predict(data_set, return_proba=return_proba)
+        return super().predict(dataset, return_proba=return_proba)
 
     def predict_proba(self, dataset, dropout_sampling=1):
+        """Predicts the label distributions.
+
+        Parameters
+        ----------
+        dataset : TransformersDataset
+            A dataset whose labels will be predicted.
+        dropout_sampling : int
+            If `dropout_sampling > 1` then all dropout modules will be enabled during prediction and
+            multiple rounds of predictions will be sampled for each instance.
+
+        Returns
+        -------
+        scores : np.ndarray
+            Distribution of confidence scores over all classes of shape (num_samples, num_classes).
+            If `dropout_sampling > 1` then the shape is (num_samples, dropour_samples, num_classes).
+        """
         return super().predict_proba(dataset, dropout_sampling=dropout_sampling)
 
     def _predict_proba(self, dataset_iter, logits_transform):
