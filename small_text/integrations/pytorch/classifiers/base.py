@@ -2,6 +2,7 @@ import logging
 import warnings
 
 from abc import abstractmethod
+from functools import partial
 from pathlib import Path
 
 from small_text.classifiers.classification import Classifier
@@ -21,7 +22,7 @@ try:
     from torch.nn.modules import CrossEntropyLoss, BCEWithLogitsLoss
     from torch.optim.lr_scheduler import _LRScheduler, LambdaLR
 
-    from small_text.integrations.pytorch.utils.data import get_class_weights
+    from small_text.integrations.pytorch.utils.data import dataloader, get_class_weights
     from small_text.utils.classification import empty_result, prediction_result
     from small_text.integrations.pytorch.utils.loss import _LossAdapter2DTo1D
 except ImportError:
@@ -109,19 +110,45 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
 
         return predictions
 
-    @abstractmethod
-    def predict_proba(self, test_set):
+    def predict_proba(self, dataset, dropout_sampling=1):
         """
         Parameters
         ----------
-        test_set : small_text.integrations.pytorch.PytorchTextClassificationDataset
-            Test set.
+        dataset : small_text.data.datasets.Dataset
+            A dataset whose labels will be predicted.
+        dropout_sampling : int
+            If `dropout_sampling > 1` then all dropout modules will be enabled during prediction and
+            multiple rounds of predictions will be sampled for each instance.
 
         Returns
         -------
         scores : np.ndarray
-            Distribution of confidence scores over all classes.
+            Distribution of confidence scores over all classes of shape (num_samples, num_classes).
+            If `dropout_sampling > 1` then the shape is (num_samples, dropour_samples, num_classes).
         """
+        if len(dataset) == 0:
+            return empty_result(self.multi_label, self.num_classes, return_prediction=False,
+                                return_proba=True)
+
+        self.model.eval()
+        dataset_iter = dataloader(dataset.data, self.mini_batch_size, self._create_collate_fn(),
+                                  train=False)
+
+        logits_transform = torch.sigmoid if self.multi_label else partial(F.softmax, dim=1)
+
+        with torch.no_grad():
+            if dropout_sampling <= 1:
+                return self._predict_proba(dataset_iter, logits_transform)
+            else:
+                return self._predict_proba_dropout_sampling(dataset_iter, logits_transform,
+                                                            dropout_samples=dropout_sampling)
+
+    @abstractmethod
+    def _predict_proba(self, dataset_iter, logits_transform):
+        pass
+
+    @abstractmethod
+    def _predict_proba_dropout_sampling(self, dataset_iter, logits_transform, dropout_samples=2):
         pass
 
     def _get_default_criterion(self, class_weights, use_sample_weights=False):

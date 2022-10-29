@@ -107,6 +107,29 @@ class _KimCNNClassifierTest(object):
             self.assertTrue(np.all([isinstance(y, np.int64) for y in y_pred]))
             self.assertTrue(np.logical_or(y_pred.all() >= 0, y_pred.all() <= 3))
 
+
+    def test_fit_and_predict_proba_dropout_sampling(self, num_classes=4, dropout_sampling=3):
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        clf = KimCNNClassifier(num_classes,
+                               multi_label=self.multi_label,
+                               embedding_matrix=embedding_matrix)
+
+        train_set = self._get_dataset(num_samples=20)
+        test_set = self._get_dataset(num_samples=10)
+
+        clf.fit(train_set)
+
+        y_pred_proba = clf.predict_proba(test_set)
+        self.assertSequenceEqual((len(test_set), num_classes), y_pred_proba.shape)
+        self.assertTrue(isinstance(y_pred_proba, np.ndarray))
+        self.assertTrue(np.all([isinstance(p, np.float64) for pred in y_pred_proba for p in pred]))
+
+        y_pred_proba = clf.predict_proba(test_set, dropout_sampling=dropout_sampling)
+        self.assertSequenceEqual((len(test_set), dropout_sampling, num_classes), y_pred_proba.shape)
+        self.assertTrue(isinstance(y_pred_proba, np.ndarray))
+        self.assertTrue(np.all([isinstance(p, np.float64) for pred in y_pred_proba
+                                for sample in pred for p in sample]))
+
     def test_fit_and_validate(self):
         ds = self._get_dataset()
 

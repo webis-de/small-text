@@ -32,6 +32,7 @@ try:
     )
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.pytorch.utils.data import dataloader
+    from small_text.integrations.pytorch.utils.misc import enable_dropout
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
@@ -522,26 +523,44 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         """
         return super().predict(data_set, return_proba=return_proba)
 
-    def predict_proba(self, data_set):
-        if len(data_set) == 0:
-            return empty_result(self.multi_label, self.num_classes, return_prediction=False,
-                                return_proba=True)
+    def predict_proba(self, dataset, dropout_sampling=1):
+        return super().predict_proba(dataset, dropout_sampling=dropout_sampling)
 
-        self.model.eval()
-        test_iter = dataloader(data_set.data, self.mini_batch_size, self._create_collate_fn(),
-                               train=False)
+    def _predict_proba(self, dataset_iter, logits_transform):
+        predictions = np.empty((0, self.num_classes), dtype=float)
+        for text, *_ in dataset_iter:
+            text = text.to(self.device)
+            output = self.model.forward(text)
 
-        predictions = []
-        logits_transform = torch.sigmoid if self.multi_label else partial(F.softmax, dim=1)
+            predictions = np.append(predictions,
+                                    logits_transform(output).to('cpu').numpy(),
+                                    axis=0)
+            del text
+        return predictions
 
-        with torch.no_grad():
-            for text, *_ in test_iter:
+    def _predict_proba_dropout_sampling(self, dataset_iter, logits_transform, dropout_samples=2):
+
+        predictions = np.empty((0, dropout_samples, self.num_classes), dtype=float)
+
+        with enable_dropout(self.model):
+            for text,  *_ in dataset_iter:
+                batch_size, vector_len = text.shape
+                full_size = batch_size * dropout_samples
                 text = text.to(self.device)
+                text = text.repeat(1, dropout_samples).resize(full_size, vector_len)
 
-                predictions += logits_transform(self.model.forward(text)).to('cpu').tolist()
+                output = self.model.forward(text)
+
+                prediction_for_batch = logits_transform(output)
+                prediction_for_batch = prediction_for_batch.unsqueeze(dim=1)\
+                    .resize(batch_size, dropout_samples, self.num_classes)
+
+                predictions = np.append(predictions,
+                                        prediction_for_batch.to('cpu').numpy(),
+                                        axis=0)
                 del text
 
-        return np.array(predictions)
+        return predictions
 
     def __del__(self):
         try:
