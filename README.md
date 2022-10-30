@@ -49,8 +49,8 @@ which can be easily mixed and matched to build active learning experiments or ap
   - Minor bug fix release that fixes notebook and code example links that caused problems by pointing to the latest main branch.
 
 - **Use Small-Text from the Rubrix User Interface** - July 16, 2022
-  - We are happy to announce that the great team at [rubrix][rubrix] has worked hard to provide a  
-    comprehensive [tutorial on how to use small-text from within the rubrix user interface][rubrix_al_tutorial].
+  - We are happy to announce that the great team at rubrix has worked hard to provide a  
+    comprehensive [tutorial on how to use small-text from within the rubrix user interface][argilla_al_tutorial].
 
 
 [For a complete list of changes, see the change log.][changelog]
@@ -90,7 +90,7 @@ or check out the notebooks.
 
 ### Showcase
 
-- [Tutorial: 👂 Learn actively, and listen carefully to small-text.][rubrix_al_tutorial] (Use small-text conveniently from the [rubrix][rubrix] UI.)  
+- [Tutorial: 👂 Active learning for text classification with small-text][argilla_al_tutorial] (Use small-text conveniently from the [argilla][argilla] UI.)  
 
 ## Documentation
 
@@ -143,5 +143,5 @@ A preprint which introduces small-text is available here:
 [changelog_1.0.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-0-1-2022-09-12
 [changelog_1.1.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-1-0-2022-10-01
 [changelog_1.1.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-1-1-2022-10-14
-[rubrix]: https://github.com/recognai/rubrix
-[rubrix_al_tutorial]: https://rubrix.readthedocs.io/en/stable/tutorials/active_learning_with_small_text.html
+[argilla]: https://github.com/argilla-io/argilla
+[argilla_al_tutorial]: https://docs.argilla.io/en/latest/tutorials/notebooks/training-textclassification-smalltext-activelearning.html
