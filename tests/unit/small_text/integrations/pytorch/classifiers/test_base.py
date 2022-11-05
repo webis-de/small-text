@@ -33,6 +33,14 @@ try:
 
         def predict_proba(self, test_set):
             pass
+
+        def _predict_proba(self, dataset_iter, logits_transform):
+            pass
+
+        def _predict_proba_dropout_sampling(self, dataset_iter, logits_transform,
+                                            dropout_samples=2):
+            pass
+
 except PytorchNotFoundError:
     pass
 
