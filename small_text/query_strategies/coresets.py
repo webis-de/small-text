@@ -8,21 +8,21 @@ def _check_coreset_size(x, n):
         raise ValueError(f'n (n={n}) is greater the number of available samples (num_samples={x.shape[0]})')
 
 
-def greedy_coreset(x, x_indices_unlabeled, x_indices_labeled, n, batch_size=100, normalized=False):
-    """Computes a greedy coreset _[SS17] of `x` with size `n`.
+def greedy_coreset(x, indices_unlabeled, indices_labeled, n, batch_size=100, normalized=False):
+    """Computes a greedy coreset [SS17]_ over `x` with size `n`.
 
     Parameters
     ----------
     x : np.ndarray
-
-    x_indices_unlabeled : np.ndarray
-
-    x_indices_labeled : np.ndarray
-
+        A matrix of row-wise vector representations.
+    indices_unlabeled : np.ndarray
+        Indices (relative to `dataset`) for the unlabeled data.
+    indices_labeled : np.ndarray
+        Indices (relative to `dataset`) for the unlabeled data.
     n : int
-
+        Size of the coreset (in number of instances).
     batch_size : int
-
+        Batch size.
     normalized : bool
         If `True` the data `x` is assumed to be normalized,
         otherwise it will be normalized where necessary.
@@ -44,9 +44,9 @@ def greedy_coreset(x, x_indices_unlabeled, x_indices_labeled, n, batch_size=100,
     ind_new = []
 
     for _ in range(n):
-        indices_s = np.concatenate([x_indices_labeled, ind_new]).astype(np.int64)
+        indices_s = np.concatenate([indices_labeled, ind_new]).astype(np.int64)
         sims = np.array([], dtype=np.float32)
-        for batch in np.array_split(x[x_indices_unlabeled], num_batches, axis=0):
+        for batch in np.array_split(x[indices_unlabeled], num_batches, axis=0):
 
             sim = np.matmul(batch, x[indices_s].T)
             if not normalized:
@@ -83,7 +83,7 @@ class GreedyCoreset(EmbeddingBasedQueryStrategy):
 
 
 def lightweight_coreset(x, x_mean, n, normalized=False, proba=None):
-    """Computes a lightweight coreset _[BAC18] of `x` with size `n`.
+    """Computes a lightweight coreset [BAC18]_ of `x` with size `n`.
 
     Parameters
     ----------
