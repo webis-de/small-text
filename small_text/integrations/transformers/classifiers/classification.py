@@ -687,7 +687,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                 full_size = batch_size * dropout_samples
                 text, masks = text.to(self.device), masks.to(self.device)
                 text, masks = text.repeat(1, dropout_samples).resize(full_size, vector_len), \
-                              masks.repeat(1, dropout_samples).resize(full_size, vector_len)
+                    masks.repeat(1, dropout_samples).resize(full_size, vector_len)
 
                 outputs = self.model(text, attention_mask=masks)
 

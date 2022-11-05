@@ -107,7 +107,6 @@ class _KimCNNClassifierTest(object):
             self.assertTrue(np.all([isinstance(y, np.int64) for y in y_pred]))
             self.assertTrue(np.logical_or(y_pred.all() >= 0, y_pred.all() <= 3))
 
-
     def test_fit_and_predict_proba_dropout_sampling(self, num_classes=4, dropout_sampling=3):
         embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
         clf = KimCNNClassifier(num_classes,
