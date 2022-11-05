@@ -8,6 +8,14 @@ def _check_coreset_size(x, n):
         raise ValueError(f'n (n={n}) is greater the number of available samples (num_samples={x.shape[0]})')
 
 
+def _cosine_similarity(a, b, normalized=False):
+    sim = np.matmul(a, b.T)
+    if not normalized:
+        sim = sim / np.dot(np.linalg.norm(a, axis=1)[:, np.newaxis],
+            np.linalg.norm(b, axis=1)[np.newaxis, :])
+    return sim
+
+
 def greedy_coreset(x, indices_unlabeled, indices_labeled, n, batch_size=100, normalized=False):
     """Computes a greedy coreset [SS17]_ over `x` with size `n`.
 
@@ -45,19 +53,17 @@ def greedy_coreset(x, indices_unlabeled, indices_labeled, n, batch_size=100, nor
 
     for _ in range(n):
         indices_s = np.concatenate([indices_labeled, ind_new]).astype(np.int64)
-        sims = np.array([], dtype=np.float32)
+        dists = np.array([], dtype=np.float32)
         for batch in np.array_split(x[indices_unlabeled], num_batches, axis=0):
 
-            sim = np.matmul(batch, x[indices_s].T)
-            if not normalized:
-                sim = sim / np.dot(np.linalg.norm(batch, axis=1)[:, np.newaxis],
-                                   np.linalg.norm(x[indices_s], axis=1)[np.newaxis, :])
+            sim = _cosine_similarity(batch, x[indices_s], normalized=normalized)
+            dist = np.arccos(sim) / np.pi
 
-            sims_batch = np.amax(sim, axis=1)
-            sims = np.append(sims, sims_batch)
+            sims_batch = np.amin(dist, axis=1)
+            dists = np.append(dists, sims_batch)
 
-        sims[ind_new] = np.inf
-        index_new = np.argmin(sims)
+        dists[ind_new] = -np.inf
+        index_new = np.argmax(dists)
 
         ind_new.append(index_new)
 
