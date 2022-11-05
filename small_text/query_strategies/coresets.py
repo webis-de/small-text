@@ -124,7 +124,8 @@ def lightweight_coreset(x, x_mean, n, normalized=False, proba=None):
     sim = x.dot(x_mean)
     if not normalized:
         sim = sim / (np.linalg.norm(x, axis=1) * np.linalg.norm(x_mean))
-    dists = 1 - sim
+
+    dists = np.arccos(sim) / np.pi
     dists = np.square(dists)
 
     sum_dists = dists.sum()
