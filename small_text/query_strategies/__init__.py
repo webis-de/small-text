@@ -6,6 +6,7 @@ from small_text.query_strategies.coresets import (greedy_coreset,
                                                   GreedyCoreset,
                                                   lightweight_coreset,
                                                   LightweightCoreset)
+from small_text.query_strategies.bayesian import BALD
 from small_text.query_strategies.multi_label import CategoryVectorInconsistencyAndRanking
 from small_text.query_strategies.strategies import (
     QueryStrategy,
@@ -45,5 +46,6 @@ __all__ = [
     'GreedyCoreset',
     'lightweight_coreset',
     'LightweightCoreset',
+    'BALD',
     'CategoryVectorInconsistencyAndRanking'
 ]

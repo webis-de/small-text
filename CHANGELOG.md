@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.2.0 - unreleased
+
+### Added
+
+- New query strategy: [BALD](https://github.com/webis-de/small-text/blob/v1.2.0/small_text/query_strategies/bayesian.py).
+
 ---
 
 ## Version 1.1.1 - 2022-10-14

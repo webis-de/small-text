@@ -35,6 +35,14 @@ Bibliography
    Active Learning Literature Survey.
    Computer Sciences Technical Report 1648 University of Wisconsin–Madison.
 
+.. [HHG+11] Neil Houlsby, Ferenc Huszár, Zoubin Ghahramani, and Máté Lengyel. 2011.
+   Bayesian Active Learning for Classification and Preference Learning.
+   ArXiv, abs/1112.5745.
+
+.. [GZ16] Yarin Gal and Zoubin Ghahramani. 2016.
+   Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning.
+   Proceedings of The 33rd International Conference on Machine Learning, PMLR 48:1050-1059.
+
 .. [ZLW17] Ye Zhang, Matthew Lease, and Byron C. Wallace. 2017.
    Active discriminative text representation learning.
    In Proceedings of the Thirty-First AAAI Conference on Artificial Intelligence (AAAI’17).

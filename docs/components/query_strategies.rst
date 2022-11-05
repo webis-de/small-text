@@ -18,6 +18,7 @@ General
 * :py:class:`LeastConfidence`
 * :py:class:`PredictionEntropy`
 * :py:class:`BreakingTies`
+* :py:class:`~small_text.query_strategies.bayesian.BALD`
 * :py:class:`EmbeddingKMeans`
 * :py:class:`~small_text.query_strategies.coresets.GreedyCoreset`
 * :py:class:`~small_text.query_strategies.coresets.LightweightCoreset`
@@ -100,6 +101,11 @@ Base
 .. autoclass:: BreakingTies
 
 .. autoclass:: EmbeddingKMeans
+    :special-members: __init__
+
+.. py:module:: small_text.query_strategies.bayesian
+
+.. autoclass:: BALD
     :special-members: __init__
 
 .. py:module:: small_text.query_strategies.coresets

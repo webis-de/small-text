@@ -68,6 +68,7 @@ class ImportTest(unittest.TestCase):
         from small_text import GreedyCoreset
         from small_text import lightweight_coreset
         from small_text import LightweightCoreset
+        from small_text import BALD
         from small_text import CategoryVectorInconsistencyAndRanking
 
     def test_import_stopping_criteria_module(self):
