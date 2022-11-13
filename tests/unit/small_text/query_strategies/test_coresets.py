@@ -1,7 +1,6 @@
 import unittest
+import warnings
 import numpy as np
-
-from parameterized import parameterized_class
 
 from small_text.classifiers import ConfidenceEnhancedLinearSVC
 from small_text.data.datasets import SklearnDataset
@@ -18,7 +17,15 @@ from tests.unit.small_text.query_strategies.test_strategies import (DEFAULT_QUER
                                                                     query_random_data)
 
 
-class GreedyCoresetMethodTest(unittest.TestCase):
+class GreedyCoresetFunctionTest(unittest.TestCase):
+
+    def test_query_with_invalid_distance_metric(self, num_samples=20, num_features=100):
+        x = np.random.rand(num_samples, num_features)
+        indices = np.arange(num_samples)
+        indices_mid = int(num_samples / 2)
+        with self.assertRaisesRegex(ValueError, 'Invalid distance metric:'):
+            greedy_coreset(x, indices[:indices_mid], indices[indices_mid:], num_samples,
+                           distance_metric='non-existent-metric')
 
     def test_query_with_overlarge_n(self, num_samples=20, num_features=100):
         x = np.random.rand(num_samples, num_features)
@@ -28,21 +35,35 @@ class GreedyCoresetMethodTest(unittest.TestCase):
             greedy_coreset(x, indices[:indices_mid], indices[indices_mid:], num_samples+1)
 
 
-@parameterized_class([{'normalize': True}, {'normalize': False}])
-class GreedyCoresetTest(unittest.TestCase, SamplingStrategiesTests):
+class _CoresetSamplingStrategyTest(SamplingStrategiesTests):
 
-    # https://github.com/wolever/parameterized/issues/119
-    @classmethod
-    def setUpClass(cls):
-        if cls == GreedyCoresetTest:
-            raise unittest.SkipTest('parameterized_class bug')
-        super().setUpClass()
+    def setUp(self):
+        # must set self.normalize (bool)
+        raise NotImplementedError
 
     def _get_clf(self):
-        return ConfidenceEnhancedLinearSVC()
+        raise NotImplementedError
 
     def _get_query_strategy(self):
-        return GreedyCoreset(self.normalize)
+        raise NotImplementedError
+
+    def test_init_with_invalid_distance_metric(self):
+        with self.assertRaisesRegex(ValueError, 'Invalid distance metric:'):
+            GreedyCoreset(distance_metric='non-existent-metric')
+
+    def test_init_with_distance_metric_warning(self):
+        with self.assertWarnsRegex(UserWarning, 'Default distance metric has changed'):
+            GreedyCoreset(distance_metric='euclidean')
+
+    def test_init_without_distance_metric_warning(self):
+        expected_warning = 'Default distance metric has changed'
+        with warnings.catch_warnings(record=True) as w:
+            GreedyCoreset(distance_metric='cosine')
+
+            found_warning = np.any([
+                str(w_.message) == expected_warning and w_.category == UserWarning
+                for w_ in w])
+            self.assertFalse(found_warning)
 
     # overrides test from SamplingStrategiesTests (to use embeddings)
     def test_simple_query(self, embedding_dim=100):
@@ -70,7 +91,8 @@ class GreedyCoresetTest(unittest.TestCase, SamplingStrategiesTests):
 
     def test_str(self):
         strategy = self._get_query_strategy()
-        expected_str = f'GreedyCoreset(normalize={str(self.normalize)}, batch_size=100)'
+        expected_str = f'GreedyCoreset(distance_metric=euclidean, normalize={str(self.normalize)}, ' \
+                       f'batch_size=100)'
         self.assertEqual(expected_str, str(strategy))
 
     def test_query_default(self):
@@ -91,7 +113,33 @@ class GreedyCoresetTest(unittest.TestCase, SamplingStrategiesTests):
             strategy.query(None, dataset, indices_unlabeled, indices_labeled, y, n=n)
 
 
-class LightweightCoresetMethodTest(unittest.TestCase):
+class GreedyCoresetSamplingStrategyNormalizedTest(unittest.TestCase,
+                                                  _CoresetSamplingStrategyTest):
+
+    def setUp(self):
+        self.normalize = True
+
+    def _get_clf(self):
+        return ConfidenceEnhancedLinearSVC()
+
+    def _get_query_strategy(self):
+        return GreedyCoreset(normalize=self.normalize)
+
+
+class GreedyCoresetSamplingStrategyUnnormalizedTest(unittest.TestCase,
+                                                    _CoresetSamplingStrategyTest):
+
+    def setUp(self):
+        self.normalize = False
+
+    def _get_clf(self):
+        return ConfidenceEnhancedLinearSVC()
+
+    def _get_query_strategy(self):
+        return GreedyCoreset(normalize=self.normalize)
+
+
+class LightweightCoresetFunctionTest(unittest.TestCase):
 
     def test_query_with_overlarge_n(self, num_samples=20, num_features=100):
         x = np.random.rand(num_samples, num_features)
@@ -99,21 +147,17 @@ class LightweightCoresetMethodTest(unittest.TestCase):
             lightweight_coreset(x, np.mean(x, axis=0), num_samples+1)
 
 
-@parameterized_class([{'normalize': True}, {'normalize': False}])
-class LightweightCoresetTest(unittest.TestCase, SamplingStrategiesTests):
+class _LightweightCoresetSamplingStrategyTest(SamplingStrategiesTests):
 
-    # https://github.com/wolever/parameterized/issues/119
-    @classmethod
-    def setUpClass(cls):
-        if cls == LightweightCoresetTest:
-            raise unittest.SkipTest('parameterized_class bug')
-        super().setUpClass()
+    def setUp(self):
+        # must set self.normalize (bool)
+        raise NotImplementedError
 
     def _get_clf(self):
-        return ConfidenceEnhancedLinearSVC()
+        raise NotImplementedError
 
     def _get_query_strategy(self):
-        return LightweightCoreset(self.normalize)
+        raise NotImplementedError
 
     # overrides test from SamplingStrategiesTests (to use embeddings)
     def test_simple_query(self, embedding_dim=100):
@@ -160,3 +204,29 @@ class LightweightCoresetTest(unittest.TestCase, SamplingStrategiesTests):
 
         with self.assertRaises(EmptyPoolException):
             strategy.query(None, dataset, indices_unlabeled, indices_labeled, y, n=n)
+
+
+class LightweightCoresetSamplingStrategyNormalizedTest(_LightweightCoresetSamplingStrategyTest,
+                                                       unittest.TestCase):
+
+    def setUp(self):
+        self.normalize = True
+
+    def _get_clf(self):
+        return ConfidenceEnhancedLinearSVC()
+
+    def _get_query_strategy(self):
+        return LightweightCoreset(self.normalize)
+
+
+class LightweightCoresetSamplingStrategyUnnormalizedTest(_LightweightCoresetSamplingStrategyTest,
+                                                         unittest.TestCase):
+
+    def setUp(self):
+        self.normalize = True
+
+    def _get_clf(self):
+        return ConfidenceEnhancedLinearSVC()
+
+    def _get_query_strategy(self):
+        return LightweightCoreset(self.normalize)

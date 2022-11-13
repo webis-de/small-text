@@ -33,7 +33,13 @@ Expected Gradient Length
 technically works with all common neural networks. In the context of active learning for
 text classification it has been shown to work in combination with the
 :py:class:`~small_text.integrations.pytorch.models.kimcnn.KimCNN` model [ZLW17]_
-and also with transformer models [EHG+20]_. For the latter it is, however, costly in terms of runtime.
+and also with transformer models [EHG+20]_. For transformer models, however, this strategy is computationally expensive.
+
+Greedy Coreset
+--------------
+
+While the distance metric to be used is interchangeable, the original publication [SS17]_ used euclidean distance.
+
 
 Stopping Criteria
 =================

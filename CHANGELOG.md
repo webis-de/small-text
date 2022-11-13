@@ -6,6 +6,14 @@
 
 - New query strategy: [BALD](https://github.com/webis-de/small-text/blob/v1.2.0/small_text/query_strategies/bayesian.py).
 
+### Fixed
+
+- Distances in [lightweight_coreset](https://github.com/webis-de/small-text/blob/v1.2.0/small_text/query_strategies/coresets.py) were not correctly projected onto the [0, 1] interval (but ranking was unaffected).
+
+### Changed
+
+- [Coreset implementations](https://github.com/webis-de/small-text/blob/v1.2.0/small_text/query_strategies/coresets.py) now use the distance-based  (as opposed to the similarity-based) formulation.
+
 ---
 
 ## Version 1.1.1 - 2022-10-14

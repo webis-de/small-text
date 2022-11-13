@@ -1,6 +1,12 @@
+import warnings
+
 import numpy as np
 
+from sklearn.metrics import pairwise_distances
 from small_text.query_strategies.strategies import EmbeddingBasedQueryStrategy
+
+
+_DISTANCE_METRICS = ['cosine', 'euclidean']
 
 
 def _check_coreset_size(x, n):
@@ -8,15 +14,21 @@ def _check_coreset_size(x, n):
         raise ValueError(f'n (n={n}) is greater the number of available samples (num_samples={x.shape[0]})')
 
 
-def _cosine_similarity(a, b, normalized=False):
+def _cosine_distance(a, b, normalized=False):
     sim = np.matmul(a, b.T)
     if not normalized:
         sim = sim / np.dot(np.linalg.norm(a, axis=1)[:, np.newaxis],
-            np.linalg.norm(b, axis=1)[np.newaxis, :])
-    return sim
+                           np.linalg.norm(b, axis=1)[np.newaxis, :])
+    return np.arccos(sim) / np.pi
 
 
-def greedy_coreset(x, indices_unlabeled, indices_labeled, n, batch_size=100, normalized=False):
+def _euclidean_distance(a, b, normalized=False):
+    _ = normalized
+    return pairwise_distances(a, b, metric='euclidean')
+
+
+def greedy_coreset(x, indices_unlabeled, indices_labeled, n, distance_metric='cosine',
+                   batch_size=100, normalized=False):
     """Computes a greedy coreset [SS17]_ over `x` with size `n`.
 
     Parameters
@@ -29,6 +41,8 @@ def greedy_coreset(x, indices_unlabeled, indices_labeled, n, batch_size=100, nor
         Indices (relative to `dataset`) for the unlabeled data.
     n : int
         Size of the coreset (in number of instances).
+    distance_metric : {'cosine', 'euclidean'}
+        Distance metric to be used.
     batch_size : int
         Batch size.
     normalized : bool
@@ -51,13 +65,20 @@ def greedy_coreset(x, indices_unlabeled, indices_labeled, n, batch_size=100, nor
     num_batches = int(np.ceil(x.shape[0] / batch_size))
     ind_new = []
 
+    if distance_metric == 'cosine':
+        dist_func = _cosine_distance
+    elif distance_metric == 'euclidean':
+        dist_func = _euclidean_distance
+    else:
+        raise ValueError(f'Invalid distance metric: {distance_metric}. '
+                         f'Possible values: {_DISTANCE_METRICS}')
+
     for _ in range(n):
         indices_s = np.concatenate([indices_labeled, ind_new]).astype(np.int64)
         dists = np.array([], dtype=np.float32)
         for batch in np.array_split(x[indices_unlabeled], num_batches, axis=0):
 
-            sim = _cosine_similarity(batch, x[indices_s], normalized=normalized)
-            dist = np.arccos(sim) / np.pi
+            dist = dist_func(batch, x[indices_s], normalized=normalized)
 
             sims_batch = np.amin(dist, axis=1)
             dists = np.append(dists, sims_batch)
@@ -71,8 +92,41 @@ def greedy_coreset(x, indices_unlabeled, indices_labeled, n, batch_size=100, nor
 
 
 class GreedyCoreset(EmbeddingBasedQueryStrategy):
+    """Selects instances by constructing a greedy coreset [SS17]_ over document embeddings.
+    """
+    def __init__(self, distance_metric='euclidean', normalize=True, batch_size=100):
+        """
+        Parameters
+        ----------
+        distance_metric : {'cosine', 'euclidean'}
+             Distance metric to be used.
 
-    def __init__(self, normalize=True, batch_size=100):
+             .. versionadded:: 1.2.0
+        normalize : bool
+            Embeddings will be normalized before the coreset construction if True.
+        batch_size : int
+            Batch size used for computing document distances.
+
+
+        .. note::
+
+           The default distance metric before v1.2.0 used to be cosine distance.
+
+        .. seealso::
+
+           Function :py:func:`.greedy_coreset`
+              Docstrings of the underlying :py:func:`greedy_coreset` method.
+        """
+        if distance_metric not in set(_DISTANCE_METRICS):
+            raise ValueError(f'Invalid distance metric: {distance_metric}. '
+                             f'Possible values: {_DISTANCE_METRICS}')
+
+        if distance_metric != 'cosine':
+            warnings.warn('Default distance metric has changed from "cosine" '
+                          'to "euclidean" in v1.2.0. This warning will disappear in '
+                          'v2.0.0.')
+
+        self.distance_metric = distance_metric
         self.normalize = normalize
         self.batch_size = batch_size
 
@@ -82,10 +136,11 @@ class GreedyCoreset(EmbeddingBasedQueryStrategy):
             from sklearn.preprocessing import normalize
             embeddings = normalize(embeddings, axis=1)
         return greedy_coreset(embeddings, indices_unlabeled, indices_labeled, n,
-                              normalized=self.normalize)
+                              distance_metric=self.distance_metric, normalized=self.normalize)
 
     def __str__(self):
-        return f'GreedyCoreset(normalize={self.normalize}, batch_size={self.batch_size})'
+        return f'GreedyCoreset(distance_metric={self.distance_metric}, ' \
+            f'normalize={self.normalize}, batch_size={self.batch_size})'
 
 
 def lightweight_coreset(x, x_mean, n, normalized=False, proba=None):
@@ -142,14 +197,15 @@ def lightweight_coreset(x, x_mean, n, normalized=False, proba=None):
 
 
 class LightweightCoreset(EmbeddingBasedQueryStrategy):
-    """Selects instances using the lightweight coreset method _[BAC18].
-
-    Parameters
-    ----------
-    normalize : bool
-        Embeddings are normalized if `True`, otherwise they are left unchanged.
+    """Selects instances by constructing a lightweight coreset [BAC18]_ over document embeddings.
     """
     def __init__(self, normalize=True):
+        """
+        Parameters
+        ----------
+        normalize : bool
+            Embeddings will be normalized before the coreset construction if True.
+        """
         self.normalize = normalize
 
     def sample(self, clf, dataset, indices_unlabeled, _indices_labeled, _y, n, embeddings,

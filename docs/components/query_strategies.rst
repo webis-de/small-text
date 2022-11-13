@@ -157,3 +157,10 @@ Pytorch Integration
 
 .. autoclass:: BADGE
     :special-members: __init__
+
+Functions
+=========
+
+.. autofunction:: small_text.query_strategies.coresets.greedy_coreset
+
+.. autofunction:: small_text.query_strategies.coresets.lightweight_coreset
