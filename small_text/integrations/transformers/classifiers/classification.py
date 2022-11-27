@@ -63,8 +63,8 @@ def transformers_collate_fn(batch, multi_label=None, num_classes=None, use_sampl
 
 class FineTuningArguments(object):
     """
-    Arguments to enable and configure gradual unfreezing and discriminative learning rates as used in
-    Universal Language Model Fine-tuning (ULMFiT) [HR18]_.
+    Arguments to enable and configure gradual unfreezing and discriminative learning rates as used
+    in Universal Language Model Fine-tuning (ULMFiT) [HR18]_.
     """
 
     def __init__(self, base_lr, layerwise_gradient_decay, gradual_unfreezing=-1, cut_fraction=0.1):
@@ -86,6 +86,16 @@ class FineTuningArguments(object):
 class TransformerModelArguments(object):
 
     def __init__(self, model, tokenizer=None, config=None):
+        """
+        Parameters
+        ----------
+        model : str
+            Name of the transformer model. Will be passed into `AutoModel.from_pretrained()`.
+        tokenizer : str
+            Name of the tokenizer. Will be passed into `AutoTokenizer.from_pretrained()`.
+        config : str
+            Name of the config. Will be passed into `AutoConfig.from_pretrained()`.
+        """
         self.model = model
         self.tokenizer = tokenizer
         self.config = config

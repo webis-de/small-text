@@ -5,7 +5,7 @@ from numpy.testing import assert_array_equal
 from sklearn.feature_extraction.text import TfidfVectorizer
 from unittest.mock import patch
 
-from small_text.data import SklearnDataset
+from small_text.data import SklearnDataset, TextDataset
 from tests.utils.datasets import random_labeling, random_labels
 from tests.utils.testing import assert_csr_matrix_equal
 
@@ -134,3 +134,49 @@ class SklearnDatasetConstructionMultiLabelTest(unittest.TestCase):
             self.assertTrue(is_fitted)
 
             transform_spy.assert_called_with(texts)
+
+
+class TextDatasetConstructionSingleLabelTest(unittest.TestCase):
+
+    def test_from_arrays_with_lists(self):
+        texts = [f'train data {i}' for i in range(10)]
+        labels = np.array([random_labeling(3) for _ in range(10)])
+
+        dataset = TextDataset.from_arrays(texts, labels)
+
+        self.assertEqual(10, len(dataset))
+        self.assertTrue(isinstance(dataset.x, list))
+        assert_array_equal(texts, dataset.x)
+        assert_array_equal(labels, dataset.y)
+
+    def test_from_arrays_with_ndarray(self):
+        texts = np.array([f'train data {i}' for i in range(10)])
+        labels = np.array([random_labeling(3) for _ in range(10)])
+
+        dataset = TextDataset.from_arrays(texts, labels)
+        self.assertTrue(isinstance(dataset.x, list))
+        assert_array_equal(texts, dataset.x)
+        assert_array_equal(labels, dataset.y)
+
+
+class TextDatasetConstructionMultiLabelTest(unittest.TestCase):
+
+    def test_from_arrays_with_lists(self):
+        texts = [f'train data {i}' for i in range(10)]
+        labels = random_labels(10, 3, multi_label=True)
+
+        dataset = TextDataset.from_arrays(texts, labels)
+
+        self.assertEqual(10, len(dataset))
+        self.assertTrue(isinstance(dataset.x, list))
+        assert_array_equal(texts, dataset.x)
+        assert_csr_matrix_equal(labels, dataset.y)
+
+    def test_from_arrays_with_ndarray(self):
+        texts = np.array([f'train data {i}' for i in range(10)])
+        labels = random_labels(10, 3, multi_label=True)
+
+        dataset = TextDataset.from_arrays(texts, labels)
+        self.assertTrue(isinstance(dataset.x, list))
+        assert_array_equal(texts, dataset.x)
+        assert_csr_matrix_equal(labels, dataset.y)

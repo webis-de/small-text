@@ -14,6 +14,7 @@ from small_text.training.early_stopping import (
 )
 from small_text.training.metrics import Metric
 from small_text.training.model_selection import ModelSelection, NoopModelSelection
+from small_text.utils.classification import empty_result, prediction_result
 
 try:
     import torch
@@ -23,7 +24,6 @@ try:
     from torch.optim.lr_scheduler import _LRScheduler, LambdaLR
 
     from small_text.integrations.pytorch.utils.data import dataloader, get_class_weights
-    from small_text.utils.classification import empty_result, prediction_result
     from small_text.integrations.pytorch.utils.loss import _LossAdapter2DTo1D
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')

@@ -31,10 +31,13 @@ class ImportTest(unittest.TestCase):
         from small_text import check_target_labels
         from small_text import Dataset
         from small_text import DatasetView
+        from small_text import SklearnDatasetView
+        from small_text import TextDatasetView
         from small_text import get_updated_target_labels
         from small_text import is_multi_label
         from small_text import select
         from small_text import SklearnDataset
+        from small_text import TextDataset
         from small_text import split_data
         from small_text import balanced_sampling
         from small_text import multilabel_stratified_subsets_sampling

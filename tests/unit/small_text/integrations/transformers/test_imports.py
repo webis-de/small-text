@@ -18,3 +18,4 @@ class ImportsTest(unittest.TestCase):
 
     def test_import_classifier_factories_modules(self):
         from small_text import TransformerBasedClassificationFactory
+        from small_text import SetFitClassificationFactory

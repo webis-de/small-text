@@ -4,10 +4,13 @@ from small_text.data.datasets import (
     check_target_labels,
     Dataset,
     DatasetView,
+    SklearnDatasetView,
+    TextDatasetView,
     get_updated_target_labels,
     is_multi_label,
     select,
     SklearnDataset,
+    TextDataset,
     split_data
 )
 from small_text.data.sampling import (
@@ -28,6 +31,9 @@ __all__ = [
     'is_multi_label',
     'select',
     'SklearnDataset',
+    'SklearnDatasetView',
+    'TextDataset',
+    'TextDatasetView',
     'split_data',
     'balanced_sampling',
     'multilabel_stratified_subsets_sampling',

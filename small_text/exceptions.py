@@ -1,3 +1,8 @@
+class UnsupportedOperationException(Exception):
+    """Raised when the called operation is not supported."""
+    pass
+
+
 class ActiveLearnerException(Exception):
     """Base class for active learner exceptions."""
     pass

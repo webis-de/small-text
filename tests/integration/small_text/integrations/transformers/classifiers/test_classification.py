@@ -118,7 +118,7 @@ class EmbeddingTest(unittest.TestCase):
         self.assertEqual(clf.model.config.hidden_size, embedding_one.shape[1])
         self.assertEqual(clf.model.config.hidden_size, embedding_two.shape[1])
 
-    def test_embed_with_predictions(self):
+    def test_embed_with_proba(self):
         classifier_kwargs = {
             'fine_tuning_arguments': FineTuningArguments(0.2, 0.95),
             'num_epochs': 1
@@ -133,11 +133,13 @@ class EmbeddingTest(unittest.TestCase):
         clf = clf_factory.new()
         clf.fit(train_set)
 
-        embeddings, predictions = clf.embed(train_set, return_proba=True, embedding_method=self.embedding_method)
+        embeddings, proba = clf.embed(train_set,
+                                      return_proba=True,
+                                      embedding_method=self.embedding_method)
         self.assertEqual(2, len(embeddings.shape))
         self.assertEqual(len(train_set), embeddings.shape[0])
         self.assertEqual(clf.model.config.hidden_size, embeddings.shape[1])
-        self.assertEqual(len(train_set), predictions.shape[0])
+        self.assertEqual(len(train_set), proba.shape[0])
 
 
 class _TransformerBasedClassificationTest(object):

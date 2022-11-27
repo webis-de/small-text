@@ -17,7 +17,8 @@ This can be used to create a completely unlabeled dataset.
 
 # map from requirement specifier to name of the module that should be tested for importing
 OPTIONAL_DEPENDENCIES = dict({
-    'hnswlib': 'hnswlib'
+    'hnswlib': 'hnswlib',
+    'setfit': 'setfit'
 })
 
 

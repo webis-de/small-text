@@ -153,3 +153,8 @@ def empty_result(multi_label, num_classes, return_prediction=True, return_proba=
             return np.empty((0, num_classes), dtype=np.int64)
         else:
             return np.empty((0, num_classes), dtype=float)
+
+
+def _multi_label_list_to_multi_hot(multi_label_list, num_classes):
+    return [[0 if i not in set(entry) else 1 for i in range(num_classes)]
+            for entry in multi_label_list]

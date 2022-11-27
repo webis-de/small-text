@@ -2,6 +2,7 @@ import warnings
 import numpy as np
 
 from abc import ABCMeta, abstractmethod
+from copy import copy
 from scipy.sparse import csr_matrix
 from scipy.sparse import issparse
 
@@ -9,6 +10,7 @@ from small_text.base import LABEL_UNLABELED
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.data.sampling import stratified_sampling, balanced_sampling
 from small_text.utils.annotations import experimental
+from small_text.utils.data import list_length
 from small_text.utils.labels import get_flattened_unique_labels
 
 
@@ -19,9 +21,14 @@ def check_size(expected_num_samples, num_samples):
 
 
 def check_dataset_and_labels(x, y):
-    if x.shape[0] != y.shape[0]:
-        raise ValueError(f'Feature and label dimensions do not match: '
-                         f'x.shape = {x.shape}, y.shape= {y.shape} ### {type(x)} / {type(y)}')
+    len_x = list_length(x)
+    if len_x != y.shape[0]:
+        if hasattr(x, 'shape'):
+            raise ValueError(f'Feature and label dimensions do not match: '
+                             f'x.shape = {x.shape}, y.shape= {y.shape} ### {type(x)} / {type(y)}')
+        else:
+            raise ValueError(f'Feature and label dimensions do not match: '
+                             f'x = ({len_x},), y.shape= ({y.shape[0]},) ### {type(x)} / {type(y)}')
 
 
 def check_target_labels(target_labels):
@@ -213,7 +220,103 @@ class SklearnDatasetView(DatasetView):
         return self.obj_class(self, item)
 
     def __len__(self):
-        return self.dataset.x[select(self.dataset, self.selection)].shape[0]
+        return self.x.shape[0]
+
+
+class TextDatasetView(DatasetView):
+    """An immutable view on a TextDataset or a subset thereof."""
+
+    def __init__(self, dataset, selection):
+        """
+        Parameters
+        ----------
+        dataset : Dataset
+            The base dataset.
+        selection : int or list or slice or np.ndarray
+            Selects the subset for this view.
+        """
+        self.obj_class = type(self)
+        self._dataset = dataset
+
+        self.selection = selection
+
+    @property
+    def dataset(self):
+        return self._dataset
+
+    @property
+    def x(self):
+        if isinstance(self.selection, (int, np.integer)):
+            return [self.dataset.x[self.selection]]
+
+        is_slice = isinstance(self.selection, slice) \
+            or isinstance(self.selection, np.lib.index_tricks.IndexExpression)
+        is_list = isinstance(self.selection, list)
+
+        if is_slice or is_list:
+            selection = np.arange(len(self.dataset))[self.selection]
+        else:
+            selection = self.selection
+
+        return [self.dataset.x[i] for i in selection]
+
+    @x.setter
+    def x(self, x):
+        raise UnsupportedOperationException('Cannot set x on a DatasetView')
+
+    @property
+    def y(self):
+        y_result = self.dataset.y[self.selection]
+        if self.is_multi_label:
+            return y_result
+        else:
+            return np.atleast_1d(y_result)
+
+    @y.setter
+    def y(self, y):
+        raise UnsupportedOperationException('Cannot set y on a DatasetView')
+
+    @property
+    def is_multi_label(self):
+        return self.dataset.is_multi_label
+
+    @property
+    def target_labels(self):
+        return self.dataset.target_labels
+
+    @target_labels.setter
+    def target_labels(self, target_labels):
+        raise UnsupportedOperationException('Cannot set target_labels on a DatasetView')
+
+    def clone(self):
+        if isinstance(self.x, csr_matrix):
+            x = self.x.copy()
+        else:
+            x = np.copy(self.x)
+
+        if isinstance(self.y, csr_matrix):
+            y = self.y.copy()
+        else:
+            y = np.copy(self.y)
+
+        dataset = self
+        while hasattr(dataset, 'dataset'):
+            dataset = dataset.dataset
+
+        if dataset.track_target_labels:
+            target_labels = None
+        else:
+            target_labels = np.copy(dataset._target_labels)
+
+        return TextDataset(x,
+                           y,
+                           target_labels=target_labels)
+
+    def __getitem__(self, item):
+        return self.obj_class(self, item)
+
+    def __len__(self):
+        return len(self.x)
 
 
 def is_multi_label(y):
@@ -229,7 +332,27 @@ def select(dataset, selection):
     return selection
 
 
-class SklearnDataset(Dataset):
+class _InferLabelsMixin(object):
+
+    def _infer_target_labels(self):
+        if self.__len__() == 0:
+            self.target_labels = np.array([0])
+        else:
+            unique_labels = np.unique(self._get_flattened_labels())
+            if unique_labels.shape[0] > 0:
+                max_label_id = unique_labels.max()
+                self.target_labels = np.arange(max_label_id+1)
+            else:
+                self.target_labels = np.array([0])
+
+    def _get_flattened_labels(self):
+        if self.multi_label:
+            return self.y.indices
+        else:
+            return self.y[np.argwhere(self.y > LABEL_UNLABELED)]
+
+
+class SklearnDataset(_InferLabelsMixin, Dataset):
     """A dataset representations which is usable in combination with scikit-learn classifiers.
     """
 
@@ -257,23 +380,6 @@ class SklearnDataset(Dataset):
         else:
             self.track_target_labels = True
             self._infer_target_labels()
-
-    def _infer_target_labels(self):
-        if self.x.shape[0] == 0:
-            self.target_labels = np.array([0])
-        else:
-            unique_labels = np.unique(self._get_flattened_labels())
-            if unique_labels.shape[0] > 0:
-                max_label_id = unique_labels.max()
-                self.target_labels = np.arange(max_label_id+1)
-            else:
-                self.target_labels = np.array([0])
-
-    def _get_flattened_labels(self):
-        if self.multi_label:
-            return self.y.indices
-        else:
-            return self.y[np.argwhere(self.y > LABEL_UNLABELED)]
 
     @property
     def x(self):
@@ -401,6 +507,154 @@ class SklearnDataset(Dataset):
 
     def __len__(self):
         return self._x.shape[0]
+
+
+class TextDataset(_InferLabelsMixin, Dataset):
+    """A dataset representation consisting of raw text data.
+    """
+
+    def __init__(self, x, y, target_labels=None):
+        """
+        Parameters
+        ----------
+        x : list of str
+            List of texts.
+        y : numpy.ndarray[int] or scipy.sparse.csr_matrix
+            List of labels where each label belongs to the features of the respective row.
+        target_labels : numpy.ndarray[int] or None, default=None
+            List of possible labels. Will be inferred from `y` if `None` is passed."""
+        check_dataset_and_labels(x, y)
+        check_target_labels(target_labels)
+
+        if isinstance(x, np.ndarray):
+            x = x.tolist()
+
+        self._x = x
+        self._y = y
+
+        self.multi_label = is_multi_label(self._y)
+
+        if target_labels is not None:
+            self.track_target_labels = False
+            self.target_labels = target_labels
+        else:
+            self.track_target_labels = True
+            self._infer_target_labels()
+
+    @property
+    def x(self):
+        """Returns the features.
+
+        Returns
+        -------
+        x : list of str
+            List of texts.
+        """
+        return self._x
+
+    @x.setter
+    def x(self, x):
+        check_dataset_and_labels(x, self._y)
+        self._x = x
+
+    @property
+    def y(self):
+        return self._y
+
+    @y.setter
+    def y(self, y):
+        check_dataset_and_labels(self.x, y)
+        self._y = y
+
+        if self.track_target_labels:
+            self.target_labels = get_updated_target_labels(self.is_multi_label, y, self.target_labels)
+        else:
+            max_label_id = np.max(y)
+            max_target_labels_id = self.target_labels.max()
+            if max_label_id > max_target_labels_id:
+                raise ValueError(f'Error while assigning new labels to dataset: '
+                                 f'Encountered label with id {max_label_id} which is outside of '
+                                 f'the configured set of target labels (whose maximum label is '
+                                 f'is {max_target_labels_id}) [track_target_labels=False]')
+
+    @property
+    def is_multi_label(self):
+        return self.multi_label
+
+    @property
+    def target_labels(self):
+        """Returns a list of possible labels.
+
+        Returns
+        -------
+        target_labels : numpy.ndarray
+            List of possible labels.
+        """
+        return self._target_labels
+
+    @target_labels.setter
+    def target_labels(self, target_labels):
+        encountered_labels = get_flattened_unique_labels(self)
+        if np.setdiff1d(encountered_labels, target_labels).shape[0] > 0:
+            raise ValueError('Cannot remove existing labels from target_labels as long as they '
+                             'still exists in the data. Create a new dataset instead.')
+        self._target_labels = target_labels
+
+    def clone(self):
+        x = copy(self._x)
+
+        if isinstance(self._y, csr_matrix):
+            y = self._y.copy()
+        else:
+            y = np.copy(self._y)
+
+        if self.track_target_labels:
+            target_labels = None
+        else:
+            target_labels = np.copy(self._target_labels)
+
+        return TextDataset(x, y, target_labels=target_labels)
+
+    @classmethod
+    @experimental
+    def from_arrays(cls, texts, y, target_labels=None):
+        """Constructs a new TextDataset from the given text and label arrays.
+
+        Parameters
+        ----------
+        texts : list of str
+            List of text documents.
+        y : np.ndarray[int] or scipy.sparse.csr_matrix
+            List of labels where each label belongs to the features of the respective row.
+            Depending on the type of `y` the resulting dataset will be single-label (`np.ndarray`)
+            or multi-label (`scipy.sparse.csr_matrix`).
+        target_labels : numpy.ndarray[int] or None, default=None
+            List of possible labels. Will be directly passed to the datset constructor.
+
+        Returns
+        -------
+        dataset : SklearnDataset
+            A dataset constructed from the given texts and labels.
+
+
+        .. seealso::
+           `scikit-learn docs: Vectorizer API reference
+           <https://scikit-learn.org/stable/modules/classes.html
+           #module-sklearn.feature_extraction.text>`_
+
+        .. warning::
+           This functionality is still experimental and may be subject to change.
+
+        .. versionadded:: 1.2.0
+        """
+
+        return TextDataset(texts, y, target_labels=target_labels)
+
+    def __getitem__(self, item):
+        return TextDatasetView(self, item)
+
+    def __len__(self):
+        return len(self._x)
 
 
 def split_data(train_set, y=None, strategy='random', validation_set_size=0.1, return_indices=False):

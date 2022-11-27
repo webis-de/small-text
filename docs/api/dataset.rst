@@ -25,6 +25,11 @@ Core
   :members:
   :special-members: __init__
 
+.. autoclass:: small_text.data.datasets.TextDataset
+  :members:
+  :special-members: __init__
+
+
 Pytorch Integration
 ===================
 

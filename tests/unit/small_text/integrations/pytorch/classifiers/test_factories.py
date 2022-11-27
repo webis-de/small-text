@@ -8,7 +8,9 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 try:
     import torch
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
-    from small_text.integrations.pytorch.classifiers.factories import KimCNNFactory
+    from small_text.integrations.pytorch.classifiers.factories import (
+        KimCNNFactory
+    )
 except PytorchNotFoundError:
     pass
 

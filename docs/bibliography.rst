@@ -77,7 +77,7 @@ Bibliography
    Active Learning for BERT: An Empirical Study.
    In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP), pages 7949–7962.
 
-.. [CCK+21] Cody Coleman, Edward Chou, Julian Katz-Samuels, Sean Culatana, Peter Bailis, Alexander C. Berg, Robert Nowak, Roshan Sumbaly, Matei Zaharia, I. Zeki Yalniz. 2020.
+.. [CCK+21] Cody Coleman, Edward Chou, Julian Katz-Samuels, Sean Culatana, Peter Bailis, Alexander C. Berg, Robert Nowak, Roshan Sumbaly, Matei Zaharia, and I. Zeki Yalniz. 2020.
    Similarity Search for Efficient Active Learning and Search of Rare Concepts.
    ArXiv abs/2007.00077v2.
 
@@ -85,6 +85,10 @@ Bibliography
    Active Learning by Acquiring Contrastive Examples.
    In Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing (EMNLP), pages 650–663.
 
-.. [SNP22] Christopher Schröder, Andreas Niekler and Martin Potthast. 2022.
+.. [SNP22] Christopher Schröder, Andreas Niekler, and Martin Potthast. 2022.
    Revisiting Uncertainty-based Query Strategies for Active Learning with Transformers.
    In Findings of the Association for Computational Linguistics: ACL 2022, pages 2194–2203.
+
+.. [TRE+22] Lewis Tunstall, Nils Reimers, Unso Eun Seo Jo, Luke Bates, Daniel Korat, Moshe Wasserblat, and Oren Pereg. 2022.
+   Efficient Few-Shot Learning Without Prompts.
+   ArXiv, abs/2209.11055.

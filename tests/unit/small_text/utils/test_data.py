@@ -13,7 +13,12 @@ class DataUtilsTest(unittest.TestCase):
 
     def test_list_length(self):
         self.assertEqual(10, list_length(list(range(10))))
+
+    def test_list_length_2d(self):
         self.assertEqual(10, list_length(np.random.rand(10, 2)))
+
+    def test_list_length_text(self):
+        self.assertEqual(10, list_length(['this is a sentence'] * 10))
 
     def test_check_training_data(self):
         ds_train = random_sklearn_dataset(8)

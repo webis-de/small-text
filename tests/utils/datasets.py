@@ -1,11 +1,13 @@
+import string
 import numpy as np
 
 from collections import Counter
 from scipy import sparse
 from sklearn.datasets import fetch_20newsgroups
 
-from small_text.data.datasets import SklearnDataset
+from small_text.data.datasets import SklearnDataset, TextDataset
 from small_text.data.sampling import _get_class_histogram
+from small_text.utils.labels import csr_to_list, list_to_csr
 
 try:
     import torch
@@ -40,6 +42,13 @@ def random_matrix_data(matrix_type, label_type, num_samples=100, num_dimension=4
         raise ValueError(f'Invalid label_type: {label_type}')
 
     return x, y
+
+
+def random_text_data(num_samples=100):
+    x = [' '.join([''.join(np.random.choice(list(string.ascii_lowercase), np.random.randint(3, 9)).tolist())
+                   for _ in range(np.random.randint(5, 12))])
+         for _ in range(num_samples)]
+    return x
 
 
 # TODO: is this obsolete?
@@ -172,6 +181,38 @@ def assure_all_labels_occur(data, num_classes, multi_label=False):
     return data
 
 
+def assure_all_labels_occur_numpy(y, num_classes, multi_label=False):
+    """Enforces that all labels occur in the data."""
+
+    if multi_label:
+        y = csr_to_list(y)
+
+    label_list = [labels for labels in y
+                  if isinstance(labels, int) or (isinstance(labels, list) and len(labels) > 0)]
+    if len(label_list) == 0:
+        return y
+
+    if not np.all([isinstance(element, int) for element in label_list]):
+        all_labels = np.concatenate(label_list, dtype=int)
+        all_labels = all_labels.flatten()
+    else:
+        all_labels = np.array(label_list)
+
+    hist = _get_class_histogram(all_labels, num_classes)
+    missing_labels = np.arange(hist.shape[0])[hist == 0]
+
+    for i, label_idx in enumerate(missing_labels):
+        if multi_label:
+            y[i] = y[i][:-1] + (np.sort(np.append(y[i][-1], [label_idx])),)
+        else:
+            y[i] = y[i][:-1] + (label_idx,)
+
+    if multi_label:
+        y = list_to_csr(y, (len(y), num_classes))
+
+    return y
+
+
 def random_transformer_dataset(num_samples, max_length=60, num_classes=2, multi_label=False,
                                num_tokens=1000, target_labels='inferred', dtype=torch.long):
 
@@ -224,3 +265,27 @@ def twenty_news_transformers(n, num_labels=10, subset='train', device='cpu'):
         data.append((encoded_dict['input_ids'], encoded_dict['attention_mask'], train_y[i]))
 
     return TransformersDataset(data)
+
+
+def twenty_news_text(n, num_classes=10, subset='train', multi_label=False):
+    train = fetch_20newsgroups(subset=subset)
+    x = train.data[:n]
+    if multi_label:
+        y = list_to_csr([np.sort(random_labeling(num_classes, multi_label)).tolist()
+                         for _ in range(n)], (n, num_classes))
+    else:
+        y = np.random.randint(0, num_classes, size=n)
+    y = assure_all_labels_occur_numpy(y, num_classes, multi_label=multi_label)
+    return TextDataset(x, y)
+
+
+def random_text_dataset(n, num_classes=10, multi_label=False):
+    x = random_text_data(n)
+    if multi_label:
+        y = list_to_csr([np.sort(random_labeling(num_classes, multi_label)).tolist()
+                         for _ in range(n)], (n, num_classes))
+    else:
+        y = np.random.randint(0, num_classes, size=n)
+
+    y = assure_all_labels_occur_numpy(y, num_classes, multi_label=multi_label)
+    return TextDataset(x, y)

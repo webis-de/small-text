@@ -40,3 +40,7 @@
 .descclassname {
    display: inline-block;
 }
+
+.wy-table-responsive thead th {
+   background-color: #d8ebff;
+}

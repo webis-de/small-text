@@ -9,6 +9,10 @@ Dataset Classes
 
 Classification
 ==============
+
+Transformer-based Classification
+--------------------------------
+
 .. autoclass:: small_text.integrations.transformers.classifiers.classification.FineTuningArguments
    :special-members: __init__
    :members:
@@ -17,3 +21,13 @@ Classification
    :special-members: __init__
    :members:
 
+Sentence Transformer Finetuning
+-------------------------------
+
+.. autoclass:: small_text.integrations.transformers.classifiers.setfit.SetFitModelArguments
+   :special-members: __init__
+   :members:
+
+.. autoclass:: small_text.integrations.transformers.classifiers.setfit.SetFitClassification
+   :special-members: __init__
+   :members:
