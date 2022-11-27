@@ -87,6 +87,7 @@ or check out the notebooks.
 | --- | -------- | --- |
 | 1 | [Intro: Active Learning for Text Classification with Small-Text](https://github.com/webis-de/small-text/blob/v1.1.1/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.0.0/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
 | 2 | [Using Stopping Criteria for Active Learning](https://github.com/webis-de/small-text/blob/v1.1.1/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.0.0/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) |
+| 3 | [Active Learning using SetFit (preview / unreleased)](https://github.com/webis-de/small-text/blob/main/examples/notebooks/03-active-learning-with-setfit.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/main/examples/notebooks/03-active-learning-with-setfit.ipynb) |
 
 ### Showcase
 
