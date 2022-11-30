@@ -77,9 +77,9 @@ Bibliography
    Active Learning for BERT: An Empirical Study.
    In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP), pages 7949–7962.
 
-.. [CCK+21] Cody Coleman, Edward Chou, Julian Katz-Samuels, Sean Culatana, Peter Bailis, Alexander C. Berg, Robert Nowak, Roshan Sumbaly, Matei Zaharia, and I. Zeki Yalniz. 2020.
+.. [CCK+22] Cody Coleman, Edward Chou, Julian Katz-Samuels, Sean Culatana, Peter Bailis, Alexander C. Berg, Robert Nowak, Roshan Sumbaly, Matei Zaharia, and I. Zeki Yalniz. 2022.
    Similarity Search for Efficient Active Learning and Search of Rare Concepts.
-   ArXiv abs/2007.00077v2.
+   Proceedings of the AAAI Conference on Artificial Intelligence, 36(6), 6402-6410
 
 .. [MVB+21] Katerina Margatina, Giorgos Vernikos, Loïc Barrault, and Nikolaos Aletras. 2021.
    Active Learning by Acquiring Contrastive Examples.
