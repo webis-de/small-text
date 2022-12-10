@@ -26,7 +26,9 @@ Please provide the following information about your environment:
 Python version:  
 small-text version:  
 small-text integrations (e.g., transformers):  
-PyTorch version (if applicable):
+PyTorch version (if applicable):  
+
+Installation (pip, conda, or from source):  
 CUDA version (if applicable):  
 
 ## Addition information
