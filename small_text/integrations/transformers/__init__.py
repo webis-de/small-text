@@ -8,7 +8,11 @@ try:
         TransformerBasedClassification,
         TransformerBasedEmbeddingMixin
     )
-    from small_text.integrations.transformers.classifiers.setfit import SetFitClassification
+    from small_text.integrations.transformers.classifiers.setfit import (
+        SetFitClassification,
+        SetFitModelArguments,
+        SetFitClassificationEmbeddingMixin
+    )
     from small_text.integrations.transformers.classifiers.factories import (
         SetFitClassificationFactory,
         TransformerBasedClassificationFactory
@@ -24,6 +28,8 @@ try:
         'TransformerBasedClassification',
         'TransformerBasedEmbeddingMixin',
         'SetFitClassification',
+        'SetFitModelArguments',
+        'SetFitClassificationEmbeddingMixin',
         'TransformerBasedClassificationFactory',
         'SetFitClassificationFactory',
         'TransformersDataset',

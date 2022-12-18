@@ -16,6 +16,11 @@ class ImportsTest(unittest.TestCase):
         from small_text import TransformerBasedEmbeddingMixin
         from small_text import TransformerBasedClassification
 
+    def test_import_setfit_modules(self):
+        from small_text import SetFitClassification
+        from small_text import SetFitModelArguments
+        from small_text import SetFitClassificationEmbeddingMixin
+
     def test_import_classifier_factories_modules(self):
         from small_text import TransformerBasedClassificationFactory
         from small_text import SetFitClassificationFactory
