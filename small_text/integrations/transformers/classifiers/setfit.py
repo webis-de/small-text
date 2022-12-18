@@ -292,3 +292,11 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                                   axis=0)
 
             return proba
+
+    def __del__(self):
+        try:
+            attrs = ['model']
+            for attr in attrs:
+                delattr(self, attr)
+        except Exception:
+            pass
