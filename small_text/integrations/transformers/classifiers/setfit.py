@@ -160,8 +160,23 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         self.use_differentiable_head = use_differentiable_head
         self.mini_batch_size = mini_batch_size
 
-    def fit(self, train_set, validation_set=None):
+    def fit(self, train_set, validation_set=None, setfit_train_kwargs=dict()):
+        """Trains the model using the given train set.
 
+        Parameters
+        ----------
+        train_set : TextDataset
+            A dataset used for training the model.
+        validation_set : TextDataset or None, default None
+            A dataset used for validation during training.
+        setfit_train_kwargs : dict
+            Additional keyword arguments that are passed to `SetFitTrainer.train()`
+
+        Returns
+        -------
+        self : SetFitClassification
+            Returns the current classifier with a fitted model.
+        """
         x_valid = validation_set.x if validation_set is not None else None
         y_valid = validation_set.y if validation_set is not None else None
 
@@ -184,7 +199,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         if self.use_differentiable_head:
             raise NotImplementedError
         else:
-            return self._fit(sub_train, sub_valid)
+            return self._fit(sub_train, sub_valid, setfit_train_kwargs)
 
     def _get_train_and_valid_sets(self, x_train, y_train, x_valid, y_valid):
         sub_train = Dataset.from_dict({'text': x_train, 'label': y_train})
@@ -198,7 +213,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
         return sub_train, sub_valid
 
-    def _fit(self, sub_train, sub_valid):
+    def _fit(self, sub_train, sub_valid, setfit_train_kwargs):
         trainer = SetFitTrainer(
             self.model,
             sub_train,
@@ -206,7 +221,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             batch_size=self.mini_batch_size,
             **self.trainer_kwargs
         )
-        trainer.train()
+        trainer.train(**setfit_train_kwargs)
         return self
 
     def validate(self, _validation_set):

@@ -83,6 +83,37 @@ class _SetFitClassification(object):
         if not self.use_differentiable_head:
             self.assertTrue(isinstance(clf.model.model_head, OneVsRestClassifier))
 
+    def test_fit_without_train_kwargs(self):
+        ds = random_text_dataset(10, multi_label=self.multi_label)
+        num_classes = 5
+
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+
+        with patch('small_text.integrations.transformers.classifiers.setfit.SetFitTrainer',
+                   autospec=True) as trainer_mock:
+            clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
+            clf.fit(ds)
+
+            trainer_mock.return_value.train.assert_called_with()
+
+    def test_fit_with_train_kwargs(self):
+        ds = random_text_dataset(10, multi_label=self.multi_label)
+        num_classes = 5
+
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        setfit_train_kwargs = {'show_progress_bar': False}
+
+        with patch('small_text.integrations.transformers.classifiers.setfit.SetFitTrainer') as trainer_mock:
+            clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
+            clf.fit(ds, setfit_train_kwargs=setfit_train_kwargs)
+
+            trainer_mock.return_value.train.assert_called()
+
+            call_args = trainer_mock.return_value.train.call_args
+            print(call_args)
+            self.assertTrue('show_progress_bar' in call_args.kwargs)
+            self.assertFalse(call_args.kwargs['show_progress_bar'])
+
 
 @pytest.mark.pytorch
 class TestSetFitClassificationRegressionSingleLabel(unittest.TestCase, _SetFitClassification):
