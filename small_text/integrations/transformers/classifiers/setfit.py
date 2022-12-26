@@ -286,6 +286,8 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
             num_batches = int(np.ceil(len(dataset) / self.mini_batch_size))
             for batch in np.array_split(dataset.x, num_batches, axis=0):
+                # TODO: model.model_head.classes_ can contain less than self.num_classes classes.
+                #   This could be handled here.
                 proba_tmp = self.model.predict_proba(batch)
                 proba = np.append(proba,
                                   proba_tmp,
