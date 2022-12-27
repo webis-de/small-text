@@ -29,9 +29,8 @@ try:
         _check_model_kwargs,
         _check_trainer_kwargs
     )
-except ImportError as e:
+except ImportError:
     pass
-    print()
 
 
 class SetFitModelArguments(object):

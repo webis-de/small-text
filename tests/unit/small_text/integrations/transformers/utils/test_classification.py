@@ -46,10 +46,9 @@ class ClassificationUtilsTest(unittest.TestCase):
         def config_fake_from_pretrained(self, *_args, **_kwargs):
             return MagicMock(), {}
 
-        with patch.object(AutoConfig,
-                          'from_pretrained') as config_mock, \
+        with patch.object(AutoConfig, 'from_pretrained') as config_mock, \
             patch.object(AutoTokenizer, 'from_pretrained') as tokenizer_mock, \
-            patch.object(AutoModelForSequenceClassification, 'from_pretrained') as model_mock:
+                patch.object(AutoModelForSequenceClassification, 'from_pretrained') as model_mock:
 
             config_mock.side_effect = config_fake_from_pretrained
 
@@ -96,7 +95,7 @@ class ClassificationUtilsTest(unittest.TestCase):
         with patch.object(AutoConfig,
                           'from_pretrained') as config_mock, \
             patch.object(AutoTokenizer, 'from_pretrained') as tokenizer_mock, \
-            patch.object(AutoModelForSequenceClassification, 'from_pretrained') as model_mock:
+                patch.object(AutoModelForSequenceClassification, 'from_pretrained') as model_mock:
 
             config_mock.side_effect = config_fake_from_pretrained
 

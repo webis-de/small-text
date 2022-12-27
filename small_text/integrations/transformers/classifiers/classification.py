@@ -26,8 +26,6 @@ try:
     import torch.nn.functional as F  # noqa: N812
 
     from torch.optim import AdamW
-    from transformers import logging as transformers_logging
-    from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
 
     from small_text.integrations.pytorch.classifiers.base import (
         _check_optimizer_and_scheduler_config,
@@ -248,8 +246,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                  mini_batch_size: int = 12,
                  validation_set_size: float = 0.1,
                  validations_per_epoch: int = 1,
-                 early_stopping_no_improvement = 5,
-                 early_stopping_acc = -1,
+                 early_stopping_no_improvement: int = 5,
+                 early_stopping_acc: float = -1,
                  model_selection: bool = True,
                  fine_tuning_arguments=None,
                  device=None,
