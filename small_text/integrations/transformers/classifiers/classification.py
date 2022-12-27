@@ -35,7 +35,13 @@ try:
     )
     from small_text.integrations.pytorch.utils.data import dataloader
     from small_text.integrations.pytorch.utils.misc import enable_dropout
+    from small_text.integrations.transformers.classifiers.base import (
+        ModelLoadingStrategy
+    )
     from small_text.integrations.transformers.datasets import TransformersDataset
+    from small_text.integrations.transformers.utils.classification import (
+        _initialize_transformer_components
+    )
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
@@ -85,16 +91,25 @@ class FineTuningArguments(object):
 
 class TransformerModelArguments(object):
 
-    def __init__(self, model, tokenizer=None, config=None):
+    def __init__(self,
+                 model,
+                 tokenizer=None,
+                 config=None,
+                 model_loading_strategy: ModelLoadingStrategy = ModelLoadingStrategy.DEFAULT):
         """
         Parameters
         ----------
         model : str
             Name of the transformer model. Will be passed into `AutoModel.from_pretrained()`.
-        tokenizer : str
-            Name of the tokenizer. Will be passed into `AutoTokenizer.from_pretrained()`.
-        config : str
-            Name of the config. Will be passed into `AutoConfig.from_pretrained()`.
+        tokenizer : str, default=None
+            Name of the tokenizer if deviating from the model name. Will be passed
+            into `AutoTokenizer.from_pretrained()`.
+        config : str, default=None
+            Name of the config if deviating from the model name. Will be passed into
+            `AutoConfig.from_pretrained()`.
+        model_loading_strategy: ModelLoadingStrategy, default=ModelLoadingStrategy.DEFAULT
+            Specifies if there should be attempts to download the model or if only local
+            files should be used.
         """
         self.model = model
         self.tokenizer = tokenizer
@@ -104,6 +119,8 @@ class TransformerModelArguments(object):
             self.tokenizer = model
         if self.config is None:
             self.config = model
+
+        self.model_loading_strategy = model_loading_strategy
 
 
 def _get_layer_params(model, base_lr, fine_tuning_arguments):
@@ -222,11 +239,24 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
 class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClassifier):
 
-    def __init__(self, transformer_model, num_classes, multi_label=False, num_epochs=10, lr=2e-5,
-                 mini_batch_size=12, validation_set_size=0.1, validations_per_epoch=1,
-                 early_stopping_no_improvement=5, early_stopping_acc=-1, model_selection=True,
-                 fine_tuning_arguments=None, device=None, memory_fix=1, class_weight=None,
-                 verbosity=VERBOSITY_MORE_VERBOSE, cache_dir='.active_learning_lib_cache/'):
+    def __init__(self,
+                 transformer_model: TransformerModelArguments,
+                 num_classes: int,
+                 multi_label: bool = False,
+                 num_epochs: int = 10,
+                 lr: float = 2e-5,
+                 mini_batch_size: int = 12,
+                 validation_set_size: float = 0.1,
+                 validations_per_epoch: int = 1,
+                 early_stopping_no_improvement = 5,
+                 early_stopping_acc = -1,
+                 model_selection: bool = True,
+                 fine_tuning_arguments=None,
+                 device=None,
+                 memory_fix=1,
+                 class_weight=None,
+                 verbosity=VERBOSITY_MORE_VERBOSE,
+                 cache_dir='.active_learning_lib_cache/'):
         """
         Parameters
         ----------
@@ -407,26 +437,11 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
     def initialize_transformer(self, cache_dir):
 
-        self.config = AutoConfig.from_pretrained(
-            self.transformer_model.config,
-            num_labels=self.num_classes,
-            cache_dir=cache_dir,
+        self.config, self.tokenizer, self.model = _initialize_transformer_components(
+            self.transformer_model,
+            self.num_classes,
+            cache_dir,
         )
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            self.transformer_model.tokenizer,
-            cache_dir=cache_dir,
-        )
-
-        # Suppress "Some weights of the model checkpoint at [model name] were not [...]"-warnings
-        previous_verbosity = transformers_logging.get_verbosity()
-        transformers_logging.set_verbosity_error()
-        self.model = AutoModelForSequenceClassification.from_pretrained(
-            self.transformer_model.model,
-            from_tf=False,
-            config=self.config,
-            cache_dir=cache_dir,
-        )
-        transformers_logging.set_verbosity(previous_verbosity)
 
     def _default_optimizer(self, base_lr):
 

@@ -3,6 +3,17 @@ def _check_model_kwargs(model_kwargs):
         raise ValueError('Invalid keyword argument in model_kwargs: '
                          'Argument "use_differentiable_head" is managed by '
                          'SetFitClassification.')
+
+    if 'force_download' in model_kwargs:
+        raise ValueError('Invalid keyword argument in model_kwargs: '
+                         'Argument "force_download" is managed by '
+                         'SetFitClassification via the argument setfit_model_args.')
+
+    if 'local_files_only' in model_kwargs:
+        raise ValueError('Invalid keyword argument in model_kwargs: '
+                         'Argument "local_files_only" is managed by '
+                         'SetFitClassification via the argument setfit_model_args.')
+
     return model_kwargs
 
 

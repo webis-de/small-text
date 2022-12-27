@@ -14,29 +14,42 @@ from small_text.utils.classification import (
 )
 from small_text.utils.context import build_pbar_context
 from small_text.utils.labels import csr_to_list
+from small_text.integrations.transformers.classifiers.base import (
+    ModelLoadingStrategy
+)
 
 try:
     from datasets import Dataset
     from setfit import SetFitModel, SetFitTrainer
 
+    from small_text.integrations.transformers.utils.classification import (
+        _get_arguments_for_from_pretrained_model
+    )
     from small_text.integrations.transformers.utils.setfit import (
         _check_model_kwargs,
         _check_trainer_kwargs
     )
-except ImportError:
+except ImportError as e:
     pass
+    print()
 
 
 class SetFitModelArguments(object):
 
-    def __init__(self, sentence_transformer_model):
+    def __init__(self,
+                 sentence_transformer_model: str,
+                 model_loading_strategy: ModelLoadingStrategy = ModelLoadingStrategy.DEFAULT):
         """
         Parameters
         ----------
         sentence_transformer_model : str
             Name of a sentence transformer model.
+        model_loading_strategy: ModelLoadingStrategy, default=ModelLoadingStrategy.DEFAULT
+            Specifies if there should be attempts to download the model or if only local
+            files should be used.
         """
         self.sentence_transformer_model = sentence_transformer_model
+        self.model_loading_strategy = model_loading_strategy
 
 
 class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
@@ -152,9 +165,14 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         if self.multi_label and 'multi_target_strategy' not in model_kwargs:
             model_kwargs['multi_target_strategy'] = 'one-vs-rest'
 
+        from_pretrained_options = _get_arguments_for_from_pretrained_model(
+            self.setfit_model_args.model_loading_strategy
+        )
         self.model = SetFitModel.from_pretrained(
             self.setfit_model_args.sentence_transformer_model,
             use_differentiable_head=use_differentiable_head,
+            force_download=from_pretrained_options.force_download,
+            local_files_only=from_pretrained_options.local_files_only,
             **model_kwargs
         )
         self.use_differentiable_head = use_differentiable_head

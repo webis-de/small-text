@@ -15,6 +15,9 @@ try:
     from torch.optim import AdamW
     from transformers import get_linear_schedule_with_warmup
 
+    from small_text.integrations.transformers.classifiers.base import (
+        ModelLoadingStrategy
+    )
     from small_text.integrations.transformers.classifiers.classification import \
         FineTuningArguments, TransformerModelArguments, TransformerBasedClassification
     from small_text.integrations.pytorch.datasets import PytorchDatasetView
@@ -49,14 +52,34 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual('bert-base-uncased', model_args.model)
         self.assertEqual('bert-base-uncased', model_args.config)
         self.assertEqual('bert-base-uncased', model_args.tokenizer)
+        self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
 
     def test_transformer_model_arguments_init_with_paths(self):
         tokenizer = '/path/to/tokenizer/'
         config = '/path/to/config/'
-        model_args = TransformerModelArguments('bert-base-uncased', tokenizer=tokenizer, config=config)
+        model_args = TransformerModelArguments('bert-base-uncased',
+                                               tokenizer=tokenizer,
+                                               config=config)
         self.assertEqual('bert-base-uncased', model_args.model)
         self.assertEqual(config, model_args.config)
         self.assertEqual(tokenizer, model_args.tokenizer)
+        self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
+
+    def test_transformer_model_arguments_init_with_model_loading_strategy(self):
+        tokenizer = '/path/to/tokenizer/'
+        config = '/path/to/config/'
+        model_loading_strategy = ModelLoadingStrategy.ALWAYS_LOCAL
+        model_args = TransformerModelArguments('bert-base-uncased',
+                                               tokenizer=tokenizer,
+                                               config=config,
+                                               model_loading_strategy=model_loading_strategy)
+        self.assertEqual('bert-base-uncased', model_args.model)
+        self.assertEqual(config, model_args.config)
+        self.assertEqual(tokenizer, model_args.tokenizer)
+        self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertEqual(model_loading_strategy, model_args.model_loading_strategy)
 
 
 @pytest.mark.pytorch

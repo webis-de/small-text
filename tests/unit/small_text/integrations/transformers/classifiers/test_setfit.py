@@ -6,6 +6,9 @@ from unittest.mock import patch
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
+    from small_text.integrations.transformers.classifiers.base import (
+        ModelLoadingStrategy
+    )
     from small_text.integrations.transformers.classifiers.setfit import (
         SetFitClassification,
         SetFitModelArguments
@@ -22,15 +25,44 @@ class TestSetFitModelArguments(unittest.TestCase):
         sentence_transformer_model = 'sentence-transformers/all-MiniLM-L6-v2'
         args = SetFitModelArguments(sentence_transformer_model)
         self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
+        self.assertIsNotNone(args.model_loading_strategy)
+        self.assertEqual(ModelLoadingStrategy.DEFAULT, args.model_loading_strategy)
+
+    def test_setfit_model_arguments_init_with_model_loading_strategy(self):
+        sentence_transformer_model = 'sentence-transformers/all-MiniLM-L6-v2'
+        model_loading_strategy = ModelLoadingStrategy.ALWAYS_LOCAL
+        args = SetFitModelArguments(sentence_transformer_model,
+                                    model_loading_strategy=model_loading_strategy)
+        self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
+        self.assertIsNotNone(args.model_loading_strategy)
+        self.assertEqual(model_loading_strategy, args.model_loading_strategy)
 
 
 class TestSetFitClassificationKeywordArguments(unittest.TestCase):
 
-    def test_init_with_misplaced_use_differentiable_head_kwargs(self):
+    def test_init_with_misplaced_use_differentiable_head_kwarg(self):
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
         num_classes = 5
 
         model_kwargs = {'use_differentiable_head': False}
+
+        with self.assertRaisesRegex(ValueError, 'Invalid keyword argument in model_kwargs'):
+            SetFitClassification(setfit_model_args, num_classes, model_kwargs=model_kwargs)
+
+    def test_init_with_misplaced_force_download_kwarg(self):
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        num_classes = 5
+
+        model_kwargs = {'force_download': True}
+
+        with self.assertRaisesRegex(ValueError, 'Invalid keyword argument in model_kwargs'):
+            SetFitClassification(setfit_model_args, num_classes, model_kwargs=model_kwargs)
+
+    def test_init_with_misplaced_local_files_only_kwarg(self):
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        num_classes = 5
+
+        model_kwargs = {'local_files_only': True}
 
         with self.assertRaisesRegex(ValueError, 'Invalid keyword argument in model_kwargs'):
             SetFitClassification(setfit_model_args, num_classes, model_kwargs=model_kwargs)
@@ -83,6 +115,61 @@ class _SetFitClassification(object):
         if not self.use_differentiable_head:
             self.assertTrue(isinstance(clf.model.model_head, OneVsRestClassifier))
 
+    def test_init_model_loading_strategy_default(self):
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        num_classes = 5
+
+        if not self.use_differentiable_head:
+            model_kwargs = {'multi_target_strategy': 'one-vs-rest'}
+        else:
+            model_kwargs = {}
+
+        with patch('setfit.modeling.SetFitModel.from_pretrained') as from_pretrained_mock:
+            SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label,
+                                 model_kwargs=model_kwargs,
+                                 use_differentiable_head=self.use_differentiable_head)
+            self.assertEqual(1, from_pretrained_mock.call_count)
+            self.assertFalse(from_pretrained_mock.call_args.kwargs['force_download'])
+            self.assertFalse(from_pretrained_mock.call_args.kwargs['local_files_only'])
+
+    def test_init_model_loading_strategy_always_local(self):
+        model_loading_strategy = ModelLoadingStrategy.ALWAYS_LOCAL
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2',
+                                                 model_loading_strategy=model_loading_strategy)
+        num_classes = 5
+
+        if not self.use_differentiable_head:
+            model_kwargs = {'multi_target_strategy': 'one-vs-rest'}
+        else:
+            model_kwargs = {}
+
+        with patch('setfit.modeling.SetFitModel.from_pretrained') as from_pretrained_mock:
+            SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label,
+                                 model_kwargs=model_kwargs,
+                                 use_differentiable_head=self.use_differentiable_head)
+            self.assertEqual(1, from_pretrained_mock.call_count)
+            self.assertFalse(from_pretrained_mock.call_args.kwargs['force_download'])
+            self.assertTrue(from_pretrained_mock.call_args.kwargs['local_files_only'])
+
+    def test_init_model_loading_strategy_always_download(self):
+        model_loading_strategy = ModelLoadingStrategy.ALWAYS_DOWNLOAD
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2',
+                                                 model_loading_strategy=model_loading_strategy)
+        num_classes = 5
+
+        if not self.use_differentiable_head:
+            model_kwargs = {'multi_target_strategy': 'one-vs-rest'}
+        else:
+            model_kwargs = {}
+
+        with patch('setfit.modeling.SetFitModel.from_pretrained') as from_pretrained_mock:
+            SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label,
+                                 model_kwargs=model_kwargs,
+                                 use_differentiable_head=self.use_differentiable_head)
+            self.assertEqual(1, from_pretrained_mock.call_count)
+            self.assertTrue(from_pretrained_mock.call_args.kwargs['force_download'])
+            self.assertFalse(from_pretrained_mock.call_args.kwargs['local_files_only'])
+
     def test_fit_without_train_kwargs(self):
         ds = random_text_dataset(10, multi_label=self.multi_label)
         num_classes = 5
@@ -110,7 +197,6 @@ class _SetFitClassification(object):
             trainer_mock.return_value.train.assert_called()
 
             call_args = trainer_mock.return_value.train.call_args
-            print(call_args)
             self.assertTrue('show_progress_bar' in call_args.kwargs)
             self.assertFalse(call_args.kwargs['show_progress_bar'])
 

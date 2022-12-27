@@ -9,6 +9,9 @@ class ImportsTest(unittest.TestCase):
         from small_text import TransformersDataset
         from small_text import TransformersDatasetView
 
+    def test_import_classifier_base_modules(self):
+        from small_text import ModelLoadingStrategy
+
     def test_import_classifiers_modules(self):
         from small_text import transformers_collate_fn
         from small_text import FineTuningArguments
