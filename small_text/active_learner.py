@@ -91,9 +91,11 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
     indices_queried : numpy.ndarray or None
         Queried indices returned by the last `query()` call, or `None` if no query has been
         executed yet.
+    fit_kwargs : dict
+        Keyword arguments that will be passed to the `fit()` call during `update()`.
     """
 
-    def __init__(self, clf_factory, query_strategy, dataset, reuse_model=False):
+    def __init__(self, clf_factory, query_strategy, dataset, fit_kwargs=dict(), reuse_model=False):
         self._clf = None
         self._clf_factory = clf_factory
         self._query_strategy = query_strategy
@@ -101,6 +103,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         self._index_to_position = None
 
         self.dataset = dataset
+        self.fit_kwargs = fit_kwargs
         self.reuse_model = reuse_model
 
         self.indices_labeled = np.empty(shape=0, dtype=int)
@@ -387,7 +390,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         dataset.y = self.y
 
         if indices_validation is None:
-            self._clf.fit(dataset)
+            self._clf.fit(dataset, **self.fit_kwargs)
         else:
             indices = np.arange(self.indices_labeled.shape[0])
             mask = np.isin(indices, indices_validation)

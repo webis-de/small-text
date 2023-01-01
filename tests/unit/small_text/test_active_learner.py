@@ -111,6 +111,25 @@ class _PoolBasedActiveLearnerTest(object):
         self.assertEqual(clf_factory, active_learner._clf_factory)
         self.assertIsNone(active_learner.y)
         self.assertFalse(active_learner.reuse_model)
+        self.assertEqual(dict(), active_learner.fit_kwargs)
+
+    def test_init_with_kwargs(self):
+        clf_factory = self._get_classifier_factory()
+        query_strategy = RandomSampling()
+
+        dataset = random_sklearn_dataset(self.NUM_SAMPLES, num_classes=self.NUM_CLASSES)
+        fit_kwargs = {'C': 2}
+        reuse_model = True
+
+        active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, dataset,
+                                                fit_kwargs=fit_kwargs, reuse_model=reuse_model)
+
+        self.assertIsNone(active_learner.classifier)
+        self.assertEqual(query_strategy, active_learner.query_strategy)
+        self.assertEqual(clf_factory, active_learner._clf_factory)
+        self.assertIsNone(active_learner.y)
+        self.assertTrue(active_learner.reuse_model)
+        self.assertEqual(fit_kwargs, active_learner.fit_kwargs)
 
     def test_initialize_data(self):
         indices_initial = np.random.choice(np.arange(100), size=10, replace=False)
@@ -170,6 +189,28 @@ class _PoolBasedActiveLearnerTest(object):
         else:
             clf_factory.new.assert_not_called()
             clf_mock.fit.assert_not_called()
+
+    def test_initialize_data_with_fit_kwargs(self):
+
+        clf_factory = self._get_classifier_factory()
+        clf_mock = Mock(clf_factory.new())
+        clf_factory.new = Mock(return_value=clf_mock)
+        query_strategy = RandomSampling()
+        num_classes = 3 if self.multi_label else 2
+        dataset = random_sklearn_dataset(100, num_classes=num_classes, multi_label=self.multi_label)
+
+        fit_kwargs = {'C': 2.0}
+        active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, dataset, fit_kwargs=fit_kwargs)
+        y_initial = self._get_y_initial()
+
+        indices_initial = np.random.choice(np.arange(100), size=10, replace=False)
+
+        active_learner.initialize_data(indices_initial, y_initial)
+
+        self.assertEqual(1, clf_mock.fit.call_count)
+
+        self.assertTrue('C' in clf_mock.fit.call_args_list[0].kwargs)
+        self.assertEqual(2.0, clf_mock.fit.call_args_list[0].kwargs['C'])
 
     def test_query_without_prior_initialize_data(self):
         clf_factory = self._get_classifier_factory()
@@ -509,6 +550,38 @@ class _PoolBasedActiveLearnerTest(object):
             active_learner.update(y_new)
 
         active_learner._retrain.assert_called_once()
+
+    def test_update_with_fit_kwargs(self):
+        clf_factory = self._get_classifier_factory()
+        clf_mock = Mock(clf_factory.new())
+        clf_factory.new = Mock(return_value=clf_mock)
+
+        query_strategy = RandomSampling()
+        num_classes = 3 if self.multi_label else 2
+        dataset = random_sklearn_dataset(100, num_classes=num_classes, multi_label=self.multi_label)
+
+        fit_kwargs = {'C': 2.0}
+        active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, dataset, fit_kwargs=fit_kwargs)
+
+        indices_initial = np.random.choice(np.arange(100), size=10, replace=False)
+        y_initial = self._get_y_initial()
+        active_learner.initialize_data(indices_initial, y_initial)
+
+        # TODO: calling update() without query() (by commenting out the following line) results in:
+        # >       if self.indices_queried.shape[0] != y.shape[0]:
+        # E       AttributeError: 'NoneType' object has no attribute 'shape'
+        active_learner.query(num_samples=5)
+
+        y_new = self._get_y_new()
+        active_learner.update(y_new)
+
+        # first one is the initialize, second one is the _retrain()
+        self.assertEqual(2, clf_mock.fit.call_count)
+
+        self.assertTrue('C' in clf_mock.fit.call_args_list[0].kwargs)
+        self.assertEqual(2.0, clf_mock.fit.call_args_list[0].kwargs['C'])
+        self.assertTrue('C' in clf_mock.fit.call_args_list[1].kwargs)
+        self.assertEqual(2.0, clf_mock.fit.call_args_list[1].kwargs['C'])
 
     def test_update_label_at(self):
         self._test_update_label_at()

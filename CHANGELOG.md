@@ -5,6 +5,8 @@
 ### Added
 
 - Added new classifier: [SetFitClassification](https://github.com/webis-de/small-text/blob/v1.2.0/small_text/integrations/transformers/classifiers/setfit.py) which wraps [huggingface/setfit](https://github.com/huggingface/setfit).
+- Active Learner:
+  - [PoolBasedActiveLearner](https://github.com/webis-de/small-text/blob/v1.2.0/small_text/active_learner.py) now handles keyword arguments passed to the classifier's `fit()` during the `update()` step.
 - New query strategy: [BALD](https://github.com/webis-de/small-text/blob/v1.2.0/small_text/query_strategies/bayesian.py).
 - Notebook Examples:
   - Revised both existing notebook examples.
