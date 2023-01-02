@@ -91,10 +91,14 @@ for very specific (query or stopping) strategies or are purely convenience funct
 
 An overview of such dependencies is given in table below:
 
-+-------------------------+----------------------------------------------------------------+
-| Dependency              | Required by                                                    |
-+-------------------------+----------------------------------------------------------------+
-| `hnswlib`_              | :py:class:`~small_text.query_strategies.strategies.SEALS`      |
-+-------------------------+----------------------------------------------------------------+
++-------------------------+------------------------------------------------------------------------------------------------+
+| Dependency              | Required by                                                                                    |
++-------------------------+------------------------------------------------------------------------------------------------+
+| `hnswlib`_              | :py:class:`~small_text.query_strategies.strategies.SEALS`                                      |
++-------------------------+------------------------------------------------------------------------------------------------+
+| `setfit`_               | :py:class:`~small_text.integrations.transformers.classifiers.setfit.SetFitClassification`      |
++-------------------------+------------------------------------------------------------------------------------------------+
 
 .. _hnswlib: https://pypi.org/project/hnswlib/
+
+.. _setfit: https://pypi.org/project/hnswlib/
