@@ -211,9 +211,18 @@ class SubsamplingQueryStrategy(QueryStrategy):
     def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
         self._validate_query_input(indices_unlabeled, n)
 
+        if self.subsample_size > indices_unlabeled.shape[0]:
+            return self.base_query_strategy.query(clf, dataset, indices_unlabeled, indices_labeled,
+                                                  y, n=n)
+
+        return self._subsample(clf, dataset, indices_unlabeled, indices_labeled, y, n)
+
+    def _subsample(self, clf, dataset, indices_unlabeled, indices_labeled, y, n):
+
         subsampled_indices = np.random.choice(indices_unlabeled,
                                               self.subsample_size,
                                               replace=False)
+
         subset = dataset[np.concatenate([subsampled_indices, indices_labeled])]
         subset_indices_unlabeled = np.arange(self.subsample_size)
         subset_indices_labeled = np.arange(self.subsample_size,

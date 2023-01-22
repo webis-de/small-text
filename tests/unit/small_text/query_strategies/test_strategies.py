@@ -365,12 +365,6 @@ class SubSamplingTest(unittest.TestCase, SamplingStrategiesTests):
     def _get_query_strategy(self):
         return SubsamplingQueryStrategy(RandomSampling(), 20)
 
-    def test_subsampling_str(self):
-        strategy = SubsamplingQueryStrategy(RandomSampling(), subsample_size=20)
-        expected_str = 'SubsamplingQueryStrategy(base_query_strategy=RandomSampling(), ' \
-                       'subsample_size=20)'
-        self.assertEqual(expected_str, str(strategy))
-
     def test_subsampling_query_default(self):
         indices = query_random_data(self._get_query_strategy())
         self.assertEqual(10, len(indices))
@@ -399,6 +393,12 @@ class SubSamplingTest(unittest.TestCase, SamplingStrategiesTests):
 
         strategy = self._get_query_strategy()
         self.assertIsNone(strategy.scores_)
+
+    def test_subsampling_str(self):
+        strategy = SubsamplingQueryStrategy(RandomSampling(), subsample_size=20)
+        expected_str = 'SubsamplingQueryStrategy(base_query_strategy=RandomSampling(), ' \
+                       'subsample_size=20)'
+        self.assertEqual(expected_str, str(strategy))
 
 
 class EmbeddingBasedQueryStrategyImplementation(EmbeddingBasedQueryStrategy):

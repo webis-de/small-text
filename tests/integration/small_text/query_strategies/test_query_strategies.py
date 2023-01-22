@@ -121,6 +121,76 @@ class QueryStrategiesTest(QueryStrategiesExhaustiveIntegrationTest, unittest.Tes
 
 
 @pytest.mark.optional
+class SubsamplingQueryStrategyTest(unittest.TestCase, SamplingStrategiesTests):
+
+    def _get_clf(self):
+        return SklearnClassifierWithRandomEmbeddingsAndProba(ConfidenceEnhancedLinearSVC(), 2)
+
+    def _get_query_strategy(self):
+        return SubsamplingQueryStrategy(LeastConfidence(), subsample_size=10)
+
+    def test_query(self, num_samples=100, n=10):
+        dataset = random_sklearn_dataset(num_samples, vocab_size=10)
+        base_query_strategy = LeastConfidence()
+        strategy = SubsamplingQueryStrategy(base_query_strategy, subsample_size=15)
+
+        with patch.object(strategy,
+                          '_subsample',
+                          wraps=strategy._subsample) as subsample_spy, \
+            patch.object(base_query_strategy,
+                         'query',
+                         wraps=base_query_strategy.query) as base_strategy_query_spy:
+
+            indices_labeled = np.random.choice(np.arange(num_samples), size=10, replace=False)
+            indices_unlabeled = np.array([i for i in range(len(dataset))
+                                          if i not in set(indices_labeled)])
+
+            clf_mock = self._get_clf()
+            if clf_mock is not None:
+                proba = np.random.random_sample((num_samples, 2))
+                clf_mock.predict_proba = Mock(return_value=proba)
+
+            y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+            # no error should be thrown
+            strategy.query(clf_mock, dataset, indices_unlabeled, indices_labeled, y, n=n)
+
+        subsample_spy.assert_called_once()
+
+        base_strategy_query_spy.assert_called_once()
+        self.assertTrue(len(base_strategy_query_spy.call_args[0][2]) <= 50)
+
+    def test_query_when_unlabeled_pool_is_smaller_than_k(self, num_samples=100, n=10):
+        dataset = random_sklearn_dataset(num_samples, vocab_size=10)
+        base_query_strategy = LeastConfidence()
+        strategy = SubsamplingQueryStrategy(base_query_strategy, subsample_size=105)
+
+        with patch.object(strategy,
+                          '_subsample',
+                          wraps=strategy._subsample) as subsample_spy, \
+            patch.object(base_query_strategy,
+                         'query',
+                         wraps=base_query_strategy.query) as base_strategy_query_spy:
+
+            indices_labeled = np.random.choice(np.arange(num_samples), size=10, replace=False)
+            indices_unlabeled = np.array([i for i in range(len(dataset))
+                                          if i not in set(indices_labeled)])
+
+            clf_mock = self._get_clf()
+            if clf_mock is not None:
+                proba = np.random.random_sample((num_samples, 2))
+                clf_mock.predict_proba = Mock(return_value=proba)
+
+            y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+            # no error should be thrown
+            strategy.query(clf_mock, dataset, indices_unlabeled, indices_labeled, y, n=n)
+
+        subsample_spy.assert_not_called()
+        base_strategy_query_spy.assert_called_once_with(clf_mock, dataset, indices_unlabeled, indices_labeled, y, n=n)
+
+
+@pytest.mark.optional
 class SEALSTest(unittest.TestCase, SamplingStrategiesTests):
 
     def _get_clf(self):
@@ -268,6 +338,7 @@ class SEALSTest(unittest.TestCase, SamplingStrategiesTests):
         self.assertEqual(32, index.M)
         self.assertEqual(80, index.ef)
 
+    # str tests are here because init can throw MissingOptionalDependencyError
     def test_str(self):
         query_strategy = self._get_query_strategy()
         self.assertEqual(
