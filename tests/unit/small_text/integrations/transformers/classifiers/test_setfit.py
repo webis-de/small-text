@@ -38,6 +38,7 @@ class TestSetFitModelArguments(unittest.TestCase):
         self.assertEqual(model_loading_strategy, args.model_loading_strategy)
 
 
+@pytest.mark.pytorch
 class TestSetFitClassificationKeywordArguments(unittest.TestCase):
 
     def test_init_with_misplaced_use_differentiable_head_kwarg(self):
