@@ -192,7 +192,7 @@ class KimCNNTest(unittest.TestCase):
 
         proba = clf.predict_proba(test_set)
         self.assertEqual(0, proba.shape[0])
-        self.assertTrue(np.issubdtype(proba.dtype, np.float))
+        self.assertTrue(np.issubdtype(proba.dtype, float))
 
     def test_fit_with_invalid_sample_weights(self):
         train_set = random_text_classification_dataset(8)

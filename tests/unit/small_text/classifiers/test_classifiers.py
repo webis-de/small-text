@@ -57,7 +57,7 @@ class _ClassifierBaseFunctionalityTest(object):
             self.assertTrue(isinstance(proba, csr_matrix))
         else:
             self.assertTrue(isinstance(proba, np.ndarray))
-            self.assertTrue(np.issubdtype(proba.dtype, np.float))
+            self.assertTrue(np.issubdtype(proba.dtype, float))
 
 
 class SklearnClassifierSingleLabelTest(unittest.TestCase, _ClassifierBaseFunctionalityTest):
