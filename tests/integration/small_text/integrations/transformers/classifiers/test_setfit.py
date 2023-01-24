@@ -1,4 +1,5 @@
 import unittest
+import pytest
 import numpy as np
 
 from scipy.sparse import issparse
@@ -84,6 +85,8 @@ class _EmbeddingTest(object):
                          embeddings.shape[1])
 
 
+@pytest.mark.pytorch
+@pytest.mark.optional
 class EmbeddingRegressionHeadSingleLabelTest(unittest.TestCase, _EmbeddingTest):
 
     def setUp(self):
@@ -92,6 +95,8 @@ class EmbeddingRegressionHeadSingleLabelTest(unittest.TestCase, _EmbeddingTest):
         self.use_differentiable_head = False
 
 
+@pytest.mark.pytorch
+@pytest.mark.optional
 class EmbeddingRegressionHeadMultiLabelTest(unittest.TestCase, _EmbeddingTest):
 
     def setUp(self):
@@ -100,6 +105,8 @@ class EmbeddingRegressionHeadMultiLabelTest(unittest.TestCase, _EmbeddingTest):
         self.use_differentiable_head = False
 
 
+@pytest.mark.pytorch
+@pytest.mark.optional
 class EmbeddingDifferentiableHeadSingleLabelTest(unittest.TestCase, _EmbeddingTest):
 
     def setUp(self):
@@ -120,6 +127,8 @@ class EmbeddingDifferentiableHeadSingleLabelTest(unittest.TestCase, _EmbeddingTe
             super().test_embed_with_proba()
 
 
+@pytest.mark.pytorch
+@pytest.mark.optional
 class EmbeddingDifferentiableHeadMultiLabelTest(unittest.TestCase, _EmbeddingTest):
 
     def setUp(self):
@@ -206,6 +215,8 @@ class _ClassificationTest(object):
                 clf.validate(valid_set)
 
 
+@pytest.mark.pytorch
+@pytest.mark.optional
 class SetFitClassificationRegressionHeadSingleLabelTest(unittest.TestCase, _ClassificationTest):
 
     def setUp(self):
@@ -214,6 +225,8 @@ class SetFitClassificationRegressionHeadSingleLabelTest(unittest.TestCase, _Clas
         self.use_differentiable_head = False
 
 
+@pytest.mark.pytorch
+@pytest.mark.optional
 class SetFitClassificationDifferentiableHeadSingleLabelTest(unittest.TestCase, _ClassificationTest):
 
     def setUp(self):
@@ -238,6 +251,8 @@ class SetFitClassificationRegressionHeadMultiLabelTest(unittest.TestCase, _Class
         self.use_differentiable_head = False
 
 
+@pytest.mark.pytorch
+@pytest.mark.optional
 class SetFitClassificationDifferentiableHeadMultiLabelTest(unittest.TestCase, _ClassificationTest):
 
     def setUp(self):

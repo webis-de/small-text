@@ -19,6 +19,7 @@ except (ModuleNotFoundError, PytorchNotFoundError):
 
 
 @pytest.mark.pytorch
+@pytest.mark.optional
 class TestSetFitModelArguments(unittest.TestCase):
 
     def test_setfit_model_arguments_init(self):
@@ -39,6 +40,7 @@ class TestSetFitModelArguments(unittest.TestCase):
 
 
 @pytest.mark.pytorch
+@pytest.mark.optional
 class TestSetFitClassificationKeywordArguments(unittest.TestCase):
 
     def test_init_with_misplaced_use_differentiable_head_kwarg(self):
@@ -203,6 +205,7 @@ class _SetFitClassification(object):
 
 
 @pytest.mark.pytorch
+@pytest.mark.optional
 class TestSetFitClassificationRegressionSingleLabel(unittest.TestCase, _SetFitClassification):
 
     def setUp(self):
@@ -231,6 +234,7 @@ class TestSetFitClassificationRegressionSingleLabel(unittest.TestCase, _SetFitCl
 
 
 @pytest.mark.pytorch
+@pytest.mark.optional
 class TestSetFitClassificationRegressionMultiLabel(unittest.TestCase, _SetFitClassification):
 
     def setUp(self):
@@ -259,6 +263,7 @@ class TestSetFitClassificationRegressionMultiLabel(unittest.TestCase, _SetFitCla
 
 
 @pytest.mark.pytorch
+@pytest.mark.optional
 class TestSetFitClassificationDifferentiableSingleLabel(unittest.TestCase,  _SetFitClassification):
 
     def setUp(self):
@@ -279,6 +284,7 @@ class TestSetFitClassificationDifferentiableSingleLabel(unittest.TestCase,  _Set
 
 
 @pytest.mark.pytorch
+@pytest.mark.optional
 class TestSetFitClassificationDifferentiableMultiLabel(unittest.TestCase,  _SetFitClassification):
 
     def setUp(self):
