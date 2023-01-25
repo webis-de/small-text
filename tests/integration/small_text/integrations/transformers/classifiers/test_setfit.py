@@ -243,6 +243,8 @@ class SetFitClassificationDifferentiableHeadSingleLabelTest(unittest.TestCase, _
             super().test_fit_and_validate()
 
 
+@pytest.mark.pytorch
+@pytest.mark.optional
 class SetFitClassificationRegressionHeadMultiLabelTest(unittest.TestCase, _ClassificationTest):
 
     def setUp(self):
