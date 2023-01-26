@@ -101,4 +101,4 @@ An overview of such dependencies is given in table below:
 
 .. _hnswlib: https://pypi.org/project/hnswlib/
 
-.. _setfit: https://pypi.org/project/hnswlib/
+.. _setfit: https://github.com/huggingface/setfit
