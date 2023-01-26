@@ -2,16 +2,14 @@
 Data Management
 ===============
 
-
-In order to decouple the :py:class:`~small_text.active_learner.PoolBasedActiveLearner`
-from your application logic, most of its methods operate solely on indices.
+Whenever the labeled data changes your current model might need retraining to reflect the updated data.
+To decouple the :py:class:`~small_text.active_learner.PoolBasedActiveLearner`
+from the application logic, most of its methods operate on indexes relative to the dataset, rather than on the dataset itself.
 This also means if your data changes, i.e.,
 examples are added, replaced or removed, or labels have been changed, you will need to keep this information updated.
 
 .. note:: The following methods are more relevant to Active Learning applications
           than to the experimental scenario.
-
-.. note:: Whenever the labeled data changes your current model might need retraining to reflect the updated data.
 
 Updating Labels
 ===============

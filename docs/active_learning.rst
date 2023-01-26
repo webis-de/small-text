@@ -5,8 +5,7 @@ Active Learning
 `Active learning <https://en.wikipedia.org/wiki/Active_learning_(machine_learning)>`_ aims at creating training data for classification algorithms in a very efficient manner,
 for cases in which a large amount of unlabeled data is available but labels are not.
 Labeling such data is usually time-consuming and expensive.
-To avoid having to label the full dataset,
-active learning selectively chooses data points that are assumed to improve the model.
+To avoid having to label the entire dataset, active learning selectively chooses data points that are assumed to improve the model.
 This is done iteratively, in a process that alternates between an algorithm selecting data to label,
 and a human annotator who assigns the true labels to given samples.
 The goal here is to maximize the quality of the model while keeping the annotation efforts at a minimum.
