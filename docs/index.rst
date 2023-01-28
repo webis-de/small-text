@@ -112,6 +112,7 @@ License
    :hidden:
 
    changelog
+   showcase
    reproducibility_notes
    bibliography
 

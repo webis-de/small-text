@@ -14,6 +14,8 @@
   - Revised both existing notebook examples.
   - Added a notebook example for active learning with SetFit classifiers.
   - Added a notebook example for cold start initialization with SetFit classifiers.
+- Documentation:
+  - A [showcase](https://small-text.readthedocs.io/en/v1.2.0/showcase.html) section has been added to the documentation.
 
 ### Fixed
 

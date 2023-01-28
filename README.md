@@ -91,7 +91,11 @@ or check out the notebooks.
 
 ### Showcase
 
-- [Tutorial: 👂 Active learning for text classification with small-text][argilla_al_tutorial] (Use small-text conveniently from the [argilla][argilla] UI.)  
+- [Tutorial: 👂 Active learning for text classification with small-text][argilla_al_tutorial] (Use small-text conveniently from the [argilla][argilla] UI.)
+
+A full [showcase overview](documentation_showcase) can be found in the docs.
+
+🎀 **Would you like to share your use case?** Regardless if it is a paper, an experiment, a practical application, a thesis, a dataset, or other, let us know and we will add you to the [showcase section](documentation_showcase) or even here.
 
 ## Documentation
 
@@ -139,6 +143,7 @@ A preprint which introduces small-text is available here:
 [documentation_main]: https://small-text.readthedocs.io/en/v1.1.1/
 [documentation_install]: https://small-text.readthedocs.io/en/v1.1.1/install.html
 [documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.1.1/components/query_strategies.html
+[documentation_showcase]: https://small-text.readthedocs.io/en/v1.1.1/showcase.html
 [documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.1.1/reproducibility_notes.html
 [changelog]: https://small-text.readthedocs.io/en/latest/changelog.html
 [changelog_1.0.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-0-1-2022-09-12
