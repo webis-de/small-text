@@ -1,7 +1,7 @@
 import pytest
 import unittest
 
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.training.model_selection import ModelSelection, NoopModelSelection
@@ -25,24 +25,65 @@ try:
         def fit(self, train_set, _=None, *args, **kwargs):
             pass
 
-        def validate(self, validation_set):
-            pass
-
-        def predict(self, test_set, return_proba=False):
-            pass
-
-        def predict_proba(self, test_set):
-            pass
-
-        def _predict_proba(self, dataset_iter, logits_transform):
-            pass
-
-        def _predict_proba_dropout_sampling(self, dataset_iter, logits_transform,
-                                            dropout_samples=2):
-            pass
 
 except PytorchNotFoundError:
     pass
+
+
+@pytest.mark.pytorch
+class PytorchClassifierTest(unittest.TestCase):
+
+    def test_predict_proba(self):
+        class PytorchClassifierImpl(PytorchClassifier):
+
+            def __init__(self):
+                self.model = None
+                self._create_collate_fn = None
+                super().__init__()
+
+            def fit(self, train_set, _=None, *args, **kwargs):
+                self.model = Mock()
+
+                def create_collate_fn():
+                    def collate(dataset):
+                        return torch.arange(0, len(dataset))
+                    return collate
+                self._create_collate_fn = create_collate_fn
+
+        clf = PytorchClassifierImpl()
+        ds = random_text_classification_dataset()
+
+        clf.fit(ds)
+
+        with self.assertRaisesRegex(NotImplementedError, r'_predict_proba\(\) needs to be implemented'):
+            clf.predict_proba(ds)
+
+    def test_predict_proba_dropout(self):
+        class PytorchClassifierImpl(PytorchClassifier):
+
+            def __init__(self):
+                self.model = None
+                self._create_collate_fn = None
+                super().__init__()
+
+            def fit(self, train_set, _=None, *args, **kwargs):
+                self.model = Mock()
+
+                def create_collate_fn():
+                    def collate(dataset):
+                        return torch.arange(0, len(dataset))
+                    return collate
+
+                self._create_collate_fn = create_collate_fn
+
+        clf = PytorchClassifierImpl()
+        ds = random_text_classification_dataset()
+
+        clf.fit(ds)
+
+        with self.assertRaisesRegex(NotImplementedError,
+                                    r'_predict_proba_dropout_sampling\(\) needs to be implemented'):
+            clf.predict_proba(ds, dropout_sampling=3)
 
 
 @pytest.mark.pytorch

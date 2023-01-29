@@ -143,13 +143,11 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
                 return self._predict_proba_dropout_sampling(dataset_iter, logits_transform,
                                                             dropout_samples=dropout_sampling)
 
-    @abstractmethod
     def _predict_proba(self, dataset_iter, logits_transform):
-        pass
+        raise NotImplementedError('_predict_proba() needs to be implemented')
 
-    @abstractmethod
     def _predict_proba_dropout_sampling(self, dataset_iter, logits_transform, dropout_samples=2):
-        pass
+        raise NotImplementedError('_predict_proba_dropout_sampling() needs to be implemented')
 
     def _get_default_criterion(self, class_weights, use_sample_weights=False):
 
