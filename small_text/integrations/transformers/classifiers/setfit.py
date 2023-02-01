@@ -103,7 +103,7 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
             raise NotImplementedError()
         else:
             # TODO: operate in batches
-            embeddings = self.model.model_body.encode(texts)
+            embeddings = self.model.model_body.encode(texts, device=self.device)
             proba = self.model.model_head.predict_proba(embeddings)
 
         return embeddings, proba
@@ -121,7 +121,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
     def __init__(self, setfit_model_args, num_classes, multi_label=False,
                  use_differentiable_head=False, mini_batch_size=32, model_kwargs=dict(),
-                 trainer_kwargs=dict()):
+                 trainer_kwargs=dict(), device=None):
         """
         sentence_transformer_model : SetFitModelArguments
             Settings for the sentence transformer model to be used.
@@ -149,7 +149,8 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
             .. seealso:: `SetFit: src/setfit/trainer.py
                          <https://github.com/huggingface/setfit/blob/main/src/setfit/trainer.py>`_
-
+        device : str or torch.device, default=None
+            Torch device on which the computation will be performed.
         """
         check_optional_dependency('setfit')
 
@@ -176,6 +177,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         )
         self.use_differentiable_head = use_differentiable_head
         self.mini_batch_size = mini_batch_size
+        self.device = device
 
     def fit(self, train_set, validation_set=None, setfit_train_kwargs=dict()):
         """Trains the model using the given train set.
@@ -216,6 +218,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         if self.use_differentiable_head:
             raise NotImplementedError
         else:
+            self.model.model_body.to(self.device)
             return self._fit(sub_train, sub_valid, setfit_train_kwargs)
 
     def _get_train_and_valid_sets(self, x_train, y_train, x_valid, y_valid):

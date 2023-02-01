@@ -96,6 +96,25 @@ class _SetFitClassification(object):
 
         self.assertEqual(self.use_differentiable_head, clf.use_differentiable_head)
         self.assertEqual(32, clf.mini_batch_size)
+        self.assertIsNone(clf.device)
+
+    def test_init_device(self):
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        num_classes = 5
+        device = 'cuda:0'
+
+        clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label,
+                                   use_differentiable_head=self.use_differentiable_head,
+                                   device=device)
+
+        self.assertEqual(setfit_model_args, clf.setfit_model_args)
+        self.assertEqual(num_classes, clf.num_classes)
+        self.assertEqual({}, clf.model_kwargs)
+        self.assertEqual({}, clf.trainer_kwargs)
+
+        self.assertEqual(self.use_differentiable_head, clf.use_differentiable_head)
+        self.assertEqual(32, clf.mini_batch_size)
+        self.assertEqual(clf.device, device)
 
     def test_init_model_kwargs(self):
         from sklearn.multiclass import OneVsRestClassifier
@@ -115,6 +134,7 @@ class _SetFitClassification(object):
         self.assertEqual(setfit_model_args, clf.setfit_model_args)
         self.assertEqual(num_classes, clf.num_classes)
         self.assertEqual(model_kwargs, clf.model_kwargs)
+        self.assertIsNone(clf.device)
         if not self.use_differentiable_head:
             self.assertTrue(isinstance(clf.model.model_head, OneVsRestClassifier))
 

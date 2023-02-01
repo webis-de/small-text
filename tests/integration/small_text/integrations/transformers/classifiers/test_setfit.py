@@ -2,12 +2,14 @@ import unittest
 import pytest
 import numpy as np
 
+from unittest.mock import patch, Mock
 from scipy.sparse import issparse
 
 from small_text.exceptions import UnsupportedOperationException
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from sklearn.utils.validation import check_is_fitted
 from tests.utils.datasets import twenty_news_text
+from tests.utils.testing import assert_array_equal
 
 try:
     from small_text.integrations.transformers.classifiers.factories import (
@@ -61,9 +63,11 @@ class _EmbeddingTest(object):
                          embeddings.shape[1])
 
     def test_embed_with_proba(self):
+        device = 'cuda:0'
         classification_kwargs = {
             'use_differentiable_head': self.use_differentiable_head,
-            'multi_label': self.multi_label
+            'multi_label': self.multi_label,
+            'device': device
         }
         setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
         clf_factory = SetFitClassificationFactory(
@@ -76,13 +80,20 @@ class _EmbeddingTest(object):
         clf = clf_factory.new()
         clf.fit(train_set)
 
-        embeddings, proba = clf.embed(train_set, return_proba=True)
+        with patch.object(clf.model.model_body, 'encode', wraps=clf.model.model_body.encode) as encode_spy:
+            embeddings, proba = clf.embed(train_set, return_proba=True)
 
-        self.assertEqual(2, len(embeddings.shape))
-        self.assertEqual(len(train_set), embeddings.shape[0])
-        # pooling layer is named '1'
-        self.assertEqual(dict(clf.model.model_body.named_modules())['1'].pooling_output_dimension,
-                         embeddings.shape[1])
+            self.assertEqual(1, encode_spy.call_count)
+            self.assertEqual(1, len(encode_spy.call_args_list[0].args))
+            assert_array_equal(train_set.x, encode_spy.call_args_list[0].args[0])
+            self.assertEqual(1, len(encode_spy.call_args_list[0].kwargs))
+            self.assertEqual(device, encode_spy.call_args_list[0].kwargs['device'])
+
+            self.assertEqual(2, len(embeddings.shape))
+            self.assertEqual(len(train_set), embeddings.shape[0])
+            # pooling layer is named '1'
+            self.assertEqual(dict(clf.model.model_body.named_modules())['1'].pooling_output_dimension,
+                             embeddings.shape[1])
 
 
 @pytest.mark.pytorch
@@ -190,9 +201,11 @@ class _ClassificationTest(object):
         self.assertTrue(np.logical_or(y_pred_proba.all() >= 0.0, y_pred_proba.all() <= 1.0))
 
     def test_fit_and_validate(self):
+        device = 'cuda:0'
         classification_kwargs = {
             'use_differentiable_head': self.use_differentiable_head,
-            'multi_label': self.multi_label
+            'multi_label': self.multi_label,
+            'device': device
         }
         setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
         clf_factory = SetFitClassificationFactory(
@@ -203,7 +216,13 @@ class _ClassificationTest(object):
         train_set = twenty_news_text(30, num_classes=self.num_classes, multi_label=self.multi_label)
 
         clf = clf_factory.new()
-        clf.fit(train_set)
+        with patch.object(clf.model.model_body, 'to', wraps=clf.model.model_body.to) as to_spy:
+            clf.fit(train_set)
+
+            self.assertEqual(3, to_spy.call_count)
+            # our call is the first
+            self.assertEqual(1, len(to_spy.call_args_list[0].args))
+            self.assertEqual(device, to_spy.call_args_list[0].args[0])
 
         valid_set = twenty_news_text(10, num_classes=self.num_classes, multi_label=self.multi_label)
 
