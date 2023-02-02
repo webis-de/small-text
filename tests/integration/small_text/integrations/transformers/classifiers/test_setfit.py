@@ -2,9 +2,10 @@ import unittest
 import pytest
 import numpy as np
 
-from unittest.mock import patch, Mock
+from unittest.mock import patch, MagicMock, Mock
 from scipy.sparse import issparse
 
+from small_text.data.datasets import TextDataset
 from small_text.exceptions import UnsupportedOperationException
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from sklearn.utils.validation import check_is_fitted
@@ -13,6 +14,7 @@ from tests.utils.testing import assert_array_equal
 
 try:
     from small_text.integrations.transformers.classifiers.factories import (
+        SetFitClassification,
         SetFitClassificationFactory
     )
     from small_text.integrations.transformers.classifiers.setfit import (
@@ -162,6 +164,18 @@ class EmbeddingDifferentiableHeadMultiLabelTest(unittest.TestCase, _EmbeddingTes
 
 class _ClassificationTest(object):
 
+    def test_fit_with_misplaced_max_length_kwargs(self):
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        num_classes = 5
+
+        setfit_train_kwargs = {'max_length': 20}
+
+        texts = ['this is a sentence', 'another sentence']
+        clf = SetFitClassification(setfit_model_args, num_classes)
+        dataset = TextDataset.from_arrays(texts, np.array([1, 0]), target_labels=np.array([0, 1]))
+        with self.assertRaisesRegex(ValueError, 'Invalid keyword argument in setfit_train_kwargs'):
+            clf.fit(dataset, setfit_train_kwargs=setfit_train_kwargs)
+
     def test_fit_and_predict(self):
         classification_kwargs = {
             'use_differentiable_head': self.use_differentiable_head,
@@ -232,6 +246,39 @@ class _ClassificationTest(object):
         else:
             with self.assertRaises(UnsupportedOperationException):
                 clf.validate(valid_set)
+
+    def test_fit_with_non_default_settings(self):
+        # in particularly we test max_seq_len and mini_batch_size here
+        mini_batch_size = 8
+        max_seq_len = 32
+        device = 'cuda:0'
+        classification_kwargs = {
+            'use_differentiable_head': self.use_differentiable_head,
+            'multi_label': self.multi_label,
+            'device': device,
+            'mini_batch_size': mini_batch_size,
+            'max_seq_len': max_seq_len
+        }
+        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
+        clf_factory = SetFitClassificationFactory(
+            setfit_model_args,
+            self.num_classes,
+            classification_kwargs=classification_kwargs)
+
+        train_set = twenty_news_text(30, num_classes=self.num_classes, multi_label=self.multi_label)
+
+        clf = clf_factory.new()
+
+        with patch('small_text.integrations.transformers.classifiers.setfit.SetFitTrainer',
+                   autospec=True, create=True) as setfit_trainer_mock:
+            clf.fit(train_set)
+
+            self.assertEqual(1, setfit_trainer_mock.call_count)
+            self.assertEqual(mini_batch_size, setfit_trainer_mock.call_args_list[0].kwargs['batch_size'])
+
+            train_mock = setfit_trainer_mock.return_value.train
+            self.assertEqual(1, train_mock.call_count)
+            self.assertEqual(max_seq_len, train_mock.call_args_list[0].kwargs['max_length'])
 
 
 @pytest.mark.pytorch

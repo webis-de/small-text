@@ -23,3 +23,11 @@ def _check_trainer_kwargs(trainer_kwargs):
                          'Argument "batch_size" can be set via "mini_batch_size" in '
                          'SetFitClassification.')
     return trainer_kwargs
+
+
+def _check_train_kwargs(train_kwargs):
+    if 'max_length' in train_kwargs:
+        raise ValueError('Invalid keyword argument in setfit_train_kwargs: '
+                         'Argument "max_length" can be set via "max_seq_len" in '
+                         'SetFitClassification.')
+    return train_kwargs

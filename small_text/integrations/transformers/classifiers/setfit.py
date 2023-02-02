@@ -27,7 +27,8 @@ try:
     )
     from small_text.integrations.transformers.utils.setfit import (
         _check_model_kwargs,
-        _check_trainer_kwargs
+        _check_trainer_kwargs,
+        _check_train_kwargs
     )
 except ImportError:
     pass
@@ -119,7 +120,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
        This strategy requires the optional dependency `setfit`.
     """
 
-    def __init__(self, setfit_model_args, num_classes, multi_label=False,
+    def __init__(self, setfit_model_args, num_classes, multi_label=False, max_seq_len=512,
                  use_differentiable_head=False, mini_batch_size=32, model_kwargs=dict(),
                  trainer_kwargs=dict(), device=None):
         """
@@ -175,6 +176,8 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             local_files_only=from_pretrained_options.local_files_only,
             **model_kwargs
         )
+
+        self.max_seq_len = max_seq_len
         self.use_differentiable_head = use_differentiable_head
         self.mini_batch_size = mini_batch_size
         self.device = device
@@ -196,6 +199,8 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         self : SetFitClassification
             Returns the current classifier with a fitted model.
         """
+        setfit_train_kwargs = _check_train_kwargs(setfit_train_kwargs)
+
         x_valid = validation_set.x if validation_set is not None else None
         y_valid = validation_set.y if validation_set is not None else None
 
@@ -241,7 +246,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             batch_size=self.mini_batch_size,
             **self.trainer_kwargs
         )
-        trainer.train(**setfit_train_kwargs)
+        trainer.train(max_length=self.max_seq_len, **setfit_train_kwargs)
         return self
 
     def validate(self, _validation_set):
@@ -309,9 +314,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                 # TODO: model.model_head.classes_ can contain less than self.num_classes classes.
                 #   This could be handled here.
                 proba_tmp = self.model.predict_proba(batch)
-                proba = np.append(proba,
-                                  proba_tmp,
-                                  axis=0)
+                proba = np.append(proba, proba_tmp, axis=0)
 
             return proba
 
