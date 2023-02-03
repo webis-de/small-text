@@ -308,6 +308,10 @@ class SetFitClassificationDifferentiableHeadSingleLabelTest(unittest.TestCase, _
         with self.assertRaises(NotImplementedError):
             super().test_fit_and_validate()
 
+    def test_fit_with_non_default_settings(self):
+        with self.assertRaises(NotImplementedError):
+            super().test_fit_with_non_default_settings()
+
 
 @pytest.mark.pytorch
 @pytest.mark.optional
@@ -335,3 +339,7 @@ class SetFitClassificationDifferentiableHeadMultiLabelTest(unittest.TestCase, _C
     def test_fit_and_validate(self):
         with self.assertRaises(NotImplementedError):
             super().test_fit_and_validate()
+
+    def test_fit_with_non_default_settings(self):
+        with self.assertRaises(NotImplementedError):
+            super().test_fit_with_non_default_settings()
