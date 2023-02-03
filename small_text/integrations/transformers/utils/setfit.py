@@ -31,3 +31,25 @@ def _check_train_kwargs(train_kwargs):
                          'Argument "max_length" can be set via "max_seq_len" in '
                          'SetFitClassification.')
     return train_kwargs
+
+
+def _truncate_texts(setfit_model, max_seq_len, *datasets):
+    tokenizer = setfit_model.model_body.tokenizer
+    datasets_out = []
+    for dataset in datasets:
+        token_list = [tokenizer.encode(text, verbose=False) for text in dataset.x]
+        if any([len(tokens) > max_seq_len for tokens in token_list]):
+            x_new = [
+                tokenizer.convert_tokens_to_string(
+                    tokenizer.convert_ids_to_tokens(
+                        tokenizer.encode(text, max_length=max_seq_len, truncation=True, add_special_tokens=False)
+                    )
+                )
+                for text in dataset.x
+            ]
+            dataset_copy = dataset.clone()
+            dataset_copy.x = x_new
+            datasets_out.append(dataset_copy)
+        else:
+            datasets_out.append(dataset)
+    return datasets_out

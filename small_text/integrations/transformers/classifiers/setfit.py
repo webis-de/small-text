@@ -28,7 +28,8 @@ try:
     from small_text.integrations.transformers.utils.setfit import (
         _check_model_kwargs,
         _check_trainer_kwargs,
-        _check_train_kwargs
+        _check_train_kwargs,
+        _truncate_texts
     )
 except ImportError:
     pass
@@ -80,6 +81,8 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
             except NotFittedError:
                 raise ValueError('Model is not trained. Please call fit() first.')
 
+        data_set = _truncate_texts(self.model, self.max_seq_len, data_set)
+
         embeddings = []
         predictions = []
 
@@ -103,7 +106,6 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
         if self.use_differentiable_head:
             raise NotImplementedError()
         else:
-            # TODO: operate in batches
             embeddings = self.model.model_body.encode(texts, device=self.device)
             proba = self.model.model_head.predict_proba(embeddings)
 
@@ -200,6 +202,10 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             Returns the current classifier with a fitted model.
         """
         setfit_train_kwargs = _check_train_kwargs(setfit_train_kwargs)
+        if validation_set is None:
+            train_set = _truncate_texts(self.model, self.max_seq_len, train_set)[0]
+        else:
+            train_set, validation_set = _truncate_texts(self.model, self.max_seq_len, train_set, validation_set)
 
         x_valid = validation_set.x if validation_set is not None else None
         y_valid = validation_set.y if validation_set is not None else None
@@ -303,6 +309,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         if len(dataset) == 0:
             return empty_result(self.multi_label, self.num_classes, return_prediction=False,
                                 return_proba=True)
+        dataset = _truncate_texts(self.model, self.max_seq_len, dataset)[0]
 
         if self.use_differentiable_head:
             raise NotImplementedError()
