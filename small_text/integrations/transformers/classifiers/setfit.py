@@ -81,7 +81,7 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
             except NotFittedError:
                 raise ValueError('Model is not trained. Please call fit() first.')
 
-        data_set = _truncate_texts(self.model, self.max_seq_len, data_set)
+        data_set = _truncate_texts(self.model, self.max_seq_len, data_set)[0]
 
         embeddings = []
         predictions = []
