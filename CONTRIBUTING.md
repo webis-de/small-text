@@ -205,6 +205,7 @@ The following steps need to be done before a new release can be created.
     - ```bash
       sphinx-build SOURCEDIR OUTPUTDIR -b linkcheck
       ```
+    - Links containing the new version tag (e.g., v1.0.0) will fail.
 
 ### Create a Release
 
