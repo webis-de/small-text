@@ -36,7 +36,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 - Multiple scientifically evaluated components are pre-implemented and ready to use (Query Strategies, Initialization Strategies, and Stopping Criteria).
 
 ## News
-- 
+
 - **Version 1.2.0** ([v1.2.0][changelog_1.2.0]): Highlights - February 4th, 2023
   - Make [huggingface/setfit](https://github.com/huggingface/setfit) (SetFit) usable as a small-text classifier.
   - New query strategy: [BALD](https://github.com/webis-de/small-text/blob/v1.2.0/small_text/query_strategies/bayesian.py).
