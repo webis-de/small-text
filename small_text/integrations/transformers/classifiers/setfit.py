@@ -36,6 +36,9 @@ except ImportError:
 
 
 class SetFitModelArguments(object):
+    """
+    .. versionadded:: 1.2.0
+    """
 
     def __init__(self,
                  sentence_transformer_model: str,
@@ -54,6 +57,9 @@ class SetFitModelArguments(object):
 
 
 class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
+    """
+    .. versionadded:: 1.2.0
+    """
 
     def embed(self, data_set, return_proba=False, pbar='tqdm'):
         """Embeds each sample in the given `data_set`.
@@ -120,6 +126,8 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
     .. note ::
        This strategy requires the optional dependency `setfit`.
+
+    .. versionadded:: 1.2.0
     """
 
     def __init__(self, setfit_model_args, num_classes, multi_label=False, max_seq_len=512,

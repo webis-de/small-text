@@ -28,6 +28,9 @@ class TransformerBasedClassificationFactory(AbstractClassifierFactory):
 
 
 class SetFitClassificationFactory(AbstractClassifierFactory):
+    """
+    .. versionadded:: 1.2.0
+    """
 
     def __init__(self, setfit_model_args, num_classes, classification_kwargs={}):
         """

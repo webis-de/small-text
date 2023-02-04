@@ -15,6 +15,8 @@ class BALD(QueryStrategy):
 
     Requires that the `predict_proba()` method of the given classifier supports
     dropout sampling [GZ16]_.
+
+    .. versionadded:: 1.2.0
     """
     def __init__(self, dropout_samples=10):
         """
