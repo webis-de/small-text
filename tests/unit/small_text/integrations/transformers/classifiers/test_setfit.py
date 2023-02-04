@@ -204,7 +204,7 @@ class _SetFitClassification(object):
             clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
             clf.fit(ds)
 
-            trainer_mock.return_value.train.assert_called_with()
+            trainer_mock.return_value.train.assert_called_with(max_length=512)
 
     def test_fit_with_train_kwargs(self):
         ds = random_text_dataset(10, multi_label=self.multi_label)
