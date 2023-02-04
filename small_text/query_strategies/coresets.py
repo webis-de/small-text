@@ -144,7 +144,7 @@ class GreedyCoreset(EmbeddingBasedQueryStrategy):
 
 
 def lightweight_coreset(x, x_mean, n, normalized=False, proba=None):
-    """Computes a lightweight coreset [BAC18]_ of `x` with size `n`.
+    """Computes a lightweight coreset [BLK18]_ of `x` with size `n`.
 
     Parameters
     ----------
@@ -165,14 +165,6 @@ def lightweight_coreset(x, x_mean, n, normalized=False, proba=None):
     -------
     indices : numpy.ndarray
         Indices relative to `x`.
-
-    References
-    ----------
-    .. [BAC18] Olivier Bachem, Mario Lucic, and Andreas Krause. 2018.
-               Scalable k-Means Clustering via Lightweight Coresets.
-               In Proceedings of the 24th ACM SIGKDD International Conference on
-                 Knowledge Discovery & Data Mining (KDD '18).
-               Association for Computing Machinery, New York, NY, USA, 1119–1127.
     """
     _check_coreset_size(x, n)
 
@@ -197,7 +189,7 @@ def lightweight_coreset(x, x_mean, n, normalized=False, proba=None):
 
 
 class LightweightCoreset(EmbeddingBasedQueryStrategy):
-    """Selects instances by constructing a lightweight coreset [BAC18]_ over document embeddings.
+    """Selects instances by constructing a lightweight coreset [BLK18]_ over document embeddings.
     """
     def __init__(self, normalize=True):
         """

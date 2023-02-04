@@ -25,4 +25,7 @@ Sentence Transformer Finetuning
 Example
 -------
 
-TODO
+An example is provided in :file:`examples/examplecode/setfit_multiclass_classification.py`:
+
+.. literalinclude:: ../../examples/examplecode/setfit_multiclass_classification.py
+   :language: python

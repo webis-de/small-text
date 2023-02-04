@@ -48,6 +48,11 @@ Bibliography
    In Proceedings of the Thirty-First AAAI Conference on Artificial Intelligence (AAAI’17).
    AAAI Press, pages 3386–3392.
 
+.. [BLK18] Olivier Bachem, Mario Lucic, and Andreas Krause. 2018.
+   Scalable k-Means Clustering via Lightweight Coresets.
+   In Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining (KDD '18).
+   Association for Computing Machinery, New York, NY, USA, 1119–1127.
+
 .. [HR18] Jeremy Howard and Sebastian Ruder. 2008.
    Universal Language Model Fine-tuning for Text Classification.
    In Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics, pages 328–339.
