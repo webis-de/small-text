@@ -1,7 +1,7 @@
-[![PyPI](https://img.shields.io/pypi/v/small-text/v1.1.1)](https://pypi.org/project/small-text/)
+[![PyPI](https://img.shields.io/pypi/v/small-text/v1.2.0)](https://pypi.org/project/small-text/)
 [![Conda Forge](https://img.shields.io/conda/v/conda-forge/small-text?label=conda-forge)](https://anaconda.org/conda-forge/small-text)
 [![codecov](https://codecov.io/gh/webis-de/small-text/branch/master/graph/badge.svg?token=P86CPABQOL)](https://codecov.io/gh/webis-de/small-text)
-[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.1.1)](https://small-text.readthedocs.io/en/v1.1.1/) 
+[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.2.0)](https://small-text.readthedocs.io/en/v1.2.0/) 
 ![Maintained Yes](https://img.shields.io/badge/maintained-yes-green)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 [![MIT License](https://img.shields.io/github/license/webis-de/small-text)](LICENSE)
@@ -36,24 +36,22 @@ which can be easily mixed and matched to build active learning experiments or ap
 - Multiple scientifically evaluated components are pre-implemented and ready to use (Query Strategies, Initialization Strategies, and Stopping Criteria).
 
 ## News
-
+- 
+- **Version 1.2.0** ([v1.2.0][changelog_1.2.0]): Highlights - February 4th, 2023
+  - Make [huggingface/setfit](https://github.com/huggingface/setfit) (SetFit) usable as a small-text classifier.
+  - New query strategy: [BALD](https://github.com/webis-de/small-text/blob/v1.2.0/small_text/query_strategies/bayesian.py).
+  - Added two new SetFit notebooks, and also updated existing notebooks.
+  
 - **Version 1.1.1** ([v1.1.1][changelog_1.1.1]) - October 14, 2022
   - Fixes model selection which could raise an error under certain circumstances ([#21](https://github.com/webis-de/small-text/issues/21)).
-
+  
 - **Version 1.1.0** ([v1.1.0][changelog_1.1.0]): Highlights - October 01, 2022
   - A small-text package on [conda-forge](https://anaconda.org/conda-forge/small-text) is now available.
   - Early stopping and model selection have been reworked.
   - One new query strategy and three new stopping criteria have been added.
 
-- **Version 1.0.1** ([v1.0.1][changelog_1.0.1]) - September 12, 2022
-  - Minor bug fix release that fixes notebook and code example links that caused problems by pointing to the latest main branch.
-
-- **Use Small-Text from the Rubrix User Interface** - July 16, 2022
-  - We are happy to announce that the great team at rubrix has worked hard to provide a  
-    comprehensive [tutorial on how to use small-text from within the rubrix user interface][argilla_al_tutorial].
-
-
 [For a complete list of changes, see the change log.][changelog]
+
 
 ## Installation
 
@@ -85,9 +83,10 @@ or check out the notebooks.
 
 | # | Notebook | |
 | --- | -------- | --- |
-| 1 | [Intro: Active Learning for Text Classification with Small-Text](https://github.com/webis-de/small-text/blob/v1.1.1/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.0.0/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
-| 2 | [Using Stopping Criteria for Active Learning](https://github.com/webis-de/small-text/blob/v1.1.1/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.0.0/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) |
-| 3 | [Active Learning using SetFit (preview / unreleased)](https://github.com/webis-de/small-text/blob/main/examples/notebooks/03-active-learning-with-setfit.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/main/examples/notebooks/03-active-learning-with-setfit.ipynb) |
+| 1 | [Intro: Active Learning for Text Classification with Small-Text](https://github.com/webis-de/small-text/blob/v1.2.0/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.2.0/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
+  | 2 | [Using Stopping Criteria for Active Learning](https://github.com/webis-de/small-text/blob/v1.2.0/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.2.0/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) |
+| 3 | [Active Learning using SetFit](https://github.com/webis-de/small-text/blob/v1.2.0/examples/notebooks/03-active-learning-with-setfit.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.2.0/examples/notebooks/03-active-learning-with-setfit.ipynb) |
+| 4 | [Using SetFit's Zero Shot Capabilities for Cold Start Initialization](https://github.com/webis-de/small-text/blob/v1.2.0/examples/notebooks/04-zero-shot-cold-start.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.2.0/examples/notebooks/04-zero-shot-cold-start.ipynb) |
 
 ### Showcase
 
@@ -140,14 +139,14 @@ A preprint which introduces small-text is available here:
 [MIT License](LICENSE)
 
 
-[documentation_main]: https://small-text.readthedocs.io/en/v1.1.1/
-[documentation_install]: https://small-text.readthedocs.io/en/v1.1.1/install.html
-[documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.1.1/components/query_strategies.html
-[documentation_showcase]: https://small-text.readthedocs.io/en/v1.1.1/showcase.html
-[documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.1.1/reproducibility_notes.html
+[documentation_main]: https://small-text.readthedocs.io/en/v1.2.0/
+[documentation_install]: https://small-text.readthedocs.io/en/v1.2.0/install.html
+[documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.2.0/components/query_strategies.html
+[documentation_showcase]: https://small-text.readthedocs.io/en/v1.2.0/showcase.html
+[documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.2.0/reproducibility_notes.html
 [changelog]: https://small-text.readthedocs.io/en/latest/changelog.html
-[changelog_1.0.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-0-1-2022-09-12
 [changelog_1.1.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-1-0-2022-10-01
 [changelog_1.1.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-1-1-2022-10-14
+[changelog_1.2.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-2-0-2023-02-04
 [argilla]: https://github.com/argilla-io/argilla
 [argilla_al_tutorial]: https://docs.argilla.io/en/latest/tutorials/notebooks/training-textclassification-smalltext-activelearning.html
