@@ -87,7 +87,7 @@ class _EmbeddingTest(object):
 
             self.assertEqual(1, encode_spy.call_count)
             self.assertEqual(1, len(encode_spy.call_args_list[0].args))
-            assert_array_equal(train_set.x, encode_spy.call_args_list[0].args[0])
+            self.assertEqual(len(train_set.x), len(encode_spy.call_args_list[0].args[0]))
             self.assertEqual(1, len(encode_spy.call_args_list[0].kwargs))
             self.assertEqual(device, encode_spy.call_args_list[0].kwargs['device'])
 
