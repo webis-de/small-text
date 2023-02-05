@@ -92,9 +92,9 @@ or check out the notebooks.
 
 - [Tutorial: 👂 Active learning for text classification with small-text][argilla_al_tutorial] (Use small-text conveniently from the [argilla][argilla] UI.)
 
-A full [showcase overview](documentation_showcase) can be found in the docs.
+A full [showcase overview][documentation_showcase] can be found in the docs.
 
-🎀 **Would you like to share your use case?** Regardless if it is a paper, an experiment, a practical application, a thesis, a dataset, or other, let us know and we will add you to the [showcase section](documentation_showcase) or even here.
+🎀 **Would you like to share your use case?** Regardless if it is a paper, an experiment, a practical application, a thesis, a dataset, or other, let us know and we will add you to the [showcase section][documentation_showcase] or even here.
 
 ## Documentation
 
