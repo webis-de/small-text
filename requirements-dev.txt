@@ -4,3 +4,4 @@ parameterized==0.8.1
 flake8
 pytest-srcpaths==1.2.1
 virtualenv>=20.11.0
+pyright
