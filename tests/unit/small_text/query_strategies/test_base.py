@@ -10,15 +10,29 @@ from small_text.query_strategies.strategies import RandomSampling
 from tests.utils.datasets import random_sklearn_dataset
 
 
-@constraints(classification_type='single-label')
+@constraints(classification_type=ClassificationType.SINGLE_LABEL)
 class FakeSingleLabelQueryStrategy(RandomSampling):
 
     def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
         return super().query(clf, dataset, indices_unlabeled, indices_labeled, y, n=n)
 
 
-@constraints(classification_type='multi-label')
+@constraints(classification_type='single-label')
+class FakeSingleLabelQueryStrategyStringKwarg(RandomSampling):
+
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+        return super().query(clf, dataset, indices_unlabeled, indices_labeled, y, n=n)
+
+
+@constraints(classification_type=ClassificationType.MULTI_LABEL)
 class FakeMultiLabelQueryStrategy(RandomSampling):
+
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+        return super().query(clf, dataset, indices_unlabeled, indices_labeled, y, n=n)
+
+
+@constraints(classification_type='multi-label')
+class FakeMultiLabelQueryStrategyStringKwarg(RandomSampling):
 
     def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
         return super().query(clf, dataset, indices_unlabeled, indices_labeled, y, n=n)
@@ -47,19 +61,41 @@ class ConstraintTest(unittest.TestCase):
         sls = FakeSingleLabelQueryStrategy()
         self._test_query_strategy(sls)
 
+    def test_with_valid_single_label_constraint_string_kwarg(self):
+        sls = FakeSingleLabelQueryStrategyStringKwarg()
+        self._test_query_strategy(sls)
+
     def test_with_invalid_single_label_constraint(self):
         sls = FakeSingleLabelQueryStrategy()
 
         with self.assertRaisesRegex(RuntimeError,
-                                    'Invalid configuration: This query strategy requires '):
+                                    'Invalid configuration: This query strategy requires'):
+            self._test_query_strategy(sls, multi_label=True)
+
+    def test_with_invalid_single_label_constraint_string_kwarg(self):
+        sls = FakeSingleLabelQueryStrategyStringKwarg()
+
+        with self.assertRaisesRegex(RuntimeError,
+                                    'Invalid configuration: This query strategy requires'):
             self._test_query_strategy(sls, multi_label=True)
 
     def test_with_valid_multi_label_constraint(self):
         sls = FakeMultiLabelQueryStrategy()
         self._test_query_strategy(sls, multi_label=True)
 
+    def test_with_valid_multi_label_constraint_string_kwarg(self):
+        sls = FakeMultiLabelQueryStrategyStringKwarg()
+        self._test_query_strategy(sls, multi_label=True)
+
     def test_with_invalid_multi_label_constraint(self):
         sls = FakeMultiLabelQueryStrategy()
+
+        with self.assertRaisesRegex(RuntimeError,
+                                    'Invalid configuration: This query strategy requires '):
+            self._test_query_strategy(sls)
+
+    def test_with_invalid_multi_label_constraint_string_kwarg(self):
+        sls = FakeMultiLabelQueryStrategyStringKwarg()
 
         with self.assertRaisesRegex(RuntimeError,
                                     'Invalid configuration: This query strategy requires '):
