@@ -17,7 +17,6 @@ from examplecode.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 from examplecode.shared import evaluate
 
 
-
 TWENTY_NEWS_SUBCATEGORIES = ['rec.sport.baseball', 'sci.med', 'rec.autos']
 
 

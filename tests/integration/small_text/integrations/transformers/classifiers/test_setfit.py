@@ -2,7 +2,7 @@ import unittest
 import pytest
 import numpy as np
 
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import patch
 from scipy.sparse import issparse
 
 from small_text.data.datasets import TextDataset
@@ -10,7 +10,6 @@ from small_text.exceptions import UnsupportedOperationException
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from sklearn.utils.validation import check_is_fitted
 from tests.utils.datasets import twenty_news_text
-from tests.utils.testing import assert_array_equal
 
 try:
     from small_text.integrations.transformers.classifiers.factories import (
