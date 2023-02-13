@@ -12,7 +12,7 @@
 <img width="372" height="80" src="https://raw.githubusercontent.com/webis-de/small-text/master/docs/_static/small-text-logo.png" alt="small-text logo" />
 </p>
 
-> Active Learning for Text Classifcation in Python.
+> Active Learning for Text Classification in Python.
 <hr>
 
 [Installation](#installation) | [Quick Start](#quick-start) | [Contribution](CONTRIBUTING.md) | [Changelog][changelog] | [**Docs**][documentation_main]
