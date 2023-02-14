@@ -676,7 +676,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         ----------
         dataset : TransformersDataset
             A dataset whose labels will be predicted.
-        dropout_sampling : int
+        dropout_sampling : int, default=1
             If `dropout_sampling > 1` then all dropout modules will be enabled during prediction and
             multiple rounds of predictions will be sampled for each instance.
 
@@ -684,7 +684,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         -------
         scores : np.ndarray
             Distribution of confidence scores over all classes of shape (num_samples, num_classes).
-            If `dropout_sampling > 1` then the shape is (num_samples, dropour_samples, num_classes).
+            If `dropout_sampling > 1` then the shape is (num_samples, dropout_sampling, num_classes).
         """
         return super().predict_proba(dataset, dropout_sampling=dropout_sampling)
 

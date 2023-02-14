@@ -116,7 +116,7 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
         ----------
         dataset : small_text.data.datasets.Dataset
             A dataset whose labels will be predicted.
-        dropout_sampling : int
+        dropout_sampling : int, default=1
             If `dropout_sampling > 1` then all dropout modules will be enabled during prediction and
             multiple rounds of predictions will be sampled for each instance.
 

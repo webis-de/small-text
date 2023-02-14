@@ -213,6 +213,51 @@ class _ClassificationTest(object):
         self.assertTrue(np.all([isinstance(y, np.float64) for row in y_pred_proba for y in row]))
         self.assertTrue(np.logical_or(y_pred_proba.all() >= 0.0, y_pred_proba.all() <= 1.0))
 
+    def test_fit_and_predict_proba_dropout(self, dropout_sampling=3):
+        classification_kwargs = {
+            'use_differentiable_head': self.use_differentiable_head,
+            'multi_label': self.multi_label
+        }
+        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
+        clf_factory = SetFitClassificationFactory(
+            setfit_model_args,
+            self.num_classes,
+            classification_kwargs=classification_kwargs)
+
+        train_set = twenty_news_text(30, num_classes=self.num_classes, multi_label=self.multi_label)
+        test_set = twenty_news_text(30, num_classes=self.num_classes, multi_label=self.multi_label)
+
+        clf = clf_factory.new()
+
+        if self.use_differentiable_head:
+            with self.assertRaises(NotImplementedError):
+                clf.fit(train_set)
+        else:
+            clf.fit(train_set)
+
+            # check Module.train()/.eval() works
+            clf.model.model_body.train()
+            self.assertTrue(clf.model.model_body.training)
+            clf.model.model_body.eval()
+            self.assertFalse(clf.model.model_body.training)
+
+            y_pred_proba = clf.predict_proba(test_set)
+            self.assertSequenceEqual((len(test_set), self.num_classes), y_pred_proba.shape)
+            self.assertTrue(isinstance(y_pred_proba, np.ndarray))
+            self.assertTrue(np.all([isinstance(p, np.float64) for pred in y_pred_proba for p in pred]))
+
+            y_pred_proba = clf.predict_proba(test_set, dropout_sampling=dropout_sampling)
+            self.assertSequenceEqual((len(test_set), dropout_sampling, self.num_classes), y_pred_proba.shape)
+            self.assertTrue(isinstance(y_pred_proba, np.ndarray))
+            self.assertTrue(np.all([isinstance(p, np.float64) for pred in y_pred_proba
+                                    for sample in pred for p in sample]))
+
+            # check Module.train()/.eval() **still** (!) works
+            clf.model.model_body.train()
+            self.assertTrue(clf.model.model_body.training)
+            clf.model.model_body.eval()
+            self.assertFalse(clf.model.model_body.training)
+
     def test_fit_and_validate(self):
         device = 'cuda:0'
         classification_kwargs = {
