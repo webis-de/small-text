@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 1.3.0 - unreleased
+
+### Added
+
+- Added dropout sampling to [SetFitClassification](https://github.com/webis-de/small-text/blob/v1.3.0/small_text/integrations/transformers/classifiers/setfit.py).
+
+### Fixed
+
+- Fixed broken link in README.md.
+- Fixed typo in README.md. (#26)
+
+### Contributors
+
+[@rmitsch](https://github.com/rmitsch)
+
 ## Version 1.2.0 - 2023-02-04
 
 ### Added
