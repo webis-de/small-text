@@ -37,6 +37,9 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
+- **Paper accepted at EACL 2023 🎉**
+  - The [paper][paper_arxiv] introducing small-text has been accepted at [EACL 2023](https://2023.eacl.org/). Meet us at the conference in May!
+
 - **Version 1.2.0** ([v1.2.0][changelog_1.2.0]): Highlights - February 4th, 2023
   - Make [huggingface/setfit](https://github.com/huggingface/setfit) (SetFit) usable as a small-text classifier.
   - New query strategy: [BALD](https://github.com/webis-de/small-text/blob/v1.2.0/small_text/query_strategies/bayesian.py).
@@ -121,7 +124,7 @@ The encompassing project was funded by the Development Bank of Saxony (SAB) unde
 ## Citation
 
 A preprint which introduces small-text is available here:  
-[Small-Text: Active Learning for Text Classification in Python](https://arxiv.org/abs/2107.10314). 
+[Small-Text: Active Learning for Text Classification in Python][paper_arxiv]. 
 
 ```
 @misc{schroeder2021smalltext,
@@ -150,3 +153,4 @@ A preprint which introduces small-text is available here:
 [changelog_1.2.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-2-0-2023-02-04
 [argilla]: https://github.com/argilla-io/argilla
 [argilla_al_tutorial]: https://docs.argilla.io/en/latest/tutorials/notebooks/training-textclassification-smalltext-activelearning.html
+[paper_arxiv]: https://arxiv.org/abs/2107.10314
