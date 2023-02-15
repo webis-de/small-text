@@ -1,5 +1,6 @@
 import numpy as np
 
+from scipy.sparse import issparse
 from small_text.stopping_criteria.base import StoppingCriterion, check_window_based_predictions
 
 
@@ -35,7 +36,23 @@ class ClassificationChange(StoppingCriterion):
             self.last_predictions = predictions
             return False
         else:
-            unchanged = np.equal(self.last_predictions, predictions)
+            if issparse(predictions):
+                def compare_rows(mat_one, mat_two, row):
+                    row_one = get_row(mat_one, row)
+                    row_two = get_row(mat_two, row)
+                    same_shape = row_one.shape == row_two.shape
+                    return same_shape and (row_one == row_two).all()
+
+                def get_row(mat, row):
+                    item = slice(mat.indptr[row], mat.indptr[row+1])
+                    return mat.indices[item]
+
+                unchanged = np.array([
+                    compare_rows(self.last_predictions, predictions, i)
+                    for i in range(self.last_predictions.shape[0])
+                ], dtype=bool)
+            else:
+                unchanged = np.equal(self.last_predictions, predictions)
             self.last_predictions = predictions
 
             if unchanged.sum() >= predictions.shape[0] * (1 - self.threshold):
