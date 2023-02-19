@@ -31,7 +31,7 @@ Getting Started
    datasets
 
 - Start: :doc:`install` | :doc:`Active Learning Overview<active_learning>`
-- Examples: `Notebooks <https://github.com/webis-de/small-text/tree/v1.2.0/examples/notebooks>`_ | `Code Examples <https://github.com/webis-de/small-text/tree/v1.2.0/examples/examplecode>`_
+- Examples: `Notebooks <https://github.com/webis-de/small-text/tree/v1.3.0/examples/notebooks>`_ | `Code Examples <https://github.com/webis-de/small-text/tree/v1.3.0/examples/examplecode>`_
 
 .. toctree::
    :caption: Components
