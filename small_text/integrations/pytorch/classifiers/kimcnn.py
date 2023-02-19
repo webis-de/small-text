@@ -459,8 +459,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         return train_loss, train_acc
 
     def validate(self, validation_set):
-        """
-        Obtains validation scores (loss, accuracy) for the given validation set.
+        """Obtains validation scores (loss, accuracy) for the given validation set.
 
         Parameters
         ----------

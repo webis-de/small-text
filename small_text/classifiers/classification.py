@@ -141,6 +141,13 @@ class SklearnClassifier(Classifier):
                                  return_proba=return_proba)
 
     def predict_proba(self, data_set):
+        """Predicts the label distribution for each sample in the given dataset.
+
+        Parameters
+        ----------
+        data_set : SklearnDataset
+            A dataset for which the labels are to be predicted.
+        """
         if len(data_set) == 0:
             return empty_result(self.multi_label, self.num_classes, return_prediction=False, return_proba=True)
 

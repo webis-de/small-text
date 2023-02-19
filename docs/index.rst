@@ -55,10 +55,8 @@ Getting Started
    :maxdepth: 1
    :hidden:
 
-   libraries/pytorch_main
-   libraries/pytorch_classes
-   libraries/transformers_main
-   libraries/transformers_classes
+   libraries/pytorch_integration
+   libraries/transformers_integration
 
 .. toctree::
    :caption: Common Patterns

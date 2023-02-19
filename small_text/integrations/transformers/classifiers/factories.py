@@ -22,6 +22,13 @@ class TransformerBasedClassificationFactory(AbstractClassifierFactory):
         self.kwargs = kwargs
 
     def new(self):
+        """Creates a new TransformerBasedClassification instance.
+
+        Returns
+        -------
+        classifier : TransformerBasedClassification
+            A new instance of TransformerBasedClassification which is initialized with the given keyword args `kwargs`.
+        """
         return TransformerBasedClassification(self.transformer_model_args,
                                               self.num_classes,
                                               **self.kwargs)
@@ -48,6 +55,13 @@ class SetFitClassificationFactory(AbstractClassifierFactory):
         self.classification_kwargs = classification_kwargs
 
     def new(self):
+        """Creates a new SetFitClassification instance.
+
+        Returns
+        -------
+        classifier : SetFitClassification
+            A new instance of SetFitClassification which is initialized with the given keyword args `kwargs`.
+        """
         return SetFitClassification(self.setfit_model_args,
                                     self.num_classes,
                                     **self.classification_kwargs)
