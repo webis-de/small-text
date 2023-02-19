@@ -18,12 +18,15 @@ Components
 
 An active learning process encompasses several, usually interchangeable components:
 An :doc:`initalization strategy<components/initialization>`,
+a classifier,
 a :doc:`query strategy<components/query_strategies>`,
 and (optionally) a :doc:`stopping criterion<components/stopping_criteria>`.
 
-.. figure:: _static/figures/active-learning-components.png
+.. figure:: _static/figures/active-learning-setup.svg
   :align: center
-  :scale: 70%
+  :class: active-learning-setup
+  :width: 70%
+  :alt: A schematic of component types within an active learning setup.
 
   A schematic of component types within an active learning setup.
 
