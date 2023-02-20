@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 1.3.0 - unreleased
+## Version 1.3.0 - 2023-02-20
 
 ### Added
 
@@ -14,7 +14,9 @@
 ### Changed
 
 - The `ClassificationChange <https://github.com/webis-de/small-text/blob/v1.3.0/small_text/stopping_criteria/change.py>`__ stopping criterion now supports multi-label classification.
-- Updated the active learning setup figure in the documentation.
+- Documentation:
+  - Updated the active learning setup figure.
+  - The documentation of integrations has been reorganized.
 
 ### Contributors
 
