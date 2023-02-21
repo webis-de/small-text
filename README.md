@@ -41,7 +41,7 @@ which can be easily mixed and matched to build active learning experiments or ap
   - The [paper][paper_arxiv] introducing small-text has been accepted at [EACL 2023](https://2023.eacl.org/). Meet us at the conference in May!
 
 - **Version 1.3.0** ([v1.3.0][changelog_1.3.0]): Highlights - February 20th, 2023
-  - Added dropout sampling to [SetFitClassification](https://github.com/webis-de/small-text/blob/v1.3.0/small_text/integrations/transformers/classifiers/setfit.py>).
+  - Added dropout sampling to [SetFitClassification](https://github.com/webis-de/small-text/blob/v1.3.0/small_text/integrations/transformers/classifiers/setfit.py).
   
 - **Version 1.2.0** ([v1.2.0][changelog_1.2.0]): Highlights - February 4th, 2023
   - Make [huggingface/setfit](https://github.com/huggingface/setfit) (SetFit) usable as a small-text classifier.
@@ -98,7 +98,7 @@ or check out the notebooks.
 
 - [Tutorial: 👂 Active learning for text classification with small-text][argilla_al_tutorial] (Use small-text conveniently from the [argilla][argilla] UI.)
 
-A full [showcase overview][documentation_showcase] can be found in the docs.
+A full list of showcases can be found [in the docs][documentation_showcase].
 
 🎀 **Would you like to share your use case?** Regardless if it is a paper, an experiment, a practical application, a thesis, a dataset, or other, let us know and we will add you to the [showcase section][documentation_showcase] or even here.
 
