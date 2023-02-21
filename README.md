@@ -50,11 +50,6 @@ which can be easily mixed and matched to build active learning experiments or ap
   
 - **Version 1.1.1** ([v1.1.1][changelog_1.1.1]) - October 14, 2022
   - Fixes model selection which could raise an error under certain circumstances ([#21](https://github.com/webis-de/small-text/issues/21)).
-  
-- **Version 1.1.0** ([v1.1.0][changelog_1.1.0]): Highlights - October 01, 2022
-  - A small-text package on [conda-forge](https://anaconda.org/conda-forge/small-text) is now available.
-  - Early stopping and model selection have been reworked.
-  - One new query strategy and three new stopping criteria have been added.
 
 [For a complete list of changes, see the change log.][changelog]
 
