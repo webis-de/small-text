@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 1.3.0 - 2023-02-20
+## Version 1.3.0 - 2023-02-21
 
 ### Added
 
