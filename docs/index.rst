@@ -31,7 +31,7 @@ Getting Started
    datasets
 
 - Start: :doc:`install` | :doc:`Active Learning Overview<active_learning>`
-- Examples: `Notebooks <https://github.com/webis-de/small-text/tree/v1.2.0/examples/notebooks>`_ | `Code Examples <https://github.com/webis-de/small-text/tree/v1.2.0/examples/examplecode>`_
+- Examples: `Notebooks <https://github.com/webis-de/small-text/tree/v1.3.0/examples/notebooks>`_ | `Code Examples <https://github.com/webis-de/small-text/tree/v1.3.0/examples/examplecode>`_
 
 .. toctree::
    :caption: Components
@@ -55,10 +55,8 @@ Getting Started
    :maxdepth: 1
    :hidden:
 
-   libraries/pytorch_main
-   libraries/pytorch_classes
-   libraries/transformers_main
-   libraries/transformers_classes
+   libraries/pytorch_integration
+   libraries/transformers_integration
 
 .. toctree::
    :caption: Common Patterns

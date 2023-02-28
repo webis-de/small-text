@@ -185,7 +185,7 @@ the :code:`clone()` operation dissolves a view and returns a dataset again:
 Integration Data Structures
 ===========================
 
-Both the :doc:`Pytorch Integration <libraries/pytorch_main>` the :doc:`Transformers Integration <libraries/transformers_main>`
+Both the :doc:`Pytorch Integration <libraries/pytorch_integration>` the :doc:`Transformers Integration <libraries/transformers_integration>`
 bring their own Datasets (each subclassing :py:class:`~small_text.data.datasets.Dataset`),
 which rely on different representations and bring additional methods for handling GPU-related operations.
 

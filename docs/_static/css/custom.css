@@ -44,3 +44,19 @@
 .wy-table-responsive thead th {
    background-color: #d8ebff;
 }
+
+.document figcaption {
+   margin-top: 6px;
+}
+
+@media (min-width: 992px) {
+   .active-learning-setup {
+      width : 24vw;
+   }
+}
+
+@media (min-width: 1200px) {
+   .active-learning-setup {
+      width : 15vw;
+   }
+}

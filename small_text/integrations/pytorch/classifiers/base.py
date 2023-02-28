@@ -116,7 +116,7 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
         ----------
         dataset : small_text.data.datasets.Dataset
             A dataset whose labels will be predicted.
-        dropout_sampling : int
+        dropout_sampling : int, default=1
             If `dropout_sampling > 1` then all dropout modules will be enabled during prediction and
             multiple rounds of predictions will be sampled for each instance.
 
@@ -124,7 +124,7 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
         -------
         scores : np.ndarray
             Distribution of confidence scores over all classes of shape (num_samples, num_classes).
-            If `dropout_sampling > 1` then the shape is (num_samples, dropour_samples, num_classes).
+            If `dropout_sampling > 1` then the shape is (num_samples, dropout_sampling, num_classes).
         """
         if len(dataset) == 0:
             return empty_result(self.multi_label, self.num_classes, return_prediction=False,

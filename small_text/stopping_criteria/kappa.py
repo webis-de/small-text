@@ -17,7 +17,7 @@ class KappaAverage(StoppingCriterion):
             Defines number of iterations for which the predictions are taken into account, i.e.
             this stopping criterion only sees the last `window_size`-many states of the prediction
             array passed to `stop()`.
-        kappa : float, default=0.05
+        kappa : float, default=0.99
             The criterion stops when the agreement between two consecutive predictions within
             the window falls below this threshold.
         """

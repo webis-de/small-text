@@ -182,6 +182,7 @@ The following steps need to be done before a new release can be created.
 
 - Update small_text/version.json
 - examples/notebooks: Set the small-text version to the new release.
+  - Check notebook using a temporary small-text installation via github.
 - docs/index.rst: Set the small-text version to the new release.
 - README.md (Links "Notebooks" / "Code Examples")
   - Documentation Badge should link to the version of the most recent release (link AND img)

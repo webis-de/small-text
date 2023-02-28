@@ -1,5 +1,27 @@
 # Changelog
 
+## Version 1.3.0 - 2023-02-21
+
+### Added
+
+- Added dropout sampling to `SetFitClassification <https://github.com/webis-de/small-text/blob/v1.3.0/small_text/integrations/transformers/classifiers/setfit.py>`__.
+
+### Fixed
+
+- Fixed broken link in README.md.
+- Fixed typo in README.md. ([#26](https://github.com/webis-de/small-text/pull/26))
+
+### Changed
+
+- The `ClassificationChange <https://github.com/webis-de/small-text/blob/v1.3.0/small_text/stopping_criteria/change.py>`__ stopping criterion now supports multi-label classification.
+- Documentation:
+  - Updated the active learning setup figure.
+  - The documentation of integrations has been reorganized.
+
+### Contributors
+
+[@rmitsch](https://github.com/rmitsch)
+
 ## Version 1.2.0 - 2023-02-04
 
 ### Added

@@ -1,3 +1,4 @@
+import types
 import numpy as np
 
 from sklearn.exceptions import NotFittedError
@@ -19,9 +20,12 @@ from small_text.integrations.transformers.classifiers.base import (
 )
 
 try:
+    import torch
+
     from datasets import Dataset
     from setfit import SetFitModel, SetFitTrainer
 
+    from small_text.integrations.pytorch.utils.misc import enable_dropout
     from small_text.integrations.transformers.utils.classification import (
         _get_arguments_for_from_pretrained_model
     )
@@ -301,18 +305,26 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
         return predictions
 
-    def predict_proba(self, dataset):
+    def predict_proba(self, dataset, dropout_sampling=1):
         """Predicts the label distributions.
 
         Parameters
         ----------
         dataset : TextDataset
             A dataset whose labels will be predicted.
+        dropout_sampling : int, default=1
+            If `dropout_sampling > 1` then all dropout modules will be enabled during prediction and
+            multiple rounds of predictions will be sampled for each instance.
 
         Returns
         -------
         scores : np.ndarray
             Distribution of confidence scores over all classes of shape (num_samples, num_classes).
+            If `dropout_sampling > 1` then the shape is (num_samples, dropout_sampling, num_classes).
+
+        .. warning::
+           This function is not thread-safe if `dropout_sampling > 1`, since the underlying model gets
+           temporarily modified.
         """
         if len(dataset) == 0:
             return empty_result(self.multi_label, self.num_classes, return_prediction=False,
@@ -321,16 +333,49 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
         if self.use_differentiable_head:
             raise NotImplementedError()
-        else:
-            proba = np.empty((0, self.num_classes), dtype=float)
 
+        with torch.no_grad():
+            if dropout_sampling <= 1:
+                return self._predict_proba(dataset)
+            else:
+                return self._predict_proba_dropout_sampling(dataset, dropout_samples=dropout_sampling)
+
+    def _predict_proba(self, dataset):
+        proba = np.empty((0, self.num_classes), dtype=float)
+
+        num_batches = int(np.ceil(len(dataset) / self.mini_batch_size))
+        for batch in np.array_split(dataset.x, num_batches, axis=0):
+            proba_tmp = np.zeros((batch.shape[0], self.num_classes), dtype=float)
+            proba_tmp[:, self.model.model_head.classes_] = self.model.predict_proba(batch)
+            proba = np.append(proba, proba_tmp, axis=0)
+
+        return proba
+
+    def _predict_proba_dropout_sampling(self, dataset, dropout_samples=2):
+        # this whole method be done much more efficiently but this solution works without modifying setfit's code
+
+        self.model.model_body.train()
+        model_body_eval = self.model.model_body.eval
+        self.model.model_body.eval = types.MethodType(lambda x: x, self.model.model_body)
+
+        proba = np.empty((0, dropout_samples, self.num_classes), dtype=float)
+        proba[:, :, :] = np.inf
+
+        with enable_dropout(self.model.model_body):
             num_batches = int(np.ceil(len(dataset) / self.mini_batch_size))
             for batch in np.array_split(dataset.x, num_batches, axis=0):
-                proba_tmp = np.zeros((batch.shape[0], self.num_classes), dtype=float)
-                proba_tmp[:, self.model.model_head.classes_] = self.model.predict_proba(batch)
-                proba = np.append(proba, proba_tmp, axis=0)
+                samples = np.empty((dropout_samples, len(batch), self.num_classes), dtype=float)
+                for i in range(dropout_samples):
+                    proba_tmp = np.zeros((batch.shape[0], self.num_classes), dtype=float)
+                    proba_tmp[:, self.model.model_head.classes_] = self.model.predict_proba(batch)
+                    samples[i] = proba_tmp
 
-            return proba
+                samples = np.swapaxes(samples, 0, 1)
+                proba = np.append(proba, samples, axis=0)
+
+        self.model.model_body.eval = model_body_eval
+
+        return proba
 
     def __del__(self):
         try:

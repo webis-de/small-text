@@ -10,6 +10,8 @@ Several such implementations are available, depending on the choice of classifie
    :local:
    :backlinks: none
 
+----
+
 Core
 ====
 
@@ -29,22 +31,29 @@ Core
   :members:
   :special-members: __init__
 
+----
 
 Pytorch Integration
 ===================
 
 .. currentmodule:: small_text.integrations.pytorch.datasets
 
+.. _api-datasets-pytorch-text-classification-dataset:
+
 .. autoclass:: PytorchTextClassificationDataset
     :members: x, y, target_labels, data, vocab, clone, to, from_arrays
     :member-order: bysource
     :special-members: __init__
+
+----
 
 Transformers Integration
 ========================
 
 
 .. currentmodule:: small_text.integrations.transformers.datasets
+
+.. _api-transformers-dataset:
 
 .. autoclass:: TransformersDataset
     :members: x, y, target_labels, data, clone, to, from_arrays
