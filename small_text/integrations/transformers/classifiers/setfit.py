@@ -15,6 +15,7 @@ from small_text.utils.classification import (
 )
 from small_text.utils.context import build_pbar_context
 from small_text.utils.labels import csr_to_list
+from small_text.utils.logging import VERBOSITY_MORE_VERBOSE
 from small_text.integrations.transformers.classifiers.base import (
     ModelLoadingStrategy
 )
@@ -136,7 +137,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
     def __init__(self, setfit_model_args, num_classes, multi_label=False, max_seq_len=512,
                  use_differentiable_head=False, mini_batch_size=32, model_kwargs=dict(),
-                 trainer_kwargs=dict(), device=None):
+                 trainer_kwargs=dict(), device=None, verbosity=VERBOSITY_MORE_VERBOSE):
         """
         sentence_transformer_model : SetFitModelArguments
             Settings for the sentence transformer model to be used.
@@ -166,6 +167,9 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                          <https://github.com/huggingface/setfit/blob/main/src/setfit/trainer.py>`_
         device : str or torch.device, default=None
             Torch device on which the computation will be performed.
+        verbosity : int, default=VERBOSITY_MORE_VERBOSE
+            Controls the verbosity of logging messages. Lower values result in less log messages.
+            Set this to `VERBOSITY_QUIET` or `0` for the minimum amount of logging.
         """
         check_optional_dependency('setfit')
 
@@ -195,6 +199,8 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         self.use_differentiable_head = use_differentiable_head
         self.mini_batch_size = mini_batch_size
         self.device = device
+
+        self.verbosity = verbosity
 
     def fit(self, train_set, validation_set=None, setfit_train_kwargs=dict()):
         """Trains the model using the given train set.
@@ -264,7 +270,9 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             batch_size=self.mini_batch_size,
             **self.trainer_kwargs
         )
-        trainer.train(max_length=self.max_seq_len, **setfit_train_kwargs)
+        trainer.train(max_length=self.max_seq_len,
+                      show_progress_bar=self.verbosity >= VERBOSITY_MORE_VERBOSE,
+                      **setfit_train_kwargs)
         return self
 
     def validate(self, _validation_set):

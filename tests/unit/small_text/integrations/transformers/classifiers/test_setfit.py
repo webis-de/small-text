@@ -4,6 +4,7 @@ import pytest
 from unittest.mock import patch
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from small_text.utils.logging import VERBOSITY_QUIET, VERBOSITY_MORE_VERBOSE
 
 try:
     from small_text.integrations.transformers.classifiers.base import (
@@ -79,6 +80,15 @@ class TestSetFitClassificationKeywordArguments(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Invalid keyword argument in trainer_kwargs'):
             SetFitClassification(setfit_model_args, num_classes, trainer_kwargs=trainer_kwargs)
 
+    def test_init_with_misplaced_show_progress_bar_kwargs(self):
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        num_classes = 5
+
+        trainer_kwargs = {'show_progress_bar': True}
+
+        with self.assertRaisesRegex(ValueError, 'Invalid keyword argument in trainer_kwargs'):
+            SetFitClassification(setfit_model_args, num_classes, trainer_kwargs=trainer_kwargs)
+
 
 class _SetFitClassification(object):
 
@@ -97,6 +107,7 @@ class _SetFitClassification(object):
         self.assertEqual(self.use_differentiable_head, clf.use_differentiable_head)
         self.assertEqual(32, clf.mini_batch_size)
         self.assertIsNone(clf.device)
+        self.assertEqual(VERBOSITY_MORE_VERBOSE, clf.verbosity)
 
     def test_init_device(self):
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
@@ -115,6 +126,7 @@ class _SetFitClassification(object):
         self.assertEqual(self.use_differentiable_head, clf.use_differentiable_head)
         self.assertEqual(32, clf.mini_batch_size)
         self.assertEqual(clf.device, device)
+        self.assertEqual(VERBOSITY_MORE_VERBOSE, clf.verbosity)
 
     def test_init_model_kwargs(self):
         from sklearn.multiclass import OneVsRestClassifier
@@ -137,6 +149,26 @@ class _SetFitClassification(object):
         self.assertIsNone(clf.device)
         if not self.use_differentiable_head:
             self.assertTrue(isinstance(clf.model.model_head, OneVsRestClassifier))
+        self.assertEqual(VERBOSITY_MORE_VERBOSE, clf.verbosity)
+
+    def test_init_verbosity(self):
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        num_classes = 5
+        device = 'cuda:0'
+
+        clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label,
+                                   use_differentiable_head=self.use_differentiable_head,
+                                   verbosity=VERBOSITY_QUIET)
+
+        self.assertEqual(setfit_model_args, clf.setfit_model_args)
+        self.assertEqual(num_classes, clf.num_classes)
+        self.assertEqual({}, clf.model_kwargs)
+        self.assertEqual({}, clf.trainer_kwargs)
+
+        self.assertEqual(self.use_differentiable_head, clf.use_differentiable_head)
+        self.assertEqual(32, clf.mini_batch_size)
+        self.assertIsNone(clf.device)
+        self.assertEqual(VERBOSITY_QUIET, clf.verbosity)
 
     def test_init_model_loading_strategy_default(self):
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
@@ -204,14 +236,14 @@ class _SetFitClassification(object):
             clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
             clf.fit(ds)
 
-            trainer_mock.return_value.train.assert_called_with(max_length=512)
+            trainer_mock.return_value.train.assert_called_with(max_length=512, show_progress_bar=True)
 
     def test_fit_with_train_kwargs(self):
         ds = random_text_dataset(10, multi_label=self.multi_label)
         num_classes = 5
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
-        setfit_train_kwargs = {'show_progress_bar': False}
+        setfit_train_kwargs = {'l2_weight': 0.2}
 
         with patch('small_text.integrations.transformers.classifiers.setfit.SetFitTrainer') as trainer_mock:
             clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
@@ -220,8 +252,8 @@ class _SetFitClassification(object):
             trainer_mock.return_value.train.assert_called()
 
             call_args = trainer_mock.return_value.train.call_args
-            self.assertTrue('show_progress_bar' in call_args.kwargs)
-            self.assertFalse(call_args.kwargs['show_progress_bar'])
+            self.assertTrue('l2_weight' in call_args.kwargs)
+            self.assertEqual(0.2, call_args.kwargs['l2_weight'])
 
 
 @pytest.mark.pytorch
