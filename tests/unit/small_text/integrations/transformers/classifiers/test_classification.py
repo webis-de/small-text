@@ -1,8 +1,11 @@
+import os
 import unittest
 import pytest
+import small_text
 
 import numpy as np
 
+from importlib import reload
 from unittest.mock import patch
 
 from small_text.base import LABEL_UNLABELED
@@ -10,6 +13,7 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.training.early_stopping import EarlyStopping, EarlyStoppingOrCondition
 from small_text.training.metrics import Metric
 from small_text.utils.logging import VERBOSITY_MORE_VERBOSE
+from small_text.utils.system import OFFLINE_MODE_VARIABLE
 
 try:
     from torch.optim import AdamW
@@ -80,6 +84,24 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual(tokenizer, model_args.tokenizer)
         self.assertIsNotNone(model_args.model_loading_strategy)
         self.assertEqual(model_loading_strategy, model_args.model_loading_strategy)
+
+    def test_transformer_model_arguments_init_with_env_override(self):
+        os.environ[OFFLINE_MODE_VARIABLE] = '1'
+
+        # reload TransformerModelArguments so that updated environment variables are read
+        reload(small_text.integrations.transformers.classifiers.classification)
+        from small_text.integrations.transformers.classifiers.classification import TransformerModelArguments
+
+        tokenizer = '/path/to/tokenizer/'
+        config = '/path/to/config/'
+        model_args = TransformerModelArguments('bert-base-uncased',
+                                               tokenizer=tokenizer,
+                                               config=config)
+        self.assertEqual('bert-base-uncased', model_args.model)
+        self.assertEqual(config, model_args.config)
+        self.assertEqual(tokenizer, model_args.tokenizer)
+        self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertEqual(ModelLoadingStrategy.ALWAYS_LOCAL, model_args.model_loading_strategy)
 
 
 @pytest.mark.pytorch

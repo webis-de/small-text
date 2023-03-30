@@ -17,6 +17,12 @@ from small_text.utils.annotations import (
     early_stopping_deprecation_warning,
     model_selection_deprecation_warning
 )
+
+from small_text.integrations.transformers.classifiers.base import (
+    ModelLoadingStrategy,
+    get_default_model_loading_strategy
+)
+
 from small_text.utils.labels import get_num_labels
 from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
 from small_text.utils.system import get_tmp_dir_base
@@ -33,9 +39,7 @@ try:
     )
     from small_text.integrations.pytorch.utils.data import dataloader
     from small_text.integrations.pytorch.utils.misc import enable_dropout
-    from small_text.integrations.transformers.classifiers.base import (
-        ModelLoadingStrategy
-    )
+
     from small_text.integrations.transformers.datasets import TransformersDataset
     from small_text.integrations.transformers.utils.classification import (
         _initialize_transformer_components
@@ -88,12 +92,13 @@ class FineTuningArguments(object):
 
 
 class TransformerModelArguments(object):
-
+    """Model arguments for :py:class:`TransformerBasedClassification`.
+    """
     def __init__(self,
                  model,
                  tokenizer=None,
                  config=None,
-                 model_loading_strategy: ModelLoadingStrategy = ModelLoadingStrategy.DEFAULT):
+                 model_loading_strategy: ModelLoadingStrategy = get_default_model_loading_strategy()):
         """
         Parameters
         ----------
@@ -299,6 +304,9 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         class_weight : 'balanced' or None, default=None
             If 'balanced', then the loss function is weighted inversely proportional to the
             label distribution to the current train set.
+        verbosity : int
+            Controls the verbosity of logging messages. Lower values result in less log messages.
+            Set this to `VERBOSITY_QUIET` or `0` for the minimum amount of logging.
         """
         super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size)
         early_stopping_deprecation_warning(early_stopping_no_improvement, early_stopping_acc)

@@ -1,10 +1,15 @@
+import os
 import unittest
-import pytest
 
+import pytest
+import small_text
+
+from importlib import reload
 from unittest.mock import patch
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.logging import VERBOSITY_QUIET, VERBOSITY_MORE_VERBOSE
+from small_text.utils.system import OFFLINE_MODE_VARIABLE
 
 try:
     from small_text.integrations.transformers.classifiers.base import (
@@ -38,6 +43,20 @@ class TestSetFitModelArguments(unittest.TestCase):
         self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
         self.assertIsNotNone(args.model_loading_strategy)
         self.assertEqual(model_loading_strategy, args.model_loading_strategy)
+
+    def test_transformer_model_arguments_init_with_env_override(self):
+        os.environ[OFFLINE_MODE_VARIABLE] = '1'
+
+        # reload TransformerModelArguments so that updated environment variables are read
+        reload(small_text.integrations.transformers.classifiers.setfit)
+        from small_text.integrations.transformers.classifiers.setfit import SetFitModelArguments
+
+        sentence_transformer_model = 'sentence-transformers/all-MiniLM-L6-v2'
+        args = SetFitModelArguments(sentence_transformer_model)
+
+        self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
+        self.assertIsNotNone(args.model_loading_strategy)
+        self.assertEqual(ModelLoadingStrategy.ALWAYS_LOCAL, args.model_loading_strategy)
 
 
 @pytest.mark.pytorch

@@ -8,6 +8,11 @@ from small_text.base import check_optional_dependency
 from small_text.classifiers.classification import Classifier, EmbeddingMixin
 from small_text.exceptions import UnsupportedOperationException
 
+from small_text.integrations.transformers.classifiers.base import (
+    ModelLoadingStrategy,
+    get_default_model_loading_strategy
+)
+
 from small_text.utils.classification import (
     empty_result,
     _multi_label_list_to_multi_hot,
@@ -16,9 +21,6 @@ from small_text.utils.classification import (
 from small_text.utils.context import build_pbar_context
 from small_text.utils.labels import csr_to_list
 from small_text.utils.logging import VERBOSITY_MORE_VERBOSE
-from small_text.integrations.transformers.classifiers.base import (
-    ModelLoadingStrategy
-)
 
 try:
     import torch
@@ -41,13 +43,14 @@ except ImportError:
 
 
 class SetFitModelArguments(object):
-    """
+    """Model arguments for :py:class:`SetFitClassification`.
+
     .. versionadded:: 1.2.0
     """
 
     def __init__(self,
                  sentence_transformer_model: str,
-                 model_loading_strategy: ModelLoadingStrategy = ModelLoadingStrategy.DEFAULT):
+                 model_loading_strategy: ModelLoadingStrategy = get_default_model_loading_strategy()):
         """
         Parameters
         ----------

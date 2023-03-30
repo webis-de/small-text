@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 1.4.0 - unreleased
+
+### Added
+
+- General
+  - Added environment variables `SMALL_TEXT_PROGRESS_BARS` and `SMALL_TEXT_OFFLINE` to control the default behavior for progress bars and model downloading. 
+- Classification:
+  - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v1.4.0/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.
+
+---
+
 ## Version 1.3.0 - 2023-02-21
 
 ### Added
@@ -21,6 +32,8 @@
 ### Contributors
 
 [@rmitsch](https://github.com/rmitsch)
+
+---
 
 ## Version 1.2.0 - 2023-02-04
 
