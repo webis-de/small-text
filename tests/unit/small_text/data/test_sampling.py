@@ -1,8 +1,38 @@
 import unittest
 import numpy as np
 
+from numpy.testing import assert_array_equal
+from scipy.sparse import csr_matrix
+
 from small_text.data import balanced_sampling, stratified_sampling
 from small_text.data.sampling import _get_class_histogram
+from small_text.utils.labels import list_to_csr
+
+
+class SamplingUtilsDenseTest(unittest.TestCase):
+
+    def test_get_class_histogram(self):
+        y = np.array([0] * 10 + [1] * 3 + [2] * 60 + [3] * 0)
+        counts = _get_class_histogram(y, 4)
+        assert_array_equal(np.array([10, 3, 60, 0]), counts)
+
+    def test_get_class_histogram_empty_array(self):
+        y = np.array([], dtype=int)
+        counts = _get_class_histogram(y, 4)
+        assert_array_equal(np.array([0, 0, 0, 0]), counts)
+
+
+class SamplingUtilsSparseTest(unittest.TestCase):
+
+    def test_get_class_histogram(self):
+        y = list_to_csr([[], [0, 1], [0, 1, 2, 3], [], [1, 3]], shape=(5, 4))
+        counts = _get_class_histogram(y, 4)
+        assert_array_equal(np.array([2, 3, 1, 2]), counts)
+
+    def test_get_class_histogram_empty_array(self):
+        y = csr_matrix(np.array([], dtype=int))
+        counts = _get_class_histogram(y, 4)
+        assert_array_equal(np.array([0, 0, 0, 0]), counts)
 
 
 class StratifiedSamplingTest(unittest.TestCase):
