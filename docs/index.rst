@@ -102,6 +102,7 @@ License
    api/active_learner
    api/classifier
    api/dataset
+   misc/env
 
 
 .. toctree::
