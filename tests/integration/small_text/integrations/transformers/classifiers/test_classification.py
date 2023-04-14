@@ -4,6 +4,7 @@ import warnings
 
 import numpy as np
 
+from packaging.version import parse, Version
 from unittest import mock
 from unittest.mock import patch, Mock
 
@@ -18,6 +19,8 @@ from tests.utils.datasets import twenty_news_transformers
 from tests.utils.testing import assert_array_not_equal
 
 try:
+    import torch
+
     from small_text.integrations.transformers import TransformerModelArguments
     from small_text.integrations.transformers.classifiers import (
         TransformerBasedClassificationFactory,
@@ -492,3 +495,56 @@ class TransformerBasedClassificationMultiLabelTest(unittest.TestCase,
 
     def setUp(self):
         self.multi_label = True
+
+
+@pytest.mark.pytorch
+class CompileTest(unittest.TestCase):
+
+    def test_initialize_with_pytorch_geq_v2_and_compile_enabled(self):
+
+        if parse(torch.__version__) >= Version('2.0.0'):
+            model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base', compile_model=True)
+            classifier = TransformerBasedClassification(model_args,
+                                                        4,
+                                                        num_epochs=1)
+
+            with patch('torch.__version__', new='2.0.0'), \
+                    patch('torch.compile', wraps=torch.compile) as compile_spy:
+                classifier.initialize_transformer(classifier.cache_dir)
+                compile_spy.assert_called()
+
+    def test_initialize_with_pytorch_geq_v2_and_compile_disabled(self):
+
+        if parse(torch.__version__) >= Version('2.0.0'):
+            model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+            classifier = TransformerBasedClassification(model_args,
+                                                        4,
+                                                        class_weight='balanced',
+                                                        num_epochs=1)
+
+            with patch('torch.__version__', new='2.0.0'), \
+                    patch('torch.compile', wraps=torch.compile) as compile_spy:
+                classifier.initialize_transformer(classifier.cache_dir)
+                compile_spy.assert_not_called()
+
+    def test_initialize_with_pytorch_lesser_v2_and_compile_enabled(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base', compile_model=True)
+        classifier = TransformerBasedClassification(model_args,
+                                                    4,
+                                                    num_epochs=1)
+
+        with patch('torch.__version__', new='1.9.0'), \
+                patch('torch.compile', wraps=torch.compile) as compile_spy:
+            classifier.initialize_transformer(classifier.cache_dir)
+            compile_spy.assert_not_called()
+
+    def test_initialize_with_pytorch_lesser_v2_and_compile_disabled(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args,
+                                                    4,
+                                                    num_epochs=1)
+
+        with patch('torch.__version__', new='2.0.0'), \
+                patch('torch.compile', wraps=torch.compile) as compile_spy:
+            classifier.initialize_transformer(classifier.cache_dir)
+            compile_spy.assert_not_called()

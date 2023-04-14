@@ -1,9 +1,6 @@
 import types
 import numpy as np
 
-from sklearn.exceptions import NotFittedError
-from sklearn.utils.validation import check_is_fitted
-
 from small_text.base import check_optional_dependency
 from small_text.classifiers.classification import Classifier, EmbeddingMixin
 from small_text.exceptions import UnsupportedOperationException
@@ -28,7 +25,7 @@ try:
     from datasets import Dataset
     from setfit import SetFitModel, SetFitTrainer
 
-    from small_text.integrations.pytorch.utils.misc import enable_dropout
+    from small_text.integrations.pytorch.utils.misc import _compile_if_possible, enable_dropout
     from small_text.integrations.transformers.utils.classification import (
         _get_arguments_for_from_pretrained_model
     )
@@ -50,7 +47,8 @@ class SetFitModelArguments(object):
 
     def __init__(self,
                  sentence_transformer_model: str,
-                 model_loading_strategy: ModelLoadingStrategy = get_default_model_loading_strategy()):
+                 model_loading_strategy: ModelLoadingStrategy = get_default_model_loading_strategy(),
+                 compile_model: bool = False):
         """
         Parameters
         ----------
@@ -59,9 +57,15 @@ class SetFitModelArguments(object):
         model_loading_strategy: ModelLoadingStrategy, default=ModelLoadingStrategy.DEFAULT
             Specifies if there should be attempts to download the model or if only local
             files should be used.
+        compile_model : bool, default=False
+            Compiles the model (using `torch.compile`) if `True` and provided that
+            the PyTorch version greater or equal 2.0.0.
+
+            .. versionadded:: 1.4.0
         """
         self.sentence_transformer_model = sentence_transformer_model
         self.model_loading_strategy = model_loading_strategy
+        self.compile_model = compile_model
 
 
 class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
@@ -89,11 +93,8 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
             Class probabilities for `data_set` (only if `return_predictions` is `True`).
         """
 
-        if self.use_differentiable_head is False:
-            try:
-                check_is_fitted(self.model.model_head)
-            except NotFittedError:
-                raise ValueError('Model is not trained. Please call fit() first.')
+        if self.model is None:
+            raise ValueError('Model is not trained. Please call fit() first.')
 
         data_set = _truncate_texts(self.model, self.max_seq_len, data_set)[0]
 
@@ -173,6 +174,10 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         verbosity : int, default=VERBOSITY_MORE_VERBOSE
             Controls the verbosity of logging messages. Lower values result in less log messages.
             Set this to `VERBOSITY_QUIET` or `0` for the minimum amount of logging.
+        compile_model : bool, default=False
+            Compiles the model (using `torch.compile`) if `True` and PyTorch version is greater than or equal 2.0.0.
+
+            .. versionadded:: 1.4.0
         """
         check_optional_dependency('setfit')
 
@@ -183,20 +188,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         self.model_kwargs = _check_model_kwargs(model_kwargs)
         self.trainer_kwargs = _check_trainer_kwargs(trainer_kwargs)
 
-        model_kwargs = self.model_kwargs.copy()
-        if self.multi_label and 'multi_target_strategy' not in model_kwargs:
-            model_kwargs['multi_target_strategy'] = 'one-vs-rest'
-
-        from_pretrained_options = _get_arguments_for_from_pretrained_model(
-            self.setfit_model_args.model_loading_strategy
-        )
-        self.model = SetFitModel.from_pretrained(
-            self.setfit_model_args.sentence_transformer_model,
-            use_differentiable_head=use_differentiable_head,
-            force_download=from_pretrained_options.force_download,
-            local_files_only=from_pretrained_options.local_files_only,
-            **model_kwargs
-        )
+        self.model = None
 
         self.max_seq_len = max_seq_len
         self.use_differentiable_head = use_differentiable_head
@@ -223,6 +215,9 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             Returns the current classifier with a fitted model.
         """
         setfit_train_kwargs = _check_train_kwargs(setfit_train_kwargs)
+        if self.model is None:
+            self.model = self.initialize()
+
         if validation_set is None:
             train_set = _truncate_texts(self.model, self.max_seq_len, train_set)[0]
         else:
@@ -247,6 +242,9 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                                                                   x_valid,
                                                                   y_valid)
 
+        return self._fit_main(sub_train, sub_valid, setfit_train_kwargs)
+
+    def _fit_main(self, sub_train, sub_valid, setfit_train_kwargs):
         if self.use_differentiable_head:
             raise NotImplementedError
         else:
@@ -277,6 +275,24 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                       show_progress_bar=self.verbosity >= VERBOSITY_MORE_VERBOSE,
                       **setfit_train_kwargs)
         return self
+
+    def initialize(self):
+        from_pretrained_options = _get_arguments_for_from_pretrained_model(
+            self.setfit_model_args.model_loading_strategy
+        )
+        model_kwargs = self.model_kwargs.copy()
+        if self.multi_label and 'multi_target_strategy' not in model_kwargs:
+            model_kwargs['multi_target_strategy'] = 'one-vs-rest'
+
+        model = SetFitModel.from_pretrained(
+            self.setfit_model_args.sentence_transformer_model,
+            use_differentiable_head=self.use_differentiable_head,
+            force_download=from_pretrained_options.force_download,
+            local_files_only=from_pretrained_options.local_files_only,
+            **model_kwargs
+        )
+        model.model_body = _compile_if_possible(model.model_body, compile_model=self.setfit_model_args.compile_model)
+        return model
 
     def validate(self, _validation_set):
         if self.use_differentiable_head:

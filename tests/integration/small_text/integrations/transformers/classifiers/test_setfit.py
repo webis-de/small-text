@@ -2,7 +2,7 @@ import unittest
 import pytest
 import numpy as np
 
-from unittest.mock import patch
+from unittest.mock import create_autospec, patch, Mock
 from scipy.sparse import issparse
 
 from small_text.data.datasets import TextDataset
@@ -127,8 +127,8 @@ class EmbeddingDifferentiableHeadSingleLabelTest(unittest.TestCase, _EmbeddingTe
         self.use_differentiable_head = True
 
     def test_embed_untrained(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_embed_untrained()
+        # same logic regardless of the classification head
+        super().test_embed_untrained()
 
     def test_embed(self):
         with self.assertRaises(NotImplementedError):
@@ -149,8 +149,8 @@ class EmbeddingDifferentiableHeadMultiLabelTest(unittest.TestCase, _EmbeddingTes
         self.use_differentiable_head = True
 
     def test_embed_untrained(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_embed_untrained()
+        # same logic regardless of the classification head
+        super().test_embed_untrained()
 
     def test_embed(self):
         with self.assertRaises(NotImplementedError):
@@ -189,7 +189,12 @@ class _ClassificationTest(object):
         train_set = twenty_news_text(30, num_classes=self.num_classes, multi_label=self.multi_label)
 
         clf = clf_factory.new()
-        clf.fit(train_set)
+
+        with patch.object(clf, 'initialize', wraps=clf.initialize) as initialize_spy:
+            clf.fit(train_set)
+
+        initialize_spy.assert_called_once()
+
         if self.use_differentiable_head:
             self.assertTrue(check_is_fitted(clf.model.model_head))
 
@@ -274,13 +279,23 @@ class _ClassificationTest(object):
         train_set = twenty_news_text(30, num_classes=self.num_classes, multi_label=self.multi_label)
 
         clf = clf_factory.new()
-        with patch.object(clf.model.model_body, 'to', wraps=clf.model.model_body.to) as to_spy:
+
+        # required to verify that initializes() and to() are called
+        original_initialize = clf.initialize
+        def mocked_initialize():
+            model = original_initialize()
+            model.model_body.to = create_autospec(model.model_body.to, spec_set=True, wraps=model.model_body.to)
+            return model
+
+        with patch.object(clf, 'initialize', wraps=mocked_initialize) as initialize_spy:
             clf.fit(train_set)
 
-            self.assertEqual(3, to_spy.call_count)
+            initialize_spy.assert_called_once()
+
+            self.assertEqual(3, clf.model.model_body.to.call_count)
             # our call is the first
-            self.assertEqual(1, len(to_spy.call_args_list[0].args))
-            self.assertEqual(device, to_spy.call_args_list[0].args[0])
+            self.assertEqual(1, len(clf.model.model_body.to.call_args_list[0].args))
+            self.assertEqual(device, clf.model.model_body.to.call_args_list[0].args[0])
 
         valid_set = twenty_news_text(10, num_classes=self.num_classes, multi_label=self.multi_label)
 

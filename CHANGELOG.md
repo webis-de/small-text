@@ -7,6 +7,7 @@
 - General
   - Added environment variables `SMALL_TEXT_PROGRESS_BARS` and `SMALL_TEXT_OFFLINE` to control the default behavior for progress bars and model downloading. 
 - Classification:
+  - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support `torch.compile()` which can be enabled on demand. (Requires PyTorch >= 2.0.0). 
   - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v1.4.0/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.
 
 ---

@@ -38,7 +38,7 @@ try:
         PytorchClassifier
     )
     from small_text.integrations.pytorch.utils.data import dataloader
-    from small_text.integrations.pytorch.utils.misc import enable_dropout
+    from small_text.integrations.pytorch.utils.misc import _compile_if_possible, enable_dropout
 
     from small_text.integrations.transformers.datasets import TransformersDataset
     from small_text.integrations.transformers.utils.classification import (
@@ -98,7 +98,8 @@ class TransformerModelArguments(object):
                  model,
                  tokenizer=None,
                  config=None,
-                 model_loading_strategy: ModelLoadingStrategy = get_default_model_loading_strategy()):
+                 model_loading_strategy: ModelLoadingStrategy = get_default_model_loading_strategy(),
+                 compile_model: bool = False):
         """
         Parameters
         ----------
@@ -113,6 +114,11 @@ class TransformerModelArguments(object):
         model_loading_strategy: ModelLoadingStrategy, default=ModelLoadingStrategy.DEFAULT
             Specifies if there should be attempts to download the model or if only local
             files should be used.
+        compile_model : bool, default=False
+            Compiles the model (using `torch.compile`) if `True` and provided that
+            the PyTorch version greater or equal 2.0.0.
+
+            .. versionadded:: 1.4.0
         """
         self.model = model
         self.tokenizer = tokenizer
@@ -124,6 +130,7 @@ class TransformerModelArguments(object):
             self.config = model
 
         self.model_loading_strategy = model_loading_strategy
+        self.compile_model = compile_model
 
 
 def _get_layer_params(model, base_lr, fine_tuning_arguments):
@@ -448,6 +455,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             self.num_classes,
             cache_dir,
         )
+        self.model = _compile_if_possible(self.model, self.model.base_model_prefix)
 
     def _default_optimizer(self, base_lr):
 

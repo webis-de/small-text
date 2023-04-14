@@ -32,7 +32,7 @@ try:
     )
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.pytorch.utils.data import dataloader
-    from small_text.integrations.pytorch.utils.misc import enable_dropout
+    from small_text.integrations.pytorch.utils.misc import _compile_if_possible, enable_dropout
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
@@ -167,7 +167,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                  num_epochs=10, mini_batch_size=25, lr=0.001, max_seq_len=60, out_channels=100,
                  filter_padding=0, dropout=0.5, validation_set_size=0.1, padding_idx=0,
                  kernel_heights=[3, 4, 5], early_stopping=5, early_stopping_acc=-1,
-                 class_weight=None, verbosity=VERBOSITY_MORE_VERBOSE):
+                 class_weight=None, compile_model=False, verbosity=VERBOSITY_MORE_VERBOSE):
         """
         num_classes : int
             Number of classes.
@@ -212,6 +212,10 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         class_weight : 'balanced' or None, default=None
             If 'balanced', then the loss function is weighted inversely proportional to the
             label distribution to the current train set.
+        compile_model : bool, default=False
+            Compiles the model (using `torch.compile`) if `True` and PyTorch version is greater than or equal 2.0.0.
+
+            .. versionadded:: 1.4.0
         """
         super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size)
         early_stopping_deprecation_warning(early_stopping, early_stopping_acc)
@@ -233,6 +237,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         self.scheduler = None
 
         self.class_weight = class_weight
+        self.compile_model = compile_model
 
         # KimCNN (pytorch model) parameters
         self.max_seq_len = max_seq_len
@@ -357,6 +362,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                             embed_dim=embed_dim,
                             freeze_embedding_layer=False, padding_idx=self.padding_idx,
                             kernel_heights=self.kernel_heights)
+
+        self.model = _compile_if_possible(self.model, compile_model=self.compile_model)
 
     def _default_optimizer(self, base_lr):
         params = [param for param in self.model.parameters() if param.requires_grad]

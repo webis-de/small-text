@@ -2,6 +2,8 @@ import unittest
 import pytest
 
 import numpy as np
+
+from packaging.version import parse, Version
 from unittest.mock import patch
 
 from unittest import mock
@@ -303,3 +305,69 @@ class KimCNNClassifierMultiLabelTest(unittest.TestCase, _KimCNNClassifierTest):
 
     def setUp(self):
         self.multi_label = True
+
+
+@pytest.mark.pytorch
+class CompileTest(unittest.TestCase):
+
+    def test_initialize_with_pytorch_geq_v2_and_compile_enabled(self):
+
+        if parse(torch.__version__) >= Version('2.0.0'):
+            num_classes = 4
+            embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+            classifier = KimCNNClassifier(num_classes,
+                                          embedding_matrix=embedding_matrix,
+                                          compile_model=True)
+
+            dataset = random_text_classification_dataset(10, max_length=60, num_classes=num_classes)
+
+            with patch('torch.__version__', new='2.0.0'), \
+                    patch('torch.compile', wraps=torch.compile) as compile_spy:
+                classifier.initialize_kimcnn_model(dataset)
+                compile_spy.assert_called()
+
+    def test_initialize_with_pytorch_geq_v2_and_compile_disabled(self):
+
+        if parse(torch.__version__) >= Version('2.0.0'):
+            num_classes = 4
+            embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+            classifier = KimCNNClassifier(num_classes,
+                                          embedding_matrix=embedding_matrix,
+                                          compile_model=False)
+
+            dataset = random_text_classification_dataset(10, max_length=60, num_classes=num_classes)
+
+            with patch('torch.__version__', new='2.0.0'), \
+                    patch('torch.compile', wraps=torch.compile) as compile_spy:
+                classifier.initialize_kimcnn_model(dataset)
+                compile_spy.assert_not_called()
+
+    def test_initialize_with_pytorch_lesser_v2_and_compile_enabled(self):
+
+        num_classes = 4
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        classifier = KimCNNClassifier(num_classes,
+                                      embedding_matrix=embedding_matrix,
+                                      compile_model=True)
+
+        dataset = random_text_classification_dataset(10, max_length=60, num_classes=num_classes)
+
+        with patch('torch.__version__', new='1.9.0'), \
+                patch('torch.compile', wraps=torch.compile) as compile_spy:
+            classifier.initialize_kimcnn_model(dataset)
+            compile_spy.assert_not_called()
+
+    def test_initialize_with_pytorch_lesser_v2_and_compile_disabled(self):
+
+        num_classes = 4
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        classifier = KimCNNClassifier(num_classes,
+                                      embedding_matrix=embedding_matrix,
+                                      compile_model=False)
+
+        dataset = random_text_classification_dataset(10, max_length=60, num_classes=num_classes)
+
+        with patch('torch.__version__', new='2.0.0'), \
+                patch('torch.compile', wraps=torch.compile) as compile_spy:
+            classifier.initialize_kimcnn_model(dataset)
+            compile_spy.assert_not_called()

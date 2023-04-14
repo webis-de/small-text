@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 
 from contextlib import contextmanager
+from packaging.version import parse, Version
+
 from small_text.utils.annotations import deprecated
 
 
@@ -40,3 +42,9 @@ def enable_dropout(model):
 def _assert_layer_exists(module, layer_name):
     if layer_name not in dict(module.named_modules()):
         raise ValueError(f'Given layer "{layer_name}" does not exist in the model!')
+
+
+def _compile_if_possible(model, compile_model=True):
+    if compile_model and parse(torch.__version__) >= Version('2.0.0'):
+        model = torch.compile(model)
+    return model
