@@ -166,6 +166,7 @@ class ConfidenceBasedQueryStrategy(QueryStrategy):
             Indices (relative to `dataset`) for the labeled data.
         y : np.ndarray[uint] or csr_matrix
             List of labels where each label maps by index position to `indices_labeled`.
+
         Returns
         -------
         confidence : ndarray[double]
