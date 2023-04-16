@@ -55,6 +55,8 @@ class KimCNNTest(unittest.TestCase):
         self.assertEqual([3, 4, 5], classifier.kernel_heights)
         self.assertEqual(5, classifier.early_stopping)
         self.assertEqual(-1, classifier.early_stopping_acc)
+        self.assertIsNone(classifier.class_weight)
+        self.assertFalse(classifier.compile_model)
         self.assertIsNone(classifier.model)
 
     def test_init_parameters(self):
@@ -72,6 +74,8 @@ class KimCNNTest(unittest.TestCase):
         padding_idx = 1
         early_stopping = 10
         early_stopping_acc = 0.95
+        class_weight = 'balanced'
+        compile_model = False
 
         classifier = KimCNNClassifier(num_classes, multi_label=multi_label, device='cpu',
                                       num_epochs=num_epochs, mini_batch_size=mini_batch_size,
@@ -80,7 +84,9 @@ class KimCNNTest(unittest.TestCase):
                                       validation_set_size=validation_set_size,
                                       embedding_matrix=embedding_matrix, padding_idx=padding_idx,
                                       early_stopping=early_stopping,
-                                      early_stopping_acc=early_stopping_acc)
+                                      early_stopping_acc=early_stopping_acc,
+                                      class_weight=class_weight,
+                                      compile_model=compile_model)
 
         self.assertEqual(num_classes, classifier.num_classes)
         self.assertEqual(multi_label, classifier.multi_label)
@@ -99,6 +105,8 @@ class KimCNNTest(unittest.TestCase):
         self.assertEqual(padding_idx, classifier.padding_idx)
         self.assertEqual(early_stopping, classifier.early_stopping)
         self.assertEqual(early_stopping_acc, classifier.early_stopping_acc)
+        self.assertEqual(class_weight, classifier.class_weight)
+        self.assertFalse(classifier.compile_model)
         self.assertIsNone(classifier.model)
 
     def test_init_without_embedding_matrix(self):

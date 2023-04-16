@@ -58,6 +58,7 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual('bert-base-uncased', model_args.tokenizer)
         self.assertIsNotNone(model_args.model_loading_strategy)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
+        self.assertFalse(model_args.compile_model)
 
     def test_transformer_model_arguments_init_with_paths(self):
         tokenizer = '/path/to/tokenizer/'
@@ -70,6 +71,7 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual(tokenizer, model_args.tokenizer)
         self.assertIsNotNone(model_args.model_loading_strategy)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
+        self.assertFalse(model_args.compile_model)
 
     def test_transformer_model_arguments_init_with_model_loading_strategy(self):
         tokenizer = '/path/to/tokenizer/'
@@ -84,6 +86,7 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual(tokenizer, model_args.tokenizer)
         self.assertIsNotNone(model_args.model_loading_strategy)
         self.assertEqual(model_loading_strategy, model_args.model_loading_strategy)
+        self.assertFalse(model_args.compile_model)
 
     def test_transformer_model_arguments_init_with_env_override(self):
         os.environ[OFFLINE_MODE_VARIABLE] = '1'
@@ -102,6 +105,21 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual(tokenizer, model_args.tokenizer)
         self.assertIsNotNone(model_args.model_loading_strategy)
         self.assertEqual(ModelLoadingStrategy.ALWAYS_LOCAL, model_args.model_loading_strategy)
+        self.assertFalse(model_args.compile_model)
+
+    def test_transformer_model_arguments_init_with_compile(self):
+        tokenizer = '/path/to/tokenizer/'
+        config = '/path/to/config/'
+        model_args = TransformerModelArguments('bert-base-uncased',
+                                               tokenizer=tokenizer,
+                                               config=config,
+                                               compile_model=False)
+        self.assertEqual('bert-base-uncased', model_args.model)
+        self.assertEqual(config, model_args.config)
+        self.assertEqual(tokenizer, model_args.tokenizer)
+        self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
+        self.assertFalse(model_args.compile_model)
 
 
 @pytest.mark.pytorch
