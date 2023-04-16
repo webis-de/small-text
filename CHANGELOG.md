@@ -2,6 +2,8 @@
 
 ## Version 1.4.0 - unreleased
 
+**Notice:** Small-Text 1.4.0 will be the last version to support Python 3.7 which will reach [end of life on 2023-06-27](https://devguide.python.org/versions/). 
+
 ### Added
 
 - General
