@@ -28,7 +28,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 ## Features
 
 - Provides unified interfaces for Active Learning so that you can 
-  easily mix and match query strategies with classifiers provided by [sklearn](https://scikit-learn.org/), [Pytorch](https://pytorch.org/), or [transformers](https://github.com/huggingface/transformers).
+  easily mix and match query strategies with classifiers provided by [scikit-learn](https://scikit-learn.org/), [Pytorch](https://pytorch.org/), or [transformers](https://github.com/huggingface/transformers).
 - Supports GPU-based [Pytorch](https://pytorch.org/) models and integrates [transformers](https://github.com/huggingface/transformers) 
   so that you can use state-of-the-art Text Classification models for Active Learning.
 - GPU is supported but not required. In case of a CPU-only use case, 
@@ -91,7 +91,8 @@ or check out the notebooks.
 
 ### Showcase
 
-- [Tutorial: 👂 Active learning for text classification with small-text][argilla_al_tutorial] (Use small-text conveniently from the [argilla][argilla] UI.)
+- [Tutorial: 👂 Active learning for text classification with small-text][argilla_al_tutorial]  
+  (Use small-text conveniently from the [argilla][argilla] UI.)
 
 A full list of showcases can be found [in the docs][documentation_showcase].
 
