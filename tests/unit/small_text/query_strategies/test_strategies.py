@@ -120,6 +120,14 @@ class SamplingStrategiesTests(object):
                 return np.random.random_sample((len(dataset), num_classes))
             clf_mock.predict_proba = Mock(side_effect=predict_proba_side_effect)
 
+            def predict_side_effect(dataset):
+                if self._is_multi_label():
+                    dataset = random_sklearn_dataset(len(dataset), num_classes=num_classes, multi_label=True)
+                    return dataset.y
+                else:
+                    return np.random.randint(num_classes, size=len(dataset))
+            clf_mock.predict = Mock(side_effect=predict_side_effect)
+
         if self._is_multi_label():
             y = csr_matrix(np.array([
                 [0, 0, 0, 1, 0], [1, 0, 1, 1, 1],

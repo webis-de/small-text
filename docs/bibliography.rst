@@ -39,6 +39,10 @@ Bibliography
    Bayesian Active Learning for Classification and Preference Learning.
    ArXiv, abs/1112.5745.
 
+.. [LG13] Xin Li and Yuhong Guo. 2013.
+   Active Learning with Multi-Label SVM Classification.
+   In Proceedings of the Twenty-Third International Joint conference on Artificial Intelligence (IJCAI '13). AAAI Press, 1479–1485.
+
 .. [GZ16] Yarin Gal and Zoubin Ghahramani. 2016.
    Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning.
    Proceedings of The 33rd International Conference on Machine Learning, PMLR 48:1050-1059.

@@ -1,6 +1,46 @@
 import unittest
 
-from small_text.query_strategies import CategoryVectorInconsistencyAndRanking
+from small_text.query_strategies.multi_label import (
+    CategoryVectorInconsistencyAndRanking,
+    label_cardinality_inconsistency,
+    LabelCardinalityInconsistency
+)
+from small_text.utils.labels import list_to_csr
+
+
+class LabelCardinalityFunctionTest(unittest.TestCase):
+
+    def test_empty_labeled_set(self):
+        with self.assertRaisesRegex(ValueError, 'Labeled pool labels must not be empty'):
+            y_pred_unlabeled = list_to_csr([[], [0], [0, 1], [0, 1, 2]], shape=(4, 3))
+            y_labeled = list_to_csr([], shape=(0, 3))
+            label_cardinality_inconsistency(y_pred_unlabeled, y_labeled)
+
+    def test_label_cardinality_inconsistency_average_two_labels(self):
+        y_pred_unlabeled = list_to_csr([[], [0], [0, 1], [0, 1, 2]], shape=(4, 3))
+        y_labeled = list_to_csr([[0, 1], [1, 2]], shape=(2, 3))
+
+        lci = label_cardinality_inconsistency(y_pred_unlabeled, y_labeled)
+        self.assertEqual((4,), lci.shape)
+        self.assertTrue(lci[2] < lci[1] == lci[3] < lci[0])
+
+    def test_label_cardinality_inconsistency_average_one_and_a_half_labels(self):
+        y_pred_unlabeled = list_to_csr([[], [0], [0, 1], [0, 1, 2]], shape=(4, 3))
+        y_labeled = list_to_csr([[0, 1], [1]], shape=(2, 3))
+
+        lci = label_cardinality_inconsistency(y_pred_unlabeled, y_labeled)
+        self.assertEqual((4,), lci.shape)
+        self.assertTrue(lci[1] == lci[2] < lci[0] == lci[0])
+
+
+class LabelCardinalityInconsistencygTest(unittest.TestCase):
+
+    def test_init(self):
+        LabelCardinalityInconsistency()
+
+    def test_str(self):
+        query_strategy = LabelCardinalityInconsistency()
+        self.assertEqual('LabelCardinalityInconsistency()', str(query_strategy))
 
 
 class CategoryVectorInconsistencyAndRankingTest(unittest.TestCase):

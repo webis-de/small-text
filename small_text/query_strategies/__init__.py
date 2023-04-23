@@ -7,7 +7,11 @@ from small_text.query_strategies.coresets import (greedy_coreset,
                                                   lightweight_coreset,
                                                   LightweightCoreset)
 from small_text.query_strategies.bayesian import BALD
-from small_text.query_strategies.multi_label import CategoryVectorInconsistencyAndRanking
+from small_text.query_strategies.multi_label import (
+    CategoryVectorInconsistencyAndRanking,
+    label_cardinality_inconsistency,
+    LabelCardinalityInconsistency
+)
 from small_text.query_strategies.strategies import (
     QueryStrategy,
     RandomSampling,
@@ -47,5 +51,7 @@ __all__ = [
     'lightweight_coreset',
     'LightweightCoreset',
     'BALD',
-    'CategoryVectorInconsistencyAndRanking'
+    'CategoryVectorInconsistencyAndRanking',
+    'label_cardinality_inconsistency',
+    'LabelCardinalityInconsistency'
 ]

@@ -25,6 +25,7 @@ General
 * :py:class:`ContrastiveActiveLearning`
 * :py:class:`DiscriminativeActiveLearning`
 * :py:class:`~small_text.query_strategies.multi_label.CategoryVectorInconsistencyAndRanking`
+* :py:class:`~small_text.query_strategies.multi_label.LabelCardinalityInconsistency`
 * :py:class:`SEALS`
 * :py:class:`RandomSampling`
 
@@ -131,6 +132,8 @@ Base
 .. autoclass:: CategoryVectorInconsistencyAndRanking
     :special-members: __init__
 
+.. autoclass:: LabelCardinalityInconsistency
+
 .. py:module:: small_text.query_strategies.strategies
     :noindex:
 
@@ -164,3 +167,5 @@ Functions
 .. autofunction:: small_text.query_strategies.coresets.greedy_coreset
 
 .. autofunction:: small_text.query_strategies.coresets.lightweight_coreset
+
+.. autofunction:: small_text.query_strategies.multi_label.label_cardinality_inconsistency

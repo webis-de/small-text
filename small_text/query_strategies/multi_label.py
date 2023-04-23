@@ -1,8 +1,78 @@
 import numpy as np
+import numpy.typing as npt
+
+from typing import Union
+
+from scipy.sparse import csr_matrix
+
+from small_text.classifiers import Classifier
+from small_text.data.datasets import Dataset
 
 from small_text.query_strategies.base import constraints
 from small_text.query_strategies.strategies import QueryStrategy
 from small_text.utils.context import build_pbar_context
+
+
+def label_cardinality_inconsistency(y_pred_unlabeled: csr_matrix, y_labeled: csr_matrix) -> float:
+    """Computes the label cardinality inconsistency per instance [LG13]_.
+
+    The label cardinality inconsistency is defined by the ($L^2$ norm of the) difference between the number of labels
+    of an unlabeled instance and the expected number of labels according to the labeled set.
+
+    Parameters
+    ----------
+    y_pred_unlabeled : csr_matrix
+        Predicted labels of the instances in the unlabeled pool.
+    y_labeled : csr_matrix
+       Labels of the instances in the labeled pool.
+
+    Returns
+    -------
+    label_cardinality_inconsistency : np.ndarray[float]
+        A numpy array with the label cardinality inconsistency score for every unlabeled instance (i.e. with size
+        `y_pred_unlabeled.shape[0]`).
+    """
+    if y_labeled.shape[0] == 0:
+        raise ValueError('Labeled pool labels must not be empty.')
+
+    average_label_count_per_instance = (y_labeled > 0).sum(axis=1).mean()
+
+    label_cardinality_inconsistency = (y_pred_unlabeled > 0).sum(axis=1).A1 - average_label_count_per_instance
+
+    return np.sqrt(np.power(label_cardinality_inconsistency, 2))
+
+
+@constraints(classification_type='multi-label')
+class LabelCardinalityInconsistency(QueryStrategy):
+    """Queries the instances from the unlabeled dataset that exhibit the maximum label
+    cardinality inconsistency [LG13]_.
+
+    .. seealso::
+
+        Function :py:func:`label_cardinality_inconsistency`.
+            Function to compute the label cardinality inconsistency.
+    """
+
+    def query(self,
+              clf: Classifier,
+              dataset: Dataset,
+              indices_unlabeled: npt.NDArray[np.uint],
+              indices_labeled: npt.NDArray[np.uint],
+              y: Union[npt.NDArray[np.uint], csr_matrix],
+              n: int = 10) -> np.ndarray:
+        self._validate_query_input(indices_unlabeled, n)
+
+        y_pred_unlabeled = clf.predict(dataset[indices_unlabeled])
+        scores = label_cardinality_inconsistency(y_pred_unlabeled, y)
+
+        if len(indices_unlabeled) == n:
+            return np.array(indices_unlabeled)
+
+        indices_queried = np.argpartition(-scores, n)[:n]
+        return np.array([indices_unlabeled[i] for i in indices_queried])
+
+    def __str__(self):
+        return f'LabelCardinalityInconsistency()'
 
 
 @constraints(classification_type='multi-label')
@@ -11,7 +81,7 @@ class CategoryVectorInconsistencyAndRanking(QueryStrategy):
     selects instances based on the inconsistency of predicted labels and per-class label rankings.
     """
 
-    def __init__(self, batch_size=2048, prediction_threshold=0.5, epsilon=1e-8, pbar='tqdm'):
+    def __init__(self, batch_size: int = 2048, prediction_threshold: float = 0.5, epsilon: float = 1e-8, pbar='tqdm'):
         """
         Parameters
         ----------
@@ -31,7 +101,13 @@ class CategoryVectorInconsistencyAndRanking(QueryStrategy):
         self.epsilon = epsilon
         self.pbar = pbar
 
-    def query(self, clf, dataset, indices_unlabeled, _indices_labeled, y, n=10):
+    def query(self,
+              clf: Classifier,
+              dataset: Dataset,
+              indices_unlabeled: npt.NDArray[np.uint],
+              indices_labeled: npt.NDArray[np.uint],
+              y: Union[npt.NDArray[np.uint], csr_matrix],
+              n: int = 10) -> np.ndarray:
         self._validate_query_input(indices_unlabeled, n)
 
         y_proba = clf.predict_proba(dataset[indices_unlabeled])
