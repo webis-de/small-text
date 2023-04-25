@@ -327,7 +327,7 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
               y: Union[npt.NDArray[np.uint], csr_matrix],
               n: int = 10,
               pbar: str = 'tqdm',
-              embeddings = None,
+              embeddings=None,
               embed_kwargs: dict = {}) -> np.ndarray:
         self._validate_query_input(indices_unlabeled, n)
 
@@ -535,7 +535,7 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
               y: Union[npt.NDArray[np.uint], csr_matrix],
               n: int = 10,
               pbar: str = 'tqdm',
-              embeddings = None,
+              embeddings=None,
               embed_kwargs: dict = {}) -> np.ndarray:
 
         return super().query(clf, dataset, indices_unlabeled, indices_labeled, y, n=n,

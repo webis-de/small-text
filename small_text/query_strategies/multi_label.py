@@ -72,7 +72,7 @@ class LabelCardinalityInconsistency(QueryStrategy):
         return np.array([indices_unlabeled[i] for i in indices_queried])
 
     def __str__(self):
-        return f'LabelCardinalityInconsistency()'
+        return 'LabelCardinalityInconsistency()'
 
 
 @constraints(classification_type='multi-label')

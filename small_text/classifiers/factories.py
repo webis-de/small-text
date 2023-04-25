@@ -14,7 +14,7 @@ class AbstractClassifierFactory(ABC):
 
 class SklearnClassifierFactory(AbstractClassifierFactory):
 
-    def __init__(self, base_estimator: BaseEstimator, num_classes: int , kwargs: dict = {}):
+    def __init__(self, base_estimator: BaseEstimator, num_classes: int, kwargs: dict = {}):
         """
         base_estimator : BaseEstimator
             A scikit learn estimator which is used as a template for creating new classifier objects.
