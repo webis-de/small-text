@@ -1,12 +1,15 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
+import numpy.typing as npt
 
+from sklearn.base import BaseEstimator
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import normalize
 from sklearn.svm import LinearSVC
 from sklearn.utils.multiclass import is_multilabel
 
+from small_text.data.datasets import Dataset
 from small_text.utils.classification import empty_result, prediction_result
 from small_text.utils.data import check_training_data
 
@@ -16,20 +19,20 @@ class Classifier(ABC):
     """
 
     @abstractmethod
-    def fit(self, train_set, weights=None):
+    def fit(self, train_set: Dataset, weights: npt.NDArray[np.double] = None):
         """Trains the model using the given train set.
 
         Parameters
         ----------
         train_set : Dataset
             The dataset used for training the model.
-        weights : np.ndarray[np.float32] or None, default=None
+        weights : np.ndarray[np.double] or None, default=None
             Sample weights or None.
         """
         pass
 
     @abstractmethod
-    def predict(self, data_set, return_proba=False):
+    def predict(self, data_set: Dataset, return_proba: bool = False) -> npt.NDArray[np.uint]:
         """Predicts the labels for each sample in the given dataset.
 
         Parameters
@@ -42,7 +45,7 @@ class Classifier(ABC):
         pass
 
     @abstractmethod
-    def predict_proba(self, data_set):
+    def predict_proba(self, data_set: Dataset) -> npt.NDArray[np.double]:
         """Predicts the label distribution for each sample in the given dataset.
 
         Parameters
@@ -62,11 +65,11 @@ class SklearnClassifier(Classifier):
     matrix if trained on sparse data.
     """
 
-    def __init__(self, model, num_classes, multi_label=False):
+    def __init__(self, model: BaseEstimator, num_classes, multi_label=False):
         """
         Parameters
         ----------
-        model : sklearn.base.BaseEstimator
+        model : BaseEstimator
             A scikit-learn estimator that implements `fit` and `predict_proba`.
         num_classes : int
             Number of classes which are to be trained and predicted.
@@ -88,7 +91,7 @@ class SklearnClassifier(Classifier):
         ----------
         train_set : SklearnDataset
             The dataset used for training the model.
-        weights : np.ndarray[np.float32] or None, default=None
+        weights : np.ndarray[np.double] or None, default=None
             Sample weights or None.
 
         Returns
@@ -112,7 +115,7 @@ class SklearnClassifier(Classifier):
         self.model.fit(train_set.x, y, **fit_kwargs)
         return self
 
-    def predict(self, data_set, return_proba=False):
+    def predict(self, data_set: Dataset, return_proba=False):
         """
         Predicts the labels for the given dataset.
 
@@ -125,10 +128,10 @@ class SklearnClassifier(Classifier):
 
         Returns
         -------
-        predictions : np.ndarray[np.int32] or csr_matrix[np.int32]
+        predictions : np.ndarray[np.uint] or csr_matrix
             List of predictions if the classifier was fitted on multi-label data,
             otherwise a sparse matrix of predictions.
-        probas : np.ndarray[np.float32]
+        probas : np.ndarray[np.double]
             List of probabilities (or confidence estimates) if `return_proba` is True.
         """
         if len(data_set) == 0:
@@ -140,7 +143,7 @@ class SklearnClassifier(Classifier):
         return prediction_result(proba, self.multi_label, self.num_classes, enc=None,
                                  return_proba=return_proba)
 
-    def predict_proba(self, data_set):
+    def predict_proba(self, data_set: Dataset):
         """Predicts the label distribution for each sample in the given dataset.
 
         Parameters
@@ -158,7 +161,7 @@ class ConfidenceEnhancedLinearSVC(LinearSVC):
     """Extends scikit-learn's LinearSVC class to provide confidence estimates.
     """
 
-    def __init__(self, linearsvc_kwargs=None):
+    def __init__(self, linearsvc_kwargs: dict = None):
         """
         Parameters
         ----------
@@ -203,7 +206,7 @@ class ConfidenceEnhancedLinearSVC(LinearSVC):
 class EmbeddingMixin(ABC):
 
     @abstractmethod
-    def embed(self, data_set):
+    def embed(self, data_set) -> npt.NDArray[np.double]:
         """
         Parameters
         ----------

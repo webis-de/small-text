@@ -2,19 +2,19 @@ from abc import ABC, abstractmethod
 from sklearn.base import BaseEstimator
 from sklearn.base import clone
 
-from small_text.classifiers.classification import SklearnClassifier
+from small_text.classifiers.classification import Classifier, SklearnClassifier
 
 
 class AbstractClassifierFactory(ABC):
 
     @abstractmethod
-    def new(self):
+    def new(self) -> Classifier:
         pass
 
 
 class SklearnClassifierFactory(AbstractClassifierFactory):
 
-    def __init__(self, base_estimator, num_classes, kwargs={}):
+    def __init__(self, base_estimator: BaseEstimator, num_classes: int , kwargs: dict = {}):
         """
         base_estimator : BaseEstimator
             A scikit learn estimator which is used as a template for creating new classifier objects.
@@ -34,7 +34,7 @@ class SklearnClassifierFactory(AbstractClassifierFactory):
         self.num_classes = num_classes
         self.kwargs = kwargs
 
-    def new(self):
+    def new(self) -> SklearnClassifier:
         """Creates a new SklearnClassifier instance.
 
         Returns
