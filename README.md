@@ -122,10 +122,10 @@ The encompassing project was funded by the Development Bank of Saxony (SAB) unde
 
 ## Citation
 
-Small-Text has been introduced in detail in the EACL23 System Demonstration ["Small-Text: Active Learning for Text Classification in Python"](https://aclanthology.org/2023.eacl-demo.11/) and can be cited as follows:
+Small-Text has been introduced in detail in the EACL23 System Demonstration Paper ["Small-Text: Active Learning for Text Classification in Python"](https://aclanthology.org/2023.eacl-demo.11/) which can be cited as follows:
 
 ```
-@inproceedings{schroder2023smalltext,
+@inproceedings{schroeder2023small-text,
     title = "Small-Text: Active Learning for Text Classification in Python",
     author = {Schr{\"o}der, Christopher  and  M{\"u}ller, Lydia  and  Niekler, Andreas  and  Potthast, Martin},
     booktitle = "Proceedings of the 17th Conference of the European Chapter of the Association for Computational Linguistics: System Demonstrations",
