@@ -89,23 +89,22 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertFalse(model_args.compile_model)
 
     def test_transformer_model_arguments_init_with_env_override(self):
-        os.environ[OFFLINE_MODE_VARIABLE] = '1'
+        with patch.dict(os.environ, {OFFLINE_MODE_VARIABLE: '1'}):
+            # reload TransformerModelArguments so that updated environment variables are read
+            reload(small_text.integrations.transformers.classifiers.classification)
+            from small_text.integrations.transformers.classifiers.classification import TransformerModelArguments
 
-        # reload TransformerModelArguments so that updated environment variables are read
-        reload(small_text.integrations.transformers.classifiers.classification)
-        from small_text.integrations.transformers.classifiers.classification import TransformerModelArguments
-
-        tokenizer = '/path/to/tokenizer/'
-        config = '/path/to/config/'
-        model_args = TransformerModelArguments('bert-base-uncased',
-                                               tokenizer=tokenizer,
-                                               config=config)
-        self.assertEqual('bert-base-uncased', model_args.model)
-        self.assertEqual(config, model_args.config)
-        self.assertEqual(tokenizer, model_args.tokenizer)
-        self.assertIsNotNone(model_args.model_loading_strategy)
-        self.assertEqual(ModelLoadingStrategy.ALWAYS_LOCAL, model_args.model_loading_strategy)
-        self.assertFalse(model_args.compile_model)
+            tokenizer = '/path/to/tokenizer/'
+            config = '/path/to/config/'
+            model_args = TransformerModelArguments('bert-base-uncased',
+                                                   tokenizer=tokenizer,
+                                                   config=config)
+            self.assertEqual('bert-base-uncased', model_args.model)
+            self.assertEqual(config, model_args.config)
+            self.assertEqual(tokenizer, model_args.tokenizer)
+            self.assertIsNotNone(model_args.model_loading_strategy)
+            self.assertEqual(ModelLoadingStrategy.ALWAYS_LOCAL, model_args.model_loading_strategy)
+            self.assertFalse(model_args.compile_model)
 
     def test_transformer_model_arguments_init_with_compile(self):
         tokenizer = '/path/to/tokenizer/'

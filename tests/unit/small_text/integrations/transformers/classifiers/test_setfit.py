@@ -50,19 +50,19 @@ class TestSetFitModelArguments(unittest.TestCase):
         self.assertFalse(args.compile_model)
 
     def test_transformer_model_arguments_init_with_env_override(self):
-        os.environ[OFFLINE_MODE_VARIABLE] = '1'
+        with patch.dict(os.environ, {OFFLINE_MODE_VARIABLE: '1'}):
 
-        # reload TransformerModelArguments so that updated environment variables are read
-        reload(small_text.integrations.transformers.classifiers.setfit)
-        from small_text.integrations.transformers.classifiers.setfit import SetFitModelArguments
+            # reload TransformerModelArguments so that updated environment variables are read
+            reload(small_text.integrations.transformers.classifiers.setfit)
+            from small_text.integrations.transformers.classifiers.setfit import SetFitModelArguments
 
-        sentence_transformer_model = 'sentence-transformers/all-MiniLM-L6-v2'
-        args = SetFitModelArguments(sentence_transformer_model)
+            sentence_transformer_model = 'sentence-transformers/all-MiniLM-L6-v2'
+            args = SetFitModelArguments(sentence_transformer_model)
 
-        self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
-        self.assertIsNotNone(args.model_loading_strategy)
-        self.assertEqual(ModelLoadingStrategy.ALWAYS_LOCAL, args.model_loading_strategy)
-        self.assertFalse(args.compile_model)
+            self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
+            self.assertIsNotNone(args.model_loading_strategy)
+            self.assertEqual(ModelLoadingStrategy.ALWAYS_LOCAL, args.model_loading_strategy)
+            self.assertFalse(args.compile_model)
 
     def test_setfit_model_arguments_init_with_compile(self):
         sentence_transformer_model = 'sentence-transformers/all-MiniLM-L6-v2'
