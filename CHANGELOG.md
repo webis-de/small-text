@@ -14,6 +14,11 @@
 - Query Strategies:
   - New strategy: [LabelCardinalityInconsistency](https://github.com/webis-de/small-text/blob/v1.4.0/small_text/query_strategies/multi_label.py).
 
+### Changed
+
+- General
+  - Moved `split_data()` method from `small_text.data.datasets` to `small_text.data.splits`.
+
 ---
 
 ## Version 1.3.0 - 2023-02-21

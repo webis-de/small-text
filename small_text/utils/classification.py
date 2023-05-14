@@ -2,11 +2,13 @@ import numpy as np
 
 from scipy.sparse import csr_matrix
 
-from small_text.data.datasets import split_data
+from small_text.data.splits import split_data
 from small_text.utils.annotations import prediction_result_enc_warning
 from small_text.utils.labels import list_to_csr
 
 
+# TODO: This calls the split_data method which is outside of utils (prone to circular imports).
+#    Move to small_text.data.splits in 2.0.0.
 def get_splits(train_set, validation_set, weights=None, multi_label=False, validation_set_size=0.1):
     """Helper method to ensure that a validation set is available after calling this method.
     This is only necessary when the previous code did not select a validation set prior to this,
