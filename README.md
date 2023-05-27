@@ -37,7 +37,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
-- **The small-text paper was awarded Best System Demonstration Award at EACL 2023 🎉**
+- **The small-text paper was awarded *Best System Demonstration* at EACL 2023 🎉**
   - Thank you for your support! [Click here to see the published paper](https://aclanthology.org/2023.eacl-demo.11/).
 
 - **Version 1.3.0** ([v1.3.0][changelog_1.3.0]): Highlights - February 20th, 2023
