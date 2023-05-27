@@ -37,8 +37,8 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
-- **Paper accepted at EACL 2023 🎉**
-  - The [paper][paper_arxiv] introducing small-text has been accepted at [EACL 2023](https://2023.eacl.org/). Meet us at the conference in May!
+- **The small-text paper was awarded Best System Demonstration Award at EACL 2023 🎉**
+  - Thank you for your support! [Click here to see the published paper](https://aclanthology.org/2023.eacl-demo.11/).
 
 - **Version 1.3.0** ([v1.3.0][changelog_1.3.0]): Highlights - February 20th, 2023
   - Added dropout sampling to [SetFitClassification](https://github.com/webis-de/small-text/blob/v1.3.0/small_text/integrations/transformers/classifiers/setfit.py).
