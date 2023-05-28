@@ -26,6 +26,7 @@ General
 * :py:class:`DiscriminativeActiveLearning`
 * :py:class:`~small_text.query_strategies.multi_label.CategoryVectorInconsistencyAndRanking`
 * :py:class:`~small_text.query_strategies.multi_label.LabelCardinalityInconsistency`
+* :py:class:`~small_text.query_strategies.class_balancing.ClassBalancer`
 * :py:class:`SEALS`
 * :py:class:`RandomSampling`
 
@@ -133,6 +134,12 @@ Base
     :special-members: __init__
 
 .. autoclass:: LabelCardinalityInconsistency
+
+.. py:module:: small_text.query_strategies.class_balancing
+    :noindex:
+
+.. autoclass:: ClassBalancer
+    :special-members: __init__
 
 .. py:module:: small_text.query_strategies.strategies
     :noindex:

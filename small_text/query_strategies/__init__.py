@@ -1,12 +1,13 @@
 from small_text.query_strategies.base import constraints, ClassificationType
-from small_text.query_strategies.exceptions import (EmptyPoolException,
-                                                    QueryException,
-                                                    PoolExhaustedException)
+from small_text.query_strategies.class_balancing import ClassBalancer
 from small_text.query_strategies.coresets import (greedy_coreset,
                                                   GreedyCoreset,
                                                   lightweight_coreset,
                                                   LightweightCoreset)
 from small_text.query_strategies.bayesian import BALD
+from small_text.query_strategies.exceptions import (EmptyPoolException,
+                                                    QueryException,
+                                                    PoolExhaustedException)
 from small_text.query_strategies.multi_label import (
     CategoryVectorInconsistencyAndRanking,
     label_cardinality_inconsistency,
@@ -31,6 +32,7 @@ from small_text.query_strategies.strategies import (
 __all__ = [
     'constraints',
     'ClassificationType',
+    'ClassBalancer',
     'EmptyPoolException',
     'QueryException',
     'PoolExhaustedException',

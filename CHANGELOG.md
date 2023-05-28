@@ -12,7 +12,7 @@
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support `torch.compile()` which can be enabled on demand. (Requires PyTorch >= 2.0.0). 
   - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v1.4.0/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.
 - Query Strategies:
-  - New strategy: [LabelCardinalityInconsistency](https://github.com/webis-de/small-text/blob/v1.4.0/small_text/query_strategies/multi_label.py).
+  - New strategies: [LabelCardinalityInconsistency](https://github.com/webis-de/small-text/blob/v1.4.0/small_text/query_strategies/multi_label.py) and [ClassBalancer](https://github.com/webis-de/small-text/blob/v1.4.0/small_text/query_strategies/class_balancing.py).
 
 ### Changed
 
