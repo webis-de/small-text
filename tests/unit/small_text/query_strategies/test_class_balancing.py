@@ -107,7 +107,7 @@ class ClassBalancerSubsamplingTest(unittest.TestCase):
                                wraps=query_strategy._query_class_balanced) as query_class_balanced:
             query_strategy.query(clf, dataset, indices_unlabeled, indices_labeled, y, n=n)
 
-        query_class_balanced.assert_called_once_with(clf, dataset, indices_unlabeled, indices_labeled, y, n)
+        query_class_balanced.assert_called_once_with(clf, dataset, indices_unlabeled, y, n)
 
     def test_subsample_when_subsampling_is_none(self, n=10, num_samples=100, num_classes=2):
 
