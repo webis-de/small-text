@@ -1,13 +1,18 @@
 # Changelog
 
-## Version 1.4.0 - unreleased
+## Version 2.0.0 - unreleased
 
-**Notice:** Small-Text 1.4.0 will be the last version to support Python 3.7 which will reach [end of life on 2023-06-27](https://devguide.python.org/versions/). 
+This is the first release with breaking changes, coming sooner than we would have liked. 
+
+The need for this came from relying on some legacy interfaces in torchtext for too long, which now have been dropped. The result was that with never PyTorch Versions, which also requires a matching torchtext version, which in turn broke some parts of the PyTorch integration.
+
+On the other hand, this also allowed us to deal with further issues that contain breaking changes but needed to be done eventually. **All of this should not cause you too much trouble**, but still to make the transition as easy as possible there is a [migration guide](https://github.com/webis-de/small-text/blob/v2.0.0/MIGRATION_GUIDE.md), which lists all breaking changes.
 
 ### Added
 
 - General
-  - Added environment variables `SMALL_TEXT_PROGRESS_BARS` and `SMALL_TEXT_OFFLINE` to control the default behavior for progress bars and model downloading. 
+  - Added environment variables `SMALL_TEXT_PROGRESS_BARS` and `SMALL_TEXT_OFFLINE` to control the default behavior for progress bars and model downloading.
+  - Python requirements raised to Python 3.8 since Python 3.7 reaches [end of life on 2023-06-27](https://devguide.python.org/versions/).
 - Classification:
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support `torch.compile()` which can be enabled on demand. (Requires PyTorch >= 2.0.0). 
   - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v1.4.0/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.
