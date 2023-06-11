@@ -215,7 +215,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         compile_model : bool, default=False
             Compiles the model (using `torch.compile`) if `True` and PyTorch version is greater than or equal 2.0.0.
 
-            .. versionadded:: 1.4.0
+            .. versionadded:: 2.0.0
         """
         super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size)
         early_stopping_deprecation_warning(early_stopping, early_stopping_acc)

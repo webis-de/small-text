@@ -61,7 +61,7 @@ class SetFitModelArguments(object):
             Compiles the model (using `torch.compile`) if `True` and provided that
             the PyTorch version greater or equal 2.0.0.
 
-            .. versionadded:: 1.4.0
+            .. versionadded:: 2.0.0
         """
         self.sentence_transformer_model = sentence_transformer_model
         self.model_loading_strategy = model_loading_strategy
@@ -177,7 +177,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         compile_model : bool, default=False
             Compiles the model (using `torch.compile`) if `True` and PyTorch version is greater than or equal 2.0.0.
 
-            .. versionadded:: 1.4.0
+            .. versionadded:: 2.0.0
         """
         check_optional_dependency('setfit')
 

@@ -118,7 +118,7 @@ class TransformerModelArguments(object):
             Compiles the model (using `torch.compile`) if `True` and provided that
             the PyTorch version greater or equal 2.0.0.
 
-            .. versionadded:: 1.4.0
+            .. versionadded:: 2.0.0
         """
         self.model = model
         self.tokenizer = tokenizer
