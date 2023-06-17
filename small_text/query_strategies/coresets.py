@@ -98,13 +98,13 @@ class GreedyCoreset(EmbeddingBasedQueryStrategy):
         """
         Parameters
         ----------
-        distance_metric : {'cosine', 'euclidean'}
+        distance_metric : {'cosine', 'euclidean'}, default='euclidean'
              Distance metric to be used.
 
              .. versionadded:: 1.2.0
-        normalize : bool
+        normalize : bool, default=True
             Embeddings will be normalized before the coreset construction if True.
-        batch_size : int
+        batch_size : int, batch_size=100
             Batch size used for computing document distances.
 
 
@@ -120,11 +120,6 @@ class GreedyCoreset(EmbeddingBasedQueryStrategy):
         if distance_metric not in set(_DISTANCE_METRICS):
             raise ValueError(f'Invalid distance metric: {distance_metric}. '
                              f'Possible values: {_DISTANCE_METRICS}')
-
-        if distance_metric != 'cosine':
-            warnings.warn('Default distance metric has changed from "cosine" '
-                          'to "euclidean" in v1.2.0. This warning will disappear in '
-                          'v2.0.0.')
 
         self.distance_metric = distance_metric
         self.normalize = normalize

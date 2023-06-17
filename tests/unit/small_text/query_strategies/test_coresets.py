@@ -1,5 +1,4 @@
 import unittest
-import warnings
 import numpy as np
 
 from small_text.classifiers import ConfidenceEnhancedLinearSVC
@@ -50,20 +49,6 @@ class _CoresetSamplingStrategyTest(SamplingStrategiesTests):
     def test_init_with_invalid_distance_metric(self):
         with self.assertRaisesRegex(ValueError, 'Invalid distance metric:'):
             GreedyCoreset(distance_metric='non-existent-metric')
-
-    def test_init_with_distance_metric_warning(self):
-        with self.assertWarnsRegex(UserWarning, 'Default distance metric has changed'):
-            GreedyCoreset(distance_metric='euclidean')
-
-    def test_init_without_distance_metric_warning(self):
-        expected_warning = 'Default distance metric has changed'
-        with warnings.catch_warnings(record=True) as w:
-            GreedyCoreset(distance_metric='cosine')
-
-            found_warning = np.any([
-                str(w_.message) == expected_warning and w_.category == UserWarning
-                for w_ in w])
-            self.assertFalse(found_warning)
 
     # overrides test from SamplingStrategiesTests (to use embeddings)
     def test_simple_query(self, embedding_dim=100):
