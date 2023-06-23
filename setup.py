@@ -43,7 +43,7 @@ setup(name='small-text',
       install_requires=[
             'dill',
             'scipy',
-            'numpy>=1.20.0',
+            'numpy>=1.21.0',
             'scikit-learn>=0.24.1',
             'tqdm',
             'packaging'
