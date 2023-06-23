@@ -157,8 +157,8 @@ class EarlyStopping(EarlyStoppingHandler):
             history_since_previous_best = self._history[self._index_best + 1:][self.metric.name]
             rows_not_nan = np.logical_not(np.isnan(history_since_previous_best))
             if rows_not_nan.sum() > self.patience:
-                logging.debug(f'Early stopping: Patience exceeded.'
-                              f'{{value={index_last-self._index_best}, patience={self.patience}}}')
+                logging.debug(f'Early stopping: Patience exceeded. '
+                              f'[value={index_last-self._index_best}, patience={self.patience}]')
                 return True
             return False
 
