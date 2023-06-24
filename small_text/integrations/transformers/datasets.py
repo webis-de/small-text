@@ -27,7 +27,7 @@ class TransformersDatasetView(PytorchDatasetView):
         else:
             data = [(torch.clone(d[TransformersDataset.INDEX_TEXT]),
                      torch.clone(d[TransformersDataset.INDEX_MASK]),
-                     np.copy(d[TransformersDataset.INDEX_LABEL])) for d in self.data]
+                     d[TransformersDataset.INDEX_LABEL]) for d in self.data]
 
         target_labels = None if self.dataset.track_target_labels else np.copy(self.target_labels)
         return TransformersDataset(data,
@@ -193,7 +193,7 @@ class TransformersDataset(PytorchDataset):
         else:
             data = [(torch.clone(d[self.INDEX_TEXT]),
                      torch.clone(d[self.INDEX_MASK]),
-                     np.copy(d[self.INDEX_LABEL])) for d in self._data]
+                     d[self.INDEX_LABEL]) for d in self._data]
 
         target_labels = None if self.track_target_labels else np.copy(self._target_labels)
         return TransformersDataset(data,

@@ -9,8 +9,8 @@ def assert_array_not_equal(x, y):
     assert_raises(AssertionError, assert_array_equal, x, y)
 
 
-def assert_csr_matrix_equal(x, y):
-    if x.shape != y.shape:
+def assert_csr_matrix_equal(x, y, check_shape=True):
+    if check_shape and x.shape != y.shape:
         raise AssertionError(f'Shape mismatch x: {x.shape} / y: {y.shape}')
 
     assert_array_equal(x.data, y.data)

@@ -217,10 +217,12 @@ class _DatasetTest(object):
             self.assertTrue((ds.x == ds_cloned.x).all())
         else:
             self.assertTrue((ds.x != ds_cloned.x).nnz == 0)
+
         if self.labels_type == 'sparse':
             assert_array_equal(ds.y.indices, ds_cloned.y.indices)
         else:
             assert_array_equal(ds.y, ds_cloned.y)
+
         if self.target_labels == 'explicit':
             assert_array_equal(ds.target_labels, ds_cloned.target_labels)
 
@@ -494,6 +496,7 @@ class _TextDatasetTest(_DatasetTest):
             assert_array_equal(ds.y.indices, ds_cloned.y.indices)
         else:
             assert_array_equal(ds.y, ds_cloned.y)
+
         if self.target_labels == 'explicit':
             assert_array_equal(ds.target_labels, ds_cloned.target_labels)
 

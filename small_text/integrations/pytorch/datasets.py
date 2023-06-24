@@ -114,7 +114,7 @@ class PytorchTextClassificationDatasetView(PytorchDatasetView):
                      d[PytorchTextClassificationDataset.INDEX_LABEL].copy()) for d in self.data]
         else:
             data = [(torch.clone(d[PytorchTextClassificationDataset.INDEX_TEXT]),
-                     np.copy(d[PytorchTextClassificationDataset.INDEX_LABEL])) for d in self.data]
+                     d[PytorchTextClassificationDataset.INDEX_LABEL]) for d in self.data]
 
         dataset = self
         while hasattr(dataset, 'dataset'):
@@ -307,7 +307,7 @@ class PytorchTextClassificationDataset(PytorchDataset):
                      d[self.INDEX_LABEL].copy()) for d in self._data]
         else:
             data = [(torch.clone(d[self.INDEX_TEXT]),
-                     np.copy(d[self.INDEX_LABEL])) for d in self._data]
+                     d[self.INDEX_LABEL]) for d in self._data]
 
         if self.track_target_labels:
             target_labels = None

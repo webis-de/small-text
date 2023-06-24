@@ -201,6 +201,8 @@ class TransformersDatasetTest(unittest.TestCase):
         if self.multi_label:
             assert_csr_matrix_equal(ds.y, ds_cloned.y)
         else:
+            for _, _, label in ds_cloned.data:
+                self.assertTrue(isinstance(label, int))
             assert_array_equal(ds.y, ds_cloned.y)
 
         assert_array_equal(ds.target_labels, ds_cloned.target_labels)
@@ -285,10 +287,12 @@ class _TransformersDatasetViewTest(_PytorchDatasetViewTest):
             for t, t_cloned in zip(ds_view.x, ds_cloned.x)
         ]))
         if self.multi_label:
-            if self.target_labels == 'explicit':
-                assert_csr_matrix_equal(ds_view.y, ds_cloned.y)
+            assert_csr_matrix_equal(ds_view.y, ds_cloned.y, check_shape=False)
         else:
+            for _, _, label in ds_cloned.data:
+                self.assertTrue(isinstance(label, int))
             assert_array_equal(ds_view.y, ds_cloned.y)
+
         if self.target_labels == 'explicit':
             assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
 

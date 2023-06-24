@@ -19,6 +19,10 @@ On the other hand, this also allowed us to deal with further issues that contain
 - Query Strategies:
   - New strategies: [LabelCardinalityInconsistency](https://github.com/webis-de/small-text/blob/v1.4.0/small_text/query_strategies/multi_label.py) and [ClassBalancer](https://github.com/webis-de/small-text/blob/v1.4.0/small_text/query_strategies/class_balancing.py).
 
+### Fixed 
+
+- Fixed a bug where the `clone()` operation wrapped the labels, which then raised an error. This affected the single-label scenario for PytorchTextClassificationDataset and TransformersDataset. ([#35](https://github.com/webis-de/small-text/issues/35))
+
 ### Changed
 
 - General

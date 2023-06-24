@@ -215,7 +215,10 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
         if self.multi_label:
             assert_csr_matrix_equal(ds.y, ds_cloned.y)
         else:
+            for _, label in ds_cloned.data:
+                self.assertTrue(isinstance(label, int))
             assert_array_equal(ds.y, ds_cloned.y)
+
         if self.target_labels == 'explicit':
             assert_array_equal(ds.target_labels, ds_cloned.target_labels)
 
@@ -428,47 +431,7 @@ class _PytorchDatasetViewTest(object):
         self._clone_test(ds_view)
 
     def _clone_test(self, ds_view):
-        ds_cloned = ds_view.clone()
-        self.assertTrue(isinstance(ds_cloned, self.dataset_class))
-
-        self.assertTrue(np.all([
-            torch.equal(t, t_cloned)
-            for t, t_cloned in zip(ds_view.x, ds_cloned.x)
-        ]))
-        if self.multi_label:
-            if self.target_labels == 'explicit':
-                assert_csr_matrix_equal(ds_view.y, ds_cloned.y)
-        else:
-            assert_array_equal(ds_view.y, ds_cloned.y)
-        assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
-
-        # test propagation of target_labels setting
-        if self.target_labels == 'explicit':
-            self.assertFalse(ds_view.dataset.track_target_labels)
-            self.assertFalse(ds_cloned.track_target_labels)
-            assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
-        else:
-            self.assertTrue(ds_view.dataset.track_target_labels)
-            self.assertTrue(ds_cloned.track_target_labels)
-
-        # mutability test
-        ds_cloned.x[0][0] += 1
-        assert_list_of_tensors_not_equal(self, ds_view.x, ds_cloned.x)
-
-        if self.multi_label:
-            y_tmp = ds_cloned.y.todense()
-            y_tmp = (y_tmp + 1) % 2
-            ds_cloned.y = csr_matrix(y_tmp, shape=ds_view.y.shape)
-            try:
-                assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
-            except (AssertionError, ValueError):
-                assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
-        else:
-            ds_cloned = increase_dense_labels_safe(ds_cloned)
-            assert_array_not_equal(ds_view.y, ds_cloned.y)
-
-        ds_cloned.target_labels = np.arange(10)
-        assert_array_not_equal(ds_view.target_labels, ds_cloned.target_labels)
+        raise NotImplementedError
 
     def test_indexing_single_index(self):
         index = 12
@@ -545,6 +508,8 @@ class _PytorchTextClassificationDatasetViewTest(_PytorchDatasetViewTest):
             if self.target_labels == 'explicit':
                 assert_csr_matrix_equal(ds_view.y, ds_cloned.y)
         else:
+            for _, label in ds_cloned.data:
+                self.assertTrue(isinstance(label, int))
             assert_array_equal(ds_view.y, ds_cloned.y)
         if self.target_labels == 'explicit':
             assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
