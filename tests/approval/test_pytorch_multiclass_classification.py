@@ -16,13 +16,6 @@ from small_text import KimCNNFactory, BreakingTies, PoolBasedActiveLearner
 from tests.utils.misc import random_seed
 
 
-try:
-    import gensim.downloader as api
-except ImportError:
-    raise RuntimeError('This example requires the gensim library. '
-                       'Please install gensim 3.8.x to run this example.')
-
-
 def evaluate(active_learner, train, test):
     y_pred = active_learner.classifier.predict(train)
     y_pred_test = active_learner.classifier.predict(test)
@@ -78,7 +71,6 @@ class PytorchMulticlassClassificationApprovalTest(unittest.TestCase):
         active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
         indices_labeled = initialize_active_learner(active_learner, train.y)
 
-        output = \
-        f'{perform_active_learning(active_learner, train, indices_labeled, test, num_iterations)}'
+        output = f'{perform_active_learning(active_learner, train, indices_labeled, test, num_iterations)}'
 
         verify(output)
