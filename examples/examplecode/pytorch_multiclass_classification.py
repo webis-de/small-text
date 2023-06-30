@@ -38,10 +38,12 @@ def main(num_iterations=10):
     num_classes = len(np.unique(train.y))
 
     # Active learning parameters
-    classifier_kwargs = dict({'embedding_matrix': load_gensim_embedding(train.vocab),
-                              'max_seq_len': 512,
-                              'num_epochs': 4,
-                              'device': device})
+    classifier_kwargs = {
+        'embedding_matrix': load_gensim_embedding(train.vocab),
+        'max_seq_len': 512,
+        'num_epochs': 4,
+        'device': device
+    }
 
     clf_factory = KimCNNFactory('kimcnn', num_classes, classifier_kwargs)
     query_strategy = ExpectedGradientLength(num_classes, device=device)
