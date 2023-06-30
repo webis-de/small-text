@@ -29,9 +29,9 @@ def main(num_iterations=10):
     num_classes = len(TWENTY_NEWS_SUBCATEGORIES)
     clf_factory = TransformerBasedClassificationFactory(TRANSFORMER_MODEL,
                                                         num_classes,
-                                                        kwargs=dict({
+                                                        kwargs={
                                                             'device': 'cuda'
-                                                        }))
+                                                        })
     query_strategy = RandomSampling()
 
     # Prepare some data

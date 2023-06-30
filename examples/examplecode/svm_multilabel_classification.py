@@ -29,7 +29,7 @@ def main(num_iterations=10):
     clf_template = ConfidenceEnhancedLinearSVC()
     clf_factory = SklearnClassifierFactory(clf_template,
                                            num_classes,
-                                           kwargs=dict({'multi_label': True}))
+                                           kwargs={'multi_label': True})
     query_strategy = RandomSampling()
 
     # Active learner

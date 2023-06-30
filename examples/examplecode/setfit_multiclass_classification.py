@@ -29,11 +29,11 @@ def main(num_iterations=10):
 
     clf_factory = SetFitClassificationFactory(model_args,
                                               num_classes,
-                                              classification_kwargs=dict({
+                                              classification_kwargs={
                                                   'device': 'cuda',
                                                   'max_seq_len': 64,
                                                   'mini_batch_size': 8
-                                              }))
+                                              })
 
     query_strategy = BreakingTies()
 
