@@ -10,15 +10,16 @@ from small_text.data.datasets import (
     is_multi_label,
     select,
     SklearnDataset,
-    TextDataset,
-    split_data
+    TextDataset
 )
+from small_text.data.exceptions import UnsupportedOperationException
 from small_text.data.sampling import (
     balanced_sampling,
     multilabel_stratified_subsets_sampling,
     stratified_sampling
 )
-from small_text.data.exceptions import UnsupportedOperationException
+from small_text.data.splits import split_data
+from small_text.data.tokenizers.tokenizers import VocabularyBasedTokenizer, SklearnRegexTokenizer
 
 
 __all__ = [
@@ -34,9 +35,11 @@ __all__ = [
     'SklearnDatasetView',
     'TextDataset',
     'TextDatasetView',
+    'UnsupportedOperationException',
     'split_data',
     'balanced_sampling',
     'multilabel_stratified_subsets_sampling',
     'stratified_sampling',
-    'UnsupportedOperationException'
+    'VocabularyBasedTokenizer',
+    'SklearnRegexTokenizer'
 ]

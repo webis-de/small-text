@@ -27,29 +27,25 @@ def default_module_selector(m):
 class KimCNNEmbeddingTest(unittest.TestCase):
 
     def test_embed_model_not_trained(self):
+        _, train, tokenizer = trec_dataset()  # use small test set as train
 
-        _, train = trec_dataset()  # use small test set as train
-
-        embedding_matrix = torch.Tensor(np.random.rand(len(train.vocab), 100))
+        embedding_matrix = torch.Tensor(np.random.rand(len(tokenizer.get_vocab()), 100))
         classifier = KimCNNClassifier(6, embedding_matrix=embedding_matrix)
 
         def module_selector(m):
             return m['fc']
 
         with self.assertRaises(ValueError):
-            classifier.embed(train,
-                             module_selector=module_selector,
-                             embedding_method=self.embedding_method)
+            classifier.embed(train, module_selector=module_selector, embedding_method=self.embedding_method)
 
     def test_embed(self):
-
-        _, train = trec_dataset()  # use small test set as train
+        _, train, tokenizer = trec_dataset()  # use small test set as train
 
         kwargs = dict()
         if self.embedding_method == KimCNNEmbeddingMixin.EMBEDDING_METHOD_GRADIENT:
             kwargs['module_selector'] = default_module_selector
 
-        embedding_matrix = torch.Tensor(np.random.rand(len(train.vocab), 100))
+        embedding_matrix = torch.Tensor(np.random.rand(len(tokenizer.get_vocab()), 100))
         classifier = KimCNNClassifier(6, embedding_matrix=embedding_matrix)
         classifier.fit(train)
 
@@ -74,15 +70,14 @@ class KimCNNEmbeddingTest(unittest.TestCase):
                                  embeddings.shape[1])
 
     def test_embed_and_predict(self):
-
-        _, train = trec_dataset()  # use small test set as train
+        _, train, tokenizer = trec_dataset()  # use small test set as train
 
         kwargs = dict()
 
         if self.embedding_method == KimCNNEmbeddingMixin.EMBEDDING_METHOD_GRADIENT:
             kwargs['module_selector'] = default_module_selector
 
-        embedding_matrix = torch.Tensor(np.random.rand(len(train.vocab), 100))
+        embedding_matrix = torch.Tensor(np.random.rand(len(tokenizer.get_vocab()), 100))
         classifier = KimCNNClassifier(6, embedding_matrix=embedding_matrix)
         classifier.fit(train)
 

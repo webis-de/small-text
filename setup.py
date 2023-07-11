@@ -11,7 +11,7 @@ if version['pre_release'] != '':
     version_str += '.' + version['pre_release']
 
 
-PYTORCH_DEPENDENCIES = ['torch>=1.6.0', 'torchtext>=0.7.0']
+PYTORCH_DEPENDENCIES = ['torch>=1.6.0']
 
 
 setup(name='small-text',
@@ -46,7 +46,8 @@ setup(name='small-text',
             'numpy>=1.21.0',
             'scikit-learn>=0.24.1',
             'tqdm',
-            'packaging'
+            'packaging',
+            'tokenizers>=0.11.5'
       ],
       extras_require={
             'pytorch': PYTORCH_DEPENDENCIES,

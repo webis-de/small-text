@@ -1,10 +1,12 @@
 """Example of a multiclass active learning text classification with pytorch.
 
 Note:
-This examples requires gensim 3.8.x.
+This examples requires gensim 3.8.x which is used for obtaining word2vec embeddings.
 """
 import torch
 import numpy as np
+
+from collections import Counter
 
 from small_text import (
     ActiveLearnerException,
@@ -29,22 +31,27 @@ except ImportError:
                                  'Please install gensim 3.8.x to run this example.')
 
 
-def main(num_iterations=10):
-    device = 'cuda'
+def main(num_iterations=10, device = 'cuda'):
+    pretrained_vectors = api.load('word2vec-google-news-300')
 
     # Prepare some data
     train, test = get_train_test()
-    train, test = preprocess_data(train, test)
+
+    # TODO: use another dataset
+    train, test, tokenizer = preprocess_data(train, test, pretrained_vectors)
+
     num_classes = len(np.unique(train.y))
 
     # Active learning parameters
+    # TODO: the selection of embedding vectors can still be improved
     classifier_kwargs = {
-        'embedding_matrix': load_gensim_embedding(train.vocab),
+        'embedding_matrix': load_gensim_embedding(train.data, tokenizer, pretrained_vectors),
         'max_seq_len': 512,
         'num_epochs': 4,
         'device': device
     }
 
+    # TODO: clean up KimCNNFactory
     clf_factory = KimCNNFactory('kimcnn', num_classes, classifier_kwargs)
     query_strategy = ExpectedGradientLength(num_classes, device=device)
 
@@ -65,7 +72,7 @@ def perform_active_learning(active_learner, train, indices_labeled, test, num_it
     # Perform 20 iterations of active learning...
     for i in range(num_iterations):
         # ...where each iteration consists of labelling 20 samples
-        indices_queried = active_learner.query(num_samples=20)
+        indices_queried = active_learner.query(num_samples=20, representation=train)
 
         # Simulate user interaction here. Replace this for real-world usage.
         y = train.y[indices_queried]
@@ -79,22 +86,25 @@ def perform_active_learning(active_learner, train, indices_labeled, test, num_it
         evaluate(active_learner, train[indices_labeled], test)
 
 
-def load_gensim_embedding(vocab, min_freq=1):
-    pretrained_vectors = api.load('word2vec-google-news-300')
+def load_gensim_embedding(texts, tokenizer, pretrained_vectors, min_freq=1, num_special_tokens=2):
 
     vectors = [
-        np.zeros(pretrained_vectors.vectors.shape[1]),  # <ukn>
-        np.zeros(pretrained_vectors.vectors.shape[1])   # <pad>
+        np.zeros(pretrained_vectors.vectors.shape[1])
+        for _ in range(num_special_tokens)
     ]
-    num_special_vectors = len(vectors)
+    vocab = tokenizer.get_vocab()
     vectors += [
-        pretrained_vectors.vectors[pretrained_vectors.vocab[vocab.itos[i]].index]
-        if vocab.itos[i] in pretrained_vectors.vocab
+        pretrained_vectors.vectors[pretrained_vectors.vocab[tokenizer.id_to_token(i)].index]
+        if tokenizer.id_to_token(i) in pretrained_vectors.vocab
         else np.zeros(pretrained_vectors.vectors.shape[1])
-        for i in range(num_special_vectors, len(vocab))
+        for i in range(num_special_tokens, len(vocab))
     ]
-    for i in range(num_special_vectors, len(vocab)):
-        if vocab.itos[i] not in pretrained_vectors.vocab and vocab.freqs[vocab.itos[i]] >= min_freq:
+
+    token_id_list = [text[0].cpu().numpy().tolist() for text in texts]
+    word_frequencies = Counter([token for tokens in token_id_list for token in tokens])
+    for i in range(num_special_tokens, len(vocab)):
+        is_in_vocab = tokenizer.id_to_token(i) not in pretrained_vectors.vocab
+        if is_in_vocab and word_frequencies[tokenizer.id_to_token(i)] >= min_freq:
             vectors[i] = np.random.uniform(-0.25, 0.25, pretrained_vectors.vectors.shape[1])
 
     return torch.as_tensor(np.stack(vectors))

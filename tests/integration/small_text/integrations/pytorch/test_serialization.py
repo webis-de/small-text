@@ -26,13 +26,13 @@ except (ImportError, PytorchNotFoundError):
 @pytest.mark.pytorch
 class SerializationTest(unittest.TestCase):
 
-    def test_and_load_with_file_str(self, num_classes=6):
-        dataset = random_text_classification_dataset(num_samples=100, num_classes=6)
+    def test_and_load_with_file_str(self, num_classes=6, vocab_size=10):
+        dataset = random_text_classification_dataset(num_samples=100, num_classes=6, vocab_size=vocab_size)
         self.assertFalse(dataset._data[0][PytorchTextClassificationDataset.INDEX_TEXT].is_cuda)
 
         clf_factory = KimCNNFactory('kimcnn',
                                     num_classes,
-                                    {'embedding_matrix': torch.rand(len(dataset.vocab), 100)})
+                                    {'embedding_matrix': torch.rand(vocab_size, 100)})
         query_strategy = RandomSampling()
 
         with tempfile.TemporaryDirectory() as tmp_dir_name:

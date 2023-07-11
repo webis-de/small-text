@@ -11,7 +11,6 @@ from small_text.utils.labels import csr_to_list, list_to_csr
 
 try:
     import torch
-    from torchtext.vocab import Vocab
 
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.transformers.datasets import TransformersDataset
@@ -51,7 +50,6 @@ def random_text_data(num_samples=100):
     return x
 
 
-# TODO: is this obsolete?
 def random_labeling(num_classes, multi_label=False):
     label_values = np.arange(num_classes)
     if multi_label:
@@ -86,56 +84,50 @@ def random_sklearn_dataset(num_samples, vocab_size=60, num_classes=2, multi_labe
     return SklearnDataset(x, y)
 
 
-def trec_dataset():
-    import torchtext
+def trec_dataset(vocab_size=10_000):
+    import datasets
+    trec_dataset = datasets.load_dataset('trec')
 
-    try:
-        from torchtext import data
-        text_field = data.Field(lower=True)
-        label_field = data.Field(sequential=False, unk_token=None)
-        train, test = torchtext.datasets.TREC.splits(text_field, label_field)
-    except AttributeError:
-        # torchtext >= 0.8.0
-        from torchtext.legacy import data
-        text_field = data.Field(lower=True)
-        label_field = data.Field(sequential=False, unk_token=None)
-        train, test = torchtext.legacy.datasets.TREC.splits(text_field, label_field)
+    num_classes = 6
+    target_labels = np.arange(num_classes)
 
-    text_field.build_vocab(train)
-    label_field.build_vocab(train)
+    tokenizer = _train_tokenizer(trec_dataset['train']['text'], vocab_size)
 
-    return _dataset_to_text_classification_dataset(train), \
-        _dataset_to_text_classification_dataset(test)
+    return _dataset_to_text_classification_dataset(trec_dataset['train'], tokenizer, target_labels), \
+        _dataset_to_text_classification_dataset(trec_dataset['test'], tokenizer, target_labels), tokenizer
 
 
-def _dataset_to_text_classification_dataset(dataset):
+def _train_tokenizer(text, vocab_size, unk_token='[UNK]', pad_token='[PAD]'):
+    from tokenizers import Tokenizer, models, normalizers, pre_tokenizers, trainers
+
+    tokenizer = Tokenizer(models.WordLevel(unk_token=unk_token))
+    tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
+    tokenizer.normalizer = normalizers.Sequence([normalizers.NFKC()])
+
+    trainer = trainers.WordLevelTrainer(vocab_size=vocab_size, special_tokens=[unk_token, pad_token])
+    tokenizer.train_from_iterator(text, trainer=trainer)
+
+    return tokenizer
+
+
+def _dataset_to_text_classification_dataset(dataset, tokenizer, target_labels):
     import torch
 
-    assert dataset.fields['text'].vocab.itos[0] == '<unk>'
-    assert dataset.fields['text'].vocab.itos[1] == '<pad>'
-    unk_token_idx = 1
+    data = [(torch.LongTensor(tokenizer.encode(example).ids), label)
+            for example, label in zip(dataset['text'], dataset['coarse_label'])]
 
-    vocab = dataset.fields['text'].vocab
-
-    data = [(torch.LongTensor([vocab.stoi[token] if token in vocab.stoi else unk_token_idx
-                               for token in example.text]),
-             dataset.fields['label'].vocab.stoi[example.label])
-            for example in dataset.examples]
-
-    return PytorchTextClassificationDataset(data, vocab)
+    return PytorchTextClassificationDataset(data, target_labels=target_labels)
 
 
-def random_text_classification_dataset(num_samples=10, max_length=60, num_classes=2,
-                                       multi_label=False, vocab_size=10,
+def random_text_classification_dataset(num_samples=10, max_length=60, num_classes=2, multi_label=False, vocab_size=10,
                                        device='cpu', target_labels='inferred', dtype=torch.long):
 
     if target_labels not in ['explicit', 'inferred']:
         raise ValueError(f'Invalid test parameter value for target_labels: {str(target_labels)}')
+
     if num_classes > num_samples:
         raise ValueError('When num_classes is greater than num_samples the occurrence of each '
                          'class cannot be guaranteed')
-
-    vocab = Vocab(Counter([f'word_{i}' for i in range(vocab_size)]))
 
     if multi_label:
         data = [(
@@ -152,8 +144,7 @@ def random_text_classification_dataset(num_samples=10, max_length=60, num_classe
     data = assure_all_labels_occur(data, num_classes, multi_label=multi_label)
 
     target_labels = None if target_labels == 'inferred' else np.arange(num_classes)
-    return PytorchTextClassificationDataset(data, vocab, multi_label=multi_label,
-                                            target_labels=target_labels)
+    return PytorchTextClassificationDataset(data, multi_label=multi_label, target_labels=target_labels)
 
 
 def assure_all_labels_occur(data, num_classes, multi_label=False):

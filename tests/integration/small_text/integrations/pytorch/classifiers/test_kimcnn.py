@@ -352,6 +352,10 @@ class CompileTest(unittest.TestCase):
 
         dataset = random_text_classification_dataset(10, max_length=60, num_classes=num_classes)
 
+        # TODO: fails with torch < 2.0.0:
+        #         with patch('torch.__version__', new='2.0.0'), \
+        # >               patch('torch.compile', wraps=torch.compile) as compile_spy:
+        # E               AttributeError: module 'torch' has no attribute 'compile'
         with patch('torch.__version__', new='1.9.0'), \
                 patch('torch.compile', wraps=torch.compile) as compile_spy:
             classifier.initialize_kimcnn_model(dataset)
@@ -367,6 +371,10 @@ class CompileTest(unittest.TestCase):
 
         dataset = random_text_classification_dataset(10, max_length=60, num_classes=num_classes)
 
+        # TODO: fails with torch < 2.0.0:
+        #         with patch('torch.__version__', new='2.0.0'), \
+        # >               patch('torch.compile', wraps=torch.compile) as compile_spy:
+        # E               AttributeError: module 'torch' has no attribute 'compile'
         with patch('torch.__version__', new='2.0.0'), \
                 patch('torch.compile', wraps=torch.compile) as compile_spy:
             classifier.initialize_kimcnn_model(dataset)

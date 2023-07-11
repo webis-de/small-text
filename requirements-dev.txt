@@ -6,3 +6,4 @@ pytest-srcpaths==1.2.1
 virtualenv>=20.11.0
 pyright
 approvaltests
+datasets>=2.9.0

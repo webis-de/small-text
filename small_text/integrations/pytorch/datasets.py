@@ -74,10 +74,6 @@ class PytorchDatasetView(DatasetView):
         return [self._dataset.data[i] for i in selection]
 
     @property
-    def vocab(self):
-        return self._dataset.vocab
-
-    @property
     def target_labels(self):
         return self.dataset.target_labels
 
@@ -126,7 +122,6 @@ class PytorchTextClassificationDatasetView(PytorchDatasetView):
             target_labels = np.copy(dataset.target_labels)
 
         return PytorchTextClassificationDataset(data,
-                                                copy.deepcopy(self.vocab),
                                                 multi_label=self.is_multi_label,
                                                 target_labels=target_labels)
 
@@ -137,7 +132,7 @@ class PytorchTextClassificationDataset(PytorchDataset):
     INDEX_TEXT = 0
     INDEX_LABEL = 1
 
-    def __init__(self, data, vocab, multi_label=False, target_labels=None):
+    def __init__(self, data, multi_label=False, target_labels=None):
         """
         Parameters
         ----------
@@ -145,8 +140,6 @@ class PytorchTextClassificationDataset(PytorchDataset):
             The single items constituting the dataset. For single-label datasets, unlabeled
             instances the label should be set to small_text.base.LABEL_UNLABELED`,
             and for multi-label datasets to an empty list.
-        vocab : torchtext.vocab.vocab
-            Vocabulary object.
         multi_label : bool, default=False
             Indicates if this is a multi-label dataset.
         target_labels : np.ndarray[int] or None, default=None
@@ -159,7 +152,6 @@ class PytorchTextClassificationDataset(PytorchDataset):
         check_target_labels(target_labels)
 
         self._data = data
-        self._vocab = vocab
         self.multi_label = multi_label
 
         self._target_labels = None
@@ -261,20 +253,9 @@ class PytorchTextClassificationDataset(PytorchDataset):
         Returns
         -------
         data : list of tuples (text data [Tensor], label)
-            Vocab object.
+            Internal list of tuples storing examples and labels.
         """
         return self._data
-
-    @property
-    def vocab(self):
-        """Returns the vocab.
-
-        Returns
-        -------
-        vocab : torchtext.vocab.Vocab
-            Vocab object.
-        """
-        return self._vocab
 
     @property
     def is_multi_label(self):
@@ -300,8 +281,6 @@ class PytorchTextClassificationDataset(PytorchDataset):
         self._target_labels = target_labels
 
     def clone(self):
-        import copy
-
         if self.is_multi_label:
             data = [(torch.clone(d[self.INDEX_TEXT]),
                      d[self.INDEX_LABEL].copy()) for d in self._data]
@@ -315,7 +294,6 @@ class PytorchTextClassificationDataset(PytorchDataset):
             target_labels = np.copy(self._target_labels)
 
         return PytorchTextClassificationDataset(data,
-                                                copy.deepcopy(self._vocab),
                                                 multi_label=self.multi_label,
                                                 target_labels=target_labels)
 
@@ -337,15 +315,14 @@ class PytorchTextClassificationDataset(PytorchDataset):
         if copy is True:
             import copy
             target_labels = None if self.track_target_labels else self._target_labels
-            vocab = copy.deepcopy(self._vocab)
-            return PytorchTextClassificationDataset(data, vocab, target_labels=target_labels)
+            return PytorchTextClassificationDataset(data, target_labels=target_labels)
         else:
             self._data = data
             return self
 
     @classmethod
     @experimental
-    def from_arrays(cls, texts, y, text_field, target_labels=None, train=True):
+    def from_arrays(cls, texts, y, tokenizer, target_labels=None):
         """Constructs a new PytorchTextClassificationDataset from the given text and label arrays.
 
         Parameters
@@ -356,15 +333,10 @@ class PytorchTextClassificationDataset(PytorchDataset):
             List of labels where each label belongs to the features of the respective row.
             Depending on the type of `y` the resulting dataset will be single-label (`np.ndarray`)
             or multi-label (`scipy.sparse.csr_matrix`).
-        text_field : torchtext.data.field.Field or torchtext.legacy.data.field.Field
-            A torchtext field used for preprocessing the text and building the vocabulary.
-        vocab : object
-            A torch
+        tokenizer : small_text.data.tokenizers.Tokenizer
+            A tokenizer that is used to convert each of the given text documents into tokens.
         target_labels : numpy.ndarray[int] or None, default=None
             List of possible labels. Will be directly passed to the datset constructor.
-        train : bool
-            If `True` fits the vectorizer and transforms the data, otherwise just transforms the
-            data.
 
         Returns
         -------
@@ -376,37 +348,22 @@ class PytorchTextClassificationDataset(PytorchDataset):
            This functionality is still experimental and may be subject to change.
 
         .. versionadded:: 1.1.0
+        .. versionchanged:: 2.0.0
         """
-        unk_token_idx = 0  # TODO: check this index
-
-        if not train and not hasattr(text_field, 'vocab'):
-            raise ValueError('Vocab must have been built when using this function '
-                             'to obtain test data.')
-
-        texts_preprocessed = [text_field.preprocess(text) for text in texts]
-
-        if train:
-            text_field.build_vocab(texts_preprocessed)
-            assert text_field.vocab.itos[0] == '<unk>'
-            assert text_field.vocab.itos[1] == '<pad>'
 
         multi_label = isinstance(y, csr_matrix)
         if multi_label:
             y = csr_to_list(y)
 
-        vocab = text_field.vocab
-
         data = [
             (
-                torch.LongTensor([vocab.stoi[token] if token in vocab.stoi else unk_token_idx
-                                 for token in text_preprocessed]),
+                torch.LongTensor(tokenizer.encode(text).ids),
                 y[i]
             )
-            for i, text_preprocessed in enumerate(texts_preprocessed)
+            for i, text in enumerate(texts)
         ]
 
-        return PytorchTextClassificationDataset(data, vocab, multi_label=multi_label,
-                                                target_labels=target_labels)
+        return PytorchTextClassificationDataset(data, multi_label=multi_label, target_labels=target_labels)
 
     def __getitem__(self, item):
         return PytorchTextClassificationDatasetView(self, item)

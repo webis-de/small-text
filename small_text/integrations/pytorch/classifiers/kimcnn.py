@@ -334,7 +334,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             if self.num_classes is None:
                 self.num_classes = encountered_num_classes
 
-            self.initialize_kimcnn_model(sub_train)
+            self.initialize_kimcnn_model()
 
         _check_optimizer_and_scheduler_config(optimizer, scheduler)
         scheduler = scheduler if scheduler is not None else None
@@ -352,9 +352,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
         return self
 
-    def initialize_kimcnn_model(self, sub_train):
-        vocab_size = len(sub_train.vocab)
-
+    def initialize_kimcnn_model(self):
+        vocab_size = self.embedding_matrix.shape[0]
         embed_dim = self.embedding_matrix.shape[1]
         self.model = KimCNN(vocab_size, self.max_seq_len, num_classes=self.num_classes,
                             dropout=self.dropout, out_channels=self.out_channels,
