@@ -11,9 +11,6 @@ from small_text.data.exceptions import UnsupportedOperationException
 
 from small_text.utils.annotations import experimental
 from small_text.utils.data import list_length
-# split_data need to be importable from here for compatibility reasons
-#   TODO: remove split_data import in 2.0.0
-from small_text.data.splits import split_data  # noqa: F401
 from small_text.utils.labels import get_flattened_unique_labels
 
 
