@@ -39,7 +39,8 @@ def check_target_labels(target_labels):
         warnings.warn('Passing target_labels=None is discouraged as it can lead to '
                       'unintended results in combination with indexing and cloning. '
                       'Moreover, explicit target labels might be required in the '
-                      'next major version.')
+                      'next major version.',
+                      stacklevel=2)
 
 
 def get_updated_target_labels(is_multi_label, y, target_labels):
