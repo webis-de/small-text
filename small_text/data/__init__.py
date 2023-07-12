@@ -19,7 +19,6 @@ from small_text.data.sampling import (
     stratified_sampling
 )
 from small_text.data.splits import split_data
-from small_text.data.tokenizers.tokenizers import VocabularyBasedTokenizer, SklearnRegexTokenizer
 
 
 __all__ = [
@@ -39,7 +38,5 @@ __all__ = [
     'split_data',
     'balanced_sampling',
     'multilabel_stratified_subsets_sampling',
-    'stratified_sampling',
-    'VocabularyBasedTokenizer',
-    'SklearnRegexTokenizer'
+    'stratified_sampling'
 ]
