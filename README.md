@@ -68,7 +68,7 @@ For a full installation include the transformers extra requirement:
 pip install small-text[transformers]
 ```
 
-It requires Python 3.7 or newer. For using the GPU, CUDA 10.1 or newer is required. 
+The library requires Python 3.8 or newer. For using the GPU, CUDA 10.1 or newer is required. 
 More information regarding the installation can be found in the 
 [documentation][documentation_install].
 
