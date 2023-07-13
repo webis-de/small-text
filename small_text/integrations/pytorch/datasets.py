@@ -103,8 +103,6 @@ class PytorchDatasetView(DatasetView):
 class PytorchTextClassificationDatasetView(PytorchDatasetView):
 
     def clone(self):
-        import copy
-
         if self.is_multi_label:
             data = [(torch.clone(d[PytorchTextClassificationDataset.INDEX_TEXT]),
                      d[PytorchTextClassificationDataset.INDEX_LABEL].copy()) for d in self.data]

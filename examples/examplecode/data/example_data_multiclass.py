@@ -22,8 +22,8 @@ def preprocess_data(train, test, pretrained_vectors, vocab_size=200_000, unk_tok
     tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
     tokenizer.normalizer = normalizers.Sequence([normalizers.NFKC()])
 
-    #trainer = WordLevelTrainer(vocab_size=vocab_size, special_tokens=[unk_token, pad_token])
-    #tokenizer.train_from_iterator(train.data, trainer=trainer)
+    # trainer = WordLevelTrainer(vocab_size=vocab_size, special_tokens=[unk_token, pad_token])
+    # tokenizer.train_from_iterator(train.data, trainer=trainer)
 
     ds_train = PytorchTextClassificationDataset.from_arrays(train.data, train.target, tokenizer)
     ds_test = PytorchTextClassificationDataset.from_arrays(test.data, test.target, tokenizer)

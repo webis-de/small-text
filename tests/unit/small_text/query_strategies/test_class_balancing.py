@@ -61,7 +61,7 @@ class RebalanceDistributionTest(unittest.TestCase):
 
         current_distribution = _get_class_histogram(y, num_classes)
         balancing_distribution = _get_rebalancing_distribution(num_samples, num_classes, y, y_pred,
-                                                                    ignored_classes=[0, 4])
+                                                               ignored_classes=[0, 4])
 
         final_distribution = current_distribution + balancing_distribution
 
@@ -79,7 +79,7 @@ class RebalanceDistributionTest(unittest.TestCase):
 
         current_distribution = _get_class_histogram(y, num_classes)
         balancing_distribution = _get_rebalancing_distribution(num_samples, num_classes, y, y_pred,
-                                                                    ignored_classes=[0, 4])
+                                                               ignored_classes=[0, 4])
 
         final_distribution = current_distribution + balancing_distribution
         self.assertTrue((final_distribution[0] > 1) or (final_distribution[4] > 0))

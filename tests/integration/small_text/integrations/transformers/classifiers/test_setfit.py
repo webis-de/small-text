@@ -2,7 +2,7 @@ import unittest
 import pytest
 import numpy as np
 
-from unittest.mock import create_autospec, patch, Mock
+from unittest.mock import create_autospec, patch
 from scipy.sparse import issparse
 
 from small_text.data.datasets import TextDataset
@@ -282,6 +282,7 @@ class _ClassificationTest(object):
 
         # required to verify that initializes() and to() are called
         original_initialize = clf.initialize
+
         def mocked_initialize():
             model = original_initialize()
             model.model_body.to = create_autospec(model.model_body.to, spec_set=True, wraps=model.model_body.to)

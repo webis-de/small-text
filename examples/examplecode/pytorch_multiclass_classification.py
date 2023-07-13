@@ -31,7 +31,7 @@ except ImportError:
                                  'Please install gensim 3.8.x to run this example.')
 
 
-def main(num_iterations=10, device = 'cuda'):
+def main(num_iterations=10, device='cuda'):
     pretrained_vectors = api.load('word2vec-google-news-300')
 
     # Prepare some data

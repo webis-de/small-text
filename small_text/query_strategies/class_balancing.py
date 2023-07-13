@@ -97,14 +97,14 @@ def _get_rebalancing_distribution(num_samples, num_classes, y, y_pred, ignored_c
     # When not enough samples can be taken from the active classes, we fall back to using all classes.
     remainder = target_distribution.sum() - balancing_distribution.sum()
     if remainder > 0:
-            free_ignored_class_samples = []
-            for i, count in enumerate(predicted_class_distribution - balancing_distribution):
-                if count > 0:
-                    free_ignored_class_samples.extend([i] * count)
+        free_ignored_class_samples = []
+        for i, count in enumerate(predicted_class_distribution - balancing_distribution):
+            if count > 0:
+                free_ignored_class_samples.extend([i] * count)
 
-            np.random.shuffle(free_ignored_class_samples)
-            for c in free_ignored_class_samples[:remainder]:
-                balancing_distribution[c] += 1
+        np.random.shuffle(free_ignored_class_samples)
+        for c in free_ignored_class_samples[:remainder]:
+            balancing_distribution[c] += 1
 
     return balancing_distribution
 
