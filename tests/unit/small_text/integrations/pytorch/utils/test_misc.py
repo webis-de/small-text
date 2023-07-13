@@ -23,13 +23,6 @@ class SimpleNet(nn.Module):
 @pytest.mark.pytorch
 class MiscUtilsTest(unittest.TestCase):
 
-    def test_default_tensor_type(self):
-        with self.assertWarnsRegex(DeprecationWarning,
-                                   r'The function default_tensor_type has been deprecated in 1.1.0 '
-                                   r'and will be removed in 2.0.0.'):
-            with default_tensor_type(torch.FloatTensor):
-                torch.Tensor([0])
-
     def test_enable_dropout(self):
         model = SimpleNet()
 

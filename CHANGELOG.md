@@ -29,6 +29,10 @@ On the other hand, this also allowed us to deal with further issues that contain
 - General
   - Moved `split_data()` method from `small_text.data.datasets` to `small_text.data.splits`.
 
+### Removed
+
+- Removed `default_tensor_type()` method.
+
 ---
 
 ## Version 1.3.0 - 2023-02-21
