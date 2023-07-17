@@ -153,8 +153,7 @@ def _get_layer_params(model, base_lr, fine_tuning_arguments):
     num_layers = total_layers - start_layer
 
     for i in range(start_layer, total_layers):
-        lr = base_lr if not layerwise_gradient_decay else base_lr * layerwise_gradient_decay ** (
-                num_layers - i)
+        lr = base_lr if not layerwise_gradient_decay else base_lr * layerwise_gradient_decay ** (num_layers - (i+1-start_layer))
         for sublayer in layers[i]:
             if sublayer.requires_grad:  # Check whether frozen through pytorch interface
                 params.append({
