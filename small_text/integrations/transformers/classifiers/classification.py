@@ -122,32 +122,55 @@ class TransformerModelArguments(object):
 
 
 def _get_layer_params(model, base_lr, fine_tuning_arguments):
-
     layerwise_gradient_decay = fine_tuning_arguments.layerwise_gradient_decay
 
     params = []
 
+    # Get layers under assumption that a certain naming convention is kept
     base_model = getattr(model, model.base_model_prefix)
+    layers = []
+    if hasattr(base_model, 'embeddings'):
+        layers.append(base_model.embeddings.parameters())
+
     if hasattr(base_model, 'encoder'):
-        layers = base_model.encoder.layer
+        if hasattr(base_model.encoder, 'layer'):
+            layers += [l.parameters() for l in base_model.encoder.layer]
     else:
-        layers = base_model.transformer.layer
+        layers += [l.parameters() for l in base_model.transformer.layer]
+
+    if hasattr(base_model, 'pooler') and base_model.pooler is not None:
+        layers.append(base_model.pooler.parameters())
+
+    if hasattr(model, 'classifier'):
+        layers.append(model.classifier.parameters())
 
     total_layers = len(layers)
 
     use_gradual_unfreezing = isinstance(fine_tuning_arguments.gradual_unfreezing, int) and \
-        fine_tuning_arguments.gradual_unfreezing > 0
+                             fine_tuning_arguments.gradual_unfreezing > 0
 
-    start_layer = 0 if not use_gradual_unfreezing else total_layers-fine_tuning_arguments.gradual_unfreezing
+    start_layer = 0 if not use_gradual_unfreezing else max(0, total_layers - fine_tuning_arguments.gradual_unfreezing)
     num_layers = total_layers - start_layer
 
     for i in range(start_layer, total_layers):
         lr = base_lr if not layerwise_gradient_decay else base_lr * layerwise_gradient_decay ** (
-                    num_layers - i)
-        params.append({
-            'params': layers[i].parameters(),
-            'lr': lr
-        })
+                num_layers - i)
+        for sublayer in layers[i]:
+            if sublayer.requires_grad:  # Check whether frozen through pytorch interface
+                params.append({
+                    'params': sublayer,
+                    'lr': lr
+                })
+
+    # Check whether all trainable parameters were atleast found
+    must_have_layer_ids = set(id(param) for param in model.parameters() if param.requires_grad)
+    included_layer_ids = set([id(param["params"]) for param in params])
+    excluded_layer_ids = set([id(sublayer) for i in range(0, start_layer) for sublayer in layers[i]])
+    found_layer_ids = set.union(included_layer_ids, excluded_layer_ids)
+    assert len(found_layer_ids) == len(included_layer_ids) + len(excluded_layer_ids)  # i.e. No Overlap
+    if len(must_have_layer_ids - found_layer_ids) != 0:
+        # Not all layers were found while following naming convention
+        raise Exception(f"{type(model)} doesn't support yet finetuning arguments.")
 
     return params
 
