@@ -155,6 +155,7 @@ Small-Text has been introduced in detail in the EACL23 System Demonstration Pape
 [changelog_1.1.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-1-1-2022-10-14
 [changelog_1.2.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-2-0-2023-02-04
 [changelog_1.3.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-3-0-2023-02-21
+[changelog_1.3.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-3-1-2023-07-22
 [argilla]: https://github.com/argilla-io/argilla
 [argilla_al_tutorial]: https://docs.argilla.io/en/latest/tutorials/notebooks/training-textclassification-smalltext-activelearning.html
 [paper_arxiv]: https://arxiv.org/abs/2107.10314
