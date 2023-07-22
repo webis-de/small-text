@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 from scipy.sparse import csr_matrix
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
@@ -44,12 +44,17 @@ class ClassWeightsTest(unittest.TestCase):
     def test_get_class_weights_binary(self):
         y = np.array([0, 1, 1, 1, 1])
         class_weights = get_class_weights(y, 2)
-        self.assertTrue(torch.equal(torch.tensor([4., 1.0]), class_weights))
+        assert_array_equal(np.array([4.0, 1.0]), class_weights.cpu().numpy())
 
     def test_get_class_weights_multiclass(self):
         y = np.array([0, 1, 1, 1, 1, 2, 3, 3])
         class_weights = get_class_weights(y, 4)
-        self.assertTrue(torch.equal(torch.tensor([7.0, 1.0, 7.0, 3.0]), class_weights))
+        assert_array_equal(np.array([7.0, 1.0, 7.0, 3.0]), class_weights.cpu().numpy())
+
+    def test_get_class_weights_multiclass_only_one_label(self):
+        y = np.array([0, 0, 0, 0, 0, 0, 0, 0])
+        class_weights = get_class_weights(y, 4)
+        assert_array_equal(np.array([0.0, 8.0, 8.0, 8.0]), class_weights.cpu().numpy())
 
     def test_get_class_weights_multi_label(self):
         num_classes = 4
