@@ -1,11 +1,11 @@
-[![PyPI](https://img.shields.io/pypi/v/small-text/v1.3.0)](https://pypi.org/project/small-text/)
+[![PyPI](https://img.shields.io/pypi/v/small-text/v1.3.1)](https://pypi.org/project/small-text/)
 [![Conda Forge](https://img.shields.io/conda/v/conda-forge/small-text?label=conda-forge)](https://anaconda.org/conda-forge/small-text)
 [![codecov](https://codecov.io/gh/webis-de/small-text/branch/master/graph/badge.svg?token=P86CPABQOL)](https://codecov.io/gh/webis-de/small-text)
-[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.3.0)](https://small-text.readthedocs.io/en/v1.3.0/) 
+[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v1.3.1)](https://small-text.readthedocs.io/en/v1.3.1/) 
 ![Maintained Yes](https://img.shields.io/badge/maintained-yes-green)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 [![MIT License](https://img.shields.io/github/license/webis-de/small-text)](LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7662480.svg)](https://zenodo.org/record/7662480)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8174784.svg)](https://zenodo.org/record/8174784)
 [![Twitter URL](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fwebis-de%2Fsmall-text)](https://twitter.com/intent/tweet?text=https%3A%2F%2Fgithub.com%2Fwebis-de%2Fsmall-text)
 
 <p align="center">
@@ -37,8 +37,11 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
-- **The small-text paper was awarded *Best System Demonstration* at EACL 2023 🎉**
-  - Thank you for your support! [Click here to see the published paper](https://aclanthology.org/2023.eacl-demo.11/).
+- **Version 1.3.1** ([v1.3.1][changelog_1.3.1]) - July 22nd, 2023
+  - Bugfix release.
+
+- **Paper accepted at EACL 2023 🎉**
+  - The [paper][paper_arxiv] introducing small-text has been accepted at [EACL 2023](https://2023.eacl.org/). Meet us at the conference in May!
 
 - **Version 1.3.0** ([v1.3.0][changelog_1.3.0]): Highlights - February 20th, 2023
   - Added dropout sampling to [SetFitClassification](https://github.com/webis-de/small-text/blob/v1.3.0/small_text/integrations/transformers/classifiers/setfit.py).
@@ -84,10 +87,10 @@ or check out the notebooks.
 
 | # | Notebook | |
 | --- | -------- | --- |
-| 1 | [Intro: Active Learning for Text Classification with Small-Text](https://github.com/webis-de/small-text/blob/v1.3.0/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.3.0/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
-  | 2 | [Using Stopping Criteria for Active Learning](https://github.com/webis-de/small-text/blob/v1.3.0/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.3.0/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) |
-| 3 | [Active Learning using SetFit](https://github.com/webis-de/small-text/blob/v1.3.0/examples/notebooks/03-active-learning-with-setfit.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.3.0/examples/notebooks/03-active-learning-with-setfit.ipynb) |
-| 4 | [Using SetFit's Zero Shot Capabilities for Cold Start Initialization](https://github.com/webis-de/small-text/blob/v1.3.0/examples/notebooks/04-zero-shot-cold-start.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.3.0/examples/notebooks/04-zero-shot-cold-start.ipynb) |
+| 1 | [Intro: Active Learning for Text Classification with Small-Text](https://github.com/webis-de/small-text/blob/v1.3.1/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.3.1/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
+  | 2 | [Using Stopping Criteria for Active Learning](https://github.com/webis-de/small-text/blob/v1.3.1/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.3.1/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb) |
+| 3 | [Active Learning using SetFit](https://github.com/webis-de/small-text/blob/v1.3.1/examples/notebooks/03-active-learning-with-setfit.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.3.1/examples/notebooks/03-active-learning-with-setfit.ipynb) |
+| 4 | [Using SetFit's Zero Shot Capabilities for Cold Start Initialization](https://github.com/webis-de/small-text/blob/v1.3.1/examples/notebooks/04-zero-shot-cold-start.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.3.1/examples/notebooks/04-zero-shot-cold-start.ipynb) |
 
 ### Showcase
 
@@ -143,11 +146,11 @@ Small-Text has been introduced in detail in the EACL23 System Demonstration Pape
 [MIT License](LICENSE)
 
 
-[documentation_main]: https://small-text.readthedocs.io/en/v1.3.0/
-[documentation_install]: https://small-text.readthedocs.io/en/v1.3.0/install.html
-[documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.3.0/components/query_strategies.html
-[documentation_showcase]: https://small-text.readthedocs.io/en/v1.3.0/showcase.html
-[documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.3.0/reproducibility_notes.html
+[documentation_main]: https://small-text.readthedocs.io/en/v1.3.1/
+[documentation_install]: https://small-text.readthedocs.io/en/v1.3.1/install.html
+[documentation_query_strategies]: https://small-text.readthedocs.io/en/v1.3.1/components/query_strategies.html
+[documentation_showcase]: https://small-text.readthedocs.io/en/v1.3.1/showcase.html
+[documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.3.1/reproducibility_notes.html
 [changelog]: https://small-text.readthedocs.io/en/latest/changelog.html
 [changelog_1.1.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-1-0-2022-10-01
 [changelog_1.1.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-1-1-2022-10-14

@@ -7,6 +7,13 @@ represent text data for :doc:`single-label and multi-label classification<classi
 Besides features and labels, these datasets also hold meta information about the underlying data, namely the number of classes and
 whether the labeling is single- or multi-label.
 
+.. contents:: Overview
+   :depth: 1
+   :local:
+   :backlinks: none
+
+----
+
 Dataset Overview
 ================
 
@@ -29,7 +36,7 @@ dataset and classifier have to match, since the underlying representations can b
    +----------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+
 
 SklearnDatasets
-===============
+~~~~~~~~~~~~~~~
 
 Disregarding any integrations, small-text's core is built around dense (numpy) and sparse (scipy)
 matrices, which can be easily used for active learning via :py:class:`~small_text.data.datasets.SklearnDataset`.
@@ -46,7 +53,7 @@ The form of the features and labels can vary as follows:
 
 
 Sparse Features
----------------
+~~~~~~~~~~~~~~~
 
 Traditional text classification methods relied on the Bag-of-Words representation,
 which can be efficiently represented as a sparse matrix.
@@ -59,12 +66,12 @@ which can be efficiently represented as a sparse matrix.
 
    # create exemplary features and labels randomly
    x = random(100, 2000, density=0.15, format='csr')
-   y = np.random.randint(0, 1, size=100)
+   y = np.random.randint(0, 2, size=100)
 
-   dataset = SklearnDataset(x, y)
+   dataset = SklearnDataset(x, y, target_labels=np.arange(2))
 
 Dense Features
---------------
+~~~~~~~~~~~~~~
 
 Or similarly with dense features:
 
@@ -75,12 +82,12 @@ Or similarly with dense features:
 
    # create exemplary features and labels randomly
    x = np.random.rand(100, 30)
-   y = np.random.randint(0, 1, size=100)
+   y = np.random.randint(0, 2, size=100)
 
-   dataset = SklearnDataset(x, y)
+   dataset = SklearnDataset(x, y, target_labels=np.arange(2))
 
 Multi-Label
------------
+~~~~~~~~~~~
 
 The previous two examples were single-label datasets, i.e. each instance had exactly
 one label assigned. If you want to classify multi-label problems, you need to pass a scipy
@@ -99,30 +106,10 @@ csr_matrix. This matrix must be a multi-label indicator matrix, i.e. a matrix in
    # convert non-zero entries to 1, making it an indicator
    y.data[np.s_[:]] = 1
 
-   dataset = SklearnDataset(x, y)
-
-
-Unlabeled Data
---------------
-
-Sometimes you cannot or will not assign a label an instance. To indicate this special status in the single-label scenario
-there is a special label constant :code:`LABEL_UNLABELED`, which indicates that an instance is unlabeled:
-
-.. testcode::
-
-   import numpy as np
-   from small_text.base import LABEL_UNLABELED
-   from small_text.data import SklearnDataset
-
-   x = np.random.rand(100, 30)
-   # a label array of size 100 where each entry means "unlabeled"
-   y = np.array([LABEL_UNLABELED] * 100)
-
-   dataset = SklearnDataset(x, y)
-
+   dataset = SklearnDataset(x, y, target_labels=np.arange(5))
 
 Indexing and Views
-==================
+------------------
 
 Accessing an data object by index or range such as :code:`dataset[selector]` is called indexing,
 where selector can be an index (:code:`dataset[10]`), a range (:code:`dataset[2:10]`), or an array
@@ -138,9 +125,9 @@ dataset indexing does not create a copy of the selected subset but creates a vie
 
    # create exemplary features and labels randomly
    x = np.random.rand(100, 30)
-   y = np.random.randint(0, 1, size=100)
+   y = np.random.randint(0, 2, size=100)
 
-   dataset = SklearnDataset(x, y)
+   dataset = SklearnDataset(x, y, target_labels=np.arange(2))
 
    # returns a DatasetView of the first ten items in x
    dataset_sub = dataset[0:10]
@@ -150,7 +137,7 @@ In the multi-label case, this is for once simpler, and here no separate handling
 An unlabeled instance just has no label in the corresponding row of the indicator matrix.
 
 Copying a Dataset
-=================
+~~~~~~~~~~~~~~~~~
 
 While indexing creates a view instead of copying, there are cases where you want a copy instead.
 
@@ -180,7 +167,54 @@ the :code:`clone()` operation dissolves a view and returns a dataset again:
 
    SklearnDataset
 
+----
 
+Constructing an Unlabeled Dataset
+=================================
+
+Unless you are doing a simulated experiment, you will need to deal with (partly or
+completely) unlabeled data. We show how to construct an unlabeled dataset at the example of
+:py:class:`~small_text.data.datasets.SklearnDataset`, but the concept is the same for
+:py:class:`~small_text.integrations.pytorch.datasets.PytorchTextClassificationDataset`
+and
+:py:class:`~small_text.integrations.transformers.datasets.TransformersDataset`.
+
+For this, it must be distinguished between the single- and multi-label setting. For the single-label case,
+there is a special label constant :code:`LABEL_UNLABELED`,
+which indicates that an instance is unlabeled:
+
+.. testcode::
+
+   import numpy as np
+   from small_text.base import LABEL_UNLABELED
+   from small_text.data import SklearnDataset
+
+   x = np.random.rand(100, 30)
+   # a label array of size 100 where each entry means "unlabeled"
+   y = np.array([LABEL_UNLABELED] * 100)
+
+   dataset = SklearnDataset(x, y, target_labels=np.arange(2))
+
+
+For the multi-label case, creating unlabeled datasets is trivial. The sparse label matrix works as
+usual, and unlabeled instances simply correspond to empty rows:
+
+.. testcode::
+
+    import numpy as np
+    from scipy import sparse
+    from small_text.data import SklearnDataset
+
+    num_labels = 3
+
+    x = sparse.random(100, 2000, density=0.15, format='csr')
+    y = sparse.csr_matrix((100, num_labels))  # <-- this a sparse empty matrix
+
+    dataset = SklearnDataset(x, y, target_labels=np.arange(num_labels))
+
+For partially labeled data, the sparse label matrix `y` has empty and non-empty rows.
+
+----
 
 Integration Data Structures
 ===========================
@@ -188,7 +222,9 @@ Integration Data Structures
 Both the :doc:`Pytorch Integration <libraries/pytorch_integration>` the :doc:`Transformers Integration <libraries/transformers_integration>`
 bring their own Datasets (each subclassing :py:class:`~small_text.data.datasets.Dataset`),
 which rely on different representations and bring additional methods for handling GPU-related operations.
+See the respective integration's page for more information.
 
+----
 
 Building your own Dataset implementation
 ========================================

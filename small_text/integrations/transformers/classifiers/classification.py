@@ -42,7 +42,8 @@ try:
 
     from small_text.integrations.transformers.datasets import TransformersDataset
     from small_text.integrations.transformers.utils.classification import (
-        _initialize_transformer_components
+        _initialize_transformer_components,
+        _build_layer_specific_params
     )
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
@@ -88,7 +89,8 @@ class FineTuningArguments(object):
         self.layerwise_gradient_decay = layerwise_gradient_decay
 
         self.gradual_unfreezing = gradual_unfreezing
-        self.cut_fraction = cut_fraction
+        # deprecated: This will be removed in the next version
+        _unused = cut_fraction
 
 
 class TransformerModelArguments(object):
@@ -131,37 +133,6 @@ class TransformerModelArguments(object):
 
         self.model_loading_strategy = model_loading_strategy
         self.compile_model = compile_model
-
-
-def _get_layer_params(model, base_lr, fine_tuning_arguments):
-
-    layerwise_gradient_decay = fine_tuning_arguments.layerwise_gradient_decay
-
-    params = []
-
-    base_model = getattr(model, model.base_model_prefix)
-    if hasattr(base_model, 'encoder'):
-        layers = base_model.encoder.layer
-    else:
-        layers = base_model.transformer.layer
-
-    total_layers = len(layers)
-
-    use_gradual_unfreezing = isinstance(fine_tuning_arguments.gradual_unfreezing, int) and \
-        fine_tuning_arguments.gradual_unfreezing > 0
-
-    start_layer = 0 if not use_gradual_unfreezing else total_layers-fine_tuning_arguments.gradual_unfreezing
-    num_layers = total_layers - start_layer
-
-    for i in range(start_layer, total_layers):
-        lr = base_lr if not layerwise_gradient_decay else base_lr * layerwise_gradient_decay ** (
-                    num_layers - i)
-        params.append({
-            'params': layers[i].parameters(),
-            'lr': lr
-        })
-
-    return params
 
 
 class TransformerBasedEmbeddingMixin(EmbeddingMixin):
@@ -460,7 +431,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
     def _default_optimizer(self, base_lr):
 
         if self.fine_tuning_arguments is not None:
-            params = _get_layer_params(self.model, self.lr, self.fine_tuning_arguments)
+            params = _build_layer_specific_params(self.model, self.lr, self.fine_tuning_arguments)
         else:
             params = [param for param in self.model.parameters() if param.requires_grad]
 
