@@ -11,6 +11,8 @@
 
 [@JP-SystemsX](https://github.com/JP-SystemsX)
 
+---
+
 ## Version 1.3.0 - 2023-02-21
 
 ### Added
@@ -32,6 +34,8 @@
 ### Contributors
 
 [@rmitsch](https://github.com/rmitsch)
+
+---
 
 ## Version 1.2.0 - 2023-02-04
 
