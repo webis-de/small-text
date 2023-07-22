@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 1.3.1 - unreleased
+## Version 1.3.1 - 2023-07-22
 
 ### Fixed
 
