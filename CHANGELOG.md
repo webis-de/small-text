@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 1.3.1 - unreleased
+
+### Fixed
+
+- Fixed a bug where parameter groups were omitted when using `TransformerBasedClassification`'s layer-specific fine-tuning functionality. ([#36](https://github.com/webis-de/small-text/issues/36), [#38](https://github.com/webis-de/small-text/pull/38))
+
+### Contributors
+
+[@JP-SystemsX](https://github.com/JP-SystemsX)
+
 ## Version 1.3.0 - 2023-02-21
 
 ### Added

@@ -85,7 +85,8 @@ class FineTuningArguments(object):
         self.layerwise_gradient_decay = layerwise_gradient_decay
 
         self.gradual_unfreezing = gradual_unfreezing
-        self.cut_fraction = cut_fraction
+        # deprecated: This will be removed in the next version
+        _unused = cut_fraction
 
 
 class TransformerModelArguments(object):
