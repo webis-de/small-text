@@ -74,15 +74,18 @@ def get_class_weights(y, num_classes, eps=1e-8):
     This functionality is intended for single-label classification and is likely to be a
     suboptimal solution for a multi-label scenario.
     """
+    # deprecated: the eps kwarg will be removed in the next version
+    _unused = eps
+
     label_counter = _get_class_histogram(y, num_classes, normalize=False)
     class_weights = torch.ones(num_classes, dtype=torch.float)
     num_samples = label_counter.sum()
     for c in range(num_classes):
-        class_weights[c] = (num_samples - label_counter[c]) / (label_counter[c] + eps)
+        class_weights[c] = (num_samples - label_counter[c]) / max(label_counter[c], 1)
 
     if num_classes == 2:
         class_weights[class_weights.argmin()] = 1.0
     else:
-        class_weights /= class_weights.min()
+        class_weights /= max(class_weights.min(), 1)
 
     return class_weights
