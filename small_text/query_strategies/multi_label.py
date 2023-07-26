@@ -51,6 +51,8 @@ class LabelCardinalityInconsistency(QueryStrategy):
 
         Function :py:func:`label_cardinality_inconsistency`.
             Function to compute the label cardinality inconsistency.
+
+    .. versionadded:: 2.0.0
     """
 
     def query(self,

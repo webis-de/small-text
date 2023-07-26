@@ -41,6 +41,9 @@ def constraints(cls=None, classification_type: Union[None, str, ClassificationTy
     @wraps(cls, updated=())
     class QueryStrategyConstraints(cls):
 
+        def __init__(self, *args, **kwargs):
+            super().__init(*args, **kwargs)
+
         def query(self, clf, datasets, indices_unlabeled, indices_labeled, y, *args, n=10, **kwargs):
 
             if classification_type is not None:

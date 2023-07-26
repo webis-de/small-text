@@ -124,6 +124,8 @@ class ClassBalancer(QueryStrategy):
 
     .. note ::
        The sampling mechanism is tailored to single-label classification.
+
+    .. versionadded:: 2.0.0
     """
 
     def __init__(self, base_query_strategy: QueryStrategy, ignored_classes: List[int] = [],
