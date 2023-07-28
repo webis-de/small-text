@@ -42,7 +42,7 @@ def constraints(cls=None, classification_type: Union[None, str, ClassificationTy
     class QueryStrategyConstraints(cls):
 
         def __init__(self, *args, **kwargs):
-            super().__init(*args, **kwargs)
+            super().__init__(*args, **kwargs)
 
         def query(self, clf, datasets, indices_unlabeled, indices_labeled, y, *args, n=10, **kwargs):
 
