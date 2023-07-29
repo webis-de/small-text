@@ -1,7 +1,6 @@
 import string
 import numpy as np
 
-from collections import Counter
 from scipy import sparse
 from sklearn.datasets import fetch_20newsgroups
 

@@ -6,7 +6,7 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 try:
     import torch
     import torch.nn as nn
-    from small_text.integrations.pytorch.utils.misc import default_tensor_type, enable_dropout
+    from small_text.integrations.pytorch.utils.misc import enable_dropout
 except (ImportError, PytorchNotFoundError):
     pass
 

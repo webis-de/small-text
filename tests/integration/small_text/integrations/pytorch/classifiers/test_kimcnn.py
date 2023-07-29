@@ -319,11 +319,9 @@ class CompileTest(unittest.TestCase):
                                           embedding_matrix=embedding_matrix,
                                           compile_model=True)
 
-            dataset = random_text_classification_dataset(10, max_length=60, num_classes=num_classes)
-
             with patch('torch.__version__', new='2.0.0'), \
                     patch('torch.compile', wraps=torch.compile) as compile_spy:
-                classifier.initialize_kimcnn_model(dataset)
+                classifier.initialize_kimcnn_model()
                 compile_spy.assert_called()
 
     def test_initialize_with_pytorch_geq_v2_and_compile_disabled(self):
@@ -335,11 +333,9 @@ class CompileTest(unittest.TestCase):
                                           embedding_matrix=embedding_matrix,
                                           compile_model=False)
 
-            dataset = random_text_classification_dataset(10, max_length=60, num_classes=num_classes)
-
             with patch('torch.__version__', new='2.0.0'), \
                     patch('torch.compile', wraps=torch.compile) as compile_spy:
-                classifier.initialize_kimcnn_model(dataset)
+                classifier.initialize_kimcnn_model()
                 compile_spy.assert_not_called()
 
     def test_initialize_with_pytorch_lesser_v2_and_compile_enabled(self):
@@ -350,16 +346,11 @@ class CompileTest(unittest.TestCase):
                                       embedding_matrix=embedding_matrix,
                                       compile_model=True)
 
-        dataset = random_text_classification_dataset(10, max_length=60, num_classes=num_classes)
-
-        # TODO: fails with torch < 2.0.0:
-        #         with patch('torch.__version__', new='2.0.0'), \
-        # >               patch('torch.compile', wraps=torch.compile) as compile_spy:
-        # E               AttributeError: module 'torch' has no attribute 'compile'
-        with patch('torch.__version__', new='1.9.0'), \
-                patch('torch.compile', wraps=torch.compile) as compile_spy:
-            classifier.initialize_kimcnn_model(dataset)
-            compile_spy.assert_not_called()
+        with patch.object(torch, 'compile', return_value=None):
+            with patch('torch.__version__', new='1.9.0'), \
+                    patch('torch.compile', wraps=torch.compile) as compile_spy:
+                classifier.initialize_kimcnn_model()
+                compile_spy.assert_not_called()
 
     def test_initialize_with_pytorch_lesser_v2_and_compile_disabled(self):
 
@@ -369,13 +360,8 @@ class CompileTest(unittest.TestCase):
                                       embedding_matrix=embedding_matrix,
                                       compile_model=False)
 
-        dataset = random_text_classification_dataset(10, max_length=60, num_classes=num_classes)
-
-        # TODO: fails with torch < 2.0.0:
-        #         with patch('torch.__version__', new='2.0.0'), \
-        # >               patch('torch.compile', wraps=torch.compile) as compile_spy:
-        # E               AttributeError: module 'torch' has no attribute 'compile'
-        with patch('torch.__version__', new='2.0.0'), \
-                patch('torch.compile', wraps=torch.compile) as compile_spy:
-            classifier.initialize_kimcnn_model(dataset)
-            compile_spy.assert_not_called()
+        with patch.object(torch, 'compile', return_value=None):
+            with patch('torch.__version__', new='2.0.0'), \
+                    patch('torch.compile', wraps=torch.compile) as compile_spy:
+                classifier.initialize_kimcnn_model()
+                compile_spy.assert_not_called()

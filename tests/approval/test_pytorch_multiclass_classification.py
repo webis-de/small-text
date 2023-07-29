@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 
 from approvaltests import verify
+import gensim.downloader as api
 from sklearn.metrics import f1_score
 
 from examplecode.data.example_data_multiclass import (
@@ -53,12 +54,13 @@ class PytorchMulticlassClassificationApprovalTest(unittest.TestCase):
 
         # Prepare some data
         train, test = get_train_test()
-        train, test = preprocess_data(train, test)
+        pretrained_vectors = api.load('word2vec-google-news-300')
+        train, test, tokenizer = preprocess_data(train, test, pretrained_vectors)
         num_classes = len(np.unique(train.y))
 
         # Active learning parameters
         classifier_kwargs = {
-            'embedding_matrix': load_gensim_embedding(train.vocab),
+            'embedding_matrix': load_gensim_embedding(train.data, tokenizer, pretrained_vectors),
             'max_seq_len': 512,
             'num_epochs': 4,
             'device': device

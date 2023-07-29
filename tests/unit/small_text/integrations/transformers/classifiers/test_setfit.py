@@ -442,10 +442,11 @@ class CompileTest(unittest.TestCase):
 
         clf = SetFitClassification(setfit_model_args, num_classes)
 
-        with patch('torch.__version__', new='1.9.0'), \
-                patch('torch.compile', wraps=torch.compile) as compile_spy:
-            clf.initialize()
-            compile_spy.assert_not_called()
+        with patch.object(torch, 'compile', return_value=None):
+            with patch('torch.__version__', new='1.9.0'), \
+                    patch('torch.compile', wraps=torch.compile) as compile_spy:
+                clf.initialize()
+                compile_spy.assert_not_called()
 
     def test_initialize_with_pytorch_lesser_v2_and_compile_disabled(self):
 
@@ -454,7 +455,8 @@ class CompileTest(unittest.TestCase):
 
         clf = SetFitClassification(setfit_model_args, num_classes)
 
-        with patch('torch.__version__', new='2.0.0'), \
-                patch('torch.compile', wraps=torch.compile) as compile_spy:
-            clf.initialize()
-            compile_spy.assert_not_called()
+        with patch.object(torch, 'compile', return_value=None):
+            with patch('torch.__version__', new='2.0.0'), \
+                    patch('torch.compile', wraps=torch.compile) as compile_spy:
+                clf.initialize()
+                compile_spy.assert_not_called()

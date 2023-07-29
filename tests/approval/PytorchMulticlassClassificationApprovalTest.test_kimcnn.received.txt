@@ -1,12 +1,12 @@
 
 Iteration 1
-Train: f1=0.2667
-Test: f1=0.3331
+Train: f1=0.3667
+Test: f1=0.3591
 
 Iteration 2
-Train: f1=0.4750
-Test: f1=0.3457
+Train: f1=0.3500
+Test: f1=0.3204
 
 Iteration 3
-Train: f1=0.4200
-Test: f1=0.3019
+Train: f1=0.5200
+Test: f1=0.3415

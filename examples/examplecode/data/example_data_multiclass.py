@@ -11,7 +11,7 @@ def get_train_test():
 def preprocess_data(train, test, pretrained_vectors, vocab_size=200_000, unk_token='[UNK]', pad_token='[PAD]'):
     num_special_tokens = 2
     vocab = {
-        pretrained_vectors.index2word[i - num_special_tokens]: i
+        pretrained_vectors.index_to_key[i - num_special_tokens]: i
         for i in range(2, vocab_size)
     }
 

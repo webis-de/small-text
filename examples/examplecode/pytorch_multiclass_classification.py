@@ -1,7 +1,7 @@
 """Example of a multiclass active learning text classification with pytorch.
 
 Note:
-This examples requires gensim 3.8.x which is used for obtaining word2vec embeddings.
+This examples requires gensim>=4.0.0 which is used for obtaining word2vec embeddings.
 """
 import torch
 import numpy as np
@@ -28,7 +28,7 @@ try:
     import gensim.downloader as api
 except ImportError:
     raise ActiveLearnerException('This example requires the gensim library. '
-                                 'Please install gensim 3.8.x to run this example.')
+                                 'Please install gensim>=4.0.0 to run this example.')
 
 
 def main(num_iterations=10, device='cuda'):
@@ -94,8 +94,8 @@ def load_gensim_embedding(texts, tokenizer, pretrained_vectors, min_freq=1, num_
     ]
     vocab = tokenizer.get_vocab()
     vectors += [
-        pretrained_vectors.vectors[pretrained_vectors.vocab[tokenizer.id_to_token(i)].index]
-        if tokenizer.id_to_token(i) in pretrained_vectors.vocab
+        pretrained_vectors.get_vector(tokenizer.id_to_token(i))
+        if pretrained_vectors.has_index_for(tokenizer.id_to_token(i) )
         else np.zeros(pretrained_vectors.vectors.shape[1])
         for i in range(num_special_tokens, len(vocab))
     ]
@@ -103,8 +103,8 @@ def load_gensim_embedding(texts, tokenizer, pretrained_vectors, min_freq=1, num_
     token_id_list = [text[0].cpu().numpy().tolist() for text in texts]
     word_frequencies = Counter([token for tokens in token_id_list for token in tokens])
     for i in range(num_special_tokens, len(vocab)):
-        is_in_vocab = tokenizer.id_to_token(i) not in pretrained_vectors.vocab
-        if is_in_vocab and word_frequencies[tokenizer.id_to_token(i)] >= min_freq:
+        is_in_vocab = pretrained_vectors.has_index_for(tokenizer.id_to_token(i))
+        if not is_in_vocab and word_frequencies[tokenizer.id_to_token(i)] >= min_freq:
             vectors[i] = np.random.uniform(-0.25, 0.25, pretrained_vectors.vectors.shape[1])
 
     return torch.as_tensor(np.stack(vectors))

@@ -533,10 +533,11 @@ class CompileTest(unittest.TestCase):
                                                     4,
                                                     num_epochs=1)
 
-        with patch('torch.__version__', new='1.9.0'), \
-                patch('torch.compile', wraps=torch.compile) as compile_spy:
-            classifier.initialize_transformer(classifier.cache_dir)
-            compile_spy.assert_not_called()
+        with patch.object(torch, 'compile', return_value=None):
+            with patch('torch.__version__', new='1.9.0'), \
+                    patch('torch.compile', wraps=torch.compile) as compile_spy:
+                classifier.initialize_transformer(classifier.cache_dir)
+                compile_spy.assert_not_called()
 
     def test_initialize_with_pytorch_lesser_v2_and_compile_disabled(self):
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
@@ -544,7 +545,8 @@ class CompileTest(unittest.TestCase):
                                                     4,
                                                     num_epochs=1)
 
-        with patch('torch.__version__', new='2.0.0'), \
-                patch('torch.compile', wraps=torch.compile) as compile_spy:
-            classifier.initialize_transformer(classifier.cache_dir)
-            compile_spy.assert_not_called()
+        with patch.object(torch, 'compile', return_value=None):
+            with patch('torch.__version__', new='1.9.0'), \
+                    patch('torch.compile', wraps=torch.compile) as compile_spy:
+                classifier.initialize_transformer(classifier.cache_dir)
+                compile_spy.assert_not_called()

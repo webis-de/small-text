@@ -94,6 +94,8 @@ An overview of such dependencies is given in table below:
 +-------------------------+------------------------------------------------------------------------------------------------+
 | Dependency              | Required by                                                                                    |
 +=========================+================================================================================================+
+| `gensim>=4.0.0`_        | Code Examples, Approval Tests, Integration Tests                                               |
++-------------------------+------------------------------------------------------------------------------------------------+
 | `hnswlib`_              | :py:class:`~small_text.query_strategies.strategies.SEALS`                                      |
 +-------------------------+------------------------------------------------------------------------------------------------+
 | `setfit`_               | :py:class:`~small_text.integrations.transformers.classifiers.setfit.SetFitClassification`      |
