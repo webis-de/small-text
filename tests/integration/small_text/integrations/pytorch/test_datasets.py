@@ -23,10 +23,10 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
                             for item in ds.data]
         self.assertTrue(np.all(tensor_is_on_cpu))
 
-        ds = ds.to('cuda')
+        ds_new = ds.to('cuda')
 
         tensor_is_on_cuda_device = [item[PytorchTextClassificationDataset.INDEX_TEXT].device.type == 'cuda'
-                                    for item in ds.data]
+                                    for item in ds_new.data]
         self.assertTrue(np.all(tensor_is_on_cuda_device))
 
     def test_dataset_to_non_blocking(self):
@@ -35,9 +35,9 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
                             for item in ds.data]
         self.assertTrue(np.all(tensor_is_on_cpu))
 
-        ds = ds.to('cuda', non_blocking=True)
+        ds_new = ds.to('cuda', non_blocking=True)
         tensor_is_on_cuda_device = [item[PytorchTextClassificationDataset.INDEX_TEXT].device.type == 'cuda'
-                                    for item in ds.data]
+                                    for item in ds_new.data]
         self.assertTrue(np.all(tensor_is_on_cuda_device))
 
     def test_dataset_to_copy(self):
@@ -50,7 +50,7 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
 
         ds_new = ds.to('cuda', copy=True)
         tensor_is_on_cuda_device = [item[PytorchTextClassificationDataset.INDEX_TEXT].device.type == 'cuda'
-                                    for item in ds.data]
+                                    for item in ds_new.data]
         self.assertTrue(np.all(tensor_is_on_cuda_device))
 
         # test for object equality

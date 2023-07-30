@@ -55,9 +55,7 @@ To enable the Pytorch Integration, install the library with the `pytorch` extra:
 
 .. code-block:: console
 
-    conda install small-text "torch>=1.6.0" "torchtext>=0.7.0"
-
-.. note:: After installation, make sure the installed `torchtext and Pytorch versions are compatible <https://github.com/pytorch/text#user-content-installation>`_.
+    conda install small-text "torch>=1.6.0"
 
 .. _installation-transformers:
 
@@ -76,7 +74,7 @@ To enable the Transformers Integration, install the library with the `transforme
 
 .. code-block:: console
 
-    conda install small-text "torch>=1.6.0" "torchtext>=0.7.0" "transformers>=4.0.0"
+    conda install small-text "torch>=1.6.0" "transformers>=4.0.0"
 
 The Transformers Integration also requires Pytorch, so installing this automatically
 entails an installation of the Pytorch Integration.
@@ -86,10 +84,10 @@ entails an installation of the Pytorch Integration.
 Optional Dependencies
 =====================
 
-We keep certain python dependencies optional when they are either only required
-for very specific (query or stopping) strategies or are purely convenience functions.
+We keep certain python dependencies optional when they are either needed
+for very specific functionality (e.g., certain query strategis or stopping criteria) or are pure convenience functions.
 
-An overview of such dependencies is given in table below:
+An overview of such dependencies is provided in the table below:
 
 +-------------------------+------------------------------------------------------------------------------------------------+
 | Dependency              | Required by                                                                                    |
@@ -100,6 +98,8 @@ An overview of such dependencies is given in table below:
 +-------------------------+------------------------------------------------------------------------------------------------+
 | `setfit`_               | :py:class:`~small_text.integrations.transformers.classifiers.setfit.SetFitClassification`      |
 +-------------------------+------------------------------------------------------------------------------------------------+
+
+.. _`gensim>=4.0.0`: https://pypi.org/project/gensim/
 
 .. _hnswlib: https://pypi.org/project/hnswlib/
 

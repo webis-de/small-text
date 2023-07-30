@@ -24,7 +24,7 @@ class SetFitUtilsTest(unittest.TestCase):
     def test_truncate_texts(self):
         model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
         clf = SetFitClassification(model_args, 3)
-        clf.initialize()
+        clf.model = clf.initialize()
 
         dataset = TextDataset.from_arrays([
                 'This is a very long text',
@@ -45,7 +45,7 @@ class SetFitUtilsTest(unittest.TestCase):
     def test_truncate_texts_no_action_needed(self):
         model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
         clf = SetFitClassification(model_args, 3)
-        clf.initialize()
+        clf.model = clf.initialize()
 
         dataset = TextDataset.from_arrays([
                 'This is a very long text',
@@ -66,7 +66,7 @@ class SetFitUtilsTest(unittest.TestCase):
     def test_truncate_texts_multiple_datasets(self):
         model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
         clf = SetFitClassification(model_args, 3)
-        clf.initialize()
+        clf.model = clf.initialize()
 
         dataset = TextDataset.from_arrays([
                 'This is a very long text',

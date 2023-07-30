@@ -277,6 +277,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         return self
 
     def initialize(self):
+        # TODO: make sur the initialize() methods of all classifiers are similar
         from_pretrained_options = _get_arguments_for_from_pretrained_model(
             self.setfit_model_args.model_loading_strategy
         )
