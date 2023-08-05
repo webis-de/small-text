@@ -541,7 +541,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         Returns
         -------
         scores : np.ndarray
-            Distribution of confidence scores over all classes of shape (num_samples, num_classes).
+            Confidence score distribution over all classes of shape (num_samples, num_classes).
             If `dropout_sampling > 1` then the shape is (num_samples, dropour_samples, num_classes).
         """
         return super().predict_proba(dataset, dropout_sampling=dropout_sampling)

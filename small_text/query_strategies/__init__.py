@@ -10,8 +10,8 @@ from small_text.query_strategies.exceptions import (EmptyPoolException,
                                                     PoolExhaustedException)
 from small_text.query_strategies.multi_label import (
     CategoryVectorInconsistencyAndRanking,
-    label_cardinality_inconsistency,
-    LabelCardinalityInconsistency
+    LabelCardinalityInconsistency,
+    AdaptiveActiveLearning
 )
 from small_text.query_strategies.strategies import (
     QueryStrategy,
@@ -54,6 +54,6 @@ __all__ = [
     'LightweightCoreset',
     'BALD',
     'CategoryVectorInconsistencyAndRanking',
-    'label_cardinality_inconsistency',
-    'LabelCardinalityInconsistency'
+    'LabelCardinalityInconsistency',
+    'AdaptiveActiveLearning'
 ]

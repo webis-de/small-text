@@ -178,6 +178,11 @@ class ConfidenceBasedQueryStrategy(QueryStrategy):
         return 'ConfidenceBasedQueryStrategy()'
 
 
+def breaking_ties(proba) -> npt.NDArray[np.double]:
+    ind = np.argsort(proba)
+    return proba[ind[-1]] - proba[ind[-2]]
+
+
 class BreakingTies(ConfidenceBasedQueryStrategy):
     """Selects instances which have a small margin between their most likely and second
     most likely predicted class [LUO05]_.
@@ -193,12 +198,7 @@ class BreakingTies(ConfidenceBasedQueryStrategy):
                        _indices_labeled: npt.NDArray[np.uint],
                        _y: Union[npt.NDArray[np.uint], csr_matrix]):
         proba = clf.predict_proba(dataset)
-        return np.apply_along_axis(lambda x: self._best_versus_second_best(x), 1, proba)
-
-    @staticmethod
-    def _best_versus_second_best(proba) -> npt.NDArray[np.double]:
-        ind = np.argsort(proba)
-        return proba[ind[-1]] - proba[ind[-2]]
+        return np.apply_along_axis(lambda x: breaking_ties(x), 1, proba)
 
     def __str__(self):
         return 'BreakingTies()'

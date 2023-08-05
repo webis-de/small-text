@@ -347,7 +347,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         Returns
         -------
         scores : np.ndarray
-            Distribution of confidence scores over all classes of shape (num_samples, num_classes).
+            Confidence score distribution over all classes of shape (num_samples, num_classes).
             If `dropout_sampling > 1` then the shape is (num_samples, dropout_sampling, num_classes).
 
         .. warning::

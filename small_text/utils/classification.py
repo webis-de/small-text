@@ -62,6 +62,7 @@ def get_splits(train_set, validation_set, weights=None, multi_label=False, valid
     return result
 
 
+# TODO: make prediction threshold configurable
 def prediction_result(proba, multi_label, num_classes, return_proba=False, enc=None):
     """Helper method which returns a single- or multi-label prediction result.
 
