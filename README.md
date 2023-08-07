@@ -24,6 +24,8 @@ which can be easily mixed and matched to build active learning experiments or ap
 **What is Active Learning?**  
 [Active Learning](https://small-text.readthedocs.io/en/latest/active_learning.html) allows you to efficiently label training data in a small data scenario.
 
+<img src="https://miro.medium.com/v2/resize:fit:1400/1*cM05p_t5SIMv_YpW0MNZ3Q.gif" alt="Learning Curve GIF">
+
 
 ## Features
 
