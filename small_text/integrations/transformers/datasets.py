@@ -14,7 +14,7 @@ try:
         PytorchDataset, PytorchDatasetView
     )
 except ModuleNotFoundError:
-    raise PytorchNotFoundError('Could not import torchtext')
+    raise PytorchNotFoundError('Could not import pytorch')
 
 
 class TransformersDatasetView(PytorchDatasetView):
@@ -232,9 +232,6 @@ class TransformersDataset(PytorchDataset):
             List of possible labels. Will be directly passed to the datset constructor.
         max_length : int
             Maximum sequence length.
-        train : bool
-            If `True` fits the vectorizer and transforms the data, otherwise just transforms the
-            data.
 
         Returns
         -------

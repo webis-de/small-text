@@ -54,13 +54,11 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
     def test_init(self):
         ds = random_text_classification_dataset(num_samples=self.NUM_SAMPLES)
         self.assertIsNotNone(ds._data)
-        self.assertIsNotNone(ds.vocab)
         assert_array_equal(np.array([0, 1]), ds.target_labels)
 
     def test_init_with_target_labels(self):
         ds_rnd = random_text_classification_dataset(num_samples=self.NUM_SAMPLES)
         ds = PytorchTextClassificationDataset(ds_rnd.data,
-                                              ds_rnd.vocab,
                                               target_labels=ds_rnd.target_labels)
         assert_array_equal(np.array([0, 1]), ds.target_labels)
 
@@ -87,7 +85,6 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
 
         # passes when no exeption is raised here
         PytorchTextClassificationDataset(ds.data,
-                                         ds.vocab,
                                          multi_label=self.multi_label,
                                          target_labels=target_labels)
 
@@ -111,7 +108,6 @@ class PytorchTextClassificationDatasetTest(unittest.TestCase):
 
         # passes when no exeption is raised here
         PytorchTextClassificationDataset(ds.data,
-                                         ds.vocab,
                                          multi_label=self.multi_label,
                                          target_labels=target_labels)
 

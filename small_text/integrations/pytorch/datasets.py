@@ -320,7 +320,7 @@ class PytorchTextClassificationDataset(PytorchDataset):
 
     @classmethod
     @experimental
-    def from_arrays(cls, texts, y, tokenizer, target_labels=None):
+    def from_arrays(cls, texts, y, tokenizer, target_labels=None, max_length=512):
         """Constructs a new PytorchTextClassificationDataset from the given text and label arrays.
 
         Parameters
@@ -335,6 +335,8 @@ class PytorchTextClassificationDataset(PytorchDataset):
             A tokenizer that is used to convert each of the given text documents into tokens.
         target_labels : numpy.ndarray[int] or None, default=None
             List of possible labels. Will be directly passed to the datset constructor.
+        max_length : int
+            Maximum sequence length.
 
         Returns
         -------
@@ -348,6 +350,7 @@ class PytorchTextClassificationDataset(PytorchDataset):
         .. versionadded:: 1.1.0
         .. versionchanged:: 2.0.0
         """
+        tokenizer.enable_truncation(max_length)
 
         multi_label = isinstance(y, csr_matrix)
         if multi_label:
