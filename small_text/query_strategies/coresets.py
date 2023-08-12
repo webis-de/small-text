@@ -136,7 +136,7 @@ class GreedyCoreset(EmbeddingBasedQueryStrategy):
             f'normalize={self.normalize}, batch_size={self.batch_size})'
 
 
-def lightweight_coreset(x, x_mean, n, normalized=False, proba=None):
+def lightweight_coreset(x, x_mean, n, batch_size=100, normalized=False, proba=None):
     """Computes a lightweight coreset [BLK18]_ of `x` with size `n`.
 
     Parameters
@@ -147,6 +147,8 @@ def lightweight_coreset(x, x_mean, n, normalized=False, proba=None):
         Elementwise mean over the columns of `x`.
     n : int
         Coreset size.
+    batch_size: int
+        Batch size.
     normalized : bool
         If `True` the data `x` is assumed to be normalized,
         otherwise it will be normalized where necessary.
@@ -161,37 +163,48 @@ def lightweight_coreset(x, x_mean, n, normalized=False, proba=None):
     """
     _check_coreset_size(x, n)
 
-    sim = x.dot(x_mean)
-    if not normalized:
-        sim = sim / (np.linalg.norm(x, axis=1) * np.linalg.norm(x_mean))
+    num_batches = int(np.ceil(x.shape[0] / batch_size))
+    indices = np.array([])
 
-    dists = np.arccos(sim) / np.pi
-    dists = np.square(dists)
+    for x_batch in np.array_split(x, num_batches, axis=0):
 
-    sum_dists = dists.sum()
+        sim = x_batch.dot(x_mean)
+        if not normalized:
+            sim = sim / (np.linalg.norm(x_batch, axis=1) * np.linalg.norm(x_mean))
 
-    if proba is None:
-        uniform = 0.5 * 1 / x.shape[0]
-        proba = uniform + 0.5 * dists / sum_dists
-    else:
-        proba = 0.5 * proba / proba.sum() + 0.5 * dists / sum_dists
+        dists = np.arccos(sim) / np.pi
+        dists = np.square(dists)
 
-    proba = proba / np.linalg.norm(proba, ord=1)
+        sum_dists = dists.sum()
 
-    return np.random.choice(np.arange(x.shape[0]), n, replace=False, p=proba)
+        if proba is None:
+            uniform = 0.5 * 1 / x_batch.shape[0]
+            proba = uniform + 0.5 * dists / sum_dists
+        else:
+            proba = 0.5 * proba / proba.sum() + 0.5 * dists / sum_dists
+
+        proba = proba / np.linalg.norm(proba, ord=1)
+
+        indices_batch = np.random.choice(np.arange(x_batch.shape[0]), n, replace=False, p=proba)
+        indices = np.concatenate((indices, indices_batch))
+
+    return indices.astype(np.int64)
 
 
 class LightweightCoreset(EmbeddingBasedQueryStrategy):
     """Selects instances by constructing a lightweight coreset [BLK18]_ over document embeddings.
     """
-    def __init__(self, normalize=True):
+    def __init__(self, normalize=True, batch_size=100):
         """
         Parameters
         ----------
         normalize : bool
             Embeddings will be normalized before the coreset construction if True.
+        batch_size : int, batch_size=100
+            Batch size used for computing document distances.
         """
         self.normalize = normalize
+        self.batch_size = batch_size
 
     def sample(self, clf, dataset, indices_unlabeled, _indices_labeled, _y, n, embeddings,
                embeddings_proba=None):
@@ -206,7 +219,8 @@ class LightweightCoreset(EmbeddingBasedQueryStrategy):
 
         embeddings_mean = embeddings_mean.ravel()
 
-        return lightweight_coreset(embeddings, embeddings_mean, n, normalized=self.normalize)
+        return lightweight_coreset(embeddings, embeddings_mean, n, batch_size=self.batch_size,
+                                   normalized=self.normalize)
 
     def __str__(self):
         return f'LightweightCoreset(normalize={self.normalize})'
