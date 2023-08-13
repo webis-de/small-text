@@ -5,6 +5,7 @@
 - Christopher Schröder ([@chschroeder](https://github.com/chschroeder))
 - Raphael Mitsch ([@rmitsch](https://github.com/rmitsch))
 - JP-SystemsX ([@JP-SystemsX](https://github.com/JP-SystemsX))
+- Raghav Prabhakar ([RaghavPrabhakar66](https://github.com/RaghavPrabhakar66))
 
 ## Acknowledgments
 
