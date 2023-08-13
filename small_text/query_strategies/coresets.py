@@ -164,7 +164,7 @@ def lightweight_coreset(x, x_mean, n, batch_size=100, normalized=False, proba=No
     _check_coreset_size(x, n)
 
     num_batches = int(np.ceil(x.shape[0] / batch_size))
-    indices = np.array([])
+    indices = np.array([], dtype=int)
 
     for x_batch in np.array_split(x, num_batches, axis=0):
 
@@ -188,7 +188,7 @@ def lightweight_coreset(x, x_mean, n, batch_size=100, normalized=False, proba=No
         indices_batch = np.random.choice(np.arange(x_batch.shape[0]), n, replace=False, p=proba)
         indices = np.concatenate((indices, indices_batch))
 
-    return indices.astype(np.int64)
+    return indices
 
 
 class LightweightCoreset(EmbeddingBasedQueryStrategy):
