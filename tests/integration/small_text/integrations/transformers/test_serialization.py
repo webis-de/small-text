@@ -15,8 +15,7 @@ from small_text.integrations.transformers.datasets import TransformersDataset
 from tests.utils.object_factory import get_initialized_active_learner
 
 try:
-    from small_text.integrations.transformers import TransformerModelArguments
-    from small_text.integrations.transformers.classifiers import TransformerBasedClassificationFactory
+    from small_text.integrations.transformers import TransformerModelArguments, TransformerBasedClassificationFactory
     from tests.utils.datasets import twenty_news_transformers
 except (ImportError, PytorchNotFoundError):
     pass

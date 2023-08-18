@@ -8,7 +8,7 @@ from small_text.query_strategies import DiscriminativeActiveLearning
 
 try:
     from small_text.integrations.transformers import TransformerModelArguments
-    from small_text.integrations.transformers.classifiers import (
+    from small_text.integrations.transformers import (
         TransformerBasedClassificationFactory,
         TransformerBasedClassification,
     )

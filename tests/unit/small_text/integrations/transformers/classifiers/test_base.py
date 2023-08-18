@@ -4,10 +4,7 @@ from unittest.mock import patch
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
-    from small_text.integrations.transformers.classifiers.base import (
-        ModelLoadingStrategy,
-        get_default_model_loading_strategy
-    )
+    from small_text.integrations.transformers import ModelLoadingStrategy, get_default_model_loading_strategy
 except (ModuleNotFoundError, PytorchNotFoundError):
     pass
 

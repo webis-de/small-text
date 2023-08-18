@@ -13,7 +13,7 @@ from tests.integration.small_text.query_strategies.test_query_strategies import 
 
 try:
     from small_text.integrations.transformers import TransformerModelArguments
-    from small_text.integrations.transformers.classifiers import (
+    from small_text.integrations.transformers import (
         TransformerBasedClassificationFactory
     )
     from small_text.query_strategies.bayesian import BALD

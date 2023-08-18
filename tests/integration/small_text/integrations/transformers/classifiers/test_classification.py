@@ -21,10 +21,10 @@ from tests.utils.testing import assert_array_not_equal
 try:
     import torch
 
-    from small_text.integrations.transformers import TransformerModelArguments
-    from small_text.integrations.transformers.classifiers import (
+    from small_text.integrations.transformers import (
         TransformerBasedClassificationFactory,
-        TransformerBasedClassification
+        TransformerBasedClassification,
+        TransformerModelArguments
     )
     from small_text.integrations.transformers.classifiers.classification import FineTuningArguments
 
