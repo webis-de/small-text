@@ -1,7 +1,10 @@
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
-    from small_text.integrations.transformers.classifiers.base import ModelLoadingStrategy
+    from small_text.integrations.transformers.classifiers.base import (
+        ModelLoadingStrategy,
+        get_default_model_loading_strategy
+    )
     from small_text.integrations.transformers.classifiers.classification import (
         transformers_collate_fn,
         FineTuningArguments,
@@ -24,6 +27,7 @@ try:
     )
     __all__ = [
         'ModelLoadingStrategy',
+        'get_default_model_loading_strategy',
         'transformers_collate_fn',
         'FineTuningArguments',
         'TransformerModelArguments',
@@ -38,4 +42,4 @@ try:
         'TransformersDatasetView'
     ]
 except PytorchNotFoundError:
-    __all__ = []
+    __all__ = ['ModelLoadingStrategy', 'get_default_model_loading_strategy']
