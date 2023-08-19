@@ -37,7 +37,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
-- **Version 1.3.1** ([v1.3.1][changelog_1.3.1]) - July 22nd, 2023
+- **Version 1.3.2** ([v1.3.2][changelog_1.3.2]) - August 19th, 2023
   - Bugfix release.
 
 - **Paper accepted at EACL 2023 🎉**
@@ -154,7 +154,7 @@ Small-Text has been introduced in detail in the EACL23 System Demonstration Pape
 [changelog_1.1.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-1-1-2022-10-14
 [changelog_1.2.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-2-0-2023-02-04
 [changelog_1.3.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-3-0-2023-02-21
-[changelog_1.3.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-3-1-2023-07-22
+[changelog_1.3.2]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-3-2-2023-08-19
 [argilla]: https://github.com/argilla-io/argilla
 [argilla_al_tutorial]: https://docs.argilla.io/en/latest/tutorials/notebooks/training-textclassification-smalltext-activelearning.html
 [paper_arxiv]: https://arxiv.org/abs/2107.10314
