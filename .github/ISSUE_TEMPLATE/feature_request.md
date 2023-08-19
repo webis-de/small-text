@@ -13,6 +13,6 @@ assignees: ''
 
 <!-- What is the motivation / use case for this feature? -->
 
-## Addition comments
+## Additional comments
 
 <!-- Add additional comments such as possible solutions or problems to discuss here. -->

@@ -523,13 +523,11 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
                 if validate_every and i % validate_every == 0:
                     valid_loss, valid_acc = self.validate(sub_valid_)
+                    self.model.train()
                     valid_losses.append(valid_loss)
                     valid_accs.append(valid_acc)
 
-                    measured_values = dict({
-                        'val_loss': valid_loss,
-                        'val_acc': valid_acc
-                    })
+                    measured_values = {'val_loss': valid_loss, 'val_acc': valid_acc}
                     stop = stop or early_stopping.check_early_stop(num_epoch+1, measured_values)
                     self._save_model(optimizer, model_selection, f'{num_epoch}-b{i+1}',
                                      train_acc, train_loss, valid_acc, valid_loss, stop, tmp_dir)

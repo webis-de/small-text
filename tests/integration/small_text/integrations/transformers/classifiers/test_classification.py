@@ -317,36 +317,49 @@ class _TransformerBasedClassificationTest(object):
 
         train_set = self._get_dataset(num_samples=20)
 
-        with patch.object(clf, 'validate', wraps=clf.validate) as validate_spy:
-            clf.fit(train_set)
-            self.assertIsNotNone(clf.model)
+        with patch.object(clf, 'validate', wraps=clf.validate) as validate_spy, \
+                patch('torch.nn.modules.module.Module.eval') as eval_spy, \
+                patch('torch.nn.modules.module.Module.train') as train_spy:
 
-            self.assertEqual(2, validate_spy.call_count)
+                clf.fit(train_set)
+
+                self.assertIsNotNone(clf.model)
+                self.assertEqual(2, validate_spy.call_count)
+                self.assertEqual(3, train_spy.call_count)
+                # once per validate (after the call to validate) plus one call during initialization in from_pretrained()
+                self.assertEqual(3, eval_spy.call_count)
 
     def test_validate_with_validations_per_epoch_too_large(self):
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         clf = TransformerBasedClassification(model_args,
                                              4,
                                              multi_label=self.multi_label,
-                                             num_epochs=1,
+                                             num_epochs=2,
                                              mini_batch_size=20,
-                                             validations_per_epoch=2)
+                                             validations_per_epoch=3)
 
         train_set = self._get_dataset(num_samples=20)
 
         with patch.object(clf, 'validate', wraps=clf.validate) as validate_spy, \
+                patch('torch.nn.modules.module.Module.eval') as eval_spy, \
+                patch('torch.nn.modules.module.Module.train') as train_spy, \
                 warnings.catch_warnings(record=True) as w:
+
             clf.fit(train_set)
             self.assertIsNotNone(clf.model)
 
-            self.assertEqual(1, validate_spy.call_count)
+            # 2 since we have 2 epochs with 1 batches (and one validate call) each
+            self.assertEqual(2, validate_spy.call_count)
 
-            expected_warning = 'validations_per_epoch=2 is greater than the maximum ' \
+            expected_warning = 'validations_per_epoch=3 is greater than the maximum ' \
                                'possible batches of 1'
             found_warning = np.any([
                 str(w_.message) == expected_warning and w_.category == RuntimeWarning
                 for w_ in w])
             self.assertTrue(found_warning)
+            self.assertEqual(4, train_spy.call_count)
+            # once per epoch (after the call to validate) plus one call during initialization in from_pretrained()
+            self.assertEqual(3, eval_spy.call_count)
 
     def test_fit_with_early_stopping(self):
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
