@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.3.2 - 2023-08-19
+
+### Fixed
+
+- Fixed a bug in `TransformerBasedClassification`, where `validations_per_epoch>=2` left the model in eval mode. ([#40](https://github.com/webis-de/small-text/issues/40))
+
+---
+
 ## Version 1.3.1 - 2023-07-22
 
 ### Fixed
