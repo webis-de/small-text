@@ -71,18 +71,20 @@ Getting Started
 Citation
 ========
 
-| A preprint which introduces small-text is available here:
-| `Small-Text: Active Learning for Text Classification in Python <https://arxiv.org/abs/2107.10314>`_.
+Small-Text has been introduced in detail in the EACL23 System Demonstration Paper `Small-Text: Active Learning for Text Classification in Python <https://aclanthology.org/2023.eacl-demo.11/>`_ which can be cited as follows:
 
 .. code-block:: text
 
-    @misc{schroeder2021smalltext,
-        title={Small-Text: Active Learning for Text Classification in Python},
-        author={Christopher Schröder and Lydia Müller and Andreas Niekler and Martin Potthast},
-        year={2021},
-        eprint={2107.10314},
-        archivePrefix={arXiv},
-        primaryClass={cs.LG}
+    @inproceedings{schroeder2023small-text,
+        title = "Small-Text: Active Learning for Text Classification in Python",
+        author = {Schr{\"o}der, Christopher  and  M{\"u}ller, Lydia  and  Niekler, Andreas  and  Potthast, Martin},
+        booktitle = "Proceedings of the 17th Conference of the European Chapter of the Association for Computational Linguistics: System Demonstrations",
+        month = may,
+        year = "2023",
+        address = "Dubrovnik, Croatia",
+        publisher = "Association for Computational Linguistics",
+        url = "https://aclanthology.org/2023.eacl-demo.11",
+        pages = "84--95"
     }
 
 ------
