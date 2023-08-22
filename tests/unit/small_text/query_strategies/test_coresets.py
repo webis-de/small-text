@@ -170,7 +170,7 @@ class _LightweightCoresetSamplingStrategyTest(SamplingStrategiesTests):
 
     def test_lightweight_coreset_str(self):
         strategy = self._get_query_strategy()
-        expected_str = f'LightweightCoreset(normalize={str(self.normalize)})'
+        expected_str = f'LightweightCoreset(distance_metric={str(self.distance_metric)}, normalize={str(self.normalize)})'
         self.assertEqual(expected_str, str(strategy))
 
     def test_lightweight_coreset_query_default(self):
@@ -195,23 +195,27 @@ class LightweightCoresetSamplingStrategyNormalizedTest(_LightweightCoresetSampli
                                                        unittest.TestCase):
 
     def setUp(self):
+        self.distance_metric = 'cosine'
         self.normalize = True
 
     def _get_clf(self):
         return ConfidenceEnhancedLinearSVC()
 
     def _get_query_strategy(self):
-        return LightweightCoreset(self.normalize)
+        return LightweightCoreset(distance_metric=self.distance_metric,
+                                  normalize=self.normalize)
 
 
 class LightweightCoresetSamplingStrategyUnnormalizedTest(_LightweightCoresetSamplingStrategyTest,
                                                          unittest.TestCase):
 
     def setUp(self):
+        self.distance_metric = 'cosine'
         self.normalize = True
 
     def _get_clf(self):
         return ConfidenceEnhancedLinearSVC()
 
     def _get_query_strategy(self):
-        return LightweightCoreset(self.normalize)
+        return LightweightCoreset(distance_metric=self.distance_metric, 
+                                  normalize=self.normalize)

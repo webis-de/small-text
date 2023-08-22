@@ -136,7 +136,8 @@ class GreedyCoreset(EmbeddingBasedQueryStrategy):
             f'normalize={self.normalize}, batch_size={self.batch_size})'
 
 
-def lightweight_coreset(x, x_mean, n, batch_size=100, normalized=False, proba=None):
+def lightweight_coreset(x, x_mean, n, batch_size=100, distance_metric='cosine', 
+                        normalized=False, proba=None):
     """Computes a lightweight coreset [BLK18]_ of `x` with size `n`.
 
     Parameters
@@ -147,6 +148,8 @@ def lightweight_coreset(x, x_mean, n, batch_size=100, normalized=False, proba=No
         Elementwise mean over the columns of `x`.
     n : int
         Coreset size.
+    distance_metric : {'cosine', 'euclidean'}
+        Distance metric to be used.
     batch_size: int
         Batch size.
     normalized : bool
@@ -161,6 +164,14 @@ def lightweight_coreset(x, x_mean, n, batch_size=100, normalized=False, proba=No
     indices : numpy.ndarray
         Indices relative to `x`.
     """
+    if distance_metric == 'cosine':
+        dist_func = _cosine_distance
+    elif distance_metric == 'euclidean':
+        dist_func = _euclidean_distance
+    else:
+        raise ValueError(f'Invalid distance metric: {distance_metric}. '
+                         f'Possible values: {_DISTANCE_METRICS}')
+
     _check_coreset_size(x, n)
 
     num_batches = int(np.ceil(x.shape[0] / batch_size))
@@ -168,11 +179,7 @@ def lightweight_coreset(x, x_mean, n, batch_size=100, normalized=False, proba=No
 
     for x_batch in np.array_split(x, num_batches, axis=0):
 
-        sim = x_batch.dot(x_mean)
-        if not normalized:
-            sim = sim / (np.linalg.norm(x_batch, axis=1) * np.linalg.norm(x_mean))
-
-        dists = np.arccos(sim) / np.pi
+        dists = dist_func(x_batch, x_mean, normalized=normalized)
         dists = np.square(dists)
 
         sum_dists = dists.sum()
@@ -194,15 +201,22 @@ def lightweight_coreset(x, x_mean, n, batch_size=100, normalized=False, proba=No
 class LightweightCoreset(EmbeddingBasedQueryStrategy):
     """Selects instances by constructing a lightweight coreset [BLK18]_ over document embeddings.
     """
-    def __init__(self, normalize=True, batch_size=100):
+    def __init__(self, distance_metric='cosine', normalize=True, batch_size=100):
         """
         Parameters
         ----------
+        distance_metric : {'cosine', 'euclidean'}, default='cosine'
+             Distance metric to be used.
         normalize : bool
             Embeddings will be normalized before the coreset construction if True.
         batch_size : int, batch_size=100
             Batch size used for computing document distances.
         """
+        if distance_metric not in set(_DISTANCE_METRICS):
+            raise ValueError(f'Invalid distance metric: {distance_metric}. '
+                             f'Possible values: {_DISTANCE_METRICS}')
+
+        self.distance_metric = distance_metric
         self.normalize = normalize
         self.batch_size = batch_size
 
@@ -219,8 +233,9 @@ class LightweightCoreset(EmbeddingBasedQueryStrategy):
 
         embeddings_mean = embeddings_mean.ravel()
 
-        return lightweight_coreset(embeddings, embeddings_mean, n, batch_size=self.batch_size,
-                                   normalized=self.normalize)
+        return lightweight_coreset(embeddings, embeddings_mean, n, distance_metric=self.distance_metric,
+                                   batch_size=self.batch_size, normalized=self.normalize)
 
     def __str__(self):
-        return f'LightweightCoreset(normalize={self.normalize})'
+        return f'LightweightCoreset(distance_metric={self.distance_metric}, ' \
+            f'normalize={self.normalize})'
