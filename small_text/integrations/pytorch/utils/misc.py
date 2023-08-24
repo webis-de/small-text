@@ -33,7 +33,7 @@ def _assert_layer_exists(module, layer_name):
         raise ValueError(f'Given layer "{layer_name}" does not exist in the model!')
 
 
-def _compile_if_possible(model, compile_model=True):
+def _compile_if_possible(model, compile_model: bool = True):
     if compile_model and parse(torch.__version__) >= Version('2.0.0'):
         model = torch.compile(model)
     return model

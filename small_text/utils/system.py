@@ -13,7 +13,7 @@ PROGRESS_BARS_VARIABLE = 'SMALL_TEXT_PROGRESS_BARS'
 TMP_DIR_VARIABLE = 'SMALL_TEXT_TEMP'
 
 
-def get_offline_mode() -> Union[str, None]:
+def get_offline_mode() -> bool:
 
     if OFFLINE_MODE_VARIABLE in os.environ:
         return True

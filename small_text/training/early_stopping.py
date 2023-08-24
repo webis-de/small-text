@@ -1,20 +1,22 @@
 import logging
 import numpy as np
 
-from abc import ABC
+from abc import ABC, abstractmethod
+from typing import Dict, List
 
 
 class EarlyStoppingHandler(ABC):
 
-    def check_early_stop(self, epoch, measured_values):
+    @abstractmethod
+    def check_early_stop(self, epoch: int, measured_values: Dict[str, float]) -> bool:
         """Checks if the training should be stopped early. The decision is made based on
-        the masured values of one or more quantitative metrics over time.
+        the measured values of one or more quantitative metrics over time.
 
         Parameters
         ----------
         epoch : int
             The number of the current epoch. Multiple checks per epoch are allowed.
-        measure_values : dict of str to float
+        measured_values : dict of str to float
             A dictionary of measured values.
         """
         pass
@@ -27,7 +29,7 @@ class NoopEarlyStopping(EarlyStoppingHandler):
     .. versionadded:: 1.1.0
     """
 
-    def check_early_stop(self, epoch, measured_values):
+    def check_early_stop(self, epoch: int, measured_values: Dict[str, float]):
         """Checks if the training should be stopped early. The decision is made based on
         the masured values of one or more quantitative metrics over time.
 
@@ -48,7 +50,7 @@ class EarlyStopping(EarlyStoppingHandler):
 
     .. versionadded:: 1.1.0
     """
-    def __init__(self, metric, min_delta=1e-14, patience=5, threshold=0.0):
+    def __init__(self, metric, min_delta: float = 1e-14, patience: int = 5, threshold: float = 0.0):
         """
         Parameters
         ----------
@@ -179,7 +181,7 @@ class EarlyStoppingOrCondition(EarlyStoppingHandler):
 
     .. versionadded:: 1.1.0
     """
-    def __init__(self, early_stopping_handlers):
+    def __init__(self, early_stopping_handlers: List[EarlyStoppingHandler]):
         """
         Parameters
         ----------

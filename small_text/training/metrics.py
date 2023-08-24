@@ -1,8 +1,11 @@
+from typing import Type
+
+
 class Metric(object):
     """Represents an arbitrary metric.
     """
 
-    def __init__(self, name, dtype=float, lower_is_better=True):
+    def __init__(self, name: str, dtype: Type = float, lower_is_better: bool = True):
         """
         Parameters
         ----------
