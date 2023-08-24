@@ -426,7 +426,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             self.num_classes,
             cache_dir,
         )
-        self.model = _compile_if_possible(self.model, self.model.base_model_prefix)
+        self.model = _compile_if_possible(self.model, self.transformer_model.compile_model)
 
     def _default_optimizer(self, base_lr):
 
