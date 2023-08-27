@@ -333,13 +333,16 @@ class TestTransformerBasedClassification(unittest.TestCase):
 
         classifier = TransformerBasedClassification(model_args, 2,
                                                     early_stopping_no_improvement=7)
-        with self.assertWarnsRegex(UserWarning, r'Both the fit\(\) argument early_stopping'):
+
+        with patch.object(classifier, '_fit_main') as fit_main_mock, \
+                self.assertWarnsRegex(UserWarning, r'Both the fit\(\) argument early_stopping'):
             classifier.fit(dataset, early_stopping=early_stopping)
 
         classifier = TransformerBasedClassification(model_args, 2,
                                                     early_stopping_acc=0.98)
         with self.assertWarnsRegex(UserWarning, r'Both the fit\(\) argument early_stopping'):
             classifier.fit(dataset, early_stopping=early_stopping)
+        fit_main_mock.assert_called()
 
     def test_fit_with_optimizer_and_scheduler(self):
         dataset = random_transformer_dataset(10)
@@ -358,13 +361,13 @@ class TestTransformerBasedClassification(unittest.TestCase):
 
         scheduler = get_linear_schedule_with_warmup(optimizer, 0.1 * steps, steps)
 
-        with patch.object(classifier, '_train', wraps=classifier._train) as train_mock:
-            classifier.fit(dataset, optimizer=optimizer, scheduler=scheduler)
+        with patch.object(classifier, '_fit_main') as fit_main_mock, \
+                classifier.fit(dataset, optimizer=optimizer, scheduler=scheduler):
 
-            train_mock.assert_called()
+            fit_main_mock.assert_called()
 
-            call_args = train_mock.call_args[0]
-            self.assertEqual(1, train_mock.call_count)
+            call_args = fit_main_mock.call_args[0]
+            self.assertEqual(1, fit_main_mock.call_count)
 
             self.assertEqual(optimizer, call_args[5])
             self.assertEqual(scheduler, call_args[6])
