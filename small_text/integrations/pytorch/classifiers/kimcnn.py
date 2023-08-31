@@ -81,53 +81,64 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
         self.model.eval()
 
-        dataset_iter = dataloader(data_set.data, self.mini_batch_size, self._create_collate_fn(),
-                                  train=False)
+        dataset_iter = dataloader(data_set.data, self.mini_batch_size, self._create_collate_fn(), train=False)
 
         tensors = []
         proba = []
-        with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
-            for text, *_ in dataset_iter:
-                batch_len = text.size(0)
-                text = text.to(self.device, non_blocking=True)
 
-                if embedding_method == self.EMBEDDING_METHOD_POOLED:
-                    embedded = self.model._forward_pooled(text)
-                    tensors.extend(embedded.detach().to('cpu', non_blocking=True).numpy())
+        requires_grad = embedding_method == self.EMBEDDING_METHOD_GRADIENT
 
+        with torch.set_grad_enabled(requires_grad):
+            with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
+                for batch in dataset_iter:
+                    batch_len, logits, embeddings = self._create_embeddings(tensors,
+                                                                            batch,
+                                                                            embedding_method=embedding_method,
+                                                                            module_selector=module_selector)
+                    pbar.update(batch_len)
                     if return_proba:
-                        sm = F.softmax(self.model._dropout_and_fc(embedded), dim=1)
-                        proba.extend(sm.detach().to('cpu').tolist())
-                    pbar.update(batch_len)
-
-                elif embedding_method == self.EMBEDDING_METHOD_GRADIENT:
-                    best_label, sm = self.get_best_and_softmax(proba, text)
-                    self.create_embedding(best_label, sm, module_selector, tensors, text)
-                    pbar.update(batch_len)
-                else:
-                    raise ValueError(f'Invalid embedding method: {embedding_method}')
-
+                        proba.extend(F.softmax(logits, dim=1).detach().to('cpu').tolist())
+                    tensors.extend(embeddings)
         if return_proba:
             return np.array(tensors), np.array(proba)
 
         return np.array(tensors)
 
-    def get_best_and_softmax(self, proba, text):
+    def _create_embeddings(self, tensors, batch, embedding_method='pooled', module_selector=lambda x: x['fc']):
+        text, *_ = batch
+
+        text = text.to(self.device, non_blocking=True)
+
+        if embedding_method == self.EMBEDDING_METHOD_POOLED:
+            embedded = self.model._forward_pooled(text)
+            logits = self.model._dropout_and_fc(embedded)
+            embeddings = embedded.detach().to('cpu', non_blocking=True).numpy()
+
+        elif embedding_method == self.EMBEDDING_METHOD_GRADIENT:
+            best_label, logits = self._get_best_and_softmax(text)
+            embeddings = self.create_embedding(best_label, logits, module_selector, tensors, text)
+        else:
+            raise ValueError(f'Invalid embedding method: {embedding_method}')
+
+        return text.size(0), logits, embeddings
+
+    def _get_best_and_softmax(self, text):
 
         self.model.zero_grad()
 
-        output = self.model(text)
+        logits = self.model(text)
 
-        sm = F.softmax(output, dim=1)
+        sm = F.softmax(logits, dim=1)
         with torch.no_grad():
             best_label = torch.argmax(sm, dim=1)
-        proba.extend(sm.detach().to('cpu', non_blocking=True).numpy())
 
-        return best_label, sm
+        return best_label, logits
 
-    def create_embedding(self, best_label, sm, module_selector, tensors, text):
+    def create_embedding(self, best_label, logits, module_selector, tensors, text):
 
         batch_len = text.size(0)
+
+        sm = F.softmax(logits, dim=1)
         sm_t = torch.t(sm)
 
         reduction_tmp = self.criterion.reduction
@@ -155,10 +166,9 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
                     else:
                         arr[k, grad_size*c:grad_size*(c+1)] = -1*sm_prob*params
 
-        tensors.extend(arr.detach().to('cpu', non_blocking=True).numpy())
         self.criterion.reduction = reduction_tmp
 
-        return batch_len
+        return arr.detach().to('cpu', non_blocking=True).numpy()
 
 
 class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):

@@ -5,7 +5,6 @@ import numpy as np
 
 from unittest import mock
 
-from parameterized import parameterized_class
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
@@ -21,10 +20,7 @@ def default_module_selector(m):
     return m['fc']
 
 
-@pytest.mark.pytorch
-@parameterized_class([{'embedding_method': 'pooled'},
-                      {'embedding_method': 'gradient'}])
-class KimCNNEmbeddingTest(unittest.TestCase):
+class _KimCNNEmbeddingTest(object):
 
     def test_embed_model_not_trained(self):
         _, train, tokenizer = trec_dataset()  # use small test set as train
@@ -103,3 +99,17 @@ class KimCNNEmbeddingTest(unittest.TestCase):
                 self.assertEqual(classifier.model.out_channels * classifier.model.num_kernels,
                                  embeddings.shape[1])
             self.assertEqual(len(train), predictions.shape[0])
+
+
+@pytest.mark.pytorch
+class KimCNNEmbeddingPooledTest(unittest.TestCase, _KimCNNEmbeddingTest):
+
+    def setUp(self):
+        self.embedding_method = KimCNNEmbeddingMixin.EMBEDDING_METHOD_POOLED
+
+
+@pytest.mark.pytorch
+class KimCNNEmbeddingGradientTest(unittest.TestCase, _KimCNNEmbeddingTest):
+
+    def setUp(self):
+        self.embedding_method = KimCNNEmbeddingMixin.EMBEDDING_METHOD_GRADIENT

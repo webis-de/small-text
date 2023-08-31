@@ -17,6 +17,8 @@ On the other hand, this also allowed us to deal with further issues that contain
 - Classification:
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support `torch.compile()` which can be enabled on demand. (Requires PyTorch >= 2.0.0). 
   - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v2.0.0/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.
+- Embeddings:
+  - Disabled unnecessary gradient computations for some embedding types and unified code structure.
 - Query Strategies:
   - New strategies: [LabelCardinalityInconsistency](https://github.com/webis-de/small-text/blob/v1.4.0/small_text/query_strategies/multi_label.py) and [ClassBalancer](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/class_balancing.py).
   - [LightweightCoreset](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/corsets.py) can now process input in batches. (#23)

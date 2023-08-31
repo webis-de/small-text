@@ -11,7 +11,7 @@ from small_text.classifiers.classification import EmbeddingMixin
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.classification import get_splits
 from small_text.utils.context import build_pbar_context
-from small_text.utils.data import check_training_data, list_length
+from small_text.utils.data import check_training_data
 from small_text.utils.datetime import format_timedelta
 from small_text.utils.annotations import (
     early_stopping_deprecation_warning,
@@ -171,24 +171,25 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
         self.model.eval()
 
-        train_iter = dataloader(data_set.data, self.mini_batch_size, self._create_collate_fn(),
-                                train=False)
+        train_iter = dataloader(data_set.data, self.mini_batch_size, self._create_collate_fn(), train=False)
 
         tensors = []
-        predictions = []
+        proba = []
 
-        with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
-            for batch in train_iter:
-                batch_len, logits = self._create_embeddings(tensors,
-                                                            batch,
-                                                            embedding_method=embedding_method,
-                                                            hidden_layer_index=hidden_layer_index)
-                pbar.update(batch_len)
-                if return_proba:
-                    predictions.extend(F.softmax(logits, dim=1).detach().to('cpu').tolist())
+        with torch.no_grad():
+            with build_pbar_context(pbar, tqdm_kwargs={'total': len(data_set)}) as pbar:
+                for batch in train_iter:
+                    batch_len, logits, embeddings = self._create_embeddings(tensors,
+                                                                            batch,
+                                                                            embedding_method=embedding_method,
+                                                                            hidden_layer_index=hidden_layer_index)
+                    pbar.update(batch_len)
+                    if return_proba:
+                        proba.extend(F.softmax(logits, dim=1).detach().to('cpu').tolist())
+                    tensors.extend(embeddings)
 
         if return_proba:
-            return np.array(tensors), np.array(predictions)
+            return np.array(tensors), np.array(proba)
 
         return np.array(tensors)
 
@@ -213,9 +214,9 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
         else:
             raise ValueError(f'Invalid embedding_method: {embedding_method}')
 
-        tensors.extend(representation.detach().to('cpu', non_blocking=True).numpy())
+        embeddings = representation.detach().to('cpu', non_blocking=True).numpy()
 
-        return text.size(0), outputs.logits
+        return text.size(0), outputs.logits, embeddings
 
 
 class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClassifier):
