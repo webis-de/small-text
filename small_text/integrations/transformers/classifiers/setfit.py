@@ -271,8 +271,9 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             batch_size=self.mini_batch_size,
             **self.trainer_kwargs
         )
+        if not 'show_progress_bar' in setfit_train_kwargs:
+            setfit_train_kwargs['show_progress_bar'] = self.verbosity >= VERBOSITY_MORE_VERBOSE
         trainer.train(max_length=self.max_seq_len,
-                      show_progress_bar=self.verbosity >= VERBOSITY_MORE_VERBOSE,
                       **setfit_train_kwargs)
         return self
 
