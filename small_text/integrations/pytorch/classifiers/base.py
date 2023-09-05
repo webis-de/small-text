@@ -21,7 +21,7 @@ try:
     import torch.nn.functional as F  # noqa: N812
 
     from torch.nn.modules import CrossEntropyLoss, BCEWithLogitsLoss
-    from torch.optim.lr_scheduler import _LRScheduler, LambdaLR
+    from torch.optim.lr_scheduler import LambdaLR
 
     from small_text.integrations.pytorch.utils.data import dataloader, get_class_weights
     from small_text.integrations.pytorch.utils.loss import _LossAdapter2DTo1D
@@ -229,8 +229,6 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
         elif scheduler is None:
             # constant learning rate
             scheduler = LambdaLR(optimizer, lambda _: 1)
-        else:
-            raise ValueError(f'Invalid scheduler: {scheduler}')
 
         return optimizer, scheduler
 
