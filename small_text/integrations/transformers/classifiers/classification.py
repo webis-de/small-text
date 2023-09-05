@@ -344,7 +344,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             A model selection handler. Passing 'none' disables model selection.
         optimizer : torch.optim.optimizer.Optimizer or None, default=None
             A pytorch optimizer.
-        scheduler : torch.optim._LRScheduler or None, default=None
+        scheduler : torch.optim.LRScheduler or None, default=None
             A pytorch scheduler.
 
         Returns
