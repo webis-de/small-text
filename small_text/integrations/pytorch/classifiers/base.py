@@ -214,8 +214,7 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
                 + int(len(sub_train) % self.mini_batch_size != 0)
 
         if optimizer is None:
-            params, optimizer = self._default_optimizer(base_lr) \
-                if optimizer is None else optimizer
+            params, optimizer = self._default_optimizer(base_lr) if optimizer is None else optimizer
 
         if scheduler == 'linear':
             try:
@@ -230,7 +229,7 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
         elif scheduler is None:
             # constant learning rate
             scheduler = LambdaLR(optimizer, lambda _: 1)
-        elif not isinstance(scheduler, _LRScheduler):
+        else:
             raise ValueError(f'Invalid scheduler: {scheduler}')
 
         return optimizer, scheduler
