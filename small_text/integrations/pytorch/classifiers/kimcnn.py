@@ -144,8 +144,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
         self.criterion.reduction = 'none'
 
         modules = dict({name: module for name, module in self.model.named_modules()})
-        grad = module_selector(modules).weight.grad
-        grad_size = grad.flatten().size(0)
+        grad_size = module_selector(modules).weight.size(0)
 
         arr = torch.empty(batch_len, grad_size * self.num_classes)
         for c in range(self.num_classes):
