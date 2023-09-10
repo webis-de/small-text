@@ -91,8 +91,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
         with torch.set_grad_enabled(requires_grad):
             with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
                 for batch in dataset_iter:
-                    batch_len, logits, embeddings = self._create_embeddings(tensors,
-                                                                            batch,
+                    batch_len, logits, embeddings = self._create_embeddings(batch,
                                                                             embedding_method=embedding_method,
                                                                             module_selector=module_selector)
                     pbar.update(batch_len)
@@ -104,7 +103,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
         return np.array(tensors)
 
-    def _create_embeddings(self, tensors, batch, embedding_method='pooled', module_selector=lambda x: x['fc']):
+    def _create_embeddings(self, batch, embedding_method='pooled', module_selector=lambda x: x['fc']):
         text, *_ = batch
 
         text = text.to(self.device, non_blocking=True)
@@ -116,7 +115,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
         elif embedding_method == self.EMBEDDING_METHOD_GRADIENT:
             best_label, logits = self._get_best_and_softmax(text)
-            embeddings = self.create_embedding(best_label, logits, module_selector, tensors, text)
+            embeddings = self.create_embedding(best_label, logits, module_selector, text)
         else:
             raise ValueError(f'Invalid embedding method: {embedding_method}')
 
@@ -134,7 +133,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
         return best_label, logits
 
-    def create_embedding(self, best_label, logits, module_selector, tensors, text):
+    def create_embedding(self, best_label, logits, module_selector, text):
 
         batch_len = text.size(0)
 
