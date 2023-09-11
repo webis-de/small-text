@@ -40,7 +40,7 @@ setup(name='small-text',
       include_package_data=True,
       python_requires='>=3.8',
       install_requires=[
-            'dill',
+            'dill>=0.3.7',
             'scipy',
             'numpy>=1.21.0',
             'scikit-learn>=0.24.1',
