@@ -11,7 +11,7 @@ from collections import Counter
 from small_text import (
     ActiveLearnerException,
     EmptyPoolException,
-    ExpectedGradientLength,
+    BreakingTies,
     KimCNNFactory,
     PoolBasedActiveLearner,
     PoolExhaustedException,
@@ -53,7 +53,7 @@ def main(num_iterations=10, device='cuda'):
 
     # TODO: clean up KimCNNFactory
     clf_factory = KimCNNFactory('kimcnn', num_classes, classifier_kwargs)
-    query_strategy = ExpectedGradientLength(num_classes, device=device)
+    query_strategy = BreakingTies()
 
     # Active learner
     active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
