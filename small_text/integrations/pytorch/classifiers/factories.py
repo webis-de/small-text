@@ -4,20 +4,17 @@ from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
 
 class KimCNNFactory(AbstractClassifierFactory):
 
-    def __init__(self, classifier_name, num_classes, kwargs={}):
+    def __init__(self, num_classes: int, kwargs: dict = {}):
         """
-        classifier_name : str
-            Obsolete. Do not use any more.
         num_classes : int
             Number of classes.
-        kwargs : dict
+        kwargs : dict, default={}
             Keyword arguments that are passed to the constructor of each classifier that is built by the factory.
         """
-        self.classifier_name = classifier_name
         self.num_classes = num_classes
         self.kwargs = kwargs
 
-    def new(self):
+    def new(self) -> KimCNNClassifier:
         """Creates a new KimCNNClassifier instance.
 
         Returns

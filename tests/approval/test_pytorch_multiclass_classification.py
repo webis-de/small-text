@@ -52,13 +52,12 @@ class PytorchMulticlassClassificationApprovalTest(unittest.TestCase):
     def test_kimcnn(self, device='cuda'):
         num_iterations = 3
 
-        # Prepare some data
         train, test = get_train_test()
+
         pretrained_vectors = api.load('word2vec-google-news-300')
         train, test, tokenizer = preprocess_data(train, test, pretrained_vectors)
         num_classes = len(np.unique(train.y))
 
-        # Active learning parameters
         classifier_kwargs = {
             'embedding_matrix': load_gensim_embedding(train.data, tokenizer, pretrained_vectors),
             'max_seq_len': 512,
@@ -66,10 +65,9 @@ class PytorchMulticlassClassificationApprovalTest(unittest.TestCase):
             'device': device
         }
 
-        clf_factory = KimCNNFactory('kimcnn', num_classes, classifier_kwargs)
+        clf_factory = KimCNNFactory(num_classes, classifier_kwargs)
         query_strategy = BreakingTies()
 
-        # Active learner
         active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
         indices_labeled = initialize_active_learner(active_learner, train.y)
 

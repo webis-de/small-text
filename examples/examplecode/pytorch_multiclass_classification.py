@@ -34,7 +34,6 @@ except ImportError:
 def main(num_iterations=10, device='cuda'):
     pretrained_vectors = api.load('word2vec-google-news-300')
 
-    # Prepare some data
     train, test = get_train_test()
 
     # TODO: use another dataset
@@ -51,8 +50,7 @@ def main(num_iterations=10, device='cuda'):
         'device': device
     }
 
-    # TODO: clean up KimCNNFactory
-    clf_factory = KimCNNFactory('kimcnn', num_classes, classifier_kwargs)
+    clf_factory = KimCNNFactory(num_classes, classifier_kwargs)
     query_strategy = BreakingTies()
 
     # Active learner

@@ -32,10 +32,7 @@ class QueryStrategiesTest(QueryStrategiesExhaustiveIntegrationTest, unittest.Tes
 
     def _get_factory(self, num_classes, multi_label=False):
 
-        return KimCNNFactory('kimcnn',
-                             num_classes,
-                             {'embedding_matrix': torch.rand(10, 20),
-                              'num_epochs': 2})
+        return KimCNNFactory(num_classes, {'embedding_matrix': torch.rand(10, 20), 'num_epochs': 2})
 
     def test_expected_gradient_length(self):
         query_strategy = ExpectedGradientLength(2)

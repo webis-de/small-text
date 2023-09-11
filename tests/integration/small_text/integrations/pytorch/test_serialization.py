@@ -30,9 +30,7 @@ class SerializationTest(unittest.TestCase):
         dataset = random_text_classification_dataset(num_samples=100, num_classes=6, vocab_size=vocab_size)
         self.assertFalse(dataset._data[0][PytorchTextClassificationDataset.INDEX_TEXT].is_cuda)
 
-        clf_factory = KimCNNFactory('kimcnn',
-                                    num_classes,
-                                    {'embedding_matrix': torch.rand(vocab_size, 100)})
+        clf_factory = KimCNNFactory(num_classes, {'embedding_matrix': torch.rand(vocab_size, 100)})
         query_strategy = RandomSampling()
 
         with tempfile.TemporaryDirectory() as tmp_dir_name:
