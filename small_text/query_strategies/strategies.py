@@ -1,16 +1,19 @@
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Union, TYPE_CHECKING
 
 import numpy as np
-import numpy.typing as npt
 
-from scipy.sparse import csr_matrix
+if TYPE_CHECKING:
+    import numpy.typing as npt
+
+    from small_text.classifiers import Classifier
+    from small_text.data import Dataset
+    from scipy.sparse import csr_matrix
+
 from scipy.stats import entropy
 from sklearn.preprocessing import normalize
 
 from small_text.base import check_optional_dependency
-from small_text.classifiers import Classifier
-from small_text.data import Dataset
 from small_text.query_strategies.exceptions import EmptyPoolException, PoolExhaustedException
 from small_text.utils.context import build_pbar_context
 

@@ -1,5 +1,13 @@
 import numpy as np
+from typing import TYPE_CHECKING, Union
 from small_text.query_strategies.strategies import QueryStrategy
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
+
+    from small_text.classifiers import Classifier
+    from small_text.data import Dataset
+    from scipy.sparse import csr_matrix
 
 
 def _bald(p, eps=1e-8):
@@ -18,7 +26,7 @@ class BALD(QueryStrategy):
 
     .. versionadded:: 1.2.0
     """
-    def __init__(self, dropout_samples=10):
+    def __init__(self, dropout_samples: int = 10):
         """
         Parameters
         ----------
@@ -28,7 +36,13 @@ class BALD(QueryStrategy):
         """
         self.dropout_samples = dropout_samples
 
-    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+    def query(self,
+              clf: Classifier,
+              dataset: Dataset,
+              indices_unlabeled: npt.NDArray[np.uint],
+              indices_labeled: npt.NDArray[np.uint],
+              y: Union[npt.NDArray[np.uint], csr_matrix],
+              n: int = 10) -> np.ndarray:
         self._validate_query_input(indices_unlabeled, n)
 
         proba_dopout_sampled = clf.predict_proba(dataset, dropout_sampling=self.dropout_samples)
