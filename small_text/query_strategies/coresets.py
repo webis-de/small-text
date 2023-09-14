@@ -136,7 +136,7 @@ class GreedyCoreset(EmbeddingBasedQueryStrategy):
             f'normalize={self.normalize}, batch_size={self.batch_size})'
 
 
-def lightweight_coreset(x, x_mean, n, batch_size=100, distance_metric='cosine', 
+def lightweight_coreset(x, x_mean, n, batch_size=100, distance_metric='cosine',
                         normalized=False, proba=None):
     """Computes a lightweight coreset [BLK18]_ of `x` with size `n`.
 

@@ -104,9 +104,9 @@ class LabelCardinalityInconsistency(QueryStrategy):
 
 # TODO: find a better name for uncertainty_weight before the release
 def _uncertainty_weighted_label_cardinality_inconsistency(y_pred_proba_unlabeled: npt.NDArray[float],
-                                                         y_labeled: csr_matrix,
-                                                         uncertainty_weight: float = 0.5,
-                                                         eps: float = 0.01) -> float:
+                                                          y_labeled: csr_matrix,
+                                                          uncertainty_weight: float = 0.5,
+                                                          eps: float = 0.01) -> float:
     """Computes uncertainty-weighted label cardinality inconsistency per instance [LG13]_.
 
     The label cardinality inconsistency is defined by the ($L^2$ norm of the) difference between the number of labels
