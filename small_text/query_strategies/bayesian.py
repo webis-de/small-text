@@ -1,13 +1,10 @@
 import numpy as np
-from typing import TYPE_CHECKING, Union
+import numpy.typing as npt
+from typing import Union
+from scipy.sparse import csr_matrix
+from small_text.classifiers import Classifier
+from small_text.data import Dataset
 from small_text.query_strategies.strategies import QueryStrategy
-
-if TYPE_CHECKING:
-    import numpy.typing as npt
-
-    from small_text.classifiers import Classifier
-    from small_text.data import Dataset
-    from scipy.sparse import csr_matrix
 
 
 def _bald(p, eps=1e-8):

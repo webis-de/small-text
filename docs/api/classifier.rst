@@ -40,7 +40,7 @@ Pytorch Integration
 Transformers Integration
 ------------------------
 
-.. currentmodule:: small_text.integrations.transformers.classifiers
+.. currentmodule:: small_text.integrations.transformers.classifiers.classification
 
 .. _api-classifiers-transformer-based-classification:
 

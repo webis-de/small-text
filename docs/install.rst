@@ -96,11 +96,15 @@ An overview of such dependencies is provided in the table below:
 +-------------------------+------------------------------------------------------------------------------------------------+
 | `hnswlib`_              | :py:class:`~small_text.query_strategies.strategies.SEALS`                                      |
 +-------------------------+------------------------------------------------------------------------------------------------+
+| `scikit-learn>=1.3.0`_  | :py:class:`~small_text.utils.clustering.init_kmeans_plusplus_safe()`                           |
++-------------------------+------------------------------------------------------------------------------------------------+
 | `setfit`_               | :py:class:`~small_text.integrations.transformers.classifiers.setfit.SetFitClassification`      |
 +-------------------------+------------------------------------------------------------------------------------------------+
 
 .. _`gensim>=4.0.0`: https://pypi.org/project/gensim/
 
 .. _hnswlib: https://pypi.org/project/hnswlib/
+
+.. _`scikit-learn>=1.3.0`: https://pypi.org/project/scikit-learn/
 
 .. _setfit: https://github.com/huggingface/setfit

@@ -1,14 +1,12 @@
 import numpy as np
+import numpy.typing as npt
 
-from typing import Union, TYPE_CHECKING
+from typing import Union
 
-if TYPE_CHECKING:
-    import numpy.typing as npt
-    from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix
 
-    from small_text.classifiers import Classifier
-    from small_text.data.datasets import Dataset
-
+from small_text.classifiers import Classifier
+from small_text.data.datasets import Dataset
 from small_text.query_strategies.base import constraints
 from small_text.query_strategies.strategies import breaking_ties, QueryStrategy
 from small_text.utils.context import build_pbar_context
