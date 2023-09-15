@@ -23,7 +23,6 @@ from small_text.integrations.transformers.classifiers.base import (
     get_default_model_loading_strategy
 )
 
-from small_text.utils.labels import get_num_labels
 from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
 from small_text.utils.system import get_tmp_dir_base
 

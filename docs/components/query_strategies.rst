@@ -177,7 +177,3 @@ Functions
 .. autofunction:: small_text.query_strategies.coresets.greedy_coreset
 
 .. autofunction:: small_text.query_strategies.coresets.lightweight_coreset
-
-.. autofunction:: small_text.query_strategies.multi_label.label_cardinality_inconsistency
-
-.. autofunction:: small_text.query_strategies.multi_label.uncertainty_weighted_label_cardinality_inconsistency

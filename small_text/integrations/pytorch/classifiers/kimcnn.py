@@ -16,7 +16,7 @@ from small_text.utils.classification import get_splits
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data, list_length
 from small_text.utils.annotations import early_stopping_deprecation_warning
-from small_text.utils.labels import csr_to_list, get_num_labels
+from small_text.utils.labels import csr_to_list
 from small_text.utils.datetime import format_timedelta
 from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
 from small_text.utils.system import get_tmp_dir_base
