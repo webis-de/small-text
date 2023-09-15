@@ -397,11 +397,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
     def _fit_main(self, sub_train, sub_valid, weights, early_stopping, model_selection,
                   optimizer, scheduler):
         if self.model is None:
-            encountered_num_classes = get_num_labels(sub_train.y)
-
-            if self.num_classes is None:
-                self.num_classes = encountered_num_classes
-
             self.initialize_transformer(self.cache_dir)
 
         _check_optimizer_and_scheduler_config(optimizer, scheduler)
