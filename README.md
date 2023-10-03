@@ -21,10 +21,6 @@ Small-Text provides state-of-the-art **Active Learning** for Text Classification
 Several pre-implemented Query Strategies, Initialization Strategies, and Stopping Critera are provided, 
 which can be easily mixed and matched to build active learning experiments or applications.
 
-**What is Active Learning?**  
-[Active Learning](https://small-text.readthedocs.io/en/latest/active_learning.html) allows you to efficiently label training data in a small data scenario.
-
-
 ## Features
 
 - Provides unified interfaces for Active Learning so that you can 
@@ -34,6 +30,15 @@ which can be easily mixed and matched to build active learning experiments or ap
 - GPU is supported but not required. In case of a CPU-only use case, 
   a lightweight installation only requires a minimal set of dependencies.
 - Multiple scientifically evaluated components are pre-implemented and ready to use (Query Strategies, Initialization Strategies, and Stopping Criteria).
+
+---
+
+## What is Active Learning?
+[Active Learning](https://small-text.readthedocs.io/en/latest/active_learning.html) allows you to efficiently label training data in a small data scenario.
+
+<p align="center">
+![Learning curve example for the TREC-6 dataset.](https://raw.githubusercontent.com/webis-de/small-text/dev/docs/_static/learning-curve-example.gif?raw=true)
+</p>
 
 ## News
 
