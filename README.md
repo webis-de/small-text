@@ -118,7 +118,7 @@ Read the latest documentation [here][documentation_main]. Noteworthy pages inclu
 
 ## Alternatives
 
-[modAL](https://github.com/modAL-python/modAL), [ALiPy](https://github.com/NUAA-AL/ALiPy), [libact](https://github.com/ntucllab/libact)
+[modAL](https://github.com/modAL-python/modAL), [ALiPy](https://github.com/NUAA-AL/ALiPy), [libact](https://github.com/ntucllab/libact), [ALToolbox](https://github.com/AIRI-Institute/al_toolbox)
 
 ## Contribution
 
