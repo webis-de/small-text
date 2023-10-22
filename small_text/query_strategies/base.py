@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import logging
+import numpy as np
+
 from enum import Enum
 from functools import partial, wraps
 from typing import Union
@@ -66,3 +69,74 @@ def constraints(cls=None, classification_type: Union[None, str, ClassificationTy
                                  *args, n=n, **kwargs)
 
     return QueryStrategyConstraints
+
+
+def argselect(arr, n, maximum=True, tiebreak=True):
+    """Returns the n highest or lowest indices in `arr`.
+
+    This is intended to be a generalized `np.argpartition()` with tiebreaking functionality.
+
+    Parameters
+    ----------
+    arr :
+
+    n : int
+        Number of indices to select.
+    maximum : bool
+        Select n highest values if `maximum` is `True`, otherwise the n lowest values.
+    tiebreak : bool
+        Resolves tiebreaks if `True`, otherwise returns to np.arpartition / np.argsort.
+    """
+    if n == arr.shape[0]:
+        return np.arange(n)
+    elif n > arr.shape[0]:
+        raise ValueError(f'n={n} out of bounds of array with shape {arr.shape}')
+
+    if not tiebreak:
+        return _argpartition(arr, n, maximum=maximum)[:n]
+
+    return _argselect_tiebreak(arr, n, maximum=maximum)
+
+
+def _argselect_tiebreak(arr, n, maximum=True):
+
+    indices_argpartitioned_window = _argpartition(arr, n, maximum=maximum)
+    if maximum:
+        tiebreak_value = np.sort(-arr[indices_argpartitioned_window[:n]])[n-1]
+    else:
+        tiebreak_value = np.sort(arr[indices_argpartitioned_window[:n]])[n-1]
+
+    k = 2 * n
+    while k < arr.shape[0] and arr[indices_argpartitioned_window][k-1] == tiebreak_value:
+        indices_argpartitioned_window = _argpartition(arr, k, maximum=maximum)
+        k = min(k+n, arr.shape[0])
+
+    indices_argpartitioned_window = indices_argpartitioned_window[:k]
+    indices_tiebreak_value = np.isclose(arr[indices_argpartitioned_window], np.array([tiebreak_value] * k))
+    if indices_tiebreak_value.sum() <= 1:
+        # no tiebreak necessary
+        return _argpartition(arr, n, maximum=maximum)[:n]
+
+    # randomize the "tiebreak value's" occurrences
+    indices_tiebreak_value_shuffled = np.copy(indices_argpartitioned_window[indices_tiebreak_value] )
+    np.random.shuffle(indices_tiebreak_value_shuffled)
+
+    logging.debug(f'Tie breaking applied on {indices_tiebreak_value.sum()} equal scores.')
+    indices_argpartitioned_window[indices_tiebreak_value] = indices_tiebreak_value_shuffled
+    indices_argpartioned_n = _argpartition(arr[indices_argpartitioned_window], n, maximum=maximum)
+
+    return indices_argpartitioned_window[indices_argpartioned_n[:n]]
+
+
+def _argpartition(arr, k, maximum=True):
+    if arr.shape[0] > k:
+        if maximum is True:
+            indices = np.argpartition(-arr, k)
+        else:
+            indices = np.argpartition(arr, k)
+    else:
+        if maximum is True:
+            indices = np.argsort(-arr)
+        else:
+            indices = np.argsort(arr)
+    return indices

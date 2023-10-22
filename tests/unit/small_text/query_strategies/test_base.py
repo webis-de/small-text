@@ -4,9 +4,10 @@ import scipy
 import numpy as np
 
 from small_text.classifiers.classification import SklearnClassifier, ConfidenceEnhancedLinearSVC
-from small_text.query_strategies.base import ClassificationType, constraints
+from small_text.query_strategies.base import ClassificationType, argselect, constraints
 from small_text.query_strategies.strategies import RandomSampling
 
+from numpy.testing import assert_array_almost_equal
 from tests.utils.datasets import random_sklearn_dataset
 
 
@@ -118,3 +119,76 @@ class ConstraintTest(unittest.TestCase):
             y = np.random.randint(num_classes, size=indices_labeled.shape[0])
 
         query_strategy.query(clf, ds, indices_unlabeled, indices_labeled, y)
+
+
+class ArgselectTest(unittest.TestCase):
+
+    def test_argselect_without_ties_maximum(self, n=5):
+
+        arr = np.arange(0.1, 1.1, step=0.1)
+        np.random.shuffle(arr)
+
+        indices = argselect(arr, n)
+        assert_array_almost_equal(np.array([0.6, 0.7, 0.8, 0.9, 1.0]), np.sort(arr[indices]))
+
+    def test_argselect_without_ties_minimum(self, n=5):
+
+        arr = np.arange(0.1, 1.1, step=0.1)
+        np.random.shuffle(arr)
+
+        indices = argselect(arr, n, maximum=False)
+        assert_array_almost_equal(np.array([0.1, 0.2, 0.3, 0.4, 0.5]), np.sort(arr[indices]))
+
+    def test_argselect_with_ties_within_window_minimum(self, n=5):
+        arr = np.array([0.1, 0.2, 0.3, 0.3, 0.3,
+                        0.4, 0.4, 0.4, 0.4, 0.4])
+        np.random.shuffle(arr)
+
+        indices = argselect(arr, n, maximum=False)
+        assert_array_almost_equal(np.array([0.1, 0.2, 0.3, 0.3, 0.3]), np.sort(arr[indices]))
+
+    def test_argselect_with_ties_outside_window_minimum(self, n=5):
+        arr = np.array([0.1, 0.2, 0.3, 0.3, 0.3,
+                        0.3, 0.3, 0.3, 0.3, 0.3,
+                        0.3, 0.3, 0.3, 0.3, 0.5])
+        np.random.shuffle(arr)
+
+        indices = argselect(arr, n, maximum=False)
+        assert_array_almost_equal(np.array([0.1, 0.2, 0.3, 0.3, 0.3]), np.sort(arr[indices]))
+
+    def test_argselect_with_ties_within_window_maximum(self, n=5):
+        arr = np.array([0.1, 0.2, 0.3, 0.3, 0.3,
+                        0.4, 0.5, 0.5, 0.5, 0.6])
+        np.random.shuffle(arr)
+
+        indices = argselect(arr, n, maximum=True)
+        assert_array_almost_equal(np.array([0.4, 0.5, 0.5, 0.5, 0.6]), np.sort(arr[indices]))
+
+    def test_argselect_with_ties_outside_window_maximum(self, n=5):
+        arr = np.array([0.1, 0.2, 0.3, 0.3, 0.3,
+                        0.3, 0.3, 0.3, 0.3, 0.3,
+                        0.3, 0.3, 0.3, 0.3, 0.5])
+        np.random.shuffle(arr)
+
+        indices = argselect(arr, n, maximum=True)
+        assert_array_almost_equal(np.array([0.3, 0.3, 0.3, 0.3, 0.5]), np.sort(arr[indices]))
+
+    def test_argselect_n_equals_input_size(self):
+        arr = np.array([0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5, 0.9])
+        np.random.shuffle(arr)
+
+        indices = argselect(arr, arr.shape[0])
+        assert_array_almost_equal(arr, arr[indices])
+
+        indices = argselect(arr, arr.shape[0], maximum=False)
+        assert_array_almost_equal(arr, arr[indices])
+
+    def test_argselect_n_greater_input_size(self):
+
+        arr = np.array([0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5, 0.9])
+
+        with self.assertRaisesRegex(ValueError, r'n=11 out of bounds of array with shape \(10,\)'):
+            argselect(arr, arr.shape[0]+1)
+
+        with self.assertRaisesRegex(ValueError, r'n=11 out of bounds of array with shape \(10,\)'):
+            argselect(arr, arr.shape[0]+1, maximum=False)
