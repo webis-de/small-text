@@ -2,24 +2,17 @@ import unittest
 import pytest
 from unittest import mock
 
-from parameterized import parameterized_class
-
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from tests.utils.datasets import twenty_news_transformers
 from tests.utils.testing import assert_array_not_equal
 
 try:
-    import torch
-
     from small_text.integrations.transformers import (
         TransformerBasedClassificationFactory,
-        TransformerBasedClassification,
         TransformerBasedEmbeddingMixin,
         TransformerModelArguments
     )
     from small_text.integrations.transformers.classifiers.classification import FineTuningArguments
-
-    from tests.utils.datasets import random_transformer_dataset
 except (ImportError, PytorchNotFoundError):
     pass
 

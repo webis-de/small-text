@@ -93,7 +93,7 @@ def load_gensim_embedding(texts, tokenizer, pretrained_vectors, min_freq=1, num_
     vocab = tokenizer.get_vocab()
     vectors += [
         pretrained_vectors.get_vector(tokenizer.id_to_token(i))
-        if pretrained_vectors.has_index_for(tokenizer.id_to_token(i) )
+        if pretrained_vectors.has_index_for(tokenizer.id_to_token(i))
         else np.zeros(pretrained_vectors.vectors.shape[1])
         for i in range(num_special_tokens, len(vocab))
     ]

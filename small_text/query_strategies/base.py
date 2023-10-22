@@ -118,7 +118,7 @@ def _argselect_tiebreak(arr, n, maximum=True):
         return _argpartition(arr, n, maximum=maximum)[:n]
 
     # randomize the "tiebreak value's" occurrences
-    indices_tiebreak_value_shuffled = np.copy(indices_argpartitioned_window[indices_tiebreak_value] )
+    indices_tiebreak_value_shuffled = np.copy(indices_argpartitioned_window[indices_tiebreak_value])
     np.random.shuffle(indices_tiebreak_value_shuffled)
 
     logging.debug(f'Tie breaking applied on {indices_tiebreak_value.sum()} equal scores.')

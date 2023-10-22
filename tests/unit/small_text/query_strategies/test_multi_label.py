@@ -1,7 +1,6 @@
 import unittest
 import numpy as np
 
-from numpy.testing import assert_array_almost_equal
 from scipy.sparse import csr_matrix
 
 from small_text.query_strategies.multi_label import (
@@ -53,7 +52,6 @@ class LabelCardinalityFunctionTest(unittest.TestCase):
                 [0.6, 0.7, 0.8, 0.1]
             ])
         )
-        #y_pred_unlabeled = list_to_csr([[], [0], [0, 1], [0, 1, 2]], shape=(4, 3))
         y_labeled = list_to_csr([[0, 1], [1]], shape=(2, 3))
 
         lci = _label_cardinality_inconsistency(y_pred_proba_unlabeled, y_labeled)
@@ -94,9 +92,9 @@ class LabelCardinalityInconsistencyTest(unittest.TestCase):
         self.assertEqual('LabelCardinalityInconsistency(prediction_threshold=0.7)', str(query_strategy))
 
     def test_init_with_invalid_prediction_threshold(self):
-        with self.assertRaisesRegex(ValueError, 'Prediction threshold must be in the interval \[0, 1\]'):
+        with self.assertRaisesRegex(ValueError, r'Prediction threshold must be in the interval \[0, 1\]'):
             AdaptiveActiveLearning(prediction_threshold=1.1)
-        with self.assertRaisesRegex(ValueError, 'Prediction threshold must be in the interval \[0, 1\]'):
+        with self.assertRaisesRegex(ValueError, r'Prediction threshold must be in the interval \[0, 1\]'):
             AdaptiveActiveLearning(prediction_threshold=-1.1)
 
     def test_str(self):
@@ -165,23 +163,25 @@ class AdaptiveActiveLearningTest(unittest.TestCase):
 
     def test_init_with_nondefault_args(self):
         query_strategy = AdaptiveActiveLearning(uncertainty_weight=0.7, prediction_threshold=0.7)
-        self.assertEqual('AdaptiveActiveLearning(uncertainty_weight=0.7, prediction_threshold=0.7)', str(query_strategy))
+        self.assertEqual('AdaptiveActiveLearning(uncertainty_weight=0.7, prediction_threshold=0.7)',
+                         str(query_strategy))
 
     def test_init_with_invalid_uncertainty_weight(self):
-        with self.assertRaisesRegex(ValueError, 'Uncertainty weight must be in the interval \[0, 1\]'):
+        with self.assertRaisesRegex(ValueError, r'Uncertainty weight must be in the interval \[0, 1\]'):
             AdaptiveActiveLearning(uncertainty_weight=1.1)
-        with self.assertRaisesRegex(ValueError, 'Uncertainty weight must be in the interval \[0, 1\]'):
+        with self.assertRaisesRegex(ValueError, r'Uncertainty weight must be in the interval \[0, 1\]'):
             AdaptiveActiveLearning(uncertainty_weight=-1.1)
 
     def test_init_with_invalid_prediction_threshold(self):
-        with self.assertRaisesRegex(ValueError, 'Prediction threshold must be in the interval \[0, 1\]'):
+        with self.assertRaisesRegex(ValueError, r'Prediction threshold must be in the interval \[0, 1\]'):
             AdaptiveActiveLearning(prediction_threshold=1.1)
-        with self.assertRaisesRegex(ValueError, 'Prediction threshold must be in the interval \[0, 1\]'):
+        with self.assertRaisesRegex(ValueError, r'Prediction threshold must be in the interval \[0, 1\]'):
             AdaptiveActiveLearning(prediction_threshold=-1.1)
 
     def test_str(self):
         query_strategy = AdaptiveActiveLearning()
-        self.assertEqual('AdaptiveActiveLearning(uncertainty_weight=0.5, prediction_threshold=0.5)', str(query_strategy))
+        self.assertEqual('AdaptiveActiveLearning(uncertainty_weight=0.5, prediction_threshold=0.5)',
+                         str(query_strategy))
 
 
 class CategoryVectorInconsistencyAndRankingTest(unittest.TestCase):

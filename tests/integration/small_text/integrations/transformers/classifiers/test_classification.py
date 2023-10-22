@@ -19,7 +19,6 @@ try:
     import torch
 
     from small_text.integrations.transformers import (
-        TransformerBasedClassificationFactory,
         TransformerBasedClassification,
         TransformerModelArguments
     )
@@ -208,13 +207,13 @@ class _TransformerBasedClassificationTest(object):
                 patch('torch.nn.modules.module.Module.eval') as eval_spy, \
                 patch('torch.nn.modules.module.Module.train') as train_spy:
 
-                clf.fit(train_set)
+            clf.fit(train_set)
 
-                self.assertIsNotNone(clf.model)
-                self.assertEqual(2, validate_spy.call_count)
-                self.assertEqual(3, train_spy.call_count)
-                # once per validate (after the call to validate) plus one call during initialization in from_pretrained()
-                self.assertEqual(3, eval_spy.call_count)
+            self.assertIsNotNone(clf.model)
+            self.assertEqual(2, validate_spy.call_count)
+            self.assertEqual(3, train_spy.call_count)
+            # once per validate (after the call to validate) plus one call during initialization in from_pretrained()
+            self.assertEqual(3, eval_spy.call_count)
 
     def test_validate_with_validations_per_epoch_too_large(self):
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
