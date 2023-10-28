@@ -136,8 +136,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
         self.assertIsNone(classifier.criterion)
         self.assertEqual(0.1, classifier.validation_set_size)
         self.assertEqual(1, classifier.validations_per_epoch)
-        self.assertEqual(5, classifier.early_stopping_no_improvement)
-        self.assertEqual(-1, classifier.early_stopping_acc)
         self.assertTrue(classifier.model_selection)
         self.assertIsNone(classifier.fine_tuning_arguments)
         self.assertIsNotNone(classifier.device)
@@ -155,8 +153,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
         mini_batch_size = 24
         validation_set_size = 0.05
         validations_per_epoch = 5
-        early_stopping_no_improvement = 10
-        early_stopping_acc = 0.99
         model_selection = True
         fine_tuning_arguments = FineTuningArguments(5e-5, 0.99)
         device = 'cuda'
@@ -173,8 +169,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
             mini_batch_size=mini_batch_size,
             validation_set_size=validation_set_size,
             validations_per_epoch=validations_per_epoch,
-            early_stopping_no_improvement=early_stopping_no_improvement,
-            early_stopping_acc=early_stopping_acc,
             model_selection=model_selection,
             fine_tuning_arguments=fine_tuning_arguments,
             device=device,
@@ -191,8 +185,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
         self.assertEqual(mini_batch_size, classifier.mini_batch_size)
         self.assertEqual(validation_set_size, classifier.validation_set_size)
         self.assertEqual(validations_per_epoch, classifier.validations_per_epoch)
-        self.assertEqual(early_stopping_no_improvement, classifier.early_stopping_no_improvement)
-        self.assertEqual(early_stopping_acc, classifier.early_stopping_acc)
         self.assertEqual(model_selection, classifier.model_selection)
         self.assertEqual(fine_tuning_arguments, classifier.fine_tuning_arguments)
         self.assertEqual(device, classifier.device)
@@ -276,73 +268,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, 'Weights must be greater zero.'):
             classifier.fit(dataset, weights=weights)
-
-    # TODO: remove this in 2.0.0
-    def test_fit_with_early_stopping_fallback_default_kwargs(self):
-        train = random_transformer_dataset(8)
-        valid = random_transformer_dataset(2)
-
-        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
-        classifier = TransformerBasedClassification(model_args, 2)
-        with patch.object(classifier, '_fit_main') as fit_main_mock:
-            classifier.fit(train, validation_set=valid)
-            fit_main_mock.assert_called()
-            self.assertIsNone(classifier.class_weights_)
-
-            call_args = fit_main_mock.call_args[0]
-            self.assertTrue(isinstance(call_args[3], EarlyStopping))
-            self.assertEqual('val_loss', call_args[3].metric.name)
-            self.assertEqual(5, call_args[3].patience)
-
-    # TODO: remove this in 2.0.0
-    def test_fit_with_early_stopping_fallback_deprecated_kwargs(self):
-        train = random_transformer_dataset(8)
-        valid = random_transformer_dataset(2)
-
-        early_stopping_no_improvement = 8
-        early_stopping_acc = 0.98
-
-        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
-        classifier = TransformerBasedClassification(
-            model_args,
-            2,
-            early_stopping_no_improvement=early_stopping_no_improvement,
-            early_stopping_acc=early_stopping_acc)
-        with patch.object(classifier, '_fit_main') as fit_main_mock:
-            classifier.fit(train, validation_set=valid)
-            fit_main_mock.assert_called()
-            self.assertIsNone(classifier.class_weights_)
-
-            call_args = fit_main_mock.call_args[0]
-            self.assertTrue(isinstance(call_args[3], EarlyStoppingOrCondition))
-
-            first_handler = call_args[3].early_stopping_handlers[0]
-            self.assertEqual('val_loss', first_handler.metric.name)
-            self.assertEqual(early_stopping_no_improvement, first_handler.patience)
-
-            second_handler = call_args[3].early_stopping_handlers[1]
-            self.assertEqual('train_acc', second_handler.metric.name)
-            self.assertEqual(-1, second_handler.patience)
-
-    # TODO: remove this in 2.0.0
-    def test_fit_with_early_stopping_and_fall_back_simultaneously(self):
-        dataset = random_transformer_dataset(10)
-
-        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
-        early_stopping = EarlyStopping(Metric('val_loss'))
-
-        classifier = TransformerBasedClassification(model_args, 2,
-                                                    early_stopping_no_improvement=7)
-
-        with patch.object(classifier, '_fit_main') as fit_main_mock, \
-                self.assertWarnsRegex(UserWarning, r'Both the fit\(\) argument early_stopping'):
-            classifier.fit(dataset, early_stopping=early_stopping)
-
-        classifier = TransformerBasedClassification(model_args, 2,
-                                                    early_stopping_acc=0.98)
-        with self.assertWarnsRegex(UserWarning, r'Both the fit\(\) argument early_stopping'):
-            classifier.fit(dataset, early_stopping=early_stopping)
-        fit_main_mock.assert_called()
 
     def test_fit_with_optimizer_and_scheduler(self):
         dataset = random_transformer_dataset(10)

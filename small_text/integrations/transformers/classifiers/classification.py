@@ -14,7 +14,6 @@ from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data
 from small_text.utils.datetime import format_timedelta
 from small_text.utils.annotations import (
-    early_stopping_deprecation_warning,
     model_selection_deprecation_warning
 )
 
@@ -229,8 +228,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                  mini_batch_size: int = 12,
                  validation_set_size: float = 0.1,
                  validations_per_epoch: int = 1,
-                 early_stopping_no_improvement: int = 5,
-                 early_stopping_acc: float = -1,
                  model_selection: bool = True,
                  fine_tuning_arguments=None,
                  device=None,
@@ -258,17 +255,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             The size of the validation set as a fraction of the training set.
         validations_per_epoch : int, default=1
             Defines how of the validation set is evaluated during the training of a single epoch.
-        early_stopping_no_improvement : int, default=5
-            Number of epochs with no improvement in validation loss until early stopping
-            is triggered.
-
-            .. deprecated:: 1.1.0
-               Use the `early_stopping` kwarg in `fit()` instead.
-        early_stopping_acc : float, default=-1
-            Accuracy threshold in the interval (0, 1] which triggers early stopping.
-
-            .. deprecated:: 1.1.0
-               Use the `early_stopping` kwarg in `fit()` instead.
         model_selection : bool, default=True
             If True, model selects first saves the model after each epoch. At the end of the
             training step the model with the lowest validation error is selected.
@@ -287,7 +273,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             Set this to `VERBOSITY_QUIET` or `0` for the minimum amount of logging.
         """
         super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size)
-        early_stopping_deprecation_warning(early_stopping_no_improvement, early_stopping_acc)
         model_selection_deprecation_warning(model_selection)
 
         with verbosity_logger():
@@ -309,8 +294,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.transformer_model = transformer_model
 
         # Other
-        self.early_stopping_no_improvement = early_stopping_no_improvement
-        self.early_stopping_acc = early_stopping_acc
         self.class_weight = class_weight
 
         self.model_selection = model_selection
@@ -375,12 +358,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             )
             sub_train_weights = None
 
-        early_stopping = self._get_default_early_stopping(
-            early_stopping,
-            self.early_stopping_no_improvement,
-            self.early_stopping_acc,
-            self.validations_per_epoch,
-            kwarg_no_improvement_name='early_stopping_no_improvement')
+        early_stopping = self._get_default_early_stopping(early_stopping, self.validations_per_epoch)
         model_selection = self._get_default_model_selection(model_selection)
 
         fit_optimizer = optimizer if optimizer is not None else self.optimizer

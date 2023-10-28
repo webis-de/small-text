@@ -39,6 +39,8 @@ On the other hand, this also allowed us to deal with further issues that contain
 ### Removed
 
 - Removed `default_tensor_type()` method.
+- Classification
+  - Removed legacy arguments for early stopping in `__init__` for KimCNN and TransformerBasedClassification. (Use `fit()` keyword arguments instead.) 
 
 ---
 

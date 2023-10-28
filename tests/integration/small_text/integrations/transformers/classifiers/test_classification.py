@@ -11,7 +11,7 @@ from unittest.mock import patch, Mock
 from scipy.sparse import issparse
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.training.early_stopping import EarlyStopping, NoopEarlyStopping
+from small_text.training.early_stopping import EarlyStopping, NoopEarlyStopping, EarlyStoppingOrCondition
 from small_text.training.metrics import Metric
 from small_text.training.model_selection import ModelSelection, NoopModelSelection
 
@@ -319,9 +319,12 @@ class _TransformerBasedClassificationTest(object):
 
             self.assertEqual(1, fit_main_spy.call_count)
             early_stopping_arg = fit_main_spy.call_args_list[0].args[3]
-            self.assertTrue(isinstance(early_stopping_arg, EarlyStopping))
-            self.assertEqual('val_loss', early_stopping_arg.metric.name)
-            self.assertEqual(5, early_stopping_arg.patience)
+            self.assertTrue(isinstance(early_stopping_arg, EarlyStoppingOrCondition))
+            self.assertEqual(2, len(early_stopping_arg.early_stopping_handlers))
+
+            # this is a quick and dirty test; other values of the early stopping handlers could differ here
+            self.assertEqual('val_loss', early_stopping_arg.early_stopping_handlers[0].metric.name)
+            self.assertEqual('train_acc', early_stopping_arg.early_stopping_handlers[1].metric.name)
 
     def test_fit_with_early_stopping_disabled(self):
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')

@@ -15,7 +15,6 @@ from small_text.integrations.pytorch.models.kimcnn import KimCNN
 from small_text.utils.classification import get_splits
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data, list_length
-from small_text.utils.annotations import early_stopping_deprecation_warning
 from small_text.utils.labels import csr_to_list
 from small_text.utils.datetime import format_timedelta
 from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
@@ -174,8 +173,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
     def __init__(self, num_classes, multi_label=False, embedding_matrix=None, device=None,
                  num_epochs=10, mini_batch_size=25, lr=0.001, max_seq_len=60, out_channels=100,
                  filter_padding=0, dropout=0.5, validation_set_size=0.1, padding_idx=0,
-                 kernel_heights=[3, 4, 5], early_stopping=5, early_stopping_acc=-1,
-                 class_weight=None, compile_model=False, verbosity=VERBOSITY_MORE_VERBOSE):
+                 kernel_heights=[3, 4, 5], class_weight=None, compile_model=False, verbosity=VERBOSITY_MORE_VERBOSE):
         """
         num_classes : int
             Number of classes.
@@ -206,17 +204,6 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             Index of the padding token (as given by the `vocab`).
         kernel_heights : list of int
             Kernel sizes.
-        early_stopping : int
-            Number of epochs with no improvement in validation loss until early stopping
-            is triggered.
-
-             .. deprecated:: 1.1.0
-               Use the `early_stopping` kwarg in `fit()` instead.
-        early_stopping_acc : float
-            Accuracy threshold in the interval (0, 1] which triggers early stopping.
-
-            .. deprecated:: 1.1.0
-               Use the `early_stopping` kwarg in `fit()` instead.
         class_weight : 'balanced' or None, default=None
             If 'balanced', then the loss function is weighted inversely proportional to the
             label distribution to the current train set.
@@ -226,7 +213,6 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             .. versionadded:: 2.0.0
         """
         super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size)
-        early_stopping_deprecation_warning(early_stopping, early_stopping_acc)
 
         with verbosity_logger():
             self.logger = logging.getLogger(__name__)
@@ -256,9 +242,6 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         self.embedding_matrix = embedding_matrix
         self.padding_idx = padding_idx
         self.kernel_heights = kernel_heights
-
-        self.early_stopping = early_stopping
-        self.early_stopping_acc = early_stopping_acc
 
         self.model = None
         self.model_selection = None
@@ -311,12 +294,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             )
             sub_train_weights = None
 
-        early_stopping = self._get_default_early_stopping(
-            early_stopping,
-            self.early_stopping,
-            self.early_stopping_acc,
-            1,
-            kwarg_no_improvement_name='early_stopping')
+        early_stopping = self._get_default_early_stopping(early_stopping, 1)
         model_selection = self._get_default_model_selection(model_selection)
 
         fit_optimizer = optimizer if optimizer is not None else self.optimizer

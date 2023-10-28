@@ -160,33 +160,23 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
         else:
             return CrossEntropyLoss(weight=class_weights, reduction=reduction)
 
-    def _get_default_early_stopping(self, early_stopping, early_stopping_no_improvement,
-                                    early_stopping_acc, validations_per_epoch,
-                                    kwarg_no_improvement_name='early_stopping_no_improvement'):
+    def _get_default_early_stopping(self,
+                                    early_stopping,
+                                    validations_per_epoch,
+                                    early_stopping_patience=5,
+                                    early_stopping_acc=0.99):
 
         if early_stopping is None:
-            patience = early_stopping_no_improvement * validations_per_epoch
-            if early_stopping_no_improvement == 5 and early_stopping_acc == -1:
-                early_stopping = EarlyStopping(Metric('val_loss'), patience=patience)
-            elif early_stopping_no_improvement == 0 and early_stopping_acc == -1:
-                early_stopping = NoopEarlyStopping()
-            else:
-                early_stopping = EarlyStoppingOrCondition([
-                    EarlyStopping(Metric('val_loss'), patience=patience),
-                    EarlyStopping(Metric('train_acc', lower_is_better=False),
-                                  patience=-1,
-                                  threshold=early_stopping_acc)
-                ])
+            patience = early_stopping_patience * validations_per_epoch
+            early_stopping = EarlyStoppingOrCondition([
+                EarlyStopping(Metric('val_loss'), patience=patience),
+                EarlyStopping(Metric('train_acc', lower_is_better=False),
+                              patience=-1,
+                              threshold=early_stopping_acc)
+            ])
         elif early_stopping == 'none':
             early_stopping = NoopEarlyStopping()
-        else:
-            if early_stopping_no_improvement != 5 or early_stopping_acc != -1:
-                warnings.warn(f'Both the fit() argument early_stopping and the __init__() '
-                              f'arguments "{kwarg_no_improvement_name}" / "early_stopping_acc" '
-                              f'have been used. In this case the fit() argument takes precedence. '
-                              f'The __init__() arguments are deprecated, so please use the '
-                              f'early stopping argument in fit() instead.',
-                              UserWarning)
+
         return early_stopping
 
     @staticmethod
