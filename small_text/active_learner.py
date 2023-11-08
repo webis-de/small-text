@@ -148,7 +148,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         if indices_ignored is not None:
             self.indices_ignored = indices_ignored
         else:
-            self.indices_ignored = np.empty(shape=(0), dtype=int)
+            self.indices_ignored = np.empty(shape=(0,), dtype=int)
 
         if retrain:
             self._retrain(indices_validation=indices_validation)
@@ -401,6 +401,6 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
             self._clf.fit(train, validation_set=valid)
 
     def _build_index_to_position_dict(self):
-        return dict({
+        return {
             x_index: position for position, x_index in enumerate(self.indices_labeled)
-        })
+        }
