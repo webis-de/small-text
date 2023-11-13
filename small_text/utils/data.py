@@ -38,7 +38,8 @@ def check_training_data(train_set, validation_set, weights=None):
 
     if weights is not None:
         if len(train_set) != weights.shape[0]:
-            raise ValueError('Training data and weights must have the same size.')
+            raise ValueError(f'Training data and weights must have the same size '
+                             f'(training data: {len(train_set)}, weights: {weights.shape[0]}).')
 
         if not np.all(weights > 0):
             raise ValueError('Weights must be greater zero.')
