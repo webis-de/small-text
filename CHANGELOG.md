@@ -27,6 +27,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 ### Fixed 
 
 - Fixed a bug where the `clone()` operation wrapped the labels, which then raised an error. This affected the single-label scenario for PytorchTextClassificationDataset and TransformersDataset. ([#35](https://github.com/webis-de/small-text/issues/35))
+- Fixed a bug where the batching in `greedy_coreset()` and `lightweight_coreset()` resulted in incorrect batch sizes. ([#50](https://github.com/webis-de/small-text/issues/50))
 
 ### Changed
 

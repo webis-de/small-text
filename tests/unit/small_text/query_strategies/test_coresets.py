@@ -161,12 +161,34 @@ class GreedyCoresetSamplingStrategyUnnormalizedTest(unittest.TestCase,
         return GreedyCoreset(normalize=self.normalize)
 
 
-class LightweightCoresetFunctionTest(unittest.TestCase):
+class _LightweightCoresetFunctionTest(object):
+
+    def test_query(self, num_samples=20, num_features=100):
+        x = np.random.rand(num_samples, num_features)
+        coreset = lightweight_coreset(x, np.mean(x, axis=0), 10, distance_metric=self.distance_metric)
+        self.assertEqual(coreset.shape, (num_samples,))
+
+    def test_query_with_invalid_distance_metric(self, num_samples=20, num_features=100):
+        x = np.random.rand(num_samples, num_features)
+        with self.assertRaisesRegex(ValueError, 'Invalid distance metric:'):
+            lightweight_coreset(x, np.mean(x, axis=0), 10, distance_metric='non-existent-metric')
 
     def test_query_with_overlarge_n(self, num_samples=20, num_features=100):
         x = np.random.rand(num_samples, num_features)
         with self.assertRaises(ValueError):
             lightweight_coreset(x, np.mean(x, axis=0), num_samples+1)
+
+
+class LightweightCoresetWitdhCodineDistanceMetricFunctionTest(_LightweightCoresetFunctionTest, unittest.TestCase):
+
+    def setUp(self):
+        self.distance_metric = 'cosine'
+
+
+class LightweightCoresetWithEuclideanDistanceMetricFunctionTest(_LightweightCoresetFunctionTest, unittest.TestCase):
+
+    def setUp(self):
+        self.distance_metric = 'euclidean'
 
 
 class _LightweightCoresetSamplingStrategyTest(SamplingStrategiesTests):
