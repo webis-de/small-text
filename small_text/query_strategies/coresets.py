@@ -173,6 +173,7 @@ def lightweight_coreset(x, x_mean, n, batch_size=100, distance_metric='cosine',
                          f'Possible values: {_DISTANCE_METRICS}')
 
     _check_coreset_size(x, n)
+    x_mean = np.expand_dims(x_mean, axis=0)
 
     num_batches = int(np.ceil(x.shape[0] / batch_size))
     indices = np.array([], dtype=int)
@@ -180,7 +181,7 @@ def lightweight_coreset(x, x_mean, n, batch_size=100, distance_metric='cosine',
     for x_batch in np.array_split(x, num_batches, axis=0):
 
         dists = dist_func(x_batch, x_mean, normalized=normalized)
-        dists = np.square(dists)
+        dists = np.square(dists.ravel())
 
         sum_dists = dists.sum()
 

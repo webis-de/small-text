@@ -165,7 +165,7 @@ class _LightweightCoresetFunctionTest(object):
 
     def test_query(self, num_samples=20, num_features=100):
         x = np.random.rand(num_samples, num_features)
-        coreset = lightweight_coreset(x, np.mean(x, axis=0), 10, distance_metric=self.distance_metric)
+        coreset = lightweight_coreset(x, np.mean(x, axis=0), num_samples, distance_metric=self.distance_metric)
         self.assertEqual(coreset.shape, (num_samples,))
 
     def test_query_with_invalid_distance_metric(self, num_samples=20, num_features=100):
