@@ -11,12 +11,24 @@ from small_text.query_strategies import (
     LightweightCoreset
 )
 
-from tests.unit.small_text.query_strategies.test_strategies import (DEFAULT_QUERY_SIZE,
-                                                                    SamplingStrategiesTests,
-                                                                    query_random_data)
+from tests.unit.small_text.query_strategies.test_strategies import (
+    DEFAULT_QUERY_SIZE,
+    SamplingStrategiesTests,
+    query_random_data
+)
 
 
-class GreedyCoresetFunctionTest(unittest.TestCase):
+class _GreedyCoresetFunctionTest(object):
+
+    def test_query(self, num_samples=20, num_features=100):
+        x = np.random.rand(num_samples, num_features)
+        indices = np.arange(num_samples)
+        indices_mid = int(num_samples / 2)
+
+        coreset = greedy_coreset(x, indices[:indices_mid], indices[indices_mid:], num_samples,
+                                 distance_metric=self.distance_metric)
+
+        self.assertEqual(coreset.shape, (num_samples,))
 
     def test_query_with_invalid_distance_metric(self, num_samples=20, num_features=100):
         x = np.random.rand(num_samples, num_features)
@@ -26,12 +38,37 @@ class GreedyCoresetFunctionTest(unittest.TestCase):
             greedy_coreset(x, indices[:indices_mid], indices[indices_mid:], num_samples,
                            distance_metric='non-existent-metric')
 
+    # see https://github.com/webis-de/small-text/issues/50
+    def test_query_with_num_unlabeled_smaller_than_num_batches(self, num_samples=200, num_features=100):
+        x = np.random.rand(num_samples, num_features)
+
+        indices = np.arange(num_samples)
+        indices_mid = num_samples - 180
+
+        coreset = greedy_coreset(x, indices[:indices_mid], indices[indices_mid:], num_samples,
+                                 distance_metric=self.distance_metric, batch_size=5)
+
+        self.assertEqual(coreset.shape, (num_samples,))
+
     def test_query_with_overlarge_n(self, num_samples=20, num_features=100):
         x = np.random.rand(num_samples, num_features)
         indices = np.arange(num_samples)
         indices_mid = int(num_samples / 2)
         with self.assertRaises(ValueError):
-            greedy_coreset(x, indices[:indices_mid], indices[indices_mid:], num_samples+1)
+            greedy_coreset(x, indices[:indices_mid], indices[indices_mid:], num_samples+1,
+                           distance_metric=self.distance_metric)
+
+
+class GreedyCoresetWithCosineDistanceMetricFunctionTest(_GreedyCoresetFunctionTest, unittest.TestCase):
+
+    def setUp(self):
+        self.distance_metric = 'cosine'
+
+
+class GreedyCoresetWithEuclideanDistanceMetricFunctionTest(_GreedyCoresetFunctionTest, unittest.TestCase):
+
+    def setUp(self):
+        self.distance_metric = 'euclidean'
 
 
 class _CoresetSamplingStrategyTest(SamplingStrategiesTests):

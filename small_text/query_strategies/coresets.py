@@ -60,7 +60,7 @@ def greedy_coreset(x, indices_unlabeled, indices_labeled, n, distance_metric='co
     """
     _check_coreset_size(x, n)
 
-    num_batches = int(np.ceil(x.shape[0] / batch_size))
+    num_batches = int(np.ceil(indices_unlabeled.shape[0] / batch_size))
     ind_new = []
 
     if distance_metric == 'cosine':
