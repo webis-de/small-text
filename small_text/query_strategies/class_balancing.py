@@ -152,9 +152,9 @@ class ClassBalancer(QueryStrategy):
                                                  replace=False)
             indices = indices_unlabeled[indices_subsample]
 
-        return self._query_class_balanced(clf, dataset, indices, y, n)
+        return self._query_class_balanced(clf, dataset, indices, indices_labeled, y, n)
 
-    def _query_class_balanced(self, clf, dataset, indices, y, n):
+    def _query_class_balanced(self, clf, dataset, indices, indices_labeled, y, n):
         y_pred = clf.predict(dataset[indices])
 
         target_distribution = _get_rebalancing_distribution(n,
@@ -170,13 +170,15 @@ class ClassBalancer(QueryStrategy):
             class_indices = np.argwhere(y_pred == c)[:, 0]
             remaining_indices = np.argwhere(y_pred != c)[:, 0]
             if target_distribution[c] > 0:
+                class_reduced_indices = np.append(indices[class_indices], indices_labeled)
                 queried_indices = self.base_query_strategy.query(clf,
-                                                                 dataset[indices],
-                                                                 class_indices,
-                                                                 remaining_indices,
+                                                                 dataset[class_reduced_indices],
+                                                                 np.arange(class_indices.shape[0]),
+                                                                 np.arange(class_indices.shape[0],
+                                                                           class_reduced_indices.shape[0]),
                                                                  y,
                                                                  n=target_distribution[c])
-                indices_balanced.extend(indices[queried_indices].tolist())
+                indices_balanced.extend(class_reduced_indices[queried_indices].tolist())
 
         return np.array(indices_balanced)
 
