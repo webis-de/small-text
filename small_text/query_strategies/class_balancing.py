@@ -168,7 +168,6 @@ class ClassBalancer(QueryStrategy):
         indices_balanced = []
         for c in active_classes:
             class_indices = np.argwhere(y_pred == c)[:, 0]
-            remaining_indices = np.argwhere(y_pred != c)[:, 0]
             if target_distribution[c] > 0:
                 class_reduced_indices = np.append(indices[class_indices], indices_labeled)
                 queried_indices = self.base_query_strategy.query(clf,
