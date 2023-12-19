@@ -68,7 +68,7 @@ class DeltaFScore(StoppingCriterion):
             self.last_predictions = predictions
             return False
         else:
-            agreement = (predictions == self.last_predictions).astype(int).sum()
+            agreement = ((self.last_predictions == 1) & (predictions == 1)).astype(int).sum()
             disagreement_old_positive = ((self.last_predictions == 1) & (predictions == 0)).astype(int).sum()
             disagreement_new_positive = ((self.last_predictions == 0) & (predictions == 1)).astype(int).sum()
 
