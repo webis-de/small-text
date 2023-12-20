@@ -37,7 +37,12 @@ class DeltaFScore(StoppingCriterion):
     """A stopping criterion which stops if the predicted change of the F-score falls below
     a threshold [AB19]_.
 
-    .. note:: This criterion is only applicable for binary classification."""
+    .. note:: This criterion is only applicable for binary classification.
+
+    .. versionchanged:: 1.3.3
+       The implementation now correctly only considers the change in agreement of the predicted labels
+       belonging to the positive class.
+    """
     def __init__(self, num_classes, window_size=3, threshold=0.05):
         """
         num_classes : int
@@ -68,7 +73,7 @@ class DeltaFScore(StoppingCriterion):
             self.last_predictions = predictions
             return False
         else:
-            agreement = (predictions == self.last_predictions).astype(int).sum()
+            agreement = ((self.last_predictions == 1) & (predictions == 1)).astype(int).sum()
             disagreement_old_positive = ((self.last_predictions == 1) & (predictions == 0)).astype(int).sum()
             disagreement_new_positive = ((self.last_predictions == 0) & (predictions == 1)).astype(int).sum()
 
