@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.3.3 - unreleased
+
+### Fixed
+
+- Fixed a deviation from the paper, where `DeltaFScore` also took into account the agreement in predictions of the negative label. ([#51](https://github.com/webis-de/small-text/pull/51))
+
+---
+
 ## Version 1.3.2 - 2023-08-19
 
 ### Fixed
