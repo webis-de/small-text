@@ -16,6 +16,7 @@ from small_text.classifiers import *
 from small_text.data import *
 from small_text.initialization import *
 from small_text.integrations import *
+from small_text.integrations import pytorch, transformers
 from small_text.query_strategies import *
 from small_text.stopping_criteria import *
 from small_text.training import *
@@ -41,18 +42,8 @@ from small_text.exceptions import (
 from small_text.version import get_version
 from small_text.utils.system import is_pytorch_available, is_transformers_available
 
-__all__ = (
-    classifiers.__all__ +
-    data.__all__ +
-    initialization.__all__ +
-    query_strategies.__all__ +
-    stopping_criteria.__all__ +
-    training.__all__ +
-    utils.__all__
-)
 
-
-__all__ = __all__ + [
+__all__ = [
     'ActiveLearner',
     'AbstractPoolBasedActiveLearner',
     'PoolBasedActiveLearner',
@@ -67,13 +58,13 @@ __all__ = __all__ + [
     'get_version'
 ]
 
+__all__ += classifiers.__all__
+__all__ += data.__all__
+__all__ += initialization.__all__
+__all__ += query_strategies.__all__
+__all__ += stopping_criteria.__all__
+__all__ += training.__all__
+__all__ += utils.__all__
 
-if is_pytorch_available():
-    from small_text.integrations.pytorch import *
-
-    __all__ = __all__ + integrations.pytorch.__all__
-
-if is_transformers_available():
-    from small_text.integrations.transformers import *
-
-    __all__ = __all__ + integrations.transformers.__all__
+__all__ += pytorch.__all__
+__all__ += transformers.__all__
