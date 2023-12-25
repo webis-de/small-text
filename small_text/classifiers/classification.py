@@ -140,8 +140,7 @@ class SklearnClassifier(Classifier):
 
         proba = self.model.predict_proba(data_set.x)
 
-        return prediction_result(proba, self.multi_label, self.num_classes, enc=None,
-                                 return_proba=return_proba)
+        return prediction_result(proba, self.multi_label, self.num_classes, return_proba=return_proba)
 
     def predict_proba(self, data_set: Dataset):
         """Predicts the label distribution for each sample in the given dataset.

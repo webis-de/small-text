@@ -3,7 +3,6 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 from small_text.data.splits import split_data
-from small_text.utils.annotations import prediction_result_enc_warning
 from small_text.utils.labels import list_to_csr
 
 
