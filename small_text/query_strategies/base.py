@@ -78,12 +78,12 @@ def argselect(arr, n, maximum=True, tiebreak=True):
 
     Parameters
     ----------
-    arr :
-
+    arr : np.ndarray[double]
+        Array from which the indices are selected.
     n : int
         Number of indices to select.
     maximum : bool
-        Select n highest values if `maximum` is `True`, otherwise the n lowest values.
+        Select the n highest values if `maximum` is `True`, otherwise the n lowest values.
     tiebreak : bool
         Resolves tiebreaks if `True`, otherwise returns to np.arpartition / np.argsort.
     """
