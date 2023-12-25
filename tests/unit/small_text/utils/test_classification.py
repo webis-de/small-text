@@ -74,61 +74,6 @@ class ClassificationUtilsTest(unittest.TestCase):
         ]))
         assert_csr_matrix_equal(expected_proba, proba_result)
 
-    # TODO: remove this in 2.0.0
-    def test_prediction_result_multilabel_with_enc(self):
-        all_labels = [[0], [0, 1], [2, 3]]
-        enc = MultiLabelBinarizer()
-        enc.fit(all_labels)
-
-        proba = np.array([
-            [0.1, 0.2, 0.6, 0.1],
-            [0.25, 0.25, 0.25, 0.25],
-            [0.3, 0.3, 0.2, 0.2],
-            [0.3, 0.2, 0.5, 0.1],
-        ])
-        with self.assertWarnsRegex(DeprecationWarning,
-                                   'The enc keyword argument has been deprecated since 1.1.0'):
-            result = prediction_result(proba, True, proba.shape[1], enc=enc)
-        expected = csr_matrix(np.array([
-            [0, 0, 1, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-        ]))
-        assert_csr_matrix_equal(expected, result)
-
-    # TODO: remove this in 2.0.0
-    def test_prediction_result_multilabel_with_enc_and_proba(self):
-        all_labels = [[0], [0, 1], [2, 3]]
-        enc = MultiLabelBinarizer()
-        enc.fit(all_labels)
-
-        proba = np.array([
-            [0.1, 0.2, 0.6, 0.1],
-            [0.25, 0.25, 0.25, 0.25],
-            [0.3, 0.3, 0.2, 0.2],
-            [0.3, 0.2, 0.5, 0.1],
-        ])
-
-        with self.assertWarnsRegex(DeprecationWarning,
-                                   'The enc keyword argument has been deprecated since 1.1.0'):
-            result, proba_result = prediction_result(proba, True, proba.shape[1], enc=enc,
-                                                     return_proba=True)
-        expected = csr_matrix(np.array([
-            [0, 0, 1, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-        ]))
-        assert_csr_matrix_equal(expected, result)
-        expected_proba = csr_matrix(np.array([
-            [0, 0, 0.6, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-        ]))
-        assert_csr_matrix_equal(expected_proba, proba_result)
-
     def test_empty_result_single_label_prediction(self):
         num_labels = 3
         prediction = empty_result(False, num_labels, return_proba=False)

@@ -63,7 +63,7 @@ def get_splits(train_set, validation_set, weights=None, multi_label=False, valid
 
 
 # TODO: make prediction threshold configurable
-def prediction_result(proba, multi_label, num_classes, return_proba=False, enc=None):
+def prediction_result(proba, multi_label, num_classes, return_proba=False):
     """Helper method which returns a single- or multi-label prediction result.
 
     Parameters
@@ -79,8 +79,6 @@ def prediction_result(proba, multi_label, num_classes, return_proba=False, enc=N
         Also returns the probability if `True`. This is intended to be used with `multi_label=True`
         where it returns a sparse matrix with only the probabilities for the predicted labels. For
         the single-label case this simply returns the given `proba` input.
-    enc : None
-        Deprecated since 1.1.0. Argument will be removed in 2.0.0.
 
     Returns
     -------
@@ -89,7 +87,6 @@ def prediction_result(proba, multi_label, num_classes, return_proba=False, enc=N
     proba : np.ndarray[float] or csr_matrix[np.float64]
         An empty ndarray of predictions if `return_prediction` is True.
     """
-    prediction_result_enc_warning(enc)
 
     if multi_label:
         predictions_binarized = np.where(proba > 0.5, 1, 0)

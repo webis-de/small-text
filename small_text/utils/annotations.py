@@ -99,12 +99,3 @@ def model_selection_deprecation_warning(model_selection):
             'instead.',
             DeprecationWarning,
             stacklevel=2)
-
-
-def prediction_result_enc_warning(enc):
-    if enc is not None:
-        warnings.warn(
-            'The enc keyword argument has been deprecated since 1.1.0 '
-            'and will be removed in 2.0.0.',
-            DeprecationWarning,
-            stacklevel=2)
