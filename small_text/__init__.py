@@ -43,6 +43,13 @@ from small_text.version import get_version
 from small_text.utils.system import is_pytorch_available, is_transformers_available
 
 
+if is_pytorch_available():
+    from small_text.integrations.pytorch import *
+
+if is_transformers_available():
+    from small_text.integrations.transformers import *
+
+
 __all__ = [
     'ActiveLearner',
     'AbstractPoolBasedActiveLearner',

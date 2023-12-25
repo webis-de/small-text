@@ -18,7 +18,7 @@ def _validate_bounds(parameter_name: str, parameter_value: float):
     return parameter_value
 
 
-def _label_cardinality_inconsistency(y_pred_proba_unlabeled: npt.NDArray[float],
+def _label_cardinality_inconsistency(y_pred_proba_unlabeled: npt.NDArray[np.double],
                                      y_labeled: csr_matrix,
                                      prediction_threshold: float = 0.5) -> float:
     """Computes the label cardinality inconsistency per instance [LG13]_.

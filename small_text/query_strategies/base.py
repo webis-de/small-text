@@ -1,13 +1,68 @@
 from __future__ import annotations
+from abc import ABC, abstractmethod
 
 import logging
 import numpy as np
+import numpy.typing as npt
 
 from enum import Enum
 from functools import partial, wraps
 from typing import Union
 
 from scipy.sparse import csr_matrix
+
+from small_text.classifiers import Classifier
+from small_text.data import Dataset
+from small_text.query_strategies.exceptions import EmptyPoolException, PoolExhaustedException
+
+
+class QueryStrategy(ABC):
+    """Abstract base class for Query Strategies."""
+
+    @abstractmethod
+    def query(self,
+              clf: Classifier,
+              dataset: Dataset,
+              indices_unlabeled: npt.NDArray[np.uint],
+              indices_labeled: npt.NDArray[np.uint],
+              y: Union[npt.NDArray[np.uint], csr_matrix],
+              n: int = 10) -> np.ndarray:
+        """
+        Queries instances from the unlabeled pool.
+
+        A query selects instances from the unlabeled pool.
+
+        Parameters
+        ----------
+        clf : small_text.classifiers.Classifier
+            A text classifier.
+        dataset : small_text.data.datasets.Dataset
+            A text dataset.
+        indices_unlabeled : np.ndarray[uint]
+            Indices (relative to `dataset`) for the unlabeled data.
+        indices_labeled : np.ndarray[uint]
+            Indices (relative to `dataset`) for the labeled data.
+        y : np.ndarray[uint] or csr_matrix
+            List of labels where each label maps by index position to `indices_labeled`.
+        n : int
+            Number of samples to query.
+
+        Returns
+        -------
+        indices : numpy.ndarray
+            Indices relative to `dataset` which were selected.
+        """
+        pass
+
+    @staticmethod
+    def _validate_query_input(indices_unlabeled: npt.NDArray[np.uint], n: int) -> None:
+
+        if len(indices_unlabeled) == 0:
+            raise EmptyPoolException('No unlabeled indices available. Cannot query an empty pool.')
+
+        if n > len(indices_unlabeled):
+            raise PoolExhaustedException('Pool exhausted: {} available / {} requested'
+                                         .format(len(indices_unlabeled), n))
 
 
 class ClassificationType(Enum):

@@ -5,8 +5,7 @@ from typing import List, Union
 
 from small_text.data.sampling import _get_class_histogram
 
-from small_text.query_strategies.base import constraints, ClassificationType
-from small_text.query_strategies.strategies import QueryStrategy
+from small_text.query_strategies.base import constraints, ClassificationType, QueryStrategy
 
 
 # The naming here is kept general (distributions and categories), but this is currently used to create distributions

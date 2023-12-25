@@ -32,7 +32,7 @@ class Classifier(ABC):
         pass
 
     @abstractmethod
-    def predict(self, data_set: Dataset, return_proba: bool = False) -> npt.NDArray[np.uint]:
+    def predict(self, data_set: Dataset, return_proba: bool = False, **kwargs) -> npt.NDArray[np.uint]:
         """Predicts the labels for each sample in the given dataset.
 
         Parameters
@@ -45,7 +45,7 @@ class Classifier(ABC):
         pass
 
     @abstractmethod
-    def predict_proba(self, data_set: Dataset) -> npt.NDArray[np.double]:
+    def predict_proba(self, data_set: Dataset, **kwargs) -> npt.NDArray[np.double]:
         """Predicts the label distribution for each sample in the given dataset.
 
         Parameters

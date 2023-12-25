@@ -4,7 +4,7 @@ from typing import Union
 from scipy.sparse import csr_matrix
 from small_text.classifiers import Classifier
 from small_text.data import Dataset
-from small_text.query_strategies.strategies import QueryStrategy
+from small_text.query_strategies.base import QueryStrategy
 
 
 def _bald(p, eps=1e-8):
