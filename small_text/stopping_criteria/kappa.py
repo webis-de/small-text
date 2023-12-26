@@ -11,7 +11,7 @@ def _adapted_cohen_kappa_score(y1, y2, *, labels=None, weights=None, sample_weig
     the call is delegated to the `cohen_kappa_score()` implementation in scikit-learn.
 
     .. seealso::
-       Dcumentation of the underlying `cohen_kappa_score()` methond in scikit-learn.
+       Dcumentation of the underlying `cohen_kappa_score()` method in scikit-learn.
            https://scikit-learn.org/stable/modules/generated/sklearn.metrics.cohen_kappa_score.html
     """
     if np.array_equal(y1, y2):
