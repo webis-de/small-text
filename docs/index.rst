@@ -114,6 +114,7 @@ License
    changelog
    showcase
    reproducibility_notes
+   errata
    bibliography
 
 :ref:`genindex` | :ref:`modindex` | :ref:`search`
