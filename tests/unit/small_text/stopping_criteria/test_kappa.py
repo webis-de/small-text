@@ -3,7 +3,72 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from small_text.stopping_criteria.kappa import KappaAverage
+from small_text.stopping_criteria.kappa import KappaAverage, _adapted_cohen_kappa_score
+
+
+class TestAdaptedCohenKappScore(unittest.TestCase):
+
+    def test_without_perfect_agreement(self):
+        self.assertEqual(0.0, _adapted_cohen_kappa_score(np.array([0, 0, 0, 0, 0]), np.array([1, 1, 1, 1, 1])))
+        self.assertAlmostEqual(0.166,
+                               _adapted_cohen_kappa_score(np.array([0, 0, 0, 1, 1]), np.array([0, 1, 0, 1, 0])),
+                               places=2)
+        self.assertEqual(-0.25, _adapted_cohen_kappa_score(np.array([0, 1, 1, 1, 1]), np.array([1, 1, 1, 1, 0])))
+
+    def test_without_perfect_agreement_and_sample_weights(self):
+        self.assertAlmostEqual(0.615,
+                               _adapted_cohen_kappa_score(np.array([0, 1, 1, 1, 0]), np.array([0, 1, 0, 1, 0])),
+                               places=2)
+
+        self.assertAlmostEqual(0.932,
+                               _adapted_cohen_kappa_score(
+                                   np.array([0, 1, 1, 1, 0]),
+                                   np.array([0, 1, 0, 1, 0]),
+                                   sample_weight=[0.1, 1.0, 0.1, 1.0, 1.0]
+                               ),
+                               places=2)
+
+    def test_without_perfect_agreement_and_sample_weight(self):
+        self.assertAlmostEqual(0.615,
+                               _adapted_cohen_kappa_score(np.array([0, 1, 1, 1, 0]), np.array([0, 1, 0, 1, 0])),
+                               places=2)
+
+        self.assertAlmostEqual(0.932,
+                               _adapted_cohen_kappa_score(
+                                   np.array([0, 1, 1, 1, 0]),
+                                   np.array([0, 1, 0, 1, 0]),
+                                   sample_weight=[0.1, 1.0, 0.1, 1.0, 1.0]
+                               ),
+                               places=2)
+
+    def test_without_perfect_agreement_and_weights(self):
+        self.assertAlmostEqual(0.444,
+                               _adapted_cohen_kappa_score(np.array([0, 1, 1, 2, 1]), np.array([0, 1, 2, 2, 0])),
+                               places=2)
+
+        self.assertAlmostEqual(0.666,
+                               _adapted_cohen_kappa_score(
+                                   np.array([0, 1, 1, 2, 1]),
+                                   np.array([0, 1, 2, 2, 0]),
+                                   weights='quadratic'
+                               ),
+                               places=2)
+
+    def test_without_perfect_agreement_and_labels(self):
+        self.assertAlmostEqual(0.444,
+                               _adapted_cohen_kappa_score(np.array([0, 1, 1, 2, 1]), np.array([0, 1, 2, 2, 0])),
+                               places=2)
+
+        self.assertAlmostEqual(0.399,
+                               _adapted_cohen_kappa_score(
+                                   np.array([0, 1, 1, 2, 1]),
+                                   np.array([0, 1, 2, 2, 0]),
+                                   labels=[1, 2]
+                               ),
+                               places=2)
+
+    def test_with_perfect_agreement(self):
+        self.assertEqual(1.0, _adapted_cohen_kappa_score(np.array([0, 0, 0, 0, 0]), np.array([0, 0, 0, 0, 0])))
 
 
 class KappaAverageTest(unittest.TestCase):

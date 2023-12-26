@@ -6,12 +6,33 @@ from sklearn.metrics import cohen_kappa_score
 from small_text.stopping_criteria.base import StoppingCriterion, check_window_based_predictions
 
 
-        
-class KappaAverage(StoppingCriterion):
+def _adapted_cohen_kappa_score(y1, y2, *, labels=None, weights=None, sample_weight=None):
+    """Extends cohen's kappa by intercepting the special case of a perfect agreement, which results in a
+    division by zero when adhering to the original formula. In case of a perfect agreement `1.0` is returned, otherwise
+    the call is delegated to the `cohen_kappa_score()` implementation in scikit-learn.
 
-   
-    
+    .. seealso::
+       Dcumentation of the underlying `cohen_kappa_score()` methond in scikit-learn.
+           https://scikit-learn.org/stable/modules/generated/sklearn.metrics.cohen_kappa_score.html
+    """
+    if np.array_equal(y1, y2):
+        return 1.0
+    else:
+        return cohen_kappa_score(
+            y1,
+            y2,
+            labels=labels,
+            weights=weights,
+            sample_weight=sample_weight
+        )
+
+
+class KappaAverage(StoppingCriterion):
     """A stopping criterion which measures the agreement between sets of predictions [BV09]_.
+
+    .. versionchanged:: 1.3.3
+       The previous implementation, which was flawed, has been corrected.
+
     """
     def __init__(self, num_classes, window_size=3, kappa=0.99):
         """
@@ -31,13 +52,7 @@ class KappaAverage(StoppingCriterion):
 
         self.last_predictions = None
         self.kappa_history = []
-   
-    def adapted_cohen_kappa(predictions, last_predections, *, labels=None, weights=None, sample_weight=None):
-        if(np.array_equal(predictions, last_predections)):
-            return 1.0
-        else:
-            return cohen_kappa_score(predictions, last_predections, labels=labels)
-        
+
     def stop(self, active_learner=None, predictions=None, proba=None, indices_stopping=None):
         check_window_based_predictions(predictions, self.last_predictions)
 
@@ -45,10 +60,8 @@ class KappaAverage(StoppingCriterion):
             self.last_predictions = predictions
             return False
         else:
-            with warnings.catch_warnings():
-                warnings.filterwarnings('ignore', category=RuntimeWarning)
-                labels = np.arange(self.num_classes)
-                cohens_kappa = self.adapted_cohen_kappa(predictions, self.last_predictions, labels=labels)
+            labels = np.arange(self.num_classes)
+            cohens_kappa = _adapted_cohen_kappa_score(predictions, self.last_predictions, labels=labels)
 
             self.kappa_history.append(cohens_kappa)
             self.last_predictions = predictions
