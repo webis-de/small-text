@@ -7,7 +7,7 @@ In this section we provide notes on reproducing components that were implemented
 Preface
 =======
 
-Small-Text is specifically intended to provide a robust set of resuable pre-implemented components
+Small-Text is specifically intended to provide a robust set of reusable pre-implemented components
 which support the reproduction of scientific experiments.
 
 However, in the end the correctness of your experiments is a serious matter and must still be assured:
