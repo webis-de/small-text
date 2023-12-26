@@ -1,4 +1,3 @@
-import warnings
 import numpy as np
 
 from sklearn.metrics import cohen_kappa_score
@@ -70,7 +69,7 @@ class KappaAverage(StoppingCriterion):
                 return False
 
             self.kappa_history = self.kappa_history[-self.window_size:]
-            
+
             if np.mean(self.kappa_history) >= self.kappa:
                 return True
             else:
