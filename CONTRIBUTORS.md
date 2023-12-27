@@ -7,11 +7,13 @@
 - JP-SystemsX ([@JP-SystemsX](https://github.com/JP-SystemsX))
 - Raghav Prabhakar ([RaghavPrabhakar66](https://github.com/RaghavPrabhakar66))
 - Humza Zaki ([@zakih2](https://github.com/zakih2))
+- Vijay Manchiraju ([@vmanc](https://github.com/vmanc))
 
 ## Acknowledgments
 
 Thanks goes to...
 
 - Erik Körner ([@Querela](https://github.com/querela)), for the help with packaging and CI.
+- Dr. Michael Bloodgood, for his thorough review of several stopping criteria. 
 
 And to the numerous users who provided feedback.
