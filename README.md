@@ -37,11 +37,15 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
+- **Version 1.3.3** ([v1.3.3][changelog_1.3.3]) - December 29th, 2023
+  - Bugfix release.
+
 - **Version 1.3.2** ([v1.3.2][changelog_1.3.2]) - August 19th, 2023
   - Bugfix release.
 
 - **Paper accepted at EACL 2023 🎉**
   - The [paper][paper_arxiv] introducing small-text has been accepted at [EACL 2023](https://2023.eacl.org/). Meet us at the conference in May!
+  - Update: the paper was awarded [EACL Best System Demonstration](https://aclanthology.org/2023.eacl-demo.11/). Thank you, for your support!
 
 - **Version 1.3.0** ([v1.3.0][changelog_1.3.0]): Highlights - February 20th, 2023
   - Added dropout sampling to [SetFitClassification](https://github.com/webis-de/small-text/blob/v1.3.0/small_text/integrations/transformers/classifiers/setfit.py).
@@ -50,9 +54,6 @@ which can be easily mixed and matched to build active learning experiments or ap
   - Make [huggingface/setfit](https://github.com/huggingface/setfit) (SetFit) usable as a small-text classifier.
   - New query strategy: [BALD](https://github.com/webis-de/small-text/blob/v1.2.0/small_text/query_strategies/bayesian.py).
   - Added two new SetFit notebooks, and also updated existing notebooks.
-  
-- **Version 1.1.1** ([v1.1.1][changelog_1.1.1]) - October 14, 2022
-  - Fixes model selection which could raise an error under certain circumstances ([#21](https://github.com/webis-de/small-text/issues/21)).
 
 [For a complete list of changes, see the change log.][changelog]
 
@@ -88,7 +89,7 @@ or check out the notebooks.
 | # | Notebook                                                                                                                                                                                                       |                                                                                                                                                                                                                                                  |
 | --- |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 1 | [Intro: Active Learning for Text Classification with Small-Text](https://github.com/webis-de/small-text/blob/v1.3.3/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.3.3/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
-  | 2 | [Using Stopping Criteria for Active Learning](https://github.com/webis-de/small-text/blob/v1.3.3/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb)                                           | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.3.3/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb)                        |
+| 2 | [Using Stopping Criteria for Active Learning](https://github.com/webis-de/small-text/blob/v1.3.3/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb)                                           | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.3.3/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb)                        |
 | 3 | [Active Learning using SetFit](https://github.com/webis-de/small-text/blob/v1.3.3/examples/notebooks/03-active-learning-with-setfit.ipynb)                                                                     | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.3.3/examples/notebooks/03-active-learning-with-setfit.ipynb)                                   |
 | 4 | [Using SetFit's Zero Shot Capabilities for Cold Start Initialization](https://github.com/webis-de/small-text/blob/v1.3.3/examples/notebooks/04-zero-shot-cold-start.ipynb)                                     | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.3.3/examples/notebooks/04-zero-shot-cold-start.ipynb)                                          |
 
@@ -150,11 +151,10 @@ Small-Text has been introduced in detail in the EACL23 System Demonstration Pape
 [documentation_showcase]: https://small-text.readthedocs.io/en/v1.3.3/showcase.html
 [documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.3.3/reproducibility_notes.html
 [changelog]: https://small-text.readthedocs.io/en/latest/changelog.html
-[changelog_1.1.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-1-0-2022-10-01
-[changelog_1.1.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-1-1-2022-10-14
 [changelog_1.2.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-2-0-2023-02-04
 [changelog_1.3.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-3-0-2023-02-21
 [changelog_1.3.2]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-3-2-2023-08-19
+[changelog_1.3.3]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-3-3-2023-12-29
 [argilla]: https://github.com/argilla-io/argilla
 [argilla_al_tutorial]: https://docs.argilla.io/en/latest/tutorials/notebooks/training-textclassification-smalltext-activelearning.html
 [paper_arxiv]: https://arxiv.org/abs/2107.10314
