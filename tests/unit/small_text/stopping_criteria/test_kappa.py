@@ -134,7 +134,9 @@ class KappaAverageTest(unittest.TestCase):
         self.assertEqual([0.5, 1.0, 1.0], stopping_criterion.kappa_history)
         assert_array_equal(fourth_predictions, stopping_criterion.last_predictions)
 
-    def test_stop_with_nan_values(self):
+    def test_stop_with_perfect_agreement(self):
+        """Perfect agreement used to cause nan values."""
+
         stopping_criterion = KappaAverage(2, kappa=0.7)
 
         first_predictions = np.array([1, 1, 1, 1])
@@ -147,7 +149,7 @@ class KappaAverageTest(unittest.TestCase):
         self.assertFalse(stopping_criterion.stop(predictions=third_predictions))
         self.assertTrue(stopping_criterion.stop(predictions=fourth_predictions))
 
-        self.assertTrue(np.all(np.isnan(stopping_criterion.kappa_history)))
+        self.assertFalse(np.any(np.isnan(stopping_criterion.kappa_history)))
         assert_array_equal(fourth_predictions, stopping_criterion.last_predictions)
 
     def test_stop_with_predictions_none(self):

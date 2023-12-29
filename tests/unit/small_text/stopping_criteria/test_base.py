@@ -55,11 +55,11 @@ class DeltaFScoreTest(unittest.TestCase):
         stop = stopping_criterion.stop(predictions=second_predictions)
         self.assertFalse(stop)
 
-        assert_array_almost_equal([0.142857], stopping_criterion.delta_history)
+        assert_array_almost_equal([0.2], stopping_criterion.delta_history)
         assert_array_equal(second_predictions, stopping_criterion.last_predictions)
 
     def test_stop(self):
-        stopping_criterion = DeltaFScore(2, threshold=0.1)
+        stopping_criterion = DeltaFScore(2, threshold=0.15)
 
         first_predictions = np.array([0, 1, 1, 0, 1, 1, 0])
         second_predictions = np.array([0, 1, 1, 1, 1, 1, 0])
@@ -69,15 +69,15 @@ class DeltaFScoreTest(unittest.TestCase):
         stopping_criterion.stop(predictions=first_predictions)
 
         self.assertFalse(stopping_criterion.stop(predictions=second_predictions))
-        assert_array_almost_equal([0.076923], stopping_criterion.delta_history)
+        assert_array_almost_equal([0.111111], stopping_criterion.delta_history)
         assert_array_equal(second_predictions, stopping_criterion.last_predictions)
 
         self.assertFalse(stopping_criterion.stop(predictions=third_predictions))
-        assert_array_almost_equal([0.076923, 0.076923], stopping_criterion.delta_history)
+        assert_array_almost_equal([0.111111, 0.090909], stopping_criterion.delta_history)
         assert_array_equal(third_predictions, stopping_criterion.last_predictions)
 
         self.assertTrue(stopping_criterion.stop(predictions=fourth_predictions))
-        assert_array_almost_equal([0.076923, 0.076923, 0.076923], stopping_criterion.delta_history)
+        assert_array_almost_equal([0.111111, 0.090909, 0.090909], stopping_criterion.delta_history)
         assert_array_equal(fourth_predictions, stopping_criterion.last_predictions)
 
     def test_stop_with_predictions_none(self):
