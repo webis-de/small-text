@@ -4,7 +4,7 @@
 
 ### Changed
 
-- An [errata](https://small-text.readthedocs.io/en/v1.3.2/errata.html) section was added to the documentation.
+- An [errata](https://small-text.readthedocs.io/en/v1.3.3/errata.html) section was added to the documentation.
 
 ### Fixed
 
