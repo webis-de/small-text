@@ -1,6 +1,10 @@
 # Changelog
 
-## Version 1.3.3 - unreleased
+## Version 1.3.3 - 2023-12-29
+
+### Changed
+
+- An [errata](https://small-text.readthedocs.io/en/v1.3.2/errata.html) section was added to the documentation.
 
 ### Fixed
 
