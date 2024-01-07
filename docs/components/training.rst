@@ -18,7 +18,7 @@ Early stopping is a mechanism which tries to avoid overfitting when training a m
 For this purpose, an early stopping mechanism monitors certain metrics during the training process
 ---usually after each epoch---in order to check if early stopping should be triggered.
 If the early stopping handler deems an early stop to be necessary according to the given
-contraints then it returns `True` when :code:`check_early_stop()` is called.
+constraints then it returns `True` when :code:`check_early_stop()` is called.
 This response has to be subsequently handled in the respective classifier.
 
 Interface
@@ -137,7 +137,7 @@ Model Selection
 Given a set of models that have been trained on the same data, model selection chooses
 the model that is considered best according to some criterion.
 In the context of neural networks, a typical use case for this is the training process,
-where the set of models is given by the respetive model after each epoch,
+where the set of models is given by the respective model after each epoch,
 or hyperparameter search, where one model for each hyperparameter configuration is trained.
 
 Interface
