@@ -164,7 +164,7 @@ def assure_all_labels_occur(data, num_classes, multi_label=False):
 
     for i, label_idx in enumerate(missing_labels):
         if multi_label:
-            data[i] = data[i][:-1] + (np.sort(np.append(data[i][-1], [label_idx])),)
+            data[i] = data[i][:-1] + (np.sort(np.append(data[i][-1], [label_idx])).astype(int).tolist(),)
         else:
             data[i] = data[i][:-1] + (label_idx,)
 
@@ -193,7 +193,7 @@ def assure_all_labels_occur_numpy(y, num_classes, multi_label=False):
 
     for i, label_idx in enumerate(missing_labels):
         if multi_label:
-            y[i] = y[i][:-1] + (np.sort(np.append(y[i][-1], [label_idx])),)
+            y[i] = y[i][:-1] + (np.sort(np.append(y[i][-1], [label_idx])).tolist(),)
         else:
             y[i] = y[i][:-1] + (label_idx,)
 
@@ -221,7 +221,7 @@ def random_transformer_dataset(num_samples, max_length=60, num_classes=2, multi_
             torch.tensor([0] * (max_length - sample_length), dtype=dtype)
         ]).unsqueeze(0)
         if multi_label:
-            labels = np.sort(random_labeling(num_classes, multi_label))
+            labels = np.sort(random_labeling(num_classes, multi_label)).tolist()
         else:
             labels = random_labeling(num_classes, multi_label)
 
