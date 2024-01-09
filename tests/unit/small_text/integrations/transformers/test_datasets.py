@@ -123,7 +123,7 @@ class TransformersDatasetTest(unittest.TestCase):
             y_expected = np.zeros((self.NUM_SAMPLES, self.NUM_LABELS))
             for i, d in enumerate(ds.data):
                 labels = d[ds.INDEX_LABEL]
-                if labels is not None and labels.shape[0] > 0:
+                if labels is not None and len(labels) > 0:
                     y_expected[i, labels] = 1
             y_expected = csr_matrix(y_expected)
             assert_csr_matrix_equal(y_expected, ds.y)
