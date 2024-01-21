@@ -64,7 +64,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
     """A pool-based active learner in which a pool holds all available unlabeled data.
 
     It uses a classifier, a query strategy and manages the mutually exclusive partition over the
-    whole training data into labeled and unlabeled.
+    whole training data into a labeled and an unlabeled set.
 
     Parameters
     ----------
@@ -86,7 +86,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         Indices of instances (relative to `self.x_train`) which have been ignored,
         i.e. which will never be returned by a query.
     y : numpy.ndarray or scipy.sparse.csr_matrix
-        Labels for the the current labeled pool. Each tuple `(x_indices_labeled[i], y[i])`
+        Labels for the current labeled pool. Each tuple `(x_indices_labeled[i], y[i])`
         represents one labeled sample.
     indices_queried : numpy.ndarray or None
         Queried indices returned by the last `query()` call, or `None` if no query has been
@@ -111,6 +111,8 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
 
         self.y = None
         self.indices_queried = None
+        self.mask = None
+        self.multi_label = None
 
     def initialize_data(self, indices_initial, y_initial, indices_ignored=None,
                         indices_validation=None, retrain=True):
@@ -123,7 +125,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         ----------
         indices_initial : numpy.ndarray
             A list of indices (relative to `self.x_train`) of initially labeled samples.
-        y_initial : numpy.ndarray or or scipy.sparse.csr_matrix
+        y_initial : numpy.ndarray or scipy.sparse.csr_matrix
             Label matrix. One row corresponds to an index in `x_indices_initial`. If the
             passed type is numpy.ndarray (dense) all further label-based operations assume dense
             labels, otherwise sparse labels for scipy.sparse.csr_matrix.
@@ -131,7 +133,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
             List of ignored samples which will be invisible to the query strategy.
         indices_validation : numpy.ndarray, default=None
             The given indices (relative to `self.x_indices_labeled`) define a custom validation set
-            if provided. Otherwise each classifier that uses a validation set will be responsible
+            if provided. Otherwise, each classifier that uses a validation set will be responsible
             for creating a validation set. Only used if `retrain=True`.
         retrain : bool, default=True
             Retrains the model after the update if True.
@@ -162,8 +164,8 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         num_samples : int, default=10
             Number of samples to query.
         representation : numpy.ndarray, default=None
-            Alternative representation for the samples in the unlabeled pool. his can be used
-            if you want to rely pre-computed fixed representations instead of embeddings that
+            Alternative representation for the samples in the unlabeled pool. This can be used
+            if you want to rely on pre-computed fixed representations instead of embeddings that
             change during each active learning iteration.
         query_strategy_kwargs : dict, default=dict()
 
@@ -218,7 +220,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
             sample.
         indices_validation : numpy.ndarray, default=None
             The given indices (relative to `self.x_indices_labeled`) define a custom validation set
-            if provided. Otherwise each classifier that uses a validation set will be responsible
+            if provided. Otherwise, each classifier that uses a validation set will be responsible
             for creating a validation set.
         """
         if self.indices_queried.shape[0] != y.shape[0]:
@@ -305,7 +307,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
 
         Notes
         -----
-        If ignoring a sample incurs the removal of a label label, the current model might not
+        If ignoring a sample incurs the removal of a label, the current model might not
         reflect the labeled data anymore. You should consider if a retraining is necessary when
         using this operation. Since retraining is often time-consuming, `retrain` is set to
         `False` by default.

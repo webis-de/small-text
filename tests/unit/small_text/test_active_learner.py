@@ -109,9 +109,16 @@ class _PoolBasedActiveLearnerTest(object):
         self.assertIsNone(active_learner.classifier)
         self.assertEqual(query_strategy, active_learner.query_strategy)
         self.assertEqual(clf_factory, active_learner._clf_factory)
-        self.assertIsNone(active_learner.y)
         self.assertFalse(active_learner.reuse_model)
-        self.assertEqual(dict(), active_learner.fit_kwargs)
+        self.assertEqual({}, active_learner.fit_kwargs)
+
+        self.assertIsNotNone(active_learner.indices_labeled)
+        self.assertIsNotNone(active_learner.indices_ignored)
+
+        self.assertIsNone(active_learner.y)
+        self.assertIsNone(active_learner.indices_queried)
+        self.assertIsNone(active_learner.mask)
+        self.assertIsNone(active_learner.multi_label)
 
     def test_init_with_kwargs(self):
         clf_factory = self._get_classifier_factory()
@@ -127,9 +134,13 @@ class _PoolBasedActiveLearnerTest(object):
         self.assertIsNone(active_learner.classifier)
         self.assertEqual(query_strategy, active_learner.query_strategy)
         self.assertEqual(clf_factory, active_learner._clf_factory)
-        self.assertIsNone(active_learner.y)
         self.assertTrue(active_learner.reuse_model)
         self.assertEqual(fit_kwargs, active_learner.fit_kwargs)
+
+        self.assertIsNone(active_learner.y)
+        self.assertIsNone(active_learner.indices_queried)
+        self.assertIsNone(active_learner.mask)
+        self.assertIsNone(active_learner.multi_label)
 
     def test_initialize_data(self):
         indices_initial = np.random.choice(np.arange(100), size=10, replace=False)
