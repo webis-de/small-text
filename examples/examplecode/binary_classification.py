@@ -22,7 +22,7 @@ def main(num_iterations=10):
     num_classes = 2
 
     # Active learning parameters
-    clf_template = ConfidenceEnhancedLinearSVC()
+    clf_template = ConfidenceEnhancedLinearSVC(linearsvc_kwargs={'dual': 'auto'})
     clf_factory = SklearnClassifierFactory(clf_template, num_classes)
     query_strategy = RandomSampling()
 
@@ -69,9 +69,9 @@ def initialize_active_learner(active_learner, y_train):
 
     indices_initial = np.concatenate([np.random.choice(indices_pos_label, 10, replace=False),
                                       np.random.choice(indices_neg_label, 10, replace=False)],
-                                     dtype=int)
+                                      dtype=int)
 
-    active_learner.initialize_data(indices_initial, y_train[indices_initial])
+    active_learner.initialize(indices_initial)
 
     return indices_initial
 

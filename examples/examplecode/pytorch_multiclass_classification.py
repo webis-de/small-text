@@ -111,7 +111,7 @@ def load_gensim_embedding(texts, tokenizer, pretrained_vectors, min_freq=1, num_
 def initialize_active_learner(active_learner, y_train):
 
     indices_initial = random_initialization_stratified(y_train, 20)
-    active_learner.initialize_data(indices_initial, y_train[indices_initial])
+    active_learner.initialize(indices_initial)
 
     return indices_initial
 

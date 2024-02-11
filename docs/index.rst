@@ -22,16 +22,23 @@ Getting Started
 ===============
 
 .. toctree::
-   :caption: Getting Started
+   :caption: General
    :maxdepth: 1
    :hidden:
 
    install
    active_learning
-   datasets
 
 - Start: :doc:`install` | :doc:`Active Learning Overview<active_learning>`
 - Examples: `Notebooks <https://github.com/webis-de/small-text/tree/v1.3.3/examples/notebooks>`_ | `Code Examples <https://github.com/webis-de/small-text/tree/v1.3.3/examples/examplecode>`_
+
+.. toctree::
+   :caption: Getting Started
+   :maxdepth: 1
+   :hidden:
+
+   datasets
+   install
 
 .. toctree::
    :caption: Components

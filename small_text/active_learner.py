@@ -6,6 +6,7 @@ from pathlib import Path
 from scipy.sparse import csr_matrix
 
 from small_text.base import LABEL_IGNORED
+from small_text.classifiers.classification import Classifier
 from small_text.exceptions import LearnerNotInitializedException
 from small_text.utils.data import list_length
 from small_text.utils.labels import concatenate, get_ignored_labels_mask, remove_by_index
@@ -33,10 +34,10 @@ class AbstractPoolBasedActiveLearner(ActiveLearner):
         pass
 
     @abstractmethod
-    def initialize_data(self, indices_initial, y_initial, *args, **kwargs):
+    def initialize(self, clf_or_indices=None, indices_validation=None, retrain=True):
         """(Re-)Initializes the current labeled pool.
 
-        This methods needs to be called whenever the underlying data changes, in particularly
+        This method needs to be called whenever the underlying data changes, in particularly
         before the first loop.
 
         Parameters
@@ -95,7 +96,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         Keyword arguments that will be passed to the `fit()` call during `update()`.
     """
 
-    def __init__(self, clf_factory, query_strategy, dataset, fit_kwargs=dict(), reuse_model=False):
+    def __init__(self, clf_factory, query_strategy, dataset, fit_kwargs={}, reuse_model=False):
         self._clf = None
         self._clf_factory = clf_factory
         self._query_strategy = query_strategy
@@ -106,56 +107,63 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         self.fit_kwargs = fit_kwargs
         self.reuse_model = reuse_model
 
-        self.indices_labeled = np.empty(shape=0, dtype=int)
-        self.indices_ignored = np.empty(shape=0, dtype=int)
+        self.indices_labeled = np.empty(shape=(0,), dtype=int)
+        self.indices_ignored = np.empty(shape=(0,), dtype=int)
 
         self.y = None
         self.indices_queried = None
         self.mask = None
         self.multi_label = None
 
-    def initialize_data(self, indices_initial, y_initial, indices_ignored=None,
-                        indices_validation=None, retrain=True):
-        """(Re-)Initializes the current labeled pool.
+    def initialize(self, clf_or_indices=None, indices_validation=None, retrain=True):
+        """Initializes the current active learner.
 
-        This is required once before the first `query()` call, and whenever the labeled pool
-        is changed from the outside, i.e. when `self.x_train` changes.
+        Initializes the current active learner by either supplying an existing model or by using
+        the set of given indices to train a new model. This is required once before the first `query()` call for
+        query strategies that rely on the current response, which is the majority.
+
+        Notes
+        -----
+        - You can pass a different type of classifier via `clf_or_indices` than `self.clf_factory` would have created,
+          but both classifiers have support the same dataset type.
+        - If indices are passed, the samples in `self.dataset` referenced by these indices need to be labeled.
 
         Parameters
         ----------
-        indices_initial : numpy.ndarray
-            A list of indices (relative to `self.x_train`) of initially labeled samples.
-        y_initial : numpy.ndarray or scipy.sparse.csr_matrix
-            Label matrix. One row corresponds to an index in `x_indices_initial`. If the
-            passed type is numpy.ndarray (dense) all further label-based operations assume dense
-            labels, otherwise sparse labels for scipy.sparse.csr_matrix.
-        indices_ignored : numpy.ndarray
-            List of ignored samples which will be invisible to the query strategy.
+        clf_or_indices : Classifier or numpy.ndarray
+            Either a classifier or an array of indices for initializing the current active learner
+            with an initial model. If a classifier is passed, it is set as the initial classifier.
+            Otherwise, the indices, relative to `self.dataset`,
         indices_validation : numpy.ndarray, default=None
-            The given indices (relative to `self.x_indices_labeled`) define a custom validation set
+            The given indices (relative to `self.indices_labeled`) define a custom validation set
             if provided. Otherwise, each classifier that uses a validation set will be responsible
-            for creating a validation set. Only used if `retrain=True`.
+            for creating a validation set. Only used if `initial_clf` is not None and `retrain=True`.
         retrain : bool, default=True
             Retrains the model after the update if True.
         """
-        self.indices_labeled = indices_initial
+        if isinstance(clf_or_indices, np.ndarray):
+            self.indices_labeled = clf_or_indices
+            self.y = self.dataset.y[clf_or_indices]
+
+            if isinstance(self.y, csr_matrix):
+                self.multi_label = True
+            else:
+                self.multi_label = False
+
+            if retrain:
+                self._retrain(indices_validation=indices_validation)
+        elif isinstance(clf_or_indices, Classifier):
+            self.multi_label = clf_or_indices.multi_label
+            if hasattr(self, '_clf'):
+                del self._clf
+            self._clf = clf_or_indices
+        else:
+            raise ValueError('Initialization failed: argument "clf_or_indices" must be of type '
+                             'Classifier or ndarray')
+
         self._index_to_position = self._build_index_to_position_dict()
-        self.y = y_initial
 
-        if isinstance(self.y, csr_matrix):
-            self.multi_label = True
-        else:
-            self.multi_label = False
-
-        if indices_ignored is not None:
-            self.indices_ignored = indices_ignored
-        else:
-            self.indices_ignored = np.empty(shape=(0,), dtype=int)
-
-        if retrain:
-            self._retrain(indices_validation=indices_validation)
-
-    def query(self, num_samples=10, representation=None, query_strategy_kwargs=dict()):
+    def query(self, num_samples=10, representation=None, query_strategy_kwargs={}):
         """Performs a query step, which selects a number of samples from the unlabeled pool.
         A query step must be followed by an update step.
 
@@ -219,7 +227,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
             row of labels to ` small_text.base import LABEL_IGNORED` will ignore the respective
             sample.
         indices_validation : numpy.ndarray, default=None
-            The given indices (relative to `self.x_indices_labeled`) define a custom validation set
+            The given indices (relative to `self.indices_labeled`) define a custom validation set
             if provided. Otherwise, each classifier that uses a validation set will be responsible
             for creating a validation set.
         """
@@ -261,11 +269,11 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         index : int
             Data index (relative to `self.x_train`) for which the label should be updated.
         y : int or numpy.ndarray
-            The new label(s) to be assigned for the sample at `self.x_indices_labeled[x_index]`.
+            The new label(s) to be assigned for the sample at `self.indices_labeled[x_index]`.
         retrain : bool, default=False
             Retrains the model after the update if True.
         indices_validation : numpy.ndarray, default=None
-            The given indices (relative to `self.x_indices_labeled`) define a custom validation set
+            The given indices (relative to `self.indices_labeled`) define a custom validation set
             if provided. This is only used if `retrain` is `True`.
         """
         position = self._index_to_position[index]
@@ -400,7 +408,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
             train = dataset[indices[~mask]]
             valid = dataset[indices[mask]]
 
-            self._clf.fit(train, validation_set=valid)
+            self._clf.fit(train, validation_set=valid, **self.fit_kwargs)
 
     def _build_index_to_position_dict(self):
         return {

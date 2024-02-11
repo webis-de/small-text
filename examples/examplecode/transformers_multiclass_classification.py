@@ -75,9 +75,7 @@ def perform_active_learning(active_learner, train, indices_labeled, test, num_it
 def initialize_active_learner(active_learner, y_train):
 
     indices_initial = random_initialization_balanced(y_train)
-    y_initial = np.array([y_train[i] for i in indices_initial])
-
-    active_learner.initialize_data(indices_initial, y_initial)
+    active_learner.initialize(indices_initial)
 
     return indices_initial
 

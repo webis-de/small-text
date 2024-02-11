@@ -26,7 +26,7 @@ def main(num_iterations=10):
     num_classes = 28
 
     # Active learning parameters
-    clf_template = ConfidenceEnhancedLinearSVC()
+    clf_template = ConfidenceEnhancedLinearSVC(linearsvc_kwargs={'dual': 'auto'})
     clf_factory = SklearnClassifierFactory(clf_template,
                                            num_classes,
                                            kwargs={'multi_label': True})
@@ -73,7 +73,7 @@ def initialize_active_learner(active_learner, y_train):
 
     # Initialize the model - This is required for model-based query strategies.
     indices_initial = multilabel_stratified_subsets_sampling(y_train, n_samples=200)
-    active_learner.initialize_data(indices_initial, y_train[indices_initial])
+    active_learner.initialize(indices_initial)
 
     return indices_initial
 

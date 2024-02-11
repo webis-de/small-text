@@ -14,6 +14,8 @@ On the other hand, this also allowed us to deal with further issues that contain
   - Python requirements raised to Python 3.8 since Python 3.7 has reached [end of life on 2023-06-27](https://devguide.python.org/versions/).
   - Dropped torchtext as an integration dependency. For individual use cases it can of course still be used.
   - Added environment variables `SMALL_TEXT_PROGRESS_BARS` and `SMALL_TEXT_OFFLINE` to control the default behavior for progress bars and model downloading.
+- PoolBasedActiveLearner:
+  - `initialize_data()` has been replaced by `initialize()` which can now also be used to provide an initial model in cold start scenarios. ([#10](https://github.com/webis-de/small-text/pull/10))
 - Classification:
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support `torch.compile()` which can be enabled on demand. (Requires PyTorch >= 2.0.0). 
   - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v2.0.0/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.

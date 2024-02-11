@@ -6,7 +6,7 @@ ActiveLearner API
 
 .. autoclass:: PoolBasedActiveLearner
 
-  .. automethod:: initialize_data
+  .. automethod:: initialize
   .. automethod:: query
   .. automethod:: update
   .. automethod:: update_label_at

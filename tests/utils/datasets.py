@@ -279,3 +279,18 @@ def random_text_dataset(n, num_classes=10, multi_label=False):
 
     y = assure_all_labels_occur_numpy(y, num_classes, multi_label=multi_label)
     return TextDataset(x, y)
+
+
+def set_y(dataset, indices_initial, y_initial):
+    y_tmp = dataset.y
+    if dataset.is_multi_label:
+        y = csr_to_list(dataset.y)
+        y_target= csr_to_list(y_initial)
+        for i in np.arange(y_initial.shape[0]):
+            y[indices_initial[i]] = y_target[i]
+        y_tmp = list_to_csr(y, y_tmp.shape)
+    else:
+        y_tmp[indices_initial] = y_initial
+    dataset.y = y_tmp
+
+    return dataset
