@@ -37,6 +37,35 @@ def _check_optimizer_and_scheduler_config(optimizer, scheduler):
         raise ValueError('You must also pass an optimizer if you pass a scheduler to fit()')
 
 
+class AMPArguments(object):
+    """Arguments for configuring Automated Mixed Precision.
+
+       .. seealso::
+
+          `Pytorch Docs: Automatic Mixed Precision Package
+          <https://pytorch.org/docs/stable/amp.html>`
+             asd
+
+          `PyTorch Docs: Automatic Mixed Precision Recipes
+           <https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html>`
+
+       .. versionadded:: 2.0.0
+    """
+
+    def __init__(self, use_amp: bool = False, device_type=None, dtype=torch.bfloat16):
+        """
+        use_amp : bool, default=False
+            Enabled AMP if true.
+        device_type : str
+            Device type to be used for torch.autocast ('cuda' or 'cpu').
+        dtype : torch.dtype, default=torch.bfloat16
+            Data type to be used for torch.autocast (torch.float16 or torch.bfloat16).
+        """
+        self.use_amp = use_amp
+        self.device_type = device_type
+        self.dtype = dtype
+
+
 class PytorchModelSelectionMixin(object):
 
     def _save_model(self, optimizer, model_selection, model_id, train_acc, train_loss,
@@ -61,7 +90,7 @@ class PytorchModelSelectionMixin(object):
 
 class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
 
-    def __init__(self, multi_label=False, device=None, mini_batch_size=32):
+    def __init__(self, multi_label=False, device=None, mini_batch_size=32, amp_args=None):
 
         self.multi_label = multi_label
         self.mini_batch_size = mini_batch_size
@@ -76,6 +105,21 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
             logging.info('torch.cuda.is_available(): %s', torch.cuda.is_available())
             if torch.cuda.is_available():
                 logging.info('torch.cuda.current_device(): %s', torch.cuda.current_device())
+
+        self.model = None
+        self._amp_args = amp_args
+
+    @property
+    def amp_args(self):
+        amp_args = AMPArguments(use_amp=self._amp_args.use_amp,
+                                device_type=self._amp_args.device_type,
+                                dtype=self._amp_args.dtype)
+        if amp_args is None:
+            device_type = 'cpu' if self.model is None else self.model.device.type
+            amp_args = AMPArguments(device_type=device_type, dtype=torch.bfloat16)
+        if self.model is None or self.model.device.type == 'cpu':
+            amp_args.use_amp = False
+        return amp_args
 
     @abstractmethod
     def fit(self, train_set, validation_set=None, weights=None, **kwargs):
@@ -137,11 +181,13 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
         logits_transform = torch.sigmoid if self.multi_label else partial(F.softmax, dim=1)
 
         with torch.no_grad():
-            if dropout_sampling <= 1:
-                return self._predict_proba(dataset_iter, logits_transform)
-            else:
-                return self._predict_proba_dropout_sampling(dataset_iter, logits_transform,
-                                                            dropout_samples=dropout_sampling)
+            with torch.autocast(device_type=self.amp_args.device_type, dtype=torch.bfloat16,
+                                enabled=self.amp_args.use_amp):
+                if dropout_sampling <= 1:
+                    return self._predict_proba(dataset_iter, logits_transform)
+                else:
+                    return self._predict_proba_dropout_sampling(dataset_iter, logits_transform,
+                                                                dropout_samples=dropout_sampling)
 
     def _predict_proba(self, dataset_iter, logits_transform):
         raise NotImplementedError('_predict_proba() needs to be implemented')

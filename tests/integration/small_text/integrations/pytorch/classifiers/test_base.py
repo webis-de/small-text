@@ -11,7 +11,8 @@ try:
     from torch.optim import Adadelta, AdamW
     from torch.optim.lr_scheduler import ExponentialLR
 
-    from small_text.integrations.pytorch.classifiers.base import PytorchClassifier
+    from small_text.integrations.pytorch.classifiers.base import AMPArguments
+    from small_text.integrations.pytorch.classifiers import PytorchClassifier, KimCNNClassifier
     from small_text.integrations.pytorch.models.kimcnn import KimCNN
     from tests.utils.datasets import random_text_classification_dataset
 except PytorchNotFoundError:
@@ -43,6 +44,60 @@ class PytorchClassifierImplementation(PytorchClassifier):
 
     def _predict_proba_dropout_sampling(self, dataset_iter, logits_transform, dropout_samples=2):
         pass
+
+
+@pytest.mark.pytorch
+class PytorchClassiferAMPArgumentsPropertyTest(unittest.TestCase):
+
+    def test_with_no_amp_args_configured(self):
+        clf = KimCNNClassifier(3,
+                               embedding_matrix=torch.FloatTensor(np.random.rand(100, 2)))
+
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cpu', clf.amp_args.device_type)
+        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+
+        clf.initialize_kimcnn_model()
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cpu', clf.amp_args.device_type)
+        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+
+        clf.model = clf.model.to('cuda')
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cuda', clf.amp_args.device_type)
+        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+
+    def test_with_amp_args_configured(self):
+        amp_args = AMPArguments(use_amp=True, device_type='cuda', dtype=torch.float16)
+        clf = KimCNNClassifier(3,
+                               embedding_matrix=torch.FloatTensor(np.random.rand(100, 2)),
+                               amp_args=amp_args)
+
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cuda', clf.amp_args.device_type)
+        self.assertEqual(torch.float16, clf.amp_args.dtype)
+
+        clf.initialize_kimcnn_model()
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cuda', clf.amp_args.device_type)
+        self.assertEqual(torch.float16, clf.amp_args.dtype)
+
+        clf.model = clf.model.to('cuda')
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertTrue(amp_args.use_amp)
+        self.assertEqual('cuda', clf.amp_args.device_type)
+        self.assertEqual(torch.float16, clf.amp_args.dtype)
 
 
 @pytest.mark.pytorch

@@ -32,6 +32,7 @@ except ImportError:
 
 
 def main(num_iterations=10, device='cuda'):
+    from small_text.integrations.pytorch.classifiers.base import AMPArguments
     pretrained_vectors = api.load('word2vec-google-news-300')
 
     train, test = get_train_test()
@@ -47,7 +48,8 @@ def main(num_iterations=10, device='cuda'):
         'embedding_matrix': load_gensim_embedding(train.data, tokenizer, pretrained_vectors),
         'max_seq_len': 512,
         'num_epochs': 4,
-        'device': device
+        'device': device,
+        'amp_args': AMPArguments(use_amp=True, device_type='cuda')
     }
 
     clf_factory = KimCNNFactory(num_classes, classifier_kwargs)

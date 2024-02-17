@@ -233,6 +233,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                  device=None,
                  memory_fix=1,
                  class_weight=None,
+                 amp_args=None,
                  verbosity=VERBOSITY_MORE_VERBOSE,
                  cache_dir='.active_learning_lib_cache/'):
         """
@@ -259,7 +260,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             If True, model selects first saves the model after each epoch. At the end of the
             training step the model with the lowest validation error is selected.
         fine_tuning_arguments : FineTuningArguments or None, default=None
-            Fine tuning arguments.
+            Fine-tuning arguments.
         device : str or torch.device, default=None
             Torch device on which the computation will be performed.
         memory_fix : int, default=1
@@ -268,6 +269,13 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         class_weight : 'balanced' or None, default=None
             If 'balanced', then the loss function is weighted inversely proportional to the
             label distribution to the current train set.
+            label distribution to the current train set.
+        amp_args : AMPArguments, default=None
+            Configures the use of Automatic Mixed Precision (AMP).
+
+            .. seealso:: :py:class:`~small_text.integrations.pytorch.classifiers.base.AMPArguments`
+            .. versionadded:: 2.0.0
+
         verbosity : int
             Controls the verbosity of logging messages. Lower values result in less log messages.
             Set this to `VERBOSITY_QUIET` or `0` for the minimum amount of logging.
@@ -294,6 +302,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.transformer_model = transformer_model
 
         # Other
+        self.amp_args = amp_args
         self.class_weight = class_weight
 
         self.model_selection = model_selection
@@ -413,6 +422,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
     def _train(self, sub_train, sub_valid, weights, early_stopping, model_selection, optimizer,
                scheduler, tmp_dir):
 
+        scaler = torch.cuda.amp.GradScaler(enabled=self.amp_args.use_amp)
+
         stop = False
         for epoch in range(0, self.num_epochs):
             if not stop:
@@ -426,6 +437,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                                                                                             model_selection,
                                                                                             optimizer,
                                                                                             scheduler,
+                                                                                            scaler,
+                                                                                            self.amp_args,
                                                                                             tmp_dir)
 
                 timedelta = datetime.datetime.now() - start_time
@@ -434,7 +447,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                                 valid_acc, valid_loss)
 
     def _train_loop_epoch(self, num_epoch, sub_train, sub_valid, weights, early_stopping,
-                          model_selection, optimizer, scheduler, tmp_dir):
+                          model_selection, optimizer, scheduler, scaler, amp_args, tmp_dir):
 
         if self.memory_fix and (num_epoch + 1) % self.memory_fix == 0:
             torch.cuda.empty_cache()
@@ -463,13 +476,15 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             model_selection,
             optimizer,
             scheduler,
+            scaler,
+            amp_args,
             tmp_dir,
             validate_every=validate_every)
 
         return train_acc, train_loss, valid_acc, valid_loss, stop
 
     def _train_loop_process_batches(self, num_epoch, sub_train_, sub_valid_, weights, early_stopping,
-                                    model_selection, optimizer, scheduler, tmp_dir,
+                                    model_selection, optimizer, scheduler, scaler, amp_args, tmp_dir,
                                     validate_every=None):
 
         train_loss = 0.
@@ -488,7 +503,9 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         for i, (x, masks, cls, weight, *_) in enumerate(train_iter):
             if not stop:
-                loss, acc = self._train_single_batch(x, masks, cls, weight, optimizer)
+                with torch.autocast(enabled=self.amp_args.use_amp, device_type=self.amp_args.device_type,
+                                    dtype=self.amp_args.dtype):
+                    loss, acc = self._train_single_batch(x, masks, cls, weight, optimizer, scaler)
                 scheduler.step()
 
                 train_loss += loss
@@ -530,7 +547,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         return partial(transformers_collate_fn, multi_label=self.multi_label,
                        num_classes=self.num_classes, use_sample_weights=use_sample_weights)
 
-    def _train_single_batch(self, x, masks, cls, weight, optimizer):
+    def _train_single_batch(self, x, masks, cls, weight, optimizer, scaler):
 
         train_loss = 0.
         train_acc = 0.
@@ -546,11 +563,13 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         loss = loss * weight
         loss = loss.mean()
 
-        loss.backward()
+        scaler.scale(loss).backward()
+        scaler.unscale_(optimizer)
 
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
 
-        optimizer.step()
+        scaler.step(optimizer)
+        scaler.update()
 
         train_loss += loss.detach().item()
         train_acc += self.sum_up_accuracy_(logits, cls)
@@ -583,27 +602,29 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
     def validate(self, validation_set):
 
-        valid_loss = 0.
-        acc = 0.
+        with torch.no_grad():
+            with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
+                                enabled=self.amp_args.use_amp):
+                valid_loss = 0.
+                acc = 0.
 
-        self.model.eval()
-        valid_iter = dataloader(validation_set.data, self.mini_batch_size,
-                                self._create_collate_fn(),
-                                train=False)
+                self.model.eval()
+                valid_iter = dataloader(validation_set.data, self.mini_batch_size,
+                                        self._create_collate_fn(),
+                                        train=False)
 
-        for x, masks, cls, weight, *_ in valid_iter:
-            x, masks, cls = x.to(self.device), masks.to(self.device), cls.to(self.device)
-            weight = weight.to(self.device)
+                for x, masks, cls, weight, *_ in valid_iter:
+                    x, masks, cls = x.to(self.device), masks.to(self.device), cls.to(self.device)
+                    weight = weight.to(self.device)
 
-            with torch.no_grad():
-                outputs = self.model(x, attention_mask=masks)
-                _, loss = self._compute_loss(cls, outputs)
-                loss = loss * weight
-                loss = loss.mean()
+                    outputs = self.model(x, attention_mask=masks)
+                    _, loss = self._compute_loss(cls, outputs)
+                    loss = loss * weight
+                    loss = loss.mean()
 
-                valid_loss += loss.item()
-                acc += self.sum_up_accuracy_(outputs.logits, cls)
-                del outputs, x, masks, cls
+                    valid_loss += loss.item()
+                    acc += self.sum_up_accuracy_(outputs.logits, cls)
+                    del outputs, x, masks, cls
 
         return valid_loss / len(validation_set), acc / len(validation_set)
 

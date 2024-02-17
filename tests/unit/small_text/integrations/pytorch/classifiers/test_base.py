@@ -1,7 +1,8 @@
+import numpy as np
 import pytest
 import unittest
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.training.model_selection import ModelSelection, NoopModelSelection
@@ -11,7 +12,8 @@ try:
     import torch
     from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss
 
-    from small_text.integrations.pytorch.classifiers import PytorchClassifier
+    from small_text.integrations.pytorch.classifiers.base import AMPArguments
+    from small_text.integrations.pytorch.classifiers import PytorchClassifier, KimCNNClassifier
     from small_text.integrations.pytorch.utils.loss import _LossAdapter2DTo1D
 
     class SimplePytorchClassifier(PytorchClassifier):
@@ -30,10 +32,37 @@ except PytorchNotFoundError:
     pass
 
 
+class AMPArgumentsTest(unittest.TestCase):
+
+    def test_init_default(self):
+        amp_args = AMPArguments()
+        self.assertFalse(amp_args.use_amp)
+        self.assertIsNone(amp_args.device_type)
+        self.assertEqual(torch.bfloat16, amp_args.dtype)
+
+    def test_init_default(self):
+        device_type = 'cuda'
+        dtype = torch.float16
+
+        amp_args = AMPArguments(use_amp=True, device_type=device_type, dtype=dtype)
+        self.assertTrue(amp_args.use_amp)
+        self.assertEqual(device_type, amp_args.device_type)
+        self.assertEqual(dtype, amp_args.dtype)
+
+
+class ModelMock(object):
+
+    def __init__(self, device=torch.device('cpu')):
+        self.device = device
+
+        self.eval = Mock()
+
+
 @pytest.mark.pytorch
 class PytorchClassifierTest(unittest.TestCase):
 
     def test_predict_proba(self):
+
         class PytorchClassifierImpl(PytorchClassifier):
 
             def __init__(self):
@@ -42,7 +71,7 @@ class PytorchClassifierTest(unittest.TestCase):
                 super().__init__()
 
             def fit(self, train_set, _=None, *args, **kwargs):
-                self.model = Mock()
+                self.model = ModelMock()
 
                 def create_collate_fn():
                     def collate(dataset):
@@ -67,7 +96,7 @@ class PytorchClassifierTest(unittest.TestCase):
                 super().__init__()
 
             def fit(self, train_set, _=None, *args, **kwargs):
-                self.model = Mock()
+                self.model = ModelMock()
 
                 def create_collate_fn():
                     def collate(dataset):
