@@ -9,6 +9,7 @@ from unittest.mock import patch
 from unittest import mock
 from unittest.mock import Mock
 from scipy.sparse import issparse
+
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.training.early_stopping import EarlyStopping, NoopEarlyStopping, EarlyStoppingOrCondition
 from small_text.training.metrics import Metric
@@ -20,10 +21,13 @@ try:
     from torch.optim import AdamW
     from torch.optim.lr_scheduler import LambdaLR
 
+    from small_text.integrations.pytorch.classifiers.base import AMPArguments
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
     from tests.utils.datasets import random_text_classification_dataset
 except PytorchNotFoundError:
     pass
+
+from tests.integration.small_text.integrations.pytorch.classifiers.test_base import _AMPArgumentsTest
 
 
 class _KimCNNClassifierTest(object):
@@ -368,3 +372,21 @@ class CompileTest(unittest.TestCase):
                     patch('torch.compile', wraps=torch.compile) as compile_spy:
                 classifier.initialize_kimcnn_model()
                 compile_spy.assert_not_called()
+
+
+@pytest.mark.pytorch
+class KimCNNClassifierAMPArgumentsTest(_AMPArgumentsTest, unittest.TestCase):
+
+    def test_with_no_amp_args_configured(self):
+        clf = KimCNNClassifier(3,
+                               embedding_matrix=torch.FloatTensor(np.random.rand(100, 2)))
+
+        super()._test_with_no_amp_args_configured(clf)
+
+    def test_with_amp_args_configured(self):
+        amp_args = AMPArguments(use_amp=True, device_type='cuda', dtype=torch.float16)
+        clf = KimCNNClassifier(3,
+                               embedding_matrix=torch.FloatTensor(np.random.rand(100, 2)),
+                               amp_args=amp_args)
+
+        super()._test_with_amp_args_configured(clf)

@@ -280,7 +280,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             Controls the verbosity of logging messages. Lower values result in less log messages.
             Set this to `VERBOSITY_QUIET` or `0` for the minimum amount of logging.
         """
-        super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size)
+        super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size,
+                         amp_args=amp_args)
         model_selection_deprecation_warning(model_selection)
 
         with verbosity_logger():
@@ -302,7 +303,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.transformer_model = transformer_model
 
         # Other
-        self.amp_args = amp_args
         self.class_weight = class_weight
 
         self.model_selection = model_selection

@@ -12,6 +12,9 @@ from sklearn.utils.validation import check_is_fitted
 from tests.utils.datasets import twenty_news_text
 
 try:
+    import torch
+
+    from small_text.integrations.pytorch.classifiers.base import AMPArguments
     from small_text.integrations.transformers.classifiers.factories import (
         SetFitClassification,
         SetFitClassificationFactory
@@ -403,3 +406,61 @@ class SetFitClassificationDifferentiableHeadMultiLabelTest(unittest.TestCase, _C
     def test_fit_with_non_default_settings(self):
         with self.assertRaises(NotImplementedError):
             super().test_fit_with_non_default_settings()
+
+
+@pytest.mark.pytorch
+@pytest.mark.optional
+class SetFitClassificationAMPArgumentsTest(unittest.TestCase):
+
+    def test_with_no_amp_args_configured(self):
+        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
+        clf = SetFitClassification(setfit_model_args, 3)
+
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cpu', clf.amp_args.device_type)
+        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+
+        clf.model = clf.initialize()
+        # TODO: different default behavior than the other classifiers
+        clf.model = clf.model.to('cpu')
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cpu', clf.amp_args.device_type)
+        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+
+        clf.model = clf.model.to('cuda')
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cuda', clf.amp_args.device_type)
+        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+
+    def test_with_amp_args_configured(self):
+        amp_args = AMPArguments(use_amp=True, device_type='cuda', dtype=torch.float16)
+        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
+        clf = SetFitClassification(setfit_model_args, 3, amp_args=amp_args)
+
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cuda', clf.amp_args.device_type)
+        self.assertEqual(torch.float16, clf.amp_args.dtype)
+
+        clf.model = clf.initialize()
+        # TODO: different default behavior than the other classifiers
+        clf.model = clf.model.to('cpu')
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cuda', clf.amp_args.device_type)
+        self.assertEqual(torch.float16, clf.amp_args.dtype)
+
+        clf.model = clf.model.to('cuda')
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertTrue(amp_args.use_amp)
+        self.assertEqual('cuda', clf.amp_args.device_type)
+        self.assertEqual(torch.float16, clf.amp_args.dtype)

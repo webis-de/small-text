@@ -46,12 +46,9 @@ class PytorchClassifierImplementation(PytorchClassifier):
         pass
 
 
-@pytest.mark.pytorch
-class PytorchClassiferAMPArgumentsPropertyTest(unittest.TestCase):
+class _AMPArgumentsTest(object):
 
-    def test_with_no_amp_args_configured(self):
-        clf = KimCNNClassifier(3,
-                               embedding_matrix=torch.FloatTensor(np.random.rand(100, 2)))
+    def _test_with_no_amp_args_configured(self, clf):
 
         amp_args = clf.amp_args
         self.assertIsNotNone(amp_args)
@@ -73,11 +70,7 @@ class PytorchClassiferAMPArgumentsPropertyTest(unittest.TestCase):
         self.assertEqual('cuda', clf.amp_args.device_type)
         self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
 
-    def test_with_amp_args_configured(self):
-        amp_args = AMPArguments(use_amp=True, device_type='cuda', dtype=torch.float16)
-        clf = KimCNNClassifier(3,
-                               embedding_matrix=torch.FloatTensor(np.random.rand(100, 2)),
-                               amp_args=amp_args)
+    def _test_with_amp_args_configured(self, clf):
 
         amp_args = clf.amp_args
         self.assertIsNotNone(amp_args)

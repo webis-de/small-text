@@ -18,6 +18,7 @@ from small_text.training.model_selection import ModelSelection, NoopModelSelecti
 try:
     import torch
 
+    from small_text.integrations.pytorch.classifiers.base import AMPArguments
     from small_text.integrations.transformers import (
         TransformerBasedClassification,
         TransformerModelArguments
@@ -29,6 +30,8 @@ except (ImportError, PytorchNotFoundError):
     # prevent "NameError: name 'TransformerBasedClassification' is not defined" in patch.object
     class TransformerBasedClassification(object):
         pass
+
+from tests.integration.small_text.integrations.pytorch.classifiers.test_base import _AMPArgumentsTest
 
 
 class _TransformerBasedClassificationTest(object):
@@ -452,3 +455,56 @@ class CompileTest(unittest.TestCase):
                     patch('torch.compile', wraps=torch.compile) as compile_spy:
                 classifier.initialize_transformer(classifier.cache_dir)
                 compile_spy.assert_not_called()
+
+
+@pytest.mark.pytorch
+class TransformerBasedClassificationAMPArgumentsTest(unittest.TestCase):
+
+    def test_with_no_amp_args_configured(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        clf = TransformerBasedClassification(model_args, 3)
+
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cpu', clf.amp_args.device_type)
+        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+
+        clf.initialize_transformer(clf.cache_dir)
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cpu', clf.amp_args.device_type)
+        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+
+        clf.model = clf.model.to('cuda')
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cuda', clf.amp_args.device_type)
+        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+
+    def test_with_amp_args_configured(self):
+        amp_args = AMPArguments(use_amp=True, device_type='cuda', dtype=torch.float16)
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        clf = TransformerBasedClassification(model_args, 3, amp_args=amp_args, device='cpu')
+
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cpu', clf.amp_args.device_type)
+        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+
+        clf.initialize_transformer(clf.cache_dir)
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cpu', clf.amp_args.device_type)
+        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+
+        clf.model = clf.model.to('cuda')
+        amp_args = clf.amp_args
+        self.assertIsNotNone(amp_args)
+        self.assertFalse(amp_args.use_amp)
+        self.assertEqual('cuda', clf.amp_args.device_type)
+        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)

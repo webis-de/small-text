@@ -202,7 +202,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         self.use_differentiable_head = use_differentiable_head
         self.mini_batch_size = mini_batch_size
 
-        self.amp_args = amp_args
+        self._amp_args = amp_args
         self.device = device
 
         self.verbosity = verbosity
@@ -419,6 +419,19 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         self.model.model_body.eval = model_body_eval
 
         return proba
+
+    @property
+    def amp_args(self):
+        if self._amp_args is None:
+            device_type = 'cpu' if self.model is None else self.model.model_body.device.type
+            amp_args = AMPArguments(device_type=device_type, dtype=torch.bfloat16)
+        else:
+            amp_args = AMPArguments(use_amp=self._amp_args.use_amp,
+                                    device_type=self._amp_args.device_type,
+                                    dtype=self._amp_args.dtype)
+        if self.model is None or self.model.model_body.device.type == 'cpu':
+            amp_args.use_amp = False
+        return amp_args
 
     def __del__(self):
         try:

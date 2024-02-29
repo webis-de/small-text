@@ -111,12 +111,13 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
 
     @property
     def amp_args(self):
-        amp_args = AMPArguments(use_amp=self._amp_args.use_amp,
-                                device_type=self._amp_args.device_type,
-                                dtype=self._amp_args.dtype)
-        if amp_args is None:
+        if self._amp_args is None:
             device_type = 'cpu' if self.model is None else self.model.device.type
             amp_args = AMPArguments(device_type=device_type, dtype=torch.bfloat16)
+        else:
+            amp_args = AMPArguments(use_amp=self._amp_args.use_amp,
+                                    device_type=self._amp_args.device_type,
+                                    dtype=self._amp_args.dtype)
         if self.model is None or self.model.device.type == 'cpu':
             amp_args.use_amp = False
         return amp_args
