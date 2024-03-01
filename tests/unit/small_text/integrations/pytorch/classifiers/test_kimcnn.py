@@ -6,12 +6,11 @@ from unittest.mock import patch
 
 from small_text.base import LABEL_UNLABELED
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.training.metrics import Metric
-from small_text.training.early_stopping import EarlyStopping, EarlyStoppingOrCondition
 
 try:
     import torch
 
+    from small_text.integrations.pytorch.classifiers.base import AMPArguments
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
     from small_text.integrations.pytorch.datasets import PytorchDatasetView
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
@@ -52,6 +51,7 @@ class KimCNNTest(unittest.TestCase):
         self.assertEqual(0, classifier.padding_idx)
         self.assertEqual([3, 4, 5], classifier.kernel_heights)
         self.assertIsNone(classifier.class_weight)
+        self.assertIsNotNone(classifier.amp_args)
         self.assertFalse(classifier.compile_model)
         self.assertIsNone(classifier.model)
 
@@ -69,6 +69,7 @@ class KimCNNTest(unittest.TestCase):
         embedding_matrix = np.random.rand(5, 10)
         padding_idx = 1
         class_weight = 'balanced'
+        amp_args = AMPArguments()
         compile_model = False
 
         classifier = KimCNNClassifier(num_classes, multi_label=multi_label, device='cpu',
@@ -77,7 +78,7 @@ class KimCNNTest(unittest.TestCase):
                                       filter_padding=filter_padding, dropout=dropout,
                                       validation_set_size=validation_set_size,
                                       embedding_matrix=embedding_matrix, padding_idx=padding_idx,
-                                      class_weight=class_weight,
+                                      class_weight=class_weight, amp_args=amp_args,
                                       compile_model=compile_model)
 
         self.assertEqual(num_classes, classifier.num_classes)
@@ -96,6 +97,7 @@ class KimCNNTest(unittest.TestCase):
         np.testing.assert_equal(embedding_matrix, classifier.embedding_matrix)
         self.assertEqual(padding_idx, classifier.padding_idx)
         self.assertEqual(class_weight, classifier.class_weight)
+        self.assertEqual(amp_args, classifier.amp_args)
         self.assertFalse(classifier.compile_model)
         self.assertIsNone(classifier.model)
 

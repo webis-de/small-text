@@ -31,6 +31,8 @@ class KimCNNInitTest(unittest.TestCase):
         self.assertEqual(pool_sizes, model.pool_sizes)
         self.assertEqual(max_seq_length, model.max_seq_length)
         self.assertEqual(2, model.num_classes)
+        self.assertIsNotNone(model.device)
+        self.assertEqual('cpu', model.device.type)
 
         # Modules
         self.assertTrue(model.embedding.weight.requires_grad)

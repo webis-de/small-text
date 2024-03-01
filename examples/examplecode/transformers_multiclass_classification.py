@@ -25,12 +25,15 @@ TWENTY_NEWS_SUBCATEGORIES = ['rec.sport.baseball', 'sci.med', 'rec.autos']
 
 
 def main(num_iterations=10):
+    from small_text.integrations.pytorch.classifiers.base import AMPArguments
+
     # Active learning parameters
     num_classes = len(TWENTY_NEWS_SUBCATEGORIES)
     clf_factory = TransformerBasedClassificationFactory(TRANSFORMER_MODEL,
                                                         num_classes,
                                                         kwargs={
-                                                            'device': 'cuda'
+                                                            'device': 'cuda',
+                                                            'amp_args': AMPArguments(use_amp=True, device_type='cuda')
                                                         })
     query_strategy = RandomSampling()
 

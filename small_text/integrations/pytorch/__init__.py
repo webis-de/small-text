@@ -2,6 +2,7 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
     from small_text.integrations.pytorch.classifiers.base import (
+        AMPArguments,
         PytorchModelSelectionMixin,
         PytorchClassifier
     )
@@ -28,6 +29,7 @@ try:
     )
 
     __all__ = [
+        'AMPArguments',
         'PytorchModelSelectionMixin',
         'PytorchClassifier',
         'AbstractClassifierFactory',

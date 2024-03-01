@@ -9,6 +9,7 @@ class ImportTest(unittest.TestCase):
         from small_text import PytorchNotFoundError
 
     def test_import_base_module(self):
+        from small_text import AMPArguments
         from small_text import PytorchModelSelectionMixin
         from small_text import PytorchClassifier
 

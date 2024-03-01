@@ -1,4 +1,5 @@
 from small_text.integrations.pytorch.classifiers.base import (
+    AMPArguments,
     PytorchClassifier,
     PytorchModelSelectionMixin
 )
@@ -10,6 +11,7 @@ from small_text.integrations.pytorch.classifiers.kimcnn import (
 
 
 __all__ = [
+    'AMPArguments',
     'PytorchClassifier',
     'PytorchModelSelectionMixin',
     'KimCNNFactory',

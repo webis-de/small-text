@@ -173,7 +173,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
     def __init__(self, num_classes, multi_label=False, embedding_matrix=None, device=None,
                  num_epochs=10, mini_batch_size=25, lr=0.001, max_seq_len=60, out_channels=100,
                  filter_padding=0, dropout=0.5, validation_set_size=0.1, padding_idx=0,
-                 kernel_heights=[3, 4, 5], class_weight=None, compile_model=False, verbosity=VERBOSITY_MORE_VERBOSE):
+                 kernel_heights=[3, 4, 5], class_weight=None, amp_args=None, compile_model=False,
+                 verbosity=VERBOSITY_MORE_VERBOSE):
         """
         num_classes : int
             Number of classes.
@@ -207,12 +208,19 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         class_weight : 'balanced' or None, default=None
             If 'balanced', then the loss function is weighted inversely proportional to the
             label distribution to the current train set.
+        amp_args : AMPArguments, default=None
+            Configures the use of Automatic Mixed Precision (AMP).
+
+            .. seealso:: :py:class:`~small_text.integrations.pytorch.classifiers.base.AMPArguments`
+            .. versionadded:: 2.0.0
+
         compile_model : bool, default=False
             Compiles the model (using `torch.compile`) if `True` and PyTorch version is greater than or equal 2.0.0.
 
             .. versionadded:: 2.0.0
         """
-        super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size)
+        super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size,
+                         amp_args=amp_args)
 
         with verbosity_logger():
             self.logger = logging.getLogger(__name__)
@@ -352,6 +360,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
     def _train(self, sub_train, sub_valid, weights, early_stopping, model_selection, optimizer,
                scheduler, tmp_dir):
 
+        scaler = torch.cuda.amp.GradScaler(enabled=self.amp_args.use_amp)
+
         stop = False
         for epoch in range(self.num_epochs):
             if not stop:
@@ -361,7 +371,9 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                 train_loss, train_acc = self._train_func(sub_train,
                                                          weights,
                                                          optimizer,
-                                                         scheduler)
+                                                         scheduler,
+                                                         scaler,
+                                                         self.amp_args)
 
                 self.model.eval()
                 valid_loss, valid_acc = self.validate(sub_valid)
@@ -392,7 +404,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                        padding_idx=self.padding_idx, max_seq_len=self.max_seq_len,
                        filter_padding=self.filter_padding)
 
-    def _train_func(self, sub_train_, weights, optimizer, scheduler):
+    def _train_func(self, sub_train_, weights, optimizer, scheduler, scaler, amp_args):
 
         train_loss = 0.
         train_acc = 0.
@@ -405,15 +417,17 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                                 self._create_collate_fn(use_sample_weights=weights is not None))
 
         for i, (text, cls, weight) in enumerate(train_iter):
-            loss, acc = self._train_single_batch(text, cls, weight, optimizer)
-            scheduler.step()
+            with torch.autocast(enabled=amp_args.use_amp, device_type=amp_args.device_type,
+                                dtype=amp_args.dtype):
+                loss, acc = self._train_single_batch(text, cls, weight, optimizer, scaler)
+                scheduler.step()
 
-            train_loss += loss
-            train_acc += acc
+                train_loss += loss
+                train_acc += acc
 
         return train_loss / len(sub_train_), train_acc / len(sub_train_)
 
-    def _train_single_batch(self, text, cls, weight, optimizer):
+    def _train_single_batch(self, text, cls, weight, optimizer, scaler):
 
         train_loss = 0.
         train_acc = 0.
@@ -423,20 +437,17 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         text, cls, weight = text.to(self.device), cls.to(self.device), weight.to(self.device)
         output = self.model(text)
 
-        with torch.no_grad():
-            if self.num_classes == 2:
-                target = F.one_hot(cls, 2).float()
-            else:
-                target = cls
-        loss = self.criterion(output, target)
+        loss = self._compute_loss(cls, output)
         loss = loss * weight
         loss = loss.mean()
 
-        loss.backward()
+        scaler.scale(loss).backward()
+        scaler.unscale_(optimizer)
 
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), 3)
 
-        optimizer.step()
+        scaler.step(optimizer)
+        scaler.update()
 
         train_loss += loss.item()
         train_acc += self.sum_up_accuracy_(output, cls)
@@ -444,6 +455,15 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         del text, cls, output
 
         return train_loss, train_acc
+
+    def _compute_loss(self, cls, output):
+        with torch.no_grad():
+            if self.num_classes == 2:
+                target = F.one_hot(cls, 2).float()
+            else:
+                target = cls
+        loss = self.criterion(output, target)
+        return loss
 
     def validate(self, validation_set):
         """Obtains validation scores (loss, accuracy) for the given validation set.
@@ -460,33 +480,37 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         validation_acc : float
             Validation accuracy.
         """
-        valid_loss = 0.
-        acc = 0.
+        with torch.no_grad():
+            with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
+                                enabled=self.amp_args.use_amp):
 
-        self.model.eval()
-        valid_iter = dataloader(validation_set.data, self.mini_batch_size, self._create_collate_fn(),
-                                train=False)
+                valid_loss = 0.
+                acc = 0.
 
-        for x, cls, weight, *_ in valid_iter:
-            x, cls, weight = x.to(self.device), cls.to(self.device), weight.to(self.device)
+                self.model.eval()
+                valid_iter = dataloader(validation_set.data, self.mini_batch_size, self._create_collate_fn(),
+                                        train=False)
 
-            with torch.no_grad():
-                if self.num_classes == 2:
-                    target = F.one_hot(cls, 2).float()
-                else:
-                    target = cls
+                for x, cls, weight, *_ in valid_iter:
+                    x, cls, weight = x.to(self.device), cls.to(self.device), weight.to(self.device)
 
-                output = self.model(x)
-                loss = self.criterion(output, target)
-                loss = loss * weight
-                loss = loss.mean()
+                    with torch.no_grad():
+                        if self.num_classes == 2:
+                            target = F.one_hot(cls, 2).float()
+                        else:
+                            target = cls
 
-                valid_loss += loss.item()
+                        output = self.model(x)
+                        loss = self.criterion(output, target)
+                        loss = loss * weight
+                        loss = loss.mean()
 
-                acc += self.sum_up_accuracy_(output, cls)
-                del output, x, cls
+                        valid_loss += loss.item()
 
-        return valid_loss / len(validation_set), acc / len(validation_set)
+                        acc += self.sum_up_accuracy_(output, cls)
+                        del output, x, cls
+
+                return valid_loss / len(validation_set), acc / len(validation_set)
 
     def predict(self, dataset, return_proba=False):
         """Predicts the labels for the given dataset.

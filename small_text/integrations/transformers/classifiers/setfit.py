@@ -25,6 +25,7 @@ try:
     from datasets import Dataset
     from setfit import SetFitModel, SetFitTrainer
 
+    from small_text.integrations.pytorch.classifiers.base import AMPArguments
     from small_text.integrations.pytorch.utils.misc import _compile_if_possible, enable_dropout
     from small_text.integrations.transformers.utils.classification import (
         _get_arguments_for_from_pretrained_model
@@ -140,8 +141,8 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
     """
 
     def __init__(self, setfit_model_args, num_classes, multi_label=False, max_seq_len=512,
-                 use_differentiable_head=False, mini_batch_size=32, model_kwargs=dict(),
-                 trainer_kwargs=dict(), device=None, verbosity=VERBOSITY_MORE_VERBOSE):
+                 use_differentiable_head=False, mini_batch_size=32, model_kwargs={},
+                 trainer_kwargs={}, amp_args=None, device=None, verbosity=VERBOSITY_MORE_VERBOSE):
         """
         sentence_transformer_model : SetFitModelArguments
             Settings for the sentence transformer model to be used.
@@ -169,6 +170,12 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
             .. seealso:: `SetFit: src/setfit/trainer.py
                          <https://github.com/huggingface/setfit/blob/main/src/setfit/trainer.py>`_
+        amp_args : AMPArguments, default=None
+            Configures the use of Automatic Mixed Precision (AMP). Only affects the training.
+
+            .. seealso:: :py:class:`~small_text.integrations.pytorch.classifiers.base.AMPArguments`
+            .. versionadded:: 2.0.0
+
         device : str or torch.device, default=None
             Torch device on which the computation will be performed.
         verbosity : int, default=VERBOSITY_MORE_VERBOSE
@@ -193,6 +200,8 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         self.max_seq_len = max_seq_len
         self.use_differentiable_head = use_differentiable_head
         self.mini_batch_size = mini_batch_size
+
+        self._amp_args = amp_args
         self.device = device
 
         self.verbosity = verbosity
@@ -245,6 +254,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         return self._fit_main(sub_train, sub_valid, setfit_train_kwargs)
 
     def _fit_main(self, sub_train, sub_valid, setfit_train_kwargs):
+
         if self.use_differentiable_head:
             raise NotImplementedError
         else:
@@ -269,6 +279,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             sub_train,
             eval_dataset=sub_valid,
             batch_size=self.mini_batch_size,
+            use_amp=self.amp_args.use_amp,  # TODO: device_type and dtype are not used
             **self.trainer_kwargs
         )
         if not 'show_progress_bar' in setfit_train_kwargs:
@@ -278,7 +289,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         return self
 
     def initialize(self):
-        # TODO: make sur the initialize() methods of all classifiers are similar
+        # TODO: make sure the initialize() methods of all classifiers are similar
         from_pretrained_options = _get_arguments_for_from_pretrained_model(
             self.setfit_model_args.model_loading_strategy
         )
@@ -363,11 +374,13 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         if self.use_differentiable_head:
             raise NotImplementedError()
 
-        with torch.no_grad():
-            if dropout_sampling <= 1:
-                return self._predict_proba(dataset)
-            else:
-                return self._predict_proba_dropout_sampling(dataset, dropout_samples=dropout_sampling)
+        with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
+                            enabled=self.amp_args.use_amp):
+            with torch.no_grad():
+                if dropout_sampling <= 1:
+                    return self._predict_proba(dataset)
+                else:
+                    return self._predict_proba_dropout_sampling(dataset, dropout_samples=dropout_sampling)
 
     def _predict_proba(self, dataset):
         proba = np.empty((0, self.num_classes), dtype=float)
@@ -405,6 +418,19 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         self.model.model_body.eval = model_body_eval
 
         return proba
+
+    @property
+    def amp_args(self):
+        if self._amp_args is None:
+            device_type = 'cpu' if self.model is None else self.model.model_body.device.type
+            amp_args = AMPArguments(device_type=device_type, dtype=torch.bfloat16)
+        else:
+            amp_args = AMPArguments(use_amp=self._amp_args.use_amp,
+                                    device_type=self._amp_args.device_type,
+                                    dtype=self._amp_args.dtype)
+        if self.model is None or self.model.model_body.device.type == 'cpu':
+            amp_args.use_amp = False
+        return amp_args
 
     def __del__(self):
         try:

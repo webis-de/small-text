@@ -106,6 +106,10 @@ class KimCNN(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.fc = nn.Linear(self.out_channels * self.num_kernels, self.num_classes)
 
+    @property
+    def device(self):
+        return list(self.embedding.parameters())[0].device
+
     def forward(self, x):
         """
         Parameters

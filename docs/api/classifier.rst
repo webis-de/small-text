@@ -30,6 +30,10 @@ Pytorch Integration
 
 .. currentmodule:: small_text.integrations.pytorch.classifiers
 
+.. autoclass:: small_text.integrations.pytorch.classifiers.base.AMPArguments
+   :special-members: __init__
+   :members:
+
 .. _api-classifiers-kimcnn-classifier:
 
 .. autoclass:: KimCNNClassifier
