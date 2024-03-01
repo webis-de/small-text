@@ -141,9 +141,8 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
     """
 
     def __init__(self, setfit_model_args, num_classes, multi_label=False, max_seq_len=512,
-                 use_differentiable_head=False, mini_batch_size=32, model_kwargs=dict(),
-                 trainer_kwargs=dict(), amp_args=None, device=None,
-                 verbosity=VERBOSITY_MORE_VERBOSE):
+                 use_differentiable_head=False, mini_batch_size=32, model_kwargs={},
+                 trainer_kwargs={}, amp_args=None, device=None, verbosity=VERBOSITY_MORE_VERBOSE):
         """
         sentence_transformer_model : SetFitModelArguments
             Settings for the sentence transformer model to be used.
@@ -172,7 +171,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             .. seealso:: `SetFit: src/setfit/trainer.py
                          <https://github.com/huggingface/setfit/blob/main/src/setfit/trainer.py>`_
         amp_args : AMPArguments, default=None
-            Configures the use of Automatic Mixed Precision (AMP).
+            Configures the use of Automatic Mixed Precision (AMP). Only affects the training.
 
             .. seealso:: :py:class:`~small_text.integrations.pytorch.classifiers.base.AMPArguments`
             .. versionadded:: 2.0.0

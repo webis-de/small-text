@@ -15,6 +15,7 @@ from small_text.utils.system import OFFLINE_MODE_VARIABLE
 try:
     import torch
 
+    from small_text.integrations.pytorch.classifiers.base import AMPArguments
     from small_text.integrations.transformers.classifiers.base import (
         ModelLoadingStrategy
     )
@@ -303,6 +304,21 @@ class _SetFitClassification(object):
             call_args = trainer_mock.return_value.train.call_args
             self.assertTrue('l2_weight' in call_args.kwargs)
             self.assertEqual(0.2, call_args.kwargs['l2_weight'])
+
+    def test_fit_with_amp(self):
+        ds = random_text_dataset(10, multi_label=self.multi_label)
+        num_classes = 5
+
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        amp_args = AMPArguments(use_amp=True)
+
+        with patch('small_text.integrations.transformers.classifiers.setfit.SetFitTrainer') as trainer_mock:
+            clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label, amp_args=amp_args)
+            self.assertIsNone(clf.model)
+            clf.fit(ds)
+
+            trainer_mock.return_value.train.assert_called()
+            self.assertTrue(trainer_mock.call_args_list[0].kwargs['use_amp'])
 
 
 @pytest.mark.pytorch
