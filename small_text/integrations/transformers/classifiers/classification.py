@@ -175,16 +175,18 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
         proba = []
 
         with torch.no_grad():
-            with build_pbar_context(pbar, tqdm_kwargs={'total': len(data_set)}) as pbar:
-                for batch in train_iter:
-                    batch_len, logits, embeddings = self._create_embeddings(tensors,
-                                                                            batch,
-                                                                            embedding_method=embedding_method,
-                                                                            hidden_layer_index=hidden_layer_index)
-                    pbar.update(batch_len)
-                    if return_proba:
-                        proba.extend(F.softmax(logits, dim=1).detach().to('cpu').tolist())
-                    tensors.extend(embeddings)
+            with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
+                                enabled=self.amp_args.use_amp):
+                with build_pbar_context(pbar, tqdm_kwargs={'total': len(data_set)}) as pbar:
+                    for batch in train_iter:
+                        batch_len, logits, embeddings = self._create_embeddings(tensors,
+                                                                                batch,
+                                                                                embedding_method=embedding_method,
+                                                                                hidden_layer_index=hidden_layer_index)
+                        pbar.update(batch_len)
+                        if return_proba:
+                            proba.extend(F.softmax(logits, dim=1).detach().to('cpu').tolist())
+                        tensors.extend(embeddings)
 
         if return_proba:
             return np.array(tensors), np.array(proba)

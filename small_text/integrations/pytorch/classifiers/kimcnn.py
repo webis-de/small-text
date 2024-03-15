@@ -86,13 +86,17 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
         proba = []
 
         requires_grad = embedding_method == self.EMBEDDING_METHOD_GRADIENT
-
         with torch.set_grad_enabled(requires_grad):
             with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
                 for batch in dataset_iter:
-                    batch_len, logits, embeddings = self._create_embeddings(batch,
-                                                                            embedding_method=embedding_method,
-                                                                            module_selector=module_selector)
+                    with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
+                                        enabled=self.amp_args.use_amp):
+                        batch_len, logits, embeddings = self._create_embeddings(batch,
+                                                                                embedding_method=embedding_method,
+                                                                                module_selector=module_selector)
+
+                    embeddings = embeddings.detach().to('cpu', non_blocking=True).numpy()
+
                     pbar.update(batch_len)
                     if return_proba:
                         proba.extend(F.softmax(logits, dim=1).detach().to('cpu').tolist())
@@ -109,9 +113,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
         if embedding_method == self.EMBEDDING_METHOD_POOLED:
             embedded = self.model._forward_pooled(text)
-            logits = self.model._dropout_and_fc(embedded)
-            embeddings = embedded.detach().to('cpu', non_blocking=True).numpy()
-
+            embeddings = self.model._dropout_and_fc(embedded)
         elif embedding_method == self.EMBEDDING_METHOD_GRADIENT:
             best_label, logits = self._get_best_and_softmax(text)
             embeddings = self.create_embedding(best_label, logits, module_selector, text)
@@ -132,7 +134,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
         return best_label, logits
 
-    def create_embedding(self, best_label, logits, module_selector, text):
+    def _create_embedding(self, best_label, logits, module_selector, text):
 
         batch_len = text.size(0)
 
@@ -165,7 +167,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
         self.criterion.reduction = reduction_tmp
 
-        return arr.detach().to('cpu', non_blocking=True).numpy()
+        return arr
 
 
 class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
