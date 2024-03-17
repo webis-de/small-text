@@ -492,19 +492,19 @@ class TransformerBasedClassificationAMPArgumentsTest(unittest.TestCase):
         amp_args = clf.amp_args
         self.assertIsNotNone(amp_args)
         self.assertFalse(amp_args.use_amp)
-        self.assertEqual('cpu', clf.amp_args.device_type)
-        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+        self.assertEqual('cuda', clf.amp_args.device_type)
+        self.assertEqual(torch.float16, clf.amp_args.dtype)
 
         clf.initialize_transformer(clf.cache_dir)
         amp_args = clf.amp_args
         self.assertIsNotNone(amp_args)
         self.assertFalse(amp_args.use_amp)
-        self.assertEqual('cpu', clf.amp_args.device_type)
-        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+        self.assertEqual('cuda', clf.amp_args.device_type)
+        self.assertEqual(torch.float16, clf.amp_args.dtype)
 
         clf.model = clf.model.to('cuda')
         amp_args = clf.amp_args
         self.assertIsNotNone(amp_args)
-        self.assertFalse(amp_args.use_amp)
+        self.assertTrue(amp_args.use_amp)
         self.assertEqual('cuda', clf.amp_args.device_type)
-        self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
+        self.assertEqual(torch.float16, clf.amp_args.dtype)

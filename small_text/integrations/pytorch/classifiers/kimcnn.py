@@ -74,7 +74,28 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
     def embed(self, data_set, return_proba=False, embedding_method=EMBEDDING_METHOD_POOLED,
               module_selector=lambda x: x['fc'], pbar='tqdm'):
+        """Embeds each sample in the given `data_set`.
 
+        The embedding is created by using the underlying sentence transformer model.
+
+        Parameters
+        ----------
+        data_set : PytorchTextClassificationDataset
+            The dataset for which embeddings (and class probabilities) will be computed.
+        return_proba : bool
+            Also return the class probabilities for `data_set`.
+        embedding_method : str, default='pooled'
+            Embedding method to use ['pooled', 'gradient'].
+        pbar : 'tqdm' or None, default='tqdm'
+            Displays a progress bar if 'tqdm' is passed.
+
+        Returns
+        -------
+        embeddings : np.ndarray
+            Embeddings in the shape (N, hidden_layer_dimensionality).
+        proba : np.ndarray
+            Class probabilities in the shape (N, num_classes) for `data_set` (only if `return_predictions` is `True`).
+        """
         if self.model is None:
             raise ValueError('Model is not trained. Please call fit() first.')
 
@@ -86,13 +107,17 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
         proba = []
 
         requires_grad = embedding_method == self.EMBEDDING_METHOD_GRADIENT
-
         with torch.set_grad_enabled(requires_grad):
             with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
                 for batch in dataset_iter:
-                    batch_len, logits, embeddings = self._create_embeddings(batch,
-                                                                            embedding_method=embedding_method,
-                                                                            module_selector=module_selector)
+                    with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
+                                        enabled=self.amp_args.use_amp):
+                        batch_len, logits, embeddings = self._create_embeddings(batch,
+                                                                                embedding_method=embedding_method,
+                                                                                module_selector=module_selector)
+
+                    embeddings = embeddings.detach().to('cpu', non_blocking=True).numpy(force=True)
+
                     pbar.update(batch_len)
                     if return_proba:
                         proba.extend(F.softmax(logits, dim=1).detach().to('cpu').tolist())
@@ -108,15 +133,17 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
         text = text.to(self.device, non_blocking=True)
 
         if embedding_method == self.EMBEDDING_METHOD_POOLED:
-            embedded = self.model._forward_pooled(text)
-            logits = self.model._dropout_and_fc(embedded)
-            embeddings = embedded.detach().to('cpu', non_blocking=True).numpy()
-
+            embeddings = self.model._forward_pooled(text)
+            logits = self.model._dropout_and_fc(embeddings)
         elif embedding_method == self.EMBEDDING_METHOD_GRADIENT:
             best_label, logits = self._get_best_and_softmax(text)
-            embeddings = self.create_embedding(best_label, logits, module_selector, text)
+            embeddings = self._create_gradient_embedding(best_label, logits, module_selector, text)
         else:
             raise ValueError(f'Invalid embedding method: {embedding_method}')
+
+        if self.amp_args.use_amp:
+            embeddings = embeddings.float()
+            logits = logits.float()
 
         return text.size(0), logits, embeddings
 
@@ -132,7 +159,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
         return best_label, logits
 
-    def create_embedding(self, best_label, logits, module_selector, text):
+    def _create_gradient_embedding(self, best_label, logits, module_selector, text):
 
         batch_len = text.size(0)
 
@@ -149,23 +176,25 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
         for c in range(self.num_classes):
             loss = self.criterion(sm, torch.LongTensor([c] * batch_len).to(self.device))
 
-            for k in range(batch_len):
-                self.model.zero_grad()
-                loss[k].backward(retain_graph=True)
+            with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
+                                enabled=False):
+                for k in range(batch_len):
+                    self.model.zero_grad()
+                    loss[k].backward(retain_graph=True)
 
-                modules = dict({name: module for name, module in self.model.named_modules()})
-                params = module_selector(modules).weight.grad.flatten()
+                    modules = dict({name: module for name, module in self.model.named_modules()})
+                    params = module_selector(modules).weight.grad.flatten()
 
-                with torch.no_grad():
-                    sm_prob = sm_t[c][k]
-                    if c == best_label[k]:
-                        arr[k, grad_size*c:grad_size*(c+1)] = (1-sm_prob)*params
-                    else:
-                        arr[k, grad_size*c:grad_size*(c+1)] = -1*sm_prob*params
+                    with torch.no_grad():
+                        sm_prob = sm_t[c][k]
+                        if c == best_label[k]:
+                            arr[k, grad_size*c:grad_size*(c+1)] = (1-sm_prob)*params
+                        else:
+                            arr[k, grad_size*c:grad_size*(c+1)] = -1*sm_prob*params
 
         self.criterion.reduction = reduction_tmp
 
-        return arr.detach().to('cpu', non_blocking=True).numpy()
+        return arr
 
 
 class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):

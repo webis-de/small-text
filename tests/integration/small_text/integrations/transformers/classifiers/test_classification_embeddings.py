@@ -2,11 +2,14 @@ import unittest
 import pytest
 from unittest import mock
 
+import torch
+
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from tests.utils.datasets import twenty_news_transformers
 from tests.utils.testing import assert_array_not_equal
 
 try:
+    from small_text.integrations.pytorch.classifiers.base import AMPArguments
     from small_text.integrations.transformers import (
         TransformerBasedClassificationFactory,
         TransformerBasedEmbeddingMixin,
@@ -101,6 +104,29 @@ class _EmbeddingTest(object):
     def test_embed_with_proba(self):
         classifier_kwargs = {
             'fine_tuning_arguments': FineTuningArguments(0.2, 0.95),
+            'num_epochs': 1
+        }
+        clf_factory = TransformerBasedClassificationFactory(
+            TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
+            self.num_classes,
+            kwargs=classifier_kwargs)
+
+        train_set = twenty_news_transformers(20, num_labels=self.num_classes)
+
+        clf = clf_factory.new()
+        clf.fit(train_set)
+
+        embeddings, proba = clf.embed(train_set,
+                                      return_proba=True,
+                                      embedding_method=self.embedding_method)
+        self.assertEqual(2, len(embeddings.shape))
+        self.assertEqual(len(train_set), embeddings.shape[0])
+        self.assertEqual(clf.model.config.hidden_size, embeddings.shape[1])
+        self.assertEqual(len(train_set), proba.shape[0])
+
+    def test_embed_with_amp_args(self):
+        classifier_kwargs = {
+            'amp_args': AMPArguments(use_amp=True, device_type='cuda', dtype=torch.bfloat16),
             'num_epochs': 1
         }
         clf_factory = TransformerBasedClassificationFactory(
