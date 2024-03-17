@@ -147,10 +147,12 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
         Parameters
         ----------
+        data_set : TransformersDataset
+            The dataset for which embeddings (and class probabilities) will be computed.
         return_proba : bool
             Also return the class probabilities for `data_set`.
         embedding_method : str
-            Embedding method to use [avg, cls].
+            Embedding method to use ['avg', 'cls'].
         hidden_layer_index : int, default=-1
             Index of the hidden layer.
         pbar : 'tqdm' or None, default='tqdm'
@@ -161,7 +163,7 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
         embeddings : np.ndarray
             Embeddings in the shape (N, hidden_layer_dimensionality).
         proba : np.ndarray
-            Class probabilities for `data_set` (only if `return_predictions` is `True`).
+            Class probabilities in the shape (N, num_classes) for `data_set` (only if `return_predictions` is `True`).
         """
 
         if self.model is None:
@@ -507,11 +509,15 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             if not stop:
                 with torch.autocast(enabled=self.amp_args.use_amp, device_type=self.amp_args.device_type,
                                     dtype=self.amp_args.dtype):
-                    loss, acc = self._train_single_batch(x, masks, cls, weight, optimizer, scaler)
+                    loss, logits, cls = self._train_forward(x, masks, cls, weight, optimizer)
+                del x, masks
+                self._train_backward(loss, optimizer, scaler)
+
                 scheduler.step()
 
-                train_loss += loss
-                train_acc += acc
+                train_loss += loss.detach().item()
+                train_acc += self.sum_up_accuracy_(logits, cls)
+                del cls
 
                 if validate_every and i % validate_every == 0:
                     valid_loss, valid_acc = self.validate(sub_valid_)
@@ -549,10 +555,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         return partial(transformers_collate_fn, multi_label=self.multi_label,
                        num_classes=self.num_classes, use_sample_weights=use_sample_weights)
 
-    def _train_single_batch(self, x, masks, cls, weight, optimizer, scaler):
-
-        train_loss = 0.
-        train_acc = 0.
+    def _train_forward(self, x, masks, cls, weight, optimizer):
 
         optimizer.zero_grad()
 
@@ -565,6 +568,11 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         loss = loss * weight
         loss = loss.mean()
 
+        del outputs
+
+        return loss, logits, cls
+
+    def _train_backward(self, loss, optimizer, scaler):
         scaler.scale(loss).backward()
         scaler.unscale_(optimizer)
 
@@ -572,13 +580,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         scaler.step(optimizer)
         scaler.update()
-
-        train_loss += loss.detach().item()
-        train_acc += self.sum_up_accuracy_(logits, cls)
-
-        del x, masks, cls, loss, outputs
-
-        return train_loss, train_acc
 
     def _compute_loss(self, cls, outputs):
         if self.num_classes == 2:

@@ -119,7 +119,7 @@ class _KimCNNEmbeddingTest(object):
             kwargs['module_selector'] = default_module_selector
 
         embedding_matrix = torch.Tensor(np.random.rand(len(tokenizer.get_vocab()), 100))
-        amp_args = AMPArguments(use_amp=True, device_type='cuda')
+        amp_args = AMPArguments(use_amp=True, device_type='cuda', dtype=torch.bfloat16)
         classifier = KimCNNClassifier(6,
                                       embedding_matrix=embedding_matrix,
                                       amp_args=amp_args)
