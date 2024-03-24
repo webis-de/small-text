@@ -160,6 +160,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
         return best_label, logits
 
     def _create_gradient_embedding(self, best_label, logits, module_selector, text):
+
         batch_len = text.size(0)
 
         sm = F.softmax(logits, dim=1)
