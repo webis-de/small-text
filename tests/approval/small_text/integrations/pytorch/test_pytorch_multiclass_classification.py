@@ -71,6 +71,7 @@ class PytorchMulticlassClassificationApprovalTest(unittest.TestCase):
         active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
         indices_labeled = initialize_active_learner(active_learner, train.y)
 
-        output = f'{perform_active_learning(active_learner, train, indices_labeled, test, num_iterations)}'
+        with np.printoptions(edgeitems=10, linewidth=np.inf):
+            output = f'{perform_active_learning(active_learner, train, indices_labeled, test, num_iterations)}'
 
         verify(output)

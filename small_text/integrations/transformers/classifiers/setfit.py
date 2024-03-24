@@ -81,6 +81,8 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
 
         Parameters
         ----------
+        data_set : TextDataset
+            The dataset for which embeddings (and class probabilities) will be computed.
         return_proba : bool
             Also return the class probabilities for `data_set`.
         pbar : 'tqdm' or None, default='tqdm'
@@ -91,7 +93,7 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
         embeddings : np.ndarray
             Embeddings in the shape (N, hidden_layer_dimensionality).
         proba : np.ndarray
-            Class probabilities for `data_set` (only if `return_predictions` is `True`).
+            Class probabilities in the shape (N, num_classes) for `data_set` (only if `return_predictions` is `True`).
         """
 
         if self.model is None:
@@ -104,13 +106,15 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
 
         num_batches = int(np.ceil(len(data_set) / self.mini_batch_size))
         with build_pbar_context(pbar, tqdm_kwargs={'total': len(data_set)}) as pbar:
-            for batch in np.array_split(data_set.x, num_batches, axis=0):
+            with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
+                                enabled=self.amp_args.use_amp):
+                for batch in np.array_split(data_set.x, num_batches, axis=0):
 
-                batch_embeddings, probas = self._create_embeddings(batch)
-                pbar.update(batch_embeddings.shape[0])
-                embeddings.extend(batch_embeddings.tolist())
-                if return_proba:
-                    predictions.extend(probas.tolist())
+                    batch_embeddings, probas = self._create_embeddings(batch)
+                    pbar.update(batch_embeddings.shape[0])
+                    embeddings.extend(batch_embeddings.tolist())
+                    if return_proba:
+                        predictions.extend(probas.tolist())
 
         if return_proba:
             return np.array(embeddings), np.array(predictions)
