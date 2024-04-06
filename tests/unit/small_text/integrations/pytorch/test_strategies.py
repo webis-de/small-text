@@ -8,8 +8,10 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 try:
     from small_text.integrations.pytorch.query_strategies import (
         BADGE,
+        DiscriminativeRepresentationLearning,
         ExpectedGradientLength,
-        ExpectedGradientLengthMaxWord)
+        ExpectedGradientLengthMaxWord
+    )
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
 
     from tests.utils.datasets import random_text_classification_dataset
@@ -89,3 +91,17 @@ class ExpectedGradientLengthMaxWordTest(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, 'Initial model must be trained'):
             strategy.query(clf, dataset, indices_labeled, indices_unlabeled, y)
+
+
+@pytest.mark.pytorch
+class DiscriminativeRepresentationLearningTest(unittest.TestCase):
+    def test_init_default(self):
+        strategy = DiscriminativeRepresentationLearning()
+
+        self.assertEqual(10, strategy.num_iterations)
+        self.assertEqual(10, strategy.unlabeled_factor)
+        self.assertEqual(32, strategy.mini_batch_size)
+        self.assertIsNone(strategy._amp_args)
+        self.assertIsNotNone(strategy.embed_kwargs)
+        self.assertEqual(0, len(strategy.embed_kwargs))
+        self.assertEqual('tqdm', strategy.pbar)

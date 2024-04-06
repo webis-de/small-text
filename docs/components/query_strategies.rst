@@ -41,6 +41,7 @@ Pytorch
 * :py:class:`ExpectedGradientLengthMaxWord`
 * :py:class:`ExpectedGradientLengthLayer`
 * :py:class:`BADGE`
+* :py:class:`DiscriminativeRepresentationLearning`
 
 Interface
 =========
@@ -48,7 +49,7 @@ Interface
 The query strategy interface revolves around the :code:`query()` method.
 A query strategy can make use of any of the given positional arguments but does not need to.
 
-.. literalinclude:: ../../small_text/query_strategies/strategies.py
+.. literalinclude:: ../../small_text/query_strategies/base.py
    :pyobject: QueryStrategy
 
 
@@ -169,6 +170,9 @@ Pytorch Integration
     :special-members: __init__
 
 .. autoclass:: BADGE
+    :special-members: __init__
+
+.. autoclass:: DiscriminativeRepresentationLearning
     :special-members: __init__
 
 Functions

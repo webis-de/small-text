@@ -35,6 +35,7 @@ class ImportTest(unittest.TestCase):
         from small_text import KimCNN
 
     def test_import_query_strategies_module(self):
+        from small_text import DiscriminativeRepresentationLearning
         from small_text import ExpectedGradientLength
         from small_text import ExpectedGradientLengthLayer
         from small_text import ExpectedGradientLengthMaxWord

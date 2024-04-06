@@ -23,7 +23,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 - Embeddings:
   - Prevented unnecessary gradient computations for some embedding types and unified code structure.
 - Query Strategies:
-  - New strategies: [LabelCardinalityInconsistency](https://github.com/webis-de/small-text/blob/v1.4.0/small_text/query_strategies/multi_label.py) and [ClassBalancer](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/class_balancing.py).
+  - New strategies: [DiscriminativeRepresentationLearning](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/integrations/pytorch/query_strategies/strategies.py), [LabelCardinalityInconsistency](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/multi_label.py) and [ClassBalancer](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/class_balancing.py).
   - Query strategies now have a [tie-breaking mechanism](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/base.py) to randomly permutate when there is a tie in scores.
   - [LightweightCoreset](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/corsets.py) can now process input in batches. (#23)
 

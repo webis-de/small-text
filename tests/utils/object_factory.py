@@ -22,6 +22,6 @@ def get_initialized_active_learner(clf_factory, query_strategy, dataset, initial
     else:
         y_initial = np.append(np.arange(num_classes),
                               np.random.choice([0, 1], initial_indices-num_classes))
-    active_learner.initialize_data(indices_initial, y_initial)
+    active_learner.initialize(indices_initial, y_initial)
 
     return active_learner

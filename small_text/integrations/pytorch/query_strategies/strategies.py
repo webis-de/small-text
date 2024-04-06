@@ -16,7 +16,7 @@ try:
 
     from torch.nn import BCEWithLogitsLoss
 
-    from torch.optim import AdamW
+    from torch.optim import Adam
     from transformers import get_linear_schedule_with_warmup
 
     from small_text.integrations.pytorch.classifiers.base import AMPArguments
@@ -335,29 +335,56 @@ class BADGE(EmbeddingBasedQueryStrategy):
         return f'BADGE(num_classes={self.num_classes})'
 
 
+def _discr_repr_learning_collate_fn(batch):
+    return torch.Tensor(np.vstack([x for x, _ in batch])), torch.Tensor(np.array([y for _, y in batch])).long()
+
+
 class DiscriminativeRepresentationLearning(QueryStrategy):
     """Discriminative Active Learning [GS19]_ learns to differentiate between the labeled and
     unlabeled pool and selects the instances that are most likely to belong to the unlabeled pool.
 
+    This implementation uses embeddings as input representation to learn the discriminative binary problem.
 
+    Note
+    ----
+    This is a more efficient variant of :py:class:`DiscriminativeActiveLearning` which is not only more efficient but
+    is also reported to perform best in the blog post linked below. The default configuration is intended to adhere
+    to wherever possible (Except for the different setting which was image classification in the original publication.)
+
+    See Also
+    --------
+    * `Blog post "Discriminative Active Learning" in which the original author Daniel Gissin elaborates on the method
+       <https://dsgissin.github.io/DiscriminativeActiveLearning/2018/07/05/DAL.html>`__
+    * `Original implementation <https://github.com/dsgissin/DiscriminativeActiveLearning>`__
     """
 
-    def __init__(self, num_iterations, unlabeled_factor=10, mini_batch_size=32, device='cuda', amp_args=None,
+    def __init__(self,
+                 num_iterations: int = 10,
+                 unlabeled_factor: int = 10,
+                 mini_batch_size: int = 32,
+                 device='cuda',
+                 amp_args=None,
+                 embed_kwargs: dict = {},
                  pbar='tqdm'):
         """
-        classifier_factory : small_text.
-            Classifier factory which is used for the discriminative classifiers.
-        num_iterations : int
+        Parameters
+        ----------
+        num_iterations : int, default=10
             Number of iterations for the discriminative training.
         unlabeled_factor : int, default=10
             The ratio of "unlabeled pool" instances to "labeled pool" instances in the
             discriminative training.
         mini_batch_size : int, default=32
-
-        device : str or torch.device
+            Size of mini batches during training.
+        device : str or torch.device, default='cuda'
             Torch device on which the computation will be performed.
-        amp_args : AMPArguments or None
+        amp_args : AMPArguments or None, default=None
+            Configures the use of Automatic Mixed Precision (AMP).
 
+            .. seealso:: :py:class:`~small_text.integrations.pytorch.classifiers.base.AMPArguments`
+            .. versionadded:: 2.0.0
+        embed_kwargs : dict, default={}
+            Keyword arguments that will be passed to the embed() method.
         pbar : 'tqdm' or None, default='tqdm'
             Displays a progress bar if 'tqdm' is passed.
         """
@@ -367,6 +394,7 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
         self.device = device
         self._amp_args = amp_args
         self.pbar = pbar
+        self.embed_kwargs = embed_kwargs
 
         self.mini_batch_size = mini_batch_size
 
@@ -374,6 +402,9 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
 
     def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
         self._validate_query_input(indices_unlabeled, n)
+
+        if len(indices_unlabeled) == n:
+            return np.array(indices_unlabeled)
 
         query_sizes = DiscriminativeActiveLearning._get_query_sizes(self.num_iterations, n)
 
@@ -404,11 +435,12 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
 
         embeddings = clf.embed(dataset)
 
-        model_config = self._get_model_config(clf.model)
+        input_size = embeddings.shape[1]
+        hidden_size = self._get_hidden_size(clf.model)
 
         with build_pbar_context(len(query_sizes)) as pbar:
             for q in query_sizes:
-                discr_model = MLP(model_config.hidden_size, model_config.hidden_size, 2).to(self.device)
+                discr_model = MLP(input_size, hidden_size, 2).to(self.device)
                 discr_model = discr_model.to(self.device)
 
                 indices_most_confident = self._train_and_get_most_confident(discr_model,
@@ -427,11 +459,13 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
 
         return indices
 
-    def _get_model_config(self, model):
+    def _get_hidden_size(self, model):
         if hasattr(model, 'config'):
-            return model.config
+            return model.config.hidden_size
         elif hasattr(model, 'model_body'):
-            return model.model_body.config
+            return model.model_body.config.hidden_size
+        elif hasattr(model, 'convs'):
+            return model.embedding.embedding_dim
 
         raise ValueError(f'Incompatible model class {type(model).__name__}')
 
@@ -460,24 +494,19 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
         base_lr = 2e-5
         num_epochs = 4
 
-        optimizer = AdamW(discr_model.parameters(), lr=base_lr, eps=1e-8)
+        optimizer = Adam(discr_model.parameters(), lr=base_lr, eps=1e-8, weight_decay=0)
 
-        steps = (x.shape[0] // self.mini_batch_size) + int(x.shape[0] % self.mini_batch_size != 0)
-        total_steps = steps * num_epochs
-        warmup_steps = min(0.1 * total_steps, 100)
-
-        scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps, num_training_steps=total_steps)
         scaler = torch.cuda.amp.GradScaler(enabled=self.amp_args.use_amp)
 
         criterion = BCEWithLogitsLoss()
 
-        collate_fn = self._create_collate_fn()
         data = list(zip(x, y))
 
         with torch.autocast(enabled=self.amp_args.use_amp, device_type=self.amp_args.device_type,
                             dtype=self.amp_args.dtype):
             for _ in range(num_epochs):
-                dataset_iter = dataloader(data, batch_size=self.mini_batch_size, train=True, collate_fn=collate_fn)
+                dataset_iter = dataloader(data, batch_size=self.mini_batch_size, train=True,
+                                          collate_fn=_discr_repr_learning_collate_fn)
                 for representation, cls in dataset_iter:
                     representation = representation.to(self.device)
                     cls = cls.to(self.device)
@@ -498,30 +527,26 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
                     scaler.step(optimizer)
                     scaler.update()
 
-                scheduler.step()
-
-    def _create_collate_fn(self):
-        def collate_fn(batch):
-            return torch.Tensor(np.vstack([x for x, _ in batch])), torch.Tensor(np.array([y for _, y in batch])).long()
-        return collate_fn
-
     def _predict_proba(self, discr_model, representations):
         discr_model.eval()
 
-        collate_fn = self._create_collate_fn()
         data = list(zip(representations, np.zeros_like(representations)))
 
         predictions = np.empty((0, ), dtype=float)
 
         with torch.no_grad():
-            dataset_iter = dataloader(data, batch_size=self.mini_batch_size, train=False, collate_fn=collate_fn)
-            for representation, _ in dataset_iter:
-                representation = representation.to(self.device)
-                output = discr_model(representation)
+            with torch.autocast(device_type=self.amp_args.device_type, dtype=torch.bfloat16,
+                                enabled=self.amp_args.use_amp):
+                dataset_iter = dataloader(data, batch_size=self.mini_batch_size, train=False,
+                                          collate_fn=_discr_repr_learning_collate_fn)
+                for representation, _ in dataset_iter:
+                    representation = representation.to(self.device)
+                    output = discr_model(representation)
 
-                prediction = F.softmax(output, dim=1).to('cpu').numpy()[:, DiscriminativeActiveLearning.LABEL_UNLABELED_POOL]
-                predictions = np.append(predictions,
-                                        prediction,
-                                        axis=0)
+                    prediction = F.softmax(output, dim=1).to('cpu').numpy()
+                    prediction = prediction[:, DiscriminativeActiveLearning.LABEL_UNLABELED_POOL]
+                    predictions = np.append(predictions,
+                                            prediction,
+                                            axis=0)
 
         return predictions

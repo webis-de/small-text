@@ -23,6 +23,7 @@ try:
     )
     from small_text.integrations.pytorch.models.kimcnn import KimCNN
     from small_text.integrations.pytorch.query_strategies.strategies import (
+        DiscriminativeRepresentationLearning,
         ExpectedGradientLength,
         ExpectedGradientLengthLayer,
         ExpectedGradientLengthMaxWord
@@ -38,6 +39,7 @@ try:
         'kimcnn_collate_fn',
         'KimCNNEmbeddingMixin',
         'KimCNNClassifier',
+        'DiscriminativeRepresentationLearning',
         'ExpectedGradientLength',
         'ExpectedGradientLengthLayer',
         'ExpectedGradientLengthMaxWord',
