@@ -463,7 +463,8 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
         if hasattr(model, 'config'):
             return model.config.hidden_size
         elif hasattr(model, 'model_body'):
-            return model.model_body.config.hidden_size
+            vec = model.model_body.encode('')
+            return vec.shape[0]
         elif hasattr(model, 'convs'):
             return model.embedding.embedding_dim
 
