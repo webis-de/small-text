@@ -2,8 +2,33 @@
 Showcase
 ========
 
+In this section, we collect publications, tutorials, and other resources that have used small-text.
+
+----
+
+.. contents:: Overview
+   :depth: 1
+   :local:
+   :backlinks: none
+
+----
+
 Papers
 ------
+
+2023
+^^^^
+
+- | David Kartchner, Irfan Al-Hussaini, Haydn Turner, Jennifer Deng, Shubham Lohiya, Prasanth Bathala, and Cassie S. Mitchell. 2023.
+  | `BioSift: A Dataset for Filtering Biomedical Abstracts for Drug Repurposing and Clinical Meta-Analysis. <https://dl.acm.org/doi/10.1145/3539618.3591897>`_
+  | In: Proceedings of the 46th International ACM SIGIR Conference on Research and Development in Information Retrieval, pages 2913–2923.
+
+- | Klaus Schmidt, Andreas Niekler, Cathleen Kantner, and Manuel Burghardt. 2023.
+  | `Classifying Speech Acts in Political Communication: A Transformer-based Approach with Weak Supervision and Active Learning <http://dx.doi.org/10.15439/2023F3485>`_
+  | In: Proceedings of the 18th Conference on Computer Science and Intelligence Systems, ACSIS, Vol. 35, pages 739–748.
+
+2022
+^^^^
 
 - | Hannah Kirk, Bertie Vidgen, and Scott Hale. 2022.
   | `Is More Data Better? Re-thinking the Importance of Efficiency in Abusive Language Detection with Transformers-Based Active Learning. <https://aclanthology.org/2022.trac-1.7/>`_
