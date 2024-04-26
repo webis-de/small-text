@@ -257,11 +257,13 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         return sub_train, sub_valid
 
     def _fit(self, sub_train, sub_valid, setfit_train_kwargs):
+        seed = np.random.randint(2**32-1)
         trainer = SetFitTrainer(
             self.model,
             sub_train,
             eval_dataset=sub_valid,
             batch_size=self.mini_batch_size,
+            seed=seed,
             **self.trainer_kwargs
         )
         trainer.train(max_length=self.max_seq_len, **setfit_train_kwargs)
