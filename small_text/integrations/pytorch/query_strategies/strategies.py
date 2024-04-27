@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.special import softmax
+
 from small_text.query_strategies.strategies import DiscriminativeActiveLearning
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
@@ -360,6 +362,8 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
 
     def __init__(self,
                  num_iterations: int = 10,
+                 selection: str = 'stochastic',
+                 temperature: float = 0.01,
                  unlabeled_factor: int = 10,
                  mini_batch_size: int = 32,
                  device='cuda',
@@ -374,6 +378,8 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
         unlabeled_factor : int, default=10
             The ratio of "unlabeled pool" instances to "labeled pool" instances in the
             discriminative training.
+        selection : {'stochastic', 'greedy'}, default='stochastic'
+
         mini_batch_size : int, default=32
             Size of mini batches during training.
         device : str or torch.device, default='cuda'
@@ -389,6 +395,8 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
             Displays a progress bar if 'tqdm' is passed.
         """
         self.num_iterations = num_iterations
+        self.selection = selection
+        self.temperature = temperature
 
         self.unlabeled_factor = unlabeled_factor
         self.device = device
@@ -407,11 +415,9 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
             return np.array(indices_unlabeled)
 
         query_sizes = DiscriminativeActiveLearning._get_query_sizes(self.num_iterations, n)
-
         return self._discriminative_active_learning(clf, dataset, indices_unlabeled, indices_labeled,
                                                     query_sizes)
 
-    # TODO: copied from .base, refactor this
     @property
     def amp_args(self):
         if self._amp_args is None:
@@ -484,10 +490,22 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
                      [DiscriminativeActiveLearning.LABEL_LABELED_POOL] * indices_labeled.shape[0])
 
         self._train(discr_model, embeddings, y)
-        proba = self._predict_proba(discr_model, embeddings[indices_unlabeled_sub])
 
         # return instances which most likely belong to the "unlabeled" class (higher is better)
-        return np.argpartition(-proba, q)[:q]
+        if self.selection == 'stochastic':
+            proba = self._predict(discr_model, embeddings[indices_unlabeled_sub], False)
+            proba = np.log(softmax(proba / self.temperature))
+
+            indices = []
+            for j in range(q):
+                proba_new = proba + np.random.gumbel(size=proba.shape[0])
+                proba_new[indices] = -np.inf
+                indices.append(np.argmax(proba_new))
+
+            return indices
+        else:
+            proba = self._predict(discr_model, embeddings[indices_unlabeled_sub], True)
+            return np.argpartition(-proba, q)[:q]
 
     def _train(self, discr_model, x, y):
 
@@ -528,7 +546,7 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
                     scaler.step(optimizer)
                     scaler.update()
 
-    def _predict_proba(self, discr_model, representations):
+    def _predict(self, discr_model, representations, return_probas):
         discr_model.eval()
 
         data = list(zip(representations, np.zeros_like(representations)))
@@ -544,7 +562,10 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
                     representation = representation.to(self.device)
                     output = discr_model(representation)
 
-                    prediction = F.softmax(output, dim=1).to('cpu').numpy()
+                    if return_probas:
+                        prediction = F.softmax(output, dim=1).to('cpu').numpy()
+                    else:
+                        prediction = output.to('cpu').numpy()
                     prediction = prediction[:, DiscriminativeActiveLearning.LABEL_UNLABELED_POOL]
                     predictions = np.append(predictions,
                                             prediction,

@@ -66,6 +66,22 @@ class AMPArguments(object):
         self.dtype = dtype
 
 
+class AMPMixin(object):
+
+    @property
+    def amp_args(self):
+        if self._amp_args is None:
+            device_type = 'cpu' if self.model is None else self.model.device.type
+            amp_args = AMPArguments(device_type=device_type, dtype=torch.bfloat16)
+        else:
+            amp_args = AMPArguments(use_amp=self._amp_args.use_amp,
+                                    device_type=self._amp_args.device_type,
+                                    dtype=self._amp_args.dtype)
+        if self.model is None or self.model.device.type == 'cpu':
+            amp_args.use_amp = False
+        return amp_args
+
+
 class PytorchModelSelectionMixin(object):
 
     def _save_model(self, optimizer, model_selection, model_id, train_acc, train_loss,
@@ -88,7 +104,7 @@ class PytorchModelSelectionMixin(object):
             optimizer.load_state_dict(torch.load(optimizer_path))
 
 
-class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
+class PytorchClassifier(PytorchModelSelectionMixin, AMPMixin, Classifier):
 
     def __init__(self, multi_label=False, device=None, mini_batch_size=32, amp_args=None):
 
@@ -108,19 +124,6 @@ class PytorchClassifier(PytorchModelSelectionMixin, Classifier):
 
         self.model = None
         self._amp_args = amp_args
-
-    @property
-    def amp_args(self):
-        if self._amp_args is None:
-            device_type = 'cpu' if self.model is None else self.model.device.type
-            amp_args = AMPArguments(device_type=device_type, dtype=torch.bfloat16)
-        else:
-            amp_args = AMPArguments(use_amp=self._amp_args.use_amp,
-                                    device_type=self._amp_args.device_type,
-                                    dtype=self._amp_args.dtype)
-        if self.model is None or self.model.device.type == 'cpu':
-            amp_args.use_amp = False
-        return amp_args
 
     @abstractmethod
     def fit(self, train_set, validation_set=None, weights=None, **kwargs):
