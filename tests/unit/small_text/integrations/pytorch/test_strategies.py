@@ -95,6 +95,7 @@ class ExpectedGradientLengthMaxWordTest(unittest.TestCase):
 
 @pytest.mark.pytorch
 class DiscriminativeRepresentationLearningTest(unittest.TestCase):
+
     def test_init_default(self):
         strategy = DiscriminativeRepresentationLearning()
 
@@ -105,3 +106,20 @@ class DiscriminativeRepresentationLearningTest(unittest.TestCase):
         self.assertIsNotNone(strategy.embed_kwargs)
         self.assertEqual(0, len(strategy.embed_kwargs))
         self.assertEqual('tqdm', strategy.pbar)
+
+    def test_init_with_invalid_selection_strategy(self):
+        with self.assertRaisesRegex(ValueError, 'Invalid selection strategy: does-not-exist'):
+            DiscriminativeRepresentationLearning(selection='does-not-exist')
+
+    def test_init_with_invalid_temperature(self):
+        with self.assertRaisesRegex(ValueError, 'Invalid temperature: temperature must be greater zero'):
+            DiscriminativeRepresentationLearning(temperature=0)
+        with self.assertRaisesRegex(ValueError, 'Invalid temperature: temperature must be greater zero'):
+            DiscriminativeRepresentationLearning(temperature=-1)
+
+    def test_discriminative_active_learning_str(self):
+        strategy = DiscriminativeRepresentationLearning()
+        expected_str = ('DiscriminativeRepresentationLearning(num_iterations=10, '
+                        'selection=stochastic, temperature=0.01, unlabeled_factor=10, '
+                        'mini_batch_size=32, device=cuda)')
+        self.assertEqual(expected_str, str(strategy))

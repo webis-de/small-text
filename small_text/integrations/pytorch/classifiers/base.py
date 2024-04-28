@@ -42,12 +42,9 @@ class AMPArguments(object):
 
        .. seealso::
 
-          `Pytorch Docs: Automatic Mixed Precision Package
-          <https://pytorch.org/docs/stable/amp.html>`
-             asd
+          `Pytorch Docs: Automatic Mixed Precision Package <https://pytorch.org/docs/stable/amp.html>`
 
-          `PyTorch Docs: Automatic Mixed Precision Recipes
-           <https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html>`
+          `PyTorch Docs: Automatic Mixed Precision Recipes <https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html>`
 
        .. versionadded:: 2.0.0
     """

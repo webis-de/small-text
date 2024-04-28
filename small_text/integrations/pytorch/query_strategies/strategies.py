@@ -1,6 +1,13 @@
 import numpy as np
+import numpy.typing as npt
+
+from typing import Union
+
+from scipy.sparse import csr_matrix
 from scipy.special import softmax
 
+from small_text.classifiers import Classifier
+from small_text.data import Dataset
 from small_text.query_strategies.strategies import DiscriminativeActiveLearning
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
@@ -349,15 +356,18 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
 
     Note
     ----
-    This is a more efficient variant of :py:class:`DiscriminativeActiveLearning` which is not only more efficient but
-    is also reported to perform best in the blog post linked below. The default configuration is intended to adhere
-    to wherever possible (Except for the different setting which was image classification in the original publication.)
+    This is a variant of :py:class:`DiscriminativeActiveLearning` which is not only more efficient but is also
+    reported to perform best in the blog post linked below. The default configuration is intended to adhere
+    to wherever possible (except for the different setting which was image classification in the original publication.)
 
     See Also
     --------
-    * `Blog post "Discriminative Active Learning" in which the original author Daniel Gissin elaborates on the method
-       <https://dsgissin.github.io/DiscriminativeActiveLearning/2018/07/05/DAL.html>`__
+    * `Blog post "Discriminative Active Learning" <BLOGPOST_DAL_>`__
+        A detailed and highly informative blog post on Discriminative Active Learning in which
+        the original author Daniel Gissin elaborates on the method.
     * `Original implementation <https://github.com/dsgissin/DiscriminativeActiveLearning>`__
+
+    .. _BLOGPOST_DAL: https://dsgissin.github.io/DiscriminativeActiveLearning/2018/07/05/DAL.html
     """
 
     def __init__(self,
@@ -369,17 +379,25 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
                  device='cuda',
                  amp_args=None,
                  embed_kwargs: dict = {},
+                 train_kwargs: dict = {},
                  pbar='tqdm'):
         """
         Parameters
         ----------
         num_iterations : int, default=10
             Number of iterations for the discriminative training.
+        selection : {'stochastic', 'greedy'}, default='stochastic'
+            Determines how the instances are selected. The option `stochastic` draws from the
+            probability distribution over the current unlabeled instances that is given by the confidence estimate
+            (`predict_proba()`) for the discriminative unlabeled class. The `greedy` selects n instances that are
+            most likely to belong to the "unlabeled" class.
+        temperature : float, default=1.0
+            Temperature for the stochastic sampling (i.e., only applicable if `selection='stochastic'`).
+            Lower values push the sampling distribution towards the one-hot categorical distribution, and higher
+            values towards a uniform distribution [JGP+17]_.
         unlabeled_factor : int, default=10
             The ratio of "unlabeled pool" instances to "labeled pool" instances in the
             discriminative training.
-        selection : {'stochastic', 'greedy'}, default='stochastic'
-
         mini_batch_size : int, default=32
             Size of mini batches during training.
         device : str or torch.device, default='cuda'
@@ -388,27 +406,50 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
             Configures the use of Automatic Mixed Precision (AMP).
 
             .. seealso:: :py:class:`~small_text.integrations.pytorch.classifiers.base.AMPArguments`
-            .. versionadded:: 2.0.0
+
         embed_kwargs : dict, default={}
             Keyword arguments that will be passed to the embed() method.
+        train_kwargs : dict, default={}
+            Keyword arguments with parameters for the training process within this method.
+
+            Possible arguments:
+
+            - `num_epochs` (int, default=4): Number of training epochs.
+            - `lr` (float, default=2e-5): Learning rate.
+            - `clip_grad_norm` (float, default=1): Gradients are clipped when their norm exceeds this value.
+
         pbar : 'tqdm' or None, default='tqdm'
             Displays a progress bar if 'tqdm' is passed.
         """
         self.num_iterations = num_iterations
+
+        if selection not in set(['stochastic', 'greedy']):
+            raise ValueError(f'Invalid selection strategy: {selection}')
         self.selection = selection
+
+        if temperature <= 0:
+            raise ValueError(f'Invalid temperature: temperature must be greater zero')
         self.temperature = temperature
 
         self.unlabeled_factor = unlabeled_factor
         self.device = device
         self._amp_args = amp_args
         self.pbar = pbar
+
         self.embed_kwargs = embed_kwargs
+        self.train_kwargs = train_kwargs
 
         self.mini_batch_size = mini_batch_size
 
         self.clf_ = None
 
-    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+    def query(self,
+              clf: Classifier,
+              dataset: Dataset,
+              indices_unlabeled: npt.NDArray[np.uint],
+              indices_labeled: npt.NDArray[np.uint],
+              y: Union[npt.NDArray[np.uint], csr_matrix],
+              n: int = 10) -> np.ndarray:
         self._validate_query_input(indices_unlabeled, n)
 
         if len(indices_unlabeled) == n:
@@ -508,10 +549,9 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
             return np.argpartition(-proba, q)[:q]
 
     def _train(self, discr_model, x, y):
-
-        # TODO: make configurable
-        base_lr = 2e-5
-        num_epochs = 4
+        base_lr = self.train_kwargs.get('lr', 2e-5)
+        num_epochs = self.train_kwargs.get('num_epochs', 4)
+        clip_grad_norm = self.train_kwargs.get('clip_grad_norm', 1)
 
         optimizer = Adam(discr_model.parameters(), lr=base_lr, eps=1e-8, weight_decay=0)
 
@@ -541,7 +581,7 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
                     scaler.scale(loss).backward()
                     scaler.unscale_(optimizer)
 
-                    torch.nn.utils.clip_grad_norm_(discr_model.parameters(), 1)
+                    torch.nn.utils.clip_grad_norm_(discr_model.parameters(), clip_grad_norm)
 
                     scaler.step(optimizer)
                     scaler.update()
@@ -572,3 +612,9 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
                                             axis=0)
 
         return predictions
+
+    def __str__(self):
+        return f'DiscriminativeRepresentationLearning(' \
+               f'num_iterations={self.num_iterations}, selection={self.selection}, temperature={self.temperature}, ' \
+               f'unlabeled_factor={self.unlabeled_factor}, mini_batch_size={self.mini_batch_size}, ' \
+               f'device={self.device})'

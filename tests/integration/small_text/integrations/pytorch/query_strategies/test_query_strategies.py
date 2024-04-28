@@ -85,6 +85,10 @@ class QueryStrategiesTest(QueryStrategiesExhaustiveIntegrationTest, unittest.Tes
                                                               device='cuda')
         self._simple_exhaustive_active_learning_test(query_strategy)
 
+    def test_discriminative_representation_learning_with_stochastic_selection(self):
+        query_strategy = DiscriminativeRepresentationLearning(selection='stochastic')
+        self._simple_exhaustive_active_learning_test(query_strategy)
+
 
 @pytest.mark.pytorch
 class ExpectedGradientLengthMaxWordTest(unittest.TestCase):
