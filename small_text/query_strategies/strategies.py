@@ -559,10 +559,10 @@ class DiscriminativeActiveLearning(QueryStrategy):
 
     def __init__(self, classifier_factory, num_iterations, unlabeled_factor=10, pbar='tqdm'):
         """
-        classifier_factory : small_text.
+        classifier_factory : small_text.classifiers.factories.ClassifierFactory
             Classifier factory which is used for the discriminative classifiers.
         num_iterations : int
-            Number of iterations for the discriminiative training.
+            Number of iterations for the discriminative training.
         unlabeled_factor : int, default=10
             The ratio of "unlabeled pool" instances to "labeled pool" instances in the
             discriminative training.

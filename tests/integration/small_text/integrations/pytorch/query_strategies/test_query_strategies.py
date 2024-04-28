@@ -13,10 +13,16 @@ from tests.integration.small_text.query_strategies.test_query_strategies import 
 
 try:
     import torch
+    from small_text.integrations.pytorch.classifiers.base import AMPArguments
     from small_text.integrations.pytorch.classifiers import KimCNNFactory
     from small_text.integrations.pytorch.classifiers.factories import KimCNNClassifier
-    from small_text.integrations.pytorch.query_strategies import ExpectedGradientLength, \
-        ExpectedGradientLengthMaxWord, ExpectedGradientLengthLayer, BADGE
+    from small_text.integrations.pytorch.query_strategies import (
+        BADGE,
+        DiscriminativeRepresentationLearning,
+        ExpectedGradientLength,
+        ExpectedGradientLengthMaxWord,
+        ExpectedGradientLengthLayer
+    )
 
     from tests.utils.datasets import random_text_classification_dataset
 except (ImportError, PytorchNotFoundError):
@@ -32,7 +38,11 @@ class QueryStrategiesTest(QueryStrategiesExhaustiveIntegrationTest, unittest.Tes
 
     def _get_factory(self, num_classes, multi_label=False):
 
-        return KimCNNFactory(num_classes, {'embedding_matrix': torch.rand(10, 20), 'num_epochs': 2})
+        return KimCNNFactory(num_classes,
+                             {
+                                 'embedding_matrix': torch.rand(10, 300),
+                                 'num_epochs': 2
+                             })
 
     def test_expected_gradient_length(self):
         query_strategy = ExpectedGradientLength(2)
@@ -51,7 +61,6 @@ class QueryStrategiesTest(QueryStrategiesExhaustiveIntegrationTest, unittest.Tes
         self._simple_exhaustive_active_learning_test(query_strategy, num_classes=2)
 
     def test_badge_multiclass(self):
-
         query_strategy = BADGE(6)
         self._simple_exhaustive_active_learning_test(query_strategy)
 
@@ -66,6 +75,19 @@ class QueryStrategiesTest(QueryStrategiesExhaustiveIntegrationTest, unittest.Tes
                                wraps=fake_embed):
 
             self._simple_exhaustive_active_learning_test(query_strategy)
+
+    def test_discriminative_representation_learning(self):
+        query_strategy = DiscriminativeRepresentationLearning()
+        self._simple_exhaustive_active_learning_test(query_strategy)
+
+    def test_discriminative_representation_learning_amp(self):
+        query_strategy = DiscriminativeRepresentationLearning(amp_args=AMPArguments(use_amp=True, device_type='cuda'),
+                                                              device='cuda')
+        self._simple_exhaustive_active_learning_test(query_strategy)
+
+    def test_discriminative_representation_learning_with_stochastic_selection(self):
+        query_strategy = DiscriminativeRepresentationLearning(selection='stochastic')
+        self._simple_exhaustive_active_learning_test(query_strategy)
 
 
 @pytest.mark.pytorch

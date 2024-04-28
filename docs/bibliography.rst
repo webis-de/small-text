@@ -2,6 +2,9 @@
 Bibliography
 ============
 
+Active Learning
+===============
+
 .. [LG94] David D. Lewis and William A. Gale. 1994.
    A sequential algorithm for training text classifiers.
    In SIGIR’94, pages 3-12.
@@ -101,3 +104,11 @@ Bibliography
 .. [TRE+22] Lewis Tunstall, Nils Reimers, Unso Eun Seo Jo, Luke Bates, Daniel Korat, Moshe Wasserblat, and Oren Pereg. 2022.
    Efficient Few-Shot Learning Without Prompts.
    ArXiv, abs/2209.11055.
+
+
+Misc
+====
+
+.. [JGP+17] Eric Jang, Shixiang Gu, and Ben Poole. 2017.
+   `Categorical Reparameterization with Gumbel-Softmax. <https://openreview.net/pdf?id=rkE3y85ee>`__
+   International Conference on Learning Representations 2017 (ICLR 2017).

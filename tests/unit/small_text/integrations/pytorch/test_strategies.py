@@ -8,8 +8,10 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 try:
     from small_text.integrations.pytorch.query_strategies import (
         BADGE,
+        DiscriminativeRepresentationLearning,
         ExpectedGradientLength,
-        ExpectedGradientLengthMaxWord)
+        ExpectedGradientLengthMaxWord
+    )
     from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
 
     from tests.utils.datasets import random_text_classification_dataset
@@ -89,3 +91,35 @@ class ExpectedGradientLengthMaxWordTest(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, 'Initial model must be trained'):
             strategy.query(clf, dataset, indices_labeled, indices_unlabeled, y)
+
+
+@pytest.mark.pytorch
+class DiscriminativeRepresentationLearningTest(unittest.TestCase):
+
+    def test_init_default(self):
+        strategy = DiscriminativeRepresentationLearning()
+
+        self.assertEqual(10, strategy.num_iterations)
+        self.assertEqual(10, strategy.unlabeled_factor)
+        self.assertEqual(32, strategy.mini_batch_size)
+        self.assertIsNone(strategy._amp_args)
+        self.assertIsNotNone(strategy.embed_kwargs)
+        self.assertEqual(0, len(strategy.embed_kwargs))
+        self.assertEqual('tqdm', strategy.pbar)
+
+    def test_init_with_invalid_selection_strategy(self):
+        with self.assertRaisesRegex(ValueError, 'Invalid selection strategy: does-not-exist'):
+            DiscriminativeRepresentationLearning(selection='does-not-exist')
+
+    def test_init_with_invalid_temperature(self):
+        with self.assertRaisesRegex(ValueError, 'Invalid temperature: temperature must be greater zero'):
+            DiscriminativeRepresentationLearning(temperature=0)
+        with self.assertRaisesRegex(ValueError, 'Invalid temperature: temperature must be greater zero'):
+            DiscriminativeRepresentationLearning(temperature=-1)
+
+    def test_discriminative_active_learning_str(self):
+        strategy = DiscriminativeRepresentationLearning()
+        expected_str = ('DiscriminativeRepresentationLearning(num_iterations=10, '
+                        'selection=stochastic, temperature=0.01, unlabeled_factor=10, '
+                        'mini_batch_size=32, device=cuda)')
+        self.assertEqual(expected_str, str(strategy))
