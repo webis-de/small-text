@@ -9,7 +9,6 @@ from scipy.sparse import issparse
 from small_text.base import LABEL_UNLABELED
 from small_text.data.exceptions import UnsupportedOperationException
 
-from small_text.utils.annotations import experimental
 from small_text.utils.data import list_length
 from small_text.utils.labels import get_flattened_unique_labels
 
@@ -460,7 +459,6 @@ class SklearnDataset(_InferLabelsMixin, Dataset):
         return SklearnDataset(x, y, target_labels=target_labels)
 
     @classmethod
-    @experimental
     def from_arrays(cls, texts, y, vectorizer, target_labels=None, train=True):
         """Constructs a new SklearnDataset from the given text and label arrays.
 
@@ -490,9 +488,6 @@ class SklearnDataset(_InferLabelsMixin, Dataset):
            `scikit-learn docs: Vectorizer API reference
            <https://scikit-learn.org/stable/modules/classes.html
            #module-sklearn.feature_extraction.text>`_
-
-        .. warning::
-           This functionality is still experimental and may be subject to change.
 
         .. versionadded:: 1.1.0
         """
@@ -617,7 +612,6 @@ class TextDataset(_InferLabelsMixin, Dataset):
         return TextDataset(x, y, target_labels=target_labels)
 
     @classmethod
-    @experimental
     def from_arrays(cls, texts, y, target_labels=None):
         """Constructs a new TextDataset from the given text and label arrays.
 
@@ -642,9 +636,6 @@ class TextDataset(_InferLabelsMixin, Dataset):
            `scikit-learn docs: Vectorizer API reference
            <https://scikit-learn.org/stable/modules/classes.html
            #module-sklearn.feature_extraction.text>`_
-
-        .. warning::
-           This functionality is still experimental and may be subject to change.
 
         .. versionadded:: 1.2.0
         """

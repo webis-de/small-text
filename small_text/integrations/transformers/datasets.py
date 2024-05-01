@@ -4,7 +4,6 @@ from scipy.sparse import csr_matrix
 from small_text.base import LABEL_UNLABELED
 from small_text.data.datasets import check_size, check_target_labels, get_updated_target_labels
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.utils.annotations import experimental
 from small_text.utils.labels import csr_to_list, get_num_labels, list_to_csr
 
 try:
@@ -214,7 +213,6 @@ class TransformersDataset(PytorchDataset):
             return self
 
     @classmethod
-    @experimental
     def from_arrays(cls, texts, y, tokenizer, target_labels=None, max_length=512):
         """Constructs a new TransformersDataset from the given text and label arrays.
 
@@ -227,9 +225,10 @@ class TransformersDataset(PytorchDataset):
             Depending on the type of `y` the resulting dataset will be single-label (`np.ndarray`)
             or multi-label (`scipy.sparse.csr_matrix`).
         tokenizer : tokenizers.Tokenizer
-            A huggingface tokenizer.
+            A tokenizer from the tokenizers library that is used to convert each of the given text documents
+            into tokens.
         target_labels : numpy.ndarray[int] or None, default=None
-            List of possible labels. Will be directly passed to the datset constructor.
+            List of possible labels. Will be directly passed to the dataset constructor.
         max_length : int
             Maximum sequence length.
 
@@ -238,9 +237,6 @@ class TransformersDataset(PytorchDataset):
         dataset : TransformersDataset
             A dataset constructed from the given texts and labels.
 
-
-        .. warning::
-           This functionality is still experimental and may be subject to change.
 
         .. versionadded:: 1.1.0
         """
