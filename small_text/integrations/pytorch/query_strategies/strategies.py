@@ -23,10 +23,11 @@ try:
     import torch
     import torch.nn.functional as F  # noqa: N812
 
+    from torch.cuda.amp import GradScaler  # pyright: ignore
     from torch.nn import BCEWithLogitsLoss
+    from torch.nn.utils import clip_grad_norm_  # pyright: ignore
 
     from torch.optim import Adam
-    from transformers import get_linear_schedule_with_warmup
 
     from small_text.integrations.pytorch.classifiers.base import AMPArguments
     from small_text.integrations.pytorch.models.mlp import MLP
@@ -428,7 +429,7 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
         self.selection = selection
 
         if temperature <= 0:
-            raise ValueError(f'Invalid temperature: temperature must be greater zero')
+            raise ValueError('Invalid temperature: temperature must be greater zero')
         self.temperature = temperature
 
         self.unlabeled_factor = unlabeled_factor
@@ -555,7 +556,7 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
 
         optimizer = Adam(discr_model.parameters(), lr=base_lr, eps=1e-8, weight_decay=0)
 
-        scaler = torch.cuda.amp.GradScaler(enabled=self.amp_args.use_amp)
+        scaler = GradScaler(enabled=self.amp_args.use_amp)
 
         criterion = BCEWithLogitsLoss()
 
@@ -581,7 +582,7 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
                     scaler.scale(loss).backward()
                     scaler.unscale_(optimizer)
 
-                    torch.nn.utils.clip_grad_norm_(discr_model.parameters(), clip_grad_norm)
+                    clip_grad_norm_(discr_model.parameters(), clip_grad_norm)
 
                     scaler.step(optimizer)
                     scaler.update()

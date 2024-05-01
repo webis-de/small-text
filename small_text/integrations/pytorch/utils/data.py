@@ -75,7 +75,7 @@ def get_class_weights(y, num_classes, eps=1e-8):
     suboptimal solution for a multi-label scenario.
     """
     # deprecated: the eps kwarg will be removed in the next version
-    _unused = eps
+    _unused = eps  # noqa: N812
 
     label_counter = _get_class_histogram(y, num_classes, normalize=False)
     class_weights = torch.ones(num_classes, dtype=torch.float)
