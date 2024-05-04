@@ -278,12 +278,14 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         return sub_train, sub_valid
 
     def _fit(self, sub_train, sub_valid, setfit_train_kwargs):
+        seed = np.random.randint(2**32-1)
         trainer = SetFitTrainer(
             self.model,
             sub_train,
             eval_dataset=sub_valid,
             batch_size=self.mini_batch_size,
             use_amp=self.amp_args.use_amp,  # TODO: device_type and dtype are not used
+            seed=seed,
             **self.trainer_kwargs
         )
         if not 'show_progress_bar' in setfit_train_kwargs:

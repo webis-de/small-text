@@ -124,6 +124,15 @@ class TestSetFitClassificationKeywordArguments(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Invalid keyword argument in trainer_kwargs'):
             SetFitClassification(setfit_model_args, num_classes, trainer_kwargs=trainer_kwargs)
 
+    def test_init_with_misplaced_seed_kwargs(self):
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        num_classes = 5
+
+        trainer_kwargs = {'seed': 4242}
+
+        with self.assertRaisesRegex(ValueError, 'Invalid keyword argument in trainer_kwargs'):
+            SetFitClassification(setfit_model_args, num_classes, trainer_kwargs=trainer_kwargs)
+
 
 class _SetFitClassification(object):
 

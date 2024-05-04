@@ -205,6 +205,26 @@ class _ClassificationTest(object):
             self.assertEqual(1, train_mock.call_count)
             self.assertEqual(max_seq_len, train_mock.call_args_list[0].kwargs['max_length'])
 
+    def test_fit_prevent_fixed_seed(self):
+        ds = twenty_news_text(10, num_classes=self.num_classes, multi_label=self.multi_label)
+        num_classes = 5
+
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        setfit_train_kwargs = {'show_progress_bar': False}
+
+        with patch('setfit.trainer.set_seed') as set_seed_mock:
+            clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
+
+            clf.fit(ds, setfit_train_kwargs=setfit_train_kwargs)
+            self.assertEqual(1, set_seed_mock.call_count)
+            first_seed = set_seed_mock.call_args_list[0][0]
+
+            clf.fit(ds, setfit_train_kwargs=setfit_train_kwargs)
+            self.assertEqual(2, set_seed_mock.call_count)
+            second_seed = set_seed_mock.call_args_list[1][0]
+
+            self.assertNotEqual(first_seed, second_seed)
+
 
 @pytest.mark.pytorch
 @pytest.mark.optional

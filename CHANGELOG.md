@@ -49,6 +49,18 @@ On the other hand, this also allowed us to deal with further issues that contain
 
 ---
 
+## Version 1.4.0 - unreleased
+
+### Fixed
+
+- Changed the way how the seed is controlled  in `SetFitClassification` since the seed was fixed unless explicitly set via the respective trainer keyword argument.
+
+### Changed
+
+- Documentation: Updated showcase section.
+
+---
+
 ## Version 1.3.3 - 2023-12-29
 
 ### Changed
