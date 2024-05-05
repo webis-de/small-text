@@ -13,3 +13,4 @@ class EmptyPoolException(QueryException):
 
 class PoolExhaustedException(QueryException):
     """Thrown when there is an insufficient amount of unlabeled examples."""
+    pass
