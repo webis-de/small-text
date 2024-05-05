@@ -8,6 +8,7 @@
 
 ### Changed
 
+- Documentation: Added a section where compatible transformer models are listed.
 - Documentation: Updated showcase section.
 
 ---
