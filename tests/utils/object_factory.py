@@ -10,8 +10,6 @@ def get_initialized_active_learner(clf_factory, query_strategy, dataset, initial
                                    num_classes=2, multi_label=False):
     assert initial_indices > num_classes
 
-    active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, dataset)
-
     indices_initial = np.random.choice(np.arange(len(dataset)), size=initial_indices, replace=False)
 
     if multi_label:
@@ -22,6 +20,13 @@ def get_initialized_active_learner(clf_factory, query_strategy, dataset, initial
     else:
         y_initial = np.append(np.arange(num_classes),
                               np.random.choice([0, 1], initial_indices-num_classes))
-    active_learner.initialize(indices_initial, y_initial)
+
+    y_tmp = dataset.y
+    y_tmp[indices_initial] = y_initial
+    dataset.y = y_tmp
+
+    active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, dataset)
+
+    active_learner.initialize(indices_initial)
 
     return active_learner
