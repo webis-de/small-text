@@ -352,7 +352,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
     def _fit_main(self, sub_train, sub_valid, weights, early_stopping, model_selection,
                   optimizer, scheduler):
         if self.model is None:
-            self.initialize_kimcnn_model()
+            self.initialize()
 
         _check_optimizer_and_scheduler_config(optimizer, scheduler)
         scheduler = scheduler if scheduler is not None else None
@@ -370,7 +370,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
         return self
 
-    def initialize_kimcnn_model(self):
+    def initialize(self):
         vocab_size = self.embedding_matrix.shape[0]
         embed_dim = self.embedding_matrix.shape[1]
         self.model = KimCNN(vocab_size, self.max_seq_len, num_classes=self.num_classes,
@@ -381,6 +381,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                             kernel_heights=self.kernel_heights)
 
         self.model = _compile_if_possible(self.model, compile_model=self.compile_model)
+        return self.model
 
     def _default_optimizer(self, base_lr):
         params = [param for param in self.model.parameters() if param.requires_grad]

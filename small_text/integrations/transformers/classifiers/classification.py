@@ -387,7 +387,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
     def _fit_main(self, sub_train, sub_valid, weights, early_stopping, model_selection,
                   optimizer, scheduler):
         if self.model is None:
-            self.initialize_transformer(self.cache_dir)
+            self.initialize()
 
         _check_optimizer_and_scheduler_config(optimizer, scheduler)
         scheduler = scheduler if scheduler is not None else 'linear'
@@ -405,14 +405,14 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         return self
 
-    def initialize_transformer(self, cache_dir):
-
+    def initialize(self):
         self.config, self.tokenizer, self.model = _initialize_transformer_components(
             self.transformer_model,
             self.num_classes,
-            cache_dir,
+            self.cache_dir,
         )
         self.model = _compile_if_possible(self.model, self.transformer_model.compile_model)
+        return self.model
 
     def _default_optimizer(self, base_lr):
 

@@ -56,7 +56,7 @@ class _AMPArgumentsTest(object):
         self.assertEqual('cpu', clf.amp_args.device_type)
         self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
 
-        clf.initialize_kimcnn_model()
+        clf.initialize()
         amp_args = clf.amp_args
         self.assertIsNotNone(amp_args)
         self.assertFalse(amp_args.use_amp)
@@ -78,7 +78,7 @@ class _AMPArgumentsTest(object):
         self.assertEqual('cuda', clf.amp_args.device_type)
         self.assertEqual(torch.float16, clf.amp_args.dtype)
 
-        clf.initialize_kimcnn_model()
+        clf.initialize()
         amp_args = clf.amp_args
         self.assertIsNotNone(amp_args)
         self.assertFalse(amp_args.use_amp)

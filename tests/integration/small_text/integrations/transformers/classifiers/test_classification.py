@@ -415,7 +415,7 @@ class CompileTest(unittest.TestCase):
 
             with patch('torch.__version__', new='2.0.0'), \
                     patch('torch.compile', wraps=torch.compile) as compile_spy:
-                classifier.initialize_transformer(classifier.cache_dir)
+                classifier.initialize()
                 compile_spy.assert_called()
 
     def test_initialize_with_pytorch_geq_v2_and_compile_disabled(self):
@@ -429,7 +429,7 @@ class CompileTest(unittest.TestCase):
 
             with patch('torch.__version__', new='2.0.0'), \
                     patch('torch.compile', wraps=torch.compile) as compile_spy:
-                classifier.initialize_transformer(classifier.cache_dir)
+                classifier.initialize()
                 compile_spy.assert_not_called()
 
     def test_initialize_with_pytorch_lesser_v2_and_compile_enabled(self):
@@ -441,7 +441,7 @@ class CompileTest(unittest.TestCase):
         with patch.object(torch, 'compile', return_value=None):
             with patch('torch.__version__', new='1.9.0'), \
                     patch('torch.compile', wraps=torch.compile) as compile_spy:
-                classifier.initialize_transformer(classifier.cache_dir)
+                classifier.initialize()
                 compile_spy.assert_not_called()
 
     def test_initialize_with_pytorch_lesser_v2_and_compile_disabled(self):
@@ -453,7 +453,7 @@ class CompileTest(unittest.TestCase):
         with patch.object(torch, 'compile', return_value=None):
             with patch('torch.__version__', new='1.9.0'), \
                     patch('torch.compile', wraps=torch.compile) as compile_spy:
-                classifier.initialize_transformer(classifier.cache_dir)
+                classifier.initialize()
                 compile_spy.assert_not_called()
 
 
@@ -470,7 +470,7 @@ class TransformerBasedClassificationAMPArgumentsTest(unittest.TestCase):
         self.assertEqual('cpu', clf.amp_args.device_type)
         self.assertEqual(torch.bfloat16, clf.amp_args.dtype)
 
-        clf.initialize_transformer(clf.cache_dir)
+        clf.initialize()
         amp_args = clf.amp_args
         self.assertIsNotNone(amp_args)
         self.assertFalse(amp_args.use_amp)
@@ -495,7 +495,7 @@ class TransformerBasedClassificationAMPArgumentsTest(unittest.TestCase):
         self.assertEqual('cuda', clf.amp_args.device_type)
         self.assertEqual(torch.float16, clf.amp_args.dtype)
 
-        clf.initialize_transformer(clf.cache_dir)
+        clf.initialize()
         amp_args = clf.amp_args
         self.assertIsNotNone(amp_args)
         self.assertFalse(amp_args.use_amp)

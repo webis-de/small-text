@@ -295,7 +295,6 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         return self
 
     def initialize(self):
-        # TODO: make sure the initialize() methods of all classifiers are similar
         from_pretrained_options = _get_arguments_for_from_pretrained_model(
             self.setfit_model_args.model_loading_strategy
         )
@@ -303,15 +302,15 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         if self.multi_label and 'multi_target_strategy' not in model_kwargs:
             model_kwargs['multi_target_strategy'] = 'one-vs-rest'
 
-        model = SetFitModel.from_pretrained(
+        self.model = SetFitModel.from_pretrained(
             self.setfit_model_args.sentence_transformer_model,
             use_differentiable_head=self.use_differentiable_head,
             force_download=from_pretrained_options.force_download,
             local_files_only=from_pretrained_options.local_files_only,
             **model_kwargs
         )
-        model.model_body = _compile_if_possible(model.model_body, compile_model=self.setfit_model_args.compile_model)
-        return model
+        self.model.model_body = _compile_if_possible(self.model.model_body, compile_model=self.setfit_model_args.compile_model)
+        return self.model
 
     def validate(self, _validation_set):
         if self.use_differentiable_head:
