@@ -4,9 +4,9 @@ from small_text.classifiers import ConfidenceEnhancedLinearSVC
 from small_text.query_strategies import CategoryVectorInconsistencyAndRanking
 
 from tests.unit.small_text.query_strategies.test_strategies import (
-    SamplingStrategiesTests,
-    SklearnClassifierWithRandomEmbeddings
+    SamplingStrategiesTests
 )
+from tests.utils.classification import SklearnClassifierWithRandomEmbeddings
 
 
 class CategoryVectorInconsistencyAndRankingWithSingleLabelDataTest(unittest.TestCase,
