@@ -21,10 +21,6 @@ Small-Text provides state-of-the-art **Active Learning** for Text Classification
 Several pre-implemented Query Strategies, Initialization Strategies, and Stopping Critera are provided, 
 which can be easily mixed and matched to build active learning experiments or applications.
 
-**What is Active Learning?**  
-[Active Learning](https://small-text.readthedocs.io/en/latest/active_learning.html) allows you to efficiently label training data in a small data scenario.
-
-
 ## Features
 
 - Provides unified interfaces for Active Learning so that you can 
@@ -35,7 +31,22 @@ which can be easily mixed and matched to build active learning experiments or ap
   a lightweight installation only requires a minimal set of dependencies.
 - Multiple scientifically evaluated components are pre-implemented and ready to use (Query Strategies, Initialization Strategies, and Stopping Criteria).
 
+## What is Active Learning?
+[Active Learning](https://small-text.readthedocs.io/en/latest/active_learning.html) allows you to efficiently label training  data for supervised learning in a small data scenario.
+
+<p align="center">
+
+<img src="https://raw.githubusercontent.com/webis-de/small-text/dev/docs/_static/learning-curve-example.gif?raw=true" alt="Learning curve example for the TREC-6 dataset." width="60%">
+
+</p>
+
+---
+
 ## News
+
+- **June 2024 Update**
+  - The small-text library is [still under active development](https://github.com/webis-de/small-text/tree/dev): Version 2.0.0 is in progress, and we hope to release it soon. 
+    To shorten the waiting time, we are currently preparing version 1.4.0, which will bring a new query strategy, improvements on the documentation, and some smaller fixes. 
 
 - **Version 1.3.3** ([v1.3.3][changelog_1.3.3]) - December 29th, 2023
   - Bugfix release.
@@ -49,30 +60,33 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 - **Version 1.3.0** ([v1.3.0][changelog_1.3.0]): Highlights - February 20th, 2023
   - Added dropout sampling to [SetFitClassification](https://github.com/webis-de/small-text/blob/v1.3.0/small_text/integrations/transformers/classifiers/setfit.py).
-  
-- **Version 1.2.0** ([v1.2.0][changelog_1.2.0]): Highlights - February 4th, 2023
-  - Make [huggingface/setfit](https://github.com/huggingface/setfit) (SetFit) usable as a small-text classifier.
-  - New query strategy: [BALD](https://github.com/webis-de/small-text/blob/v1.2.0/small_text/query_strategies/bayesian.py).
-  - Added two new SetFit notebooks, and also updated existing notebooks.
-
+ 
 [For a complete list of changes, see the change log.][changelog]
 
+---
 
 ## Installation
 
-Small-Text can be easily installed via pip:
+Small-Text can be easily installed via pip (or conda):
 
 ```bash
 pip install small-text
 ```
 
-For a full installation include the transformers extra requirement:
+The command results in a [slim installation][documentation_install] with only the necessary dependencies. 
+For a full installation via pip, you just need to include the `transformers` extra requirement:
 
 ```bash
 pip install small-text[transformers]
 ```
 
-It requires Python 3.7 or newer. For using the GPU, CUDA 10.1 or newer is required. 
+For conda, which lacks the extra requirements feature, a full installation can be achieved as follows:
+
+```bash
+conda install "torch>=1.6.0" "torchtext>=0.7.0" transformers small-text
+```
+
+The library requires Python 3.7 or newer. For using the GPU, CUDA 10.1 or newer is required. 
 More information regarding the installation can be found in the 
 [documentation][documentation_install].
 
@@ -108,10 +122,11 @@ Read the latest documentation [here][documentation_main]. Noteworthy pages inclu
 - [Overview of Query Strategies][documentation_query_strategies]
 - [Reproducibility Notes][documentation_reproducibility_notes]
 
+---
 
 ## Alternatives
 
-[modAL](https://github.com/modAL-python/modAL), [ALiPy](https://github.com/NUAA-AL/ALiPy), [libact](https://github.com/ntucllab/libact)
+[modAL](https://github.com/modAL-python/modAL), [ALiPy](https://github.com/NUAA-AL/ALiPy), [libact](https://github.com/ntucllab/libact), [ALToolbox](https://github.com/AIRI-Institute/al_toolbox)
 
 ## Contribution
 
