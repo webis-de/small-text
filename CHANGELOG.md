@@ -2,6 +2,10 @@
 
 ## Version 1.4.0 - unreleased
 
+## Added
+
+- New query strategy: [AnchorSubsampling](https://github.com/webis-de/small-text/blob/v1.4.0/small_text/query_strategies/subsampling.py).
+
 ### Fixed
 
 - Changed the way how the seed is controlled  in `SetFitClassification` since the seed was fixed unless explicitly set via the respective trainer keyword argument.

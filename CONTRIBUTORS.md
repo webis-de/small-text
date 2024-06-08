@@ -14,5 +14,6 @@ Thanks goes to...
 
 - Erik Körner ([@Querela](https://github.com/querela)), for the help with packaging and CI.
 - Dr. Michael Bloodgood, for his thorough review of several stopping criteria. 
+- Pietro Lesci ([@pietrolesci](https://github.com/pietrolesci)), for the correspondence regarding [AnchorAL](https://github.com/pietrolesci/anchoral) and for the thorough review of the respective small-text implementation.
 
 And to the numerous users who provided feedback.
