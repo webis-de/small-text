@@ -61,12 +61,12 @@ To help you with finding a suitable model, we list a subset of compatible models
 
 - BERT models: `bert-base-uncased <https://huggingface.co/google-bert/bert-base-uncased>`_, `bert-large-uncased <https://huggingface.co/google-bert/bert-large-uncased>`_,
   `bert-base-uncased <https://huggingface.co/google-bert/bert-base-uncased>`_
-- T5: `t5-small <google-t5/t5-small>`_, `t5-base <google-t5/t5-base>`_, `t5-large <google-t5/t5-large>`_
+- T5: `t5-small <https://huggingface.co/google-t5/t5-small>`_, `t5-base <https://huggingface.co/google-t5/t5-base>`_, `t5-large <https://huggingface.co/google-t5/t5-large>`_
 - DistilRoBERTa: `distilroberta-base <https://huggingface.co/distilbert/distilroberta-base>`_
 - DistilBERT: `distilbert-base-uncased <https://huggingface.co/distilbert/distilbert-base-uncased>`_,
-  `distilroberta-base-cased <https://huggingface.co/distilbert/distilroberta-base-cased>`_
-- ELECTRA: `google/electra-base-discriminator <google/electra-base-discriminator>`_, `google/electra-small-discriminator <google/electra-small-discriminator>`_
-- BioGPT: `microsoft/biogpt <microsoft/biogpt>`_
+  `distilroberta-base <https://huggingface.co/distilbert/distilroberta-base>`_
+- ELECTRA: `google/electra-base-discriminator <https://huggingface.co/google/electra-base-discriminator>`_, `google/electra-small-discriminator <https://huggingface.co/google/electra-small-discriminator>`_
+- BioGPT: `microsoft/biogpt <https://huggingface.co/microsoft/biogpt>`_
 
 This list is not exhaustive. Let us know when you have tested other models that might belong on these lists.
 
