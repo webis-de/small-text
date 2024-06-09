@@ -5,7 +5,7 @@
 ![Maintained Yes](https://img.shields.io/badge/maintained-yes-green)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 [![MIT License](https://img.shields.io/github/license/webis-de/small-text)](LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10443361.svg)](https://zenodo.org/records/10443361)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11532414.svg)](https://zenodo.org/records/11532414)
 [![Twitter URL](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fwebis-de%2Fsmall-text)](https://twitter.com/intent/tweet?text=https%3A%2F%2Fgithub.com%2Fwebis-de%2Fsmall-text)
 
 <p align="center">
