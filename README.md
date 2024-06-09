@@ -44,9 +44,12 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
+- **Version 1.4.0** ([v1.4.0][changelog_1.4.0]) - June 9th, 2024
+  - New query strategy: [AnchorSubsampling](https://small-text.readthedocs.io/en/v1.3.3/components/query_strategies.html#small_text.query_strategies.subsampling.AnchorSubsampling) (aka [AnchorAL](https://arxiv.org/abs/2404.05623)).  
+    Special thanks to [Pietro Lesci](https://github.com/pietrolesci) for the correspondence and code review. 
+
 - **June 2024 Update**
-  - The small-text library is [still under active development](https://github.com/webis-de/small-text/tree/dev): Version 2.0.0 is in progress, and we hope to release it soon. 
-    To shorten the waiting time, we are currently preparing version 1.4.0, which will bring a new query strategy, improvements on the documentation, and some smaller fixes. 
+  - [Version 2.0.0 is in progress](https://github.com/webis-de/small-text/tree/dev) and should be ready soon. 
 
 - **Version 1.3.3** ([v1.3.3][changelog_1.3.3]) - December 29th, 2023
   - Bugfix release.
@@ -58,9 +61,6 @@ which can be easily mixed and matched to build active learning experiments or ap
   - The [paper][paper_arxiv] introducing small-text has been accepted at [EACL 2023](https://2023.eacl.org/). Meet us at the conference in May!
   - Update: the paper was awarded [EACL Best System Demonstration](https://aclanthology.org/2023.eacl-demo.11/). Thank you, for your support!
 
-- **Version 1.3.0** ([v1.3.0][changelog_1.3.0]): Highlights - February 20th, 2023
-  - Added dropout sampling to [SetFitClassification](https://github.com/webis-de/small-text/blob/v1.3.0/small_text/integrations/transformers/classifiers/setfit.py).
- 
 [For a complete list of changes, see the change log.][changelog]
 
 ---
@@ -166,10 +166,9 @@ Small-Text has been introduced in detail in the EACL23 System Demonstration Pape
 [documentation_showcase]: https://small-text.readthedocs.io/en/v1.4.0/showcase.html
 [documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/v1.4.0/reproducibility_notes.html
 [changelog]: https://small-text.readthedocs.io/en/latest/changelog.html
-[changelog_1.2.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-2-0-2023-02-04
-[changelog_1.3.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-3-0-2023-02-21
 [changelog_1.3.2]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-3-2-2023-08-19
 [changelog_1.3.3]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-3-3-2023-12-29
+[changelog_1.4.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-4-0-2024-06-09
 [argilla]: https://github.com/argilla-io/argilla
 [argilla_al_tutorial]: https://docs.argilla.io/en/latest/tutorials/notebooks/training-textclassification-smalltext-activelearning.html
 [paper_arxiv]: https://arxiv.org/abs/2107.10314
