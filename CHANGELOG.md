@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 1.4.0 - unreleased
+## Version 1.4.0 - 2024-06-09
 
 ## Added
 
