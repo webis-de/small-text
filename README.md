@@ -32,7 +32,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 - Multiple scientifically evaluated components are pre-implemented and ready to use (Query Strategies, Initialization Strategies, and Stopping Criteria).
 
 ## What is Active Learning?
-[Active Learning](https://small-text.readthedocs.io/en/latest/active_learning.html) allows you to efficiently label training  data for supervised learning in a small data scenario.
+[Active Learning](https://small-text.readthedocs.io/en/latest/active_learning.html) allows you to efficiently label training data for supervised learning in a scenario where you have little to no labeled data.
 
 <p align="center">
 
