@@ -17,7 +17,7 @@ PYTORCH_DEPENDENCIES = ['torch>=1.6.0', 'torchtext>=0.7.0']
 setup(name='small-text',
       version=version_str,
       license='MIT License',
-      description='Active Learning for Text Classifcation in Python.',
+      description='Active Learning for Text Classification in Python.',
       long_description=Path('README.md').read_text(encoding='utf-8'),
       long_description_content_type='text/markdown',
       author='Christopher Schröder',
