@@ -28,6 +28,10 @@
 - Fixed a deviation from the paper, where `DeltaFScore` also took into account the agreement in predictions of the negative label. ([#51](https://github.com/webis-de/small-text/pull/51))
 - Fixed a bug in `KappaAverage` that affected the stopping behavior. ([#52](https://github.com/webis-de/small-text/pull/52))
 
+### Contributors
+
+[@zakih2](https://github.com/zakih2), [@vmanc](https://github.com/vmanc)
+
 ---
 
 ## Version 1.3.2 - 2023-08-19
