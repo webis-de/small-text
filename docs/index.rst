@@ -30,7 +30,7 @@ Getting Started
    active_learning
 
 - Start: :doc:`install` | :doc:`Active Learning Overview<active_learning>`
-- Examples: `Notebooks <https://github.com/webis-de/small-text/tree/v1.3.3/examples/notebooks>`_ | `Code Examples <https://github.com/webis-de/small-text/tree/v1.3.3/examples/examplecode>`_
+- Examples: `Notebooks <https://github.com/webis-de/small-text/tree/v1.4.0/examples/notebooks>`_ | `Code Examples <https://github.com/webis-de/small-text/tree/v1.4.0/examples/examplecode>`_
 
 .. toctree::
    :caption: Getting Started

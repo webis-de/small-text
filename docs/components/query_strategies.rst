@@ -29,6 +29,7 @@ General
 * :py:class:`~small_text.query_strategies.multi_label.AdaptiveActiveLearning`
 * :py:class:`~small_text.query_strategies.class_balancing.ClassBalancer`
 * :py:class:`SEALS`
+* :py:class:`~small_text.query_strategies.subsampling.AnchorSubsampling`
 * :py:class:`RandomSampling`
 
 
@@ -150,6 +151,15 @@ Base
 
 .. autoclass:: SEALS
     :special-members: __init__
+
+.. py:module:: small_text.query_strategies.subsampling
+    :noindex:
+
+.. autoclass:: AnchorSubsampling
+    :special-members: __init__
+
+.. py:module:: small_text.query_strategies.strategies
+    :noindex:
 
 .. autoclass:: RandomSampling
 

@@ -486,8 +486,8 @@ class SklearnDataset(_InferLabelsMixin, Dataset):
 
         .. seealso::
            `scikit-learn docs: Vectorizer API reference
-           <https://scikit-learn.org/stable/modules/classes.html
-           #module-sklearn.feature_extraction.text>`_
+           <https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html
+           #sklearn.feature_extraction.text.TfidfVectorizer>`__
 
         .. versionadded:: 1.1.0
         """

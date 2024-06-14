@@ -105,6 +105,9 @@ Active Learning
    Efficient Few-Shot Learning Without Prompts.
    ArXiv, abs/2209.11055.
 
+.. [LV24] Pietro Lesci and Andreas Vlachos. 2024.
+   AnchorAL: Computationally Efficient Active Learning for Large and Imbalanced Datasets.
+   ArXiv abs/2404.05623.
 
 Misc
 ====

@@ -8,9 +8,9 @@ from small_text.query_strategies import (
 )
 
 from tests.unit.small_text.query_strategies.test_strategies import (
-    SamplingStrategiesTests,
-    SklearnClassifierWithRandomEmbeddings
+    SamplingStrategiesTests
 )
+from tests.utils.classification import SklearnClassifierWithRandomEmbeddings
 
 
 class LabelCardinalityInconsistencyWithSingleLabelDataTest(unittest.TestCase, SamplingStrategiesTests):

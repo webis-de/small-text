@@ -75,6 +75,7 @@ class ImportTest(unittest.TestCase):
         from small_text import BALD
         from small_text import CategoryVectorInconsistencyAndRanking
         from small_text import LabelCardinalityInconsistency
+        from small_text import AnchorSubsampling
 
     def test_import_stopping_criteria_module(self):
         from small_text import ClassificationChange

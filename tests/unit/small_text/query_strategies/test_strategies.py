@@ -25,6 +25,10 @@ from small_text.query_strategies import (
     SEALS
 )
 
+from tests.utils.classification import (
+    SklearnClassifierWithRandomEmbeddings,
+    SklearnClassifierWithRandomEmbeddingsAndProba
+)
 from tests.utils.datasets import random_sklearn_dataset
 
 
@@ -44,7 +48,7 @@ class EqualNumpyArray(object):
         return np.all(self.arr == other)
 
 
-def query_random_data(strategy, num_samples=100, n=10, use_embeddings=False, embedding_dim=100):
+def query_random_data(strategy, clf=None, num_samples=100, n=10, use_embeddings=False, embedding_dim=100):
 
     x = np.random.rand(num_samples, 10)
     kwargs = dict()
@@ -58,7 +62,7 @@ def query_random_data(strategy, num_samples=100, n=10, use_embeddings=False, emb
                                   if i not in set(indices_labeled)])
     y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
 
-    return strategy.query(None,
+    return strategy.query(clf,
                           x,
                           indices_unlabeled,
                           indices_labeled,
@@ -414,26 +418,6 @@ class EmbeddingBasedQueryStrategyImplementation(EmbeddingBasedQueryStrategy):
     def sample(self, clf, dataset, indices_unlabeled, indices_labeled, y, n, embeddings,
                embeddings_proba=None):
         return np.random.choice(indices_unlabeled, size=n, replace=False)
-
-
-class SklearnClassifierWithRandomEmbeddings(SklearnClassifier):
-
-    def embed(self, dataset, embed_dim=5, pbar=None):
-        _unused = pbar  # noqa:F841
-        self.embeddings_ = np.random.rand(len(dataset), embed_dim)
-        return self.embeddings_
-
-
-class SklearnClassifierWithRandomEmbeddingsAndProba(SklearnClassifier):
-
-    def embed(self, dataset, return_proba=False, embed_dim=5, pbar=None):
-        self.embeddings_ = np.random.rand(len(dataset), embed_dim)
-        _unused = pbar  # noqa:F841
-        if return_proba:
-            self.proba_ = np.random.rand(len(dataset))
-            return self.embeddings_, self.proba_
-
-        return self.embeddings_
 
 
 class EmbeddingBasedQueryStrategyTest(unittest.TestCase):

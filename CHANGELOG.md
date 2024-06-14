@@ -50,7 +50,11 @@ On the other hand, this also allowed us to deal with further issues that contain
 
 ---
 
-## Version 1.4.0 - unreleased
+## Version 1.4.0 - 2024-06-09
+
+## Added
+
+- New query strategy: [AnchorSubsampling](https://github.com/webis-de/small-text/blob/v1.4.0/small_text/query_strategies/subsampling.py).
 
 ### Fixed
 
@@ -58,6 +62,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 
 ### Changed
 
+- Documentation: Added a section where compatible transformer models are listed.
 - Documentation: Updated showcase section.
 
 ---
@@ -72,6 +77,10 @@ On the other hand, this also allowed us to deal with further issues that contain
 
 - Fixed a deviation from the paper, where `DeltaFScore` also took into account the agreement in predictions of the negative label. ([#51](https://github.com/webis-de/small-text/pull/51))
 - Fixed a bug in `KappaAverage` that affected the stopping behavior. ([#52](https://github.com/webis-de/small-text/pull/52))
+
+### Contributors
+
+[@zakih2](https://github.com/zakih2), [@vmanc](https://github.com/vmanc)
 
 ---
 

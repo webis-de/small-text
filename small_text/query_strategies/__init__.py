@@ -27,6 +27,7 @@ from small_text.query_strategies.strategies import (
     DiscriminativeActiveLearning,
     SEALS
 )
+from small_text.query_strategies.subsampling import AnchorSubsampling
 
 
 __all__ = [
@@ -55,5 +56,6 @@ __all__ = [
     'BALD',
     'CategoryVectorInconsistencyAndRanking',
     'LabelCardinalityInconsistency',
-    'AdaptiveActiveLearning'
+    'AdaptiveActiveLearning',
+    'AnchorSubsampling'
 ]

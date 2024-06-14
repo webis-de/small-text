@@ -21,13 +21,13 @@ from small_text.query_strategies import (
     LeastConfidence,
     LightweightCoreset,
     SEALS,
+    AnchorSubsampling,
     SubsamplingQueryStrategy
 )
 from tests.unit.small_text.query_strategies.test_strategies import (
-    SamplingStrategiesTests,
-    SklearnClassifierWithRandomEmbeddingsAndProba
+    SamplingStrategiesTests
 )
-
+from tests.utils.classification import SklearnClassifierWithRandomEmbeddingsAndProba
 from tests.utils.datasets import random_sklearn_dataset, random_matrix_data
 from tests.utils.object_factory import get_initialized_active_learner
 
@@ -113,6 +113,11 @@ class QueryStrategiesTest(QueryStrategiesExhaustiveIntegrationTest, unittest.Tes
     @pytest.mark.optional
     def test_seals(self):
         query_strategy = SEALS(LeastConfidence(), k=5)
+        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=3)
+
+    @pytest.mark.optional
+    def test_anchor_subsampling(self):
+        query_strategy = AnchorSubsampling(LeastConfidence(), k=5)
         self._simple_exhaustive_active_learning_test(query_strategy, num_classes=3)
 
     def test_subsampling_query_strategy(self):
