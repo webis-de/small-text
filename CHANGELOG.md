@@ -44,7 +44,9 @@ On the other hand, this also allowed us to deal with further issues that contain
 
 ### Removed
 
-- Removed `default_tensor_type()` method.
+- Deprecated functionality
+  - Removed `default_tensor_type()` method.
+  - Removed `small_text.integrations.pytorch.utils.labels.get_flattened_unique_labels()`.
 - Classification
   - Removed legacy arguments for early stopping in `__init__` for KimCNN and TransformerBasedClassification. (Use `fit()` keyword arguments instead.) 
 
@@ -52,7 +54,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 
 ## Version 1.4.0 - 2024-06-09
 
-## Added
+### Added
 
 - New query strategy: [AnchorSubsampling](https://github.com/webis-de/small-text/blob/v1.4.0/small_text/query_strategies/subsampling.py).
 
