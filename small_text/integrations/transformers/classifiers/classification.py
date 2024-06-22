@@ -13,9 +13,6 @@ from small_text.utils.classification import get_splits
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data
 from small_text.utils.datetime import format_timedelta
-from small_text.utils.annotations import (
-    model_selection_deprecation_warning
-)
 
 from small_text.integrations.transformers.classifiers.base import (
     ModelLoadingStrategy,
@@ -232,7 +229,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                  mini_batch_size: int = 12,
                  validation_set_size: float = 0.1,
                  validations_per_epoch: int = 1,
-                 model_selection: bool = True,
                  fine_tuning_arguments=None,
                  device=None,
                  memory_fix=1,
@@ -260,9 +256,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             The size of the validation set as a fraction of the training set.
         validations_per_epoch : int, default=1
             Defines how of the validation set is evaluated during the training of a single epoch.
-        model_selection : bool, default=True
-            If True, model selects first saves the model after each epoch. At the end of the
-            training step the model with the lowest validation error is selected.
         fine_tuning_arguments : FineTuningArguments or None, default=None
             Fine-tuning arguments.
         device : str or torch.device, default=None
@@ -286,7 +279,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         """
         super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size,
                          amp_args=amp_args)
-        model_selection_deprecation_warning(model_selection)
 
         with verbosity_logger():
             self.logger = logging.getLogger(__name__)
@@ -309,7 +301,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         # Other
         self.class_weight = class_weight
 
-        self.model_selection = model_selection
         self.fine_tuning_arguments = fine_tuning_arguments
 
         self.memory_fix = memory_fix

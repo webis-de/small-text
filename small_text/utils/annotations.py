@@ -72,13 +72,3 @@ def experimental(func_or_class=None):
             return func_or_class(*args, **kwargs)
         return wrapper
     return _decorator(func_or_class) if callable(func_or_class) else _decorator
-
-
-def model_selection_deprecation_warning(model_selection):
-    if model_selection is not True:
-        warnings.warn(
-            'model_selection is deprecated since 1.1.0 '
-            'and will be removed in 2.0.0. Please use the "model_selection" kwarg in fit () '
-            'instead.',
-            DeprecationWarning,
-            stacklevel=2)

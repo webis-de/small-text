@@ -136,7 +136,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
         self.assertIsNone(classifier.criterion)
         self.assertEqual(0.1, classifier.validation_set_size)
         self.assertEqual(1, classifier.validations_per_epoch)
-        self.assertTrue(classifier.model_selection)
         self.assertIsNone(classifier.fine_tuning_arguments)
         self.assertIsNotNone(classifier.device)
         self.assertEqual(1, classifier.memory_fix)
@@ -153,7 +152,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
         mini_batch_size = 24
         validation_set_size = 0.05
         validations_per_epoch = 5
-        model_selection = True
         fine_tuning_arguments = FineTuningArguments(5e-5, 0.99)
         device = 'cuda'
         memory_fix = 1
@@ -169,7 +167,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
             mini_batch_size=mini_batch_size,
             validation_set_size=validation_set_size,
             validations_per_epoch=validations_per_epoch,
-            model_selection=model_selection,
             fine_tuning_arguments=fine_tuning_arguments,
             device=device,
             memory_fix=memory_fix,
@@ -185,7 +182,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
         self.assertEqual(mini_batch_size, classifier.mini_batch_size)
         self.assertEqual(validation_set_size, classifier.validation_set_size)
         self.assertEqual(validations_per_epoch, classifier.validations_per_epoch)
-        self.assertEqual(model_selection, classifier.model_selection)
         self.assertEqual(fine_tuning_arguments, classifier.fine_tuning_arguments)
         self.assertEqual(device, classifier.device)
         self.assertEqual(memory_fix, classifier.memory_fix)
