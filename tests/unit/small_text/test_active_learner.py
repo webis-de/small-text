@@ -18,7 +18,7 @@ from small_text.classifiers.factories import SklearnClassifierFactory
 from small_text.query_strategies import RandomSampling
 
 from tests.utils.datasets import random_matrix_data, random_sklearn_dataset, set_y
-from tests.utils.testing import assert_csr_matrix_equal, assert_labels_equal
+from tests.utils.testing import assert_csr_matrix_equal, assert_labels_equal, assert_array_not_equal
 
 
 class ActiveLearnerTest(unittest.TestCase):
@@ -687,8 +687,19 @@ class _PoolBasedActiveLearnerTest(object):
                 indices_validation = np.random.choice(indices_initial, size=10, replace=False)
             active_learner.update(y_new, indices_validation=indices_validation)
 
-            active_learner.update_label_at(indices_new[0], 1, retrain=retrain)
-            assert_array_equal(y_new, active_learner.y[indices_initial.shape[0]:])
+            if self.multi_label:
+                y_updated = np.array([1, 1, 1])
+                active_learner.update_label_at(indices_new[0], y_updated, retrain=retrain)
+                assert_array_not_equal(y_new.toarray(),
+                                       active_learner.y.toarray()[indices_initial.shape[0]:].ravel())
+                assert_array_equal(y_updated,
+                                   active_learner.y.toarray()[indices_initial.shape[0]:indices_initial.shape[0]+1].ravel())
+            else:
+                y_updated = 1
+                active_learner.update_label_at(indices_new[0], y_updated, retrain=retrain)
+                assert_array_not_equal(y_new, active_learner.y[indices_initial.shape[0]:])
+                assert_array_equal(y_updated, active_learner.y[indices_initial.shape[0]:indices_initial.shape[0]+1])
+
         if retrain:
             retrain_mock.assert_has_calls([call(indices_validation=indices_validation),
                                            call(indices_validation=indices_validation)])
