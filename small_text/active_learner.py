@@ -37,13 +37,13 @@ class AbstractPoolBasedActiveLearner(ActiveLearner):
     def initialize(self, clf_or_indices=None, indices_validation=None, retrain=True):
         """(Re-)Initializes the current labeled pool.
 
-        This method needs to be called whenever the underlying data changes, in particularly
-        before the first loop.
+        This method initializes the active learner. It needs to be called whenever the underlying data changes,
+        in particularly before the active learning first loop.
 
         Parameters
         ----------
         indices_initial : np.ndarray[int]
-            Positional indices pointing at training examples. This is the intially labelled set
+            Positional indices pointing at training examples. This is the initially labelled set
             for training an initial classifier.
         y_initial : numpy.ndarray[int] or scipy.sparse.csr_matrix
             The respective labels belonging to the examples referenced by `x_indices_initial`.
