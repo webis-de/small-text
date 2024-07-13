@@ -36,13 +36,13 @@ class AbstractPoolBasedActiveLearner(ActiveLearner):
     def initialize_data(self, indices_initial, y_initial, *args, **kwargs):
         """(Re-)Initializes the current labeled pool.
 
-        This methods needs to be called whenever the underlying data changes, in particularly
-        before the first loop.
+        This method initializes the active learner. It needs to be called whenever the underlying data changes,
+        in particularly before the active learning first loop.
 
         Parameters
         ----------
         indices_initial : np.ndarray[int]
-            Positional indices pointing at training examples. This is the intially labelled set
+            Positional indices pointing at training examples. This is the initially labelled set
             for training an initial classifier.
         y_initial : numpy.ndarray[int] or scipy.sparse.csr_matrix
             The respective labels belonging to the examples referenced by `x_indices_initial`.
@@ -218,7 +218,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
             sample.
         indices_validation : numpy.ndarray, default=None
             The given indices (relative to `self.x_indices_labeled`) define a custom validation set
-            if provided. Otherwise each classifier that uses a validation set will be responsible
+            if provided. Otherwise, each classifier that uses a validation set will be responsible
             for creating a validation set.
         """
         if self.indices_queried.shape[0] != y.shape[0]:
@@ -305,7 +305,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
 
         Notes
         -----
-        If ignoring a sample incurs the removal of a label label, the current model might not
+        If ignoring a sample incurs the removal of a label, the current model might not
         reflect the labeled data anymore. You should consider if a retraining is necessary when
         using this operation. Since retraining is often time-consuming, `retrain` is set to
         `False` by default.
