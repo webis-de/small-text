@@ -229,7 +229,7 @@ class _KimCNNClassifierTest(object):
             self.assertEqual(1, fit_main_spy.call_count)
             self.assertTrue(isinstance(fit_main_spy.call_args_list[0].args[3], NoopEarlyStopping))
 
-    def test_fit_with_model_selection_default(self):
+    def test_fit_with_model_selection_kwarg(self):
         dataset = self._get_dataset(num_samples=20, num_classes=4)
 
         train_set = dataset[0:10]
@@ -249,7 +249,7 @@ class _KimCNNClassifierTest(object):
 
             self.assertEqual(1, fit_main_spy.call_count)
             model_selection_arg = fit_main_spy.call_args_list[0].args[4]
-            self.assertTrue(isinstance(model_selection_arg, ModelSelection))
+            self.assertTrue(isinstance(model_selection_arg, NoopModelSelection))
 
     def test_fit_with_model_selection_none(self):
         dataset = self._get_dataset(num_samples=20, num_classes=4)
@@ -267,11 +267,33 @@ class _KimCNNClassifierTest(object):
         with patch.object(classifier,
                           '_fit_main',
                           wraps=classifier._fit_main) as fit_main_spy:
-            classifier.fit(train_set, validation_set=validation_set, model_selection='none')
+            classifier.fit(train_set, validation_set=validation_set, model_selection=None)
 
             self.assertEqual(1, fit_main_spy.call_count)
             model_selection_arg = fit_main_spy.call_args_list[0].args[4]
             self.assertTrue(isinstance(model_selection_arg, NoopModelSelection))
+
+    def test_fit_with_model_selection_default(self):
+        dataset = self._get_dataset(num_samples=20, num_classes=4)
+
+        train_set = dataset[0:10]
+        validation_set = dataset[10:]
+
+        num_classes = 4
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        classifier = KimCNNClassifier(num_classes,
+                                      multi_label=self.multi_label,
+                                      embedding_matrix=embedding_matrix,
+                                      num_epochs=2)
+
+        with patch.object(classifier,
+                          '_fit_main',
+                          wraps=classifier._fit_main) as fit_main_spy:
+            classifier.fit(train_set, validation_set=validation_set, model_selection=ModelSelection())
+
+            self.assertEqual(1, fit_main_spy.call_count)
+            model_selection_arg = fit_main_spy.call_args_list[0].args[4]
+            self.assertTrue(isinstance(model_selection_arg, ModelSelection))
 
     def test_fit_with_optimizer_and_scheduler(self):
         ds = self._get_dataset()

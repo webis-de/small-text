@@ -55,7 +55,7 @@ class _TransformerBasedClassificationTest(object):
         # basically tests _get_layer_params for now
 
         fake_train.assert_called()
-        perform_model_selection_mock.assert_called()
+        perform_model_selection_mock.assert_not_called()
 
     def test_fit_with_class_weight(self):
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
@@ -363,8 +363,8 @@ class _TransformerBasedClassificationTest(object):
             classifier.fit(train_set, validation_set=validation_set)
 
             self.assertEqual(1, fit_main_spy.call_count)
-            early_stopping_arg = fit_main_spy.call_args_list[0].args[4]
-            self.assertTrue(isinstance(early_stopping_arg, ModelSelection))
+            model_selection_arg = fit_main_spy.call_args_list[0].args[4]
+            self.assertTrue(isinstance(model_selection_arg, NoopModelSelection))
 
     def test_fit_with_model_selection_disabled(self):
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
@@ -380,10 +380,29 @@ class _TransformerBasedClassificationTest(object):
         with patch.object(classifier,
                           '_fit_main',
                           wraps=classifier._fit_main) as fit_main_spy:
-            classifier.fit(train_set, validation_set=validation_set, model_selection='none')
+            classifier.fit(train_set, validation_set=validation_set, model_selection=None)
 
             self.assertEqual(1, fit_main_spy.call_count)
             self.assertTrue(isinstance(fit_main_spy.call_args_list[0].args[4], NoopModelSelection))
+
+    def test_fit_with_model_selection_kwarg(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args,
+                                                    4,
+                                                    multi_label=self.multi_label,
+                                                    class_weight='balanced',
+                                                    num_epochs=1)
+
+        train_set = self._get_dataset(num_samples=10)
+        validation_set = self._get_dataset(num_samples=10)
+
+        with patch.object(classifier,
+                          '_fit_main',
+                          wraps=classifier._fit_main) as fit_main_spy:
+            classifier.fit(train_set, validation_set=validation_set, model_selection=ModelSelection())
+
+            self.assertEqual(1, fit_main_spy.call_count)
+            self.assertTrue(isinstance(fit_main_spy.call_args_list[0].args[4], ModelSelection))
 
 
 @pytest.mark.pytorch

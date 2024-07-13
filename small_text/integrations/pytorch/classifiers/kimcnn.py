@@ -12,6 +12,7 @@ from small_text.classifiers.classification import EmbeddingMixin
 from small_text.integrations.pytorch.classifiers.base import PytorchClassifier
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.integrations.pytorch.models.kimcnn import KimCNN
+from small_text.training.model_selection import NoopModelSelection
 from small_text.utils.classification import get_splits
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data, list_length
@@ -19,7 +20,6 @@ from small_text.utils.labels import csr_to_list
 from small_text.utils.datetime import format_timedelta
 from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
 from small_text.utils.system import get_tmp_dir_base
-
 
 try:
     import torch
@@ -300,11 +300,11 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             Sample weights or None.
         early_stopping : EarlyStoppingHandler or 'none'
             A strategy for early stopping. Passing 'none' disables early stopping.
-        model_selection : ModelSelectionHandler or 'none'
+        model_selection : ModelSelectionHandler or None, default=None
             A model selection handler. Passing 'none' disables model selection.
-        optimizer : torch.optim.optimizer.Optimizer
+        optimizer : torch.optim.optimizer.Optimizer or None, default=None
             A pytorch optimizer.
-        scheduler :torch.optim._LRScheduler
+        scheduler :torch.optim._LRScheduler or None, default=None
             A pytorch scheduler.
 
         Returns
@@ -366,7 +366,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         with tempfile.TemporaryDirectory(dir=get_tmp_dir_base()) as tmp_dir:
             self._train(sub_train, sub_valid, weights, early_stopping, model_selection,
                         optimizer, scheduler, tmp_dir)
-            self._perform_model_selection(optimizer, model_selection)
+            if not isinstance(model_selection, NoopModelSelection):
+                self._perform_model_selection(optimizer, model_selection)
 
         return self
 
@@ -423,8 +424,9 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                     'val_acc': valid_acc
                 }
                 stop = early_stopping.check_early_stop(epoch + 1, measured_values)
-                self._save_model(optimizer, model_selection, f'{epoch}-0',
-                                 train_acc, train_loss, valid_acc, valid_loss, stop, tmp_dir)
+                if not isinstance(model_selection, NoopModelSelection):
+                    self._save_model(optimizer, model_selection, f'{epoch}-0',
+                                     train_acc, train_loss, valid_acc, valid_loss, stop, tmp_dir)
 
         return self
 

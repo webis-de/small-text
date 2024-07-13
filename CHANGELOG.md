@@ -39,6 +39,7 @@ On the other hand, this also allowed us to deal with further issues that contain
   - Moved `split_data()` method from `small_text.data.datasets` to `small_text.data.splits`.
 - Classification:
   - The `initialize()` methods of all PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) are now more unified. ([#57](https://github.com/webis-de/small-text/issues/57))
+  - KimCNNClassifier / TransformerBasedClassification: model selection is now disabled by default. Also, it no longer saves models when disabled, thereby greatly reducing the runtime.
 - Utils
   - `init_kmeans_plusplus_safe()` now supports weighted kmeans++ initialization for `scikit-learn>=1.3.0`. 
 

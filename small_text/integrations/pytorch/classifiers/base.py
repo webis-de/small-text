@@ -228,10 +228,11 @@ class PytorchClassifier(PytorchModelSelectionMixin, AMPMixin, Classifier):
 
     @staticmethod
     def _get_default_model_selection(model_selection):
-        if model_selection == 'none':
+
+        if model_selection is None:
             return NoopModelSelection()
 
-        return ModelSelection()
+        return model_selection
 
     def _get_optimizer_and_scheduler(self, optimizer, scheduler, num_epochs, sub_train):
 
