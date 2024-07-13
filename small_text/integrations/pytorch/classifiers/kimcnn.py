@@ -438,8 +438,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
     def _train_func(self, sub_train_, weights, optimizer, scheduler, scaler, amp_args):
 
-        train_loss = 0.
-        train_acc = 0.
+        train_loss = torch.tensor(0., dtype=torch.float32, device=self.device)
+        train_acc = torch.tensor(0., dtype=torch.float32, device=self.device)
 
         data = sub_train_.data
         if weights is not None:
@@ -454,15 +454,12 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                 loss, acc = self._train_single_batch(text, cls, weight, optimizer, scaler)
                 scheduler.step()
 
-                train_loss += loss
-                train_acc += acc
+                train_loss += loss.detach()
+                train_acc += acc.detach()
 
-        return train_loss / len(sub_train_), train_acc / len(sub_train_)
+        return train_loss.item() / len(sub_train_), train_acc.item() / len(sub_train_)
 
     def _train_single_batch(self, text, cls, weight, optimizer, scaler):
-
-        train_loss = 0.
-        train_acc = 0.
 
         optimizer.zero_grad()
 
@@ -481,12 +478,11 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         scaler.step(optimizer)
         scaler.update()
 
-        train_loss += loss.item()
-        train_acc += self.sum_up_accuracy_(output, cls)
+        train_acc = self.sum_up_accuracy_(output, cls)
 
         del text, cls, output
 
-        return train_loss, train_acc
+        return loss, train_acc
 
     def _compute_loss(self, cls, output):
         with torch.no_grad():
@@ -516,8 +512,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
                                 enabled=self.amp_args.use_amp):
 
-                valid_loss = 0.
-                acc = 0.
+                valid_loss = torch.tensor(0., dtype=torch.float32, device=self.device)
+                acc = torch.tensor(0., dtype=torch.float32, device=self.device)
 
                 self.model.eval()
                 valid_iter = dataloader(validation_set.data, self.mini_batch_size, self._create_collate_fn(),
@@ -537,12 +533,12 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                         loss = loss * weight
                         loss = loss.mean()
 
-                        valid_loss += loss.item()
+                        valid_loss += loss.detach()
 
                         acc += self.sum_up_accuracy_(output, cls)
                         del output, x, cls
 
-                return valid_loss / len(validation_set), acc / len(validation_set)
+                return valid_loss.item() / len(validation_set), acc.item() / len(validation_set)
 
     def predict(self, dataset, return_proba=False):
         """Predicts the labels for the given dataset.

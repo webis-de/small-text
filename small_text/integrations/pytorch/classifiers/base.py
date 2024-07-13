@@ -292,8 +292,8 @@ class PytorchClassifier(PytorchModelSelectionMixin, AMPMixin, Classifier):
             thresholded[thresholded > 0] = 1
             num_labels = logits.shape[1]
             acc = (thresholded == cls).sum(axis=1) / num_labels
-            acc = acc.sum().item()
+            acc = acc.sum()
         else:
-            acc = (logits.argmax(1) == cls).sum().item()
+            acc = (logits.argmax(1) == cls).sum()
 
         return acc

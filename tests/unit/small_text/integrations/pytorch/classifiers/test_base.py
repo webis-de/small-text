@@ -323,5 +323,5 @@ class SimplePytorchClassifierTest(unittest.TestCase):
         ])
         clf = SimplePytorchClassifier(3, multi_label=True)
 
-        accuracy = clf.sum_up_accuracy_(logits, cls)
+        accuracy = clf.sum_up_accuracy_(logits, cls).item()
         self.assertAlmostEqual(2.333, accuracy, places=3)

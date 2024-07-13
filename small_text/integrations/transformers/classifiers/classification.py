@@ -475,18 +475,16 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             optimizer,
             scheduler,
             scaler,
-            amp_args,
             tmp_dir,
             validate_every=validate_every)
 
         return train_acc, train_loss, valid_acc, valid_loss, stop
 
     def _train_loop_process_batches(self, num_epoch, sub_train_, sub_valid_, weights, early_stopping,
-                                    model_selection, optimizer, scheduler, scaler, amp_args, tmp_dir,
-                                    validate_every=None):
+                                    model_selection, optimizer, scheduler, scaler, tmp_dir, validate_every=None):
 
-        train_loss = 0.
-        train_acc = 0.
+        train_loss = torch.tensor(0., dtype=torch.float32, device=self.device)
+        train_acc = torch.tensor(0., dtype=torch.float32, device=self.device)
         valid_losses = []
         valid_accs = []
 
@@ -509,8 +507,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
                 scheduler.step()
 
-                train_loss += loss.detach().item()
-                train_acc += self.sum_up_accuracy_(logits, cls)
+                train_loss += loss.detach()
+                train_acc += self.sum_up_accuracy_(logits, cls).detach()
                 del cls
 
                 if validate_every and i % validate_every == 0:
@@ -532,8 +530,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             valid_loss, valid_acc = None, None
             if validate_every is None and sub_valid_ is not None:
                 valid_loss, valid_acc = self.validate(sub_valid_)
-        train_loss = train_loss / len(sub_train_)
-        train_acc = train_acc / len(sub_train_)
+        train_loss = train_loss.item() / len(sub_train_)
+        train_acc = train_acc.item() / len(sub_train_)
 
         measured_values = {
             'train_loss': train_loss,
@@ -557,7 +555,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         optimizer.zero_grad()
 
         x, masks, cls = x.to(self.device), masks.to(self.device), cls.to(self.device)
-        weight = weight.to(self.device)
+        weight = weight.to(self.device, non_blocking=True)
 
         outputs = self.model(x, attention_mask=masks)
 
@@ -605,8 +603,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         with torch.no_grad():
             with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
                                 enabled=self.amp_args.use_amp):
-                valid_loss = 0.
-                acc = 0.
+                valid_loss = torch.tensor(0., dtype=torch.float32, device=self.device)
+                acc = torch.tensor(0., dtype=torch.float32, device=self.device)
 
                 self.model.eval()
                 valid_iter = dataloader(validation_set.data, self.mini_batch_size,
@@ -615,18 +613,18 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
                 for x, masks, cls, weight, *_ in valid_iter:
                     x, masks, cls = x.to(self.device), masks.to(self.device), cls.to(self.device)
-                    weight = weight.to(self.device)
+                    weight = weight.to(self.device, non_blocking=True)
 
                     outputs = self.model(x, attention_mask=masks)
                     _, loss = self._compute_loss(cls, outputs)
                     loss = loss * weight
                     loss = loss.mean()
 
-                    valid_loss += loss.item()
-                    acc += self.sum_up_accuracy_(outputs.logits, cls)
+                    valid_loss += loss.detach()
+                    acc += self.sum_up_accuracy_(outputs.logits, cls).detach()
                     del outputs, x, masks, cls
 
-        return valid_loss / len(validation_set), acc / len(validation_set)
+        return valid_loss.item() / len(validation_set), acc.item() / len(validation_set)
 
     def predict(self, dataset, return_proba=False):
         """Predicts the labels for the given dataset.
