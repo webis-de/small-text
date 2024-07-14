@@ -100,8 +100,8 @@ class SamplingStrategiesTests(object):
     def test_query_takes_remaining_pool(self):
         indices = self._query(self._get_query_strategy(),
                               num_samples=self.DEFAULT_NUM_SAMPLES,
-                              n=10)
-        self.assertEqual(DEFAULT_QUERY_SIZE, len(indices))
+                              n=90)
+        self.assertEqual(90, len(indices))
 
     def test_query_exhausts_pool(self):
         """Tests for PoolExhaustedException."""
@@ -368,6 +368,12 @@ class SubSamplingTest(unittest.TestCase, SamplingStrategiesTests):
 
     def _get_query_strategy(self):
         return SubsamplingQueryStrategy(RandomSampling(), 20)
+
+    def test_query_takes_remaining_pool(self):
+        indices = self._query(self._get_query_strategy(),
+                              num_samples=self.DEFAULT_NUM_SAMPLES,
+                              n=20)
+        self.assertEqual(20, len(indices))
 
     def test_subsampling_query_default(self):
         indices = query_random_data(self._get_query_strategy())

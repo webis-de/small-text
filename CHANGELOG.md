@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.4.1 - [unreleased]
+
+### Fixed
+
+- Fixed an out of bounds error which occurred when `DiscriminativeActiveLearning` would query all remaining unlabeled data.
+
 ## Version 1.4.0 - 2024-06-09
 
 ## Added
