@@ -5,6 +5,18 @@
 ### Fixed
 
 - Fixed an out of bounds error which occurred when `DiscriminativeActiveLearning` would query all remaining unlabeled data.
+- Fixed typos/wording in PoolBasedActiveLearner Docstrings.
+- Pinned setfit version in notebook example. ([#64](https://github.com/webis-de/small-text/issues/64))
+
+### Changed
+
+- Documentation: added links to bibliography. ([#65](https://github.com/webis-de/small-text/issues/65))
+
+### Contributors
+
+[@pdhall99](https://github.com/pdhall99),
+
+---
 
 ## Version 1.4.0 - 2024-06-09
 
@@ -18,8 +30,8 @@
 
 ### Changed
 
-- Documentation: Added a section where compatible transformer models are listed.
-- Documentation: Updated showcase section.
+- Documentation: added a section where compatible transformer models are listed.
+- Documentation: updated showcase section.
 
 ---
 
