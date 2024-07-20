@@ -22,6 +22,8 @@ On the other hand, this also allowed us to deal with further issues that contain
   - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v2.0.0/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.
 - Embeddings:
   - Prevented unnecessary gradient computations for some embedding types and unified code structure.
+- Pytorch:
+  - Added an `inference_mode()` context manager that applies `torch.inference_mode` or `torch.no_grad` for older Pytorch versions.
 - Query Strategies:
   - New strategies: [DiscriminativeRepresentationLearning](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/integrations/pytorch/query_strategies/strategies.py), [LabelCardinalityInconsistency](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/multi_label.py) and [ClassBalancer](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/class_balancing.py).
   - Query strategies now have a [tie-breaking mechanism](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/base.py) to randomly permutate when there is a tie in scores.
