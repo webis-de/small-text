@@ -30,6 +30,8 @@ try:
         _check_optimizer_and_scheduler_config
     )
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
+
+    from small_text.integrations.pytorch.utils.contextmanager import inference_mode
     from small_text.integrations.pytorch.utils.data import dataloader
     from small_text.integrations.pytorch.utils.misc import _compile_if_possible, enable_dropout
 except ImportError:

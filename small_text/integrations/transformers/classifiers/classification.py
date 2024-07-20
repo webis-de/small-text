@@ -33,6 +33,7 @@ try:
         _check_optimizer_and_scheduler_config,
         PytorchClassifier
     )
+    from small_text.integrations.pytorch.utils.contextmanager import inference_mode
     from small_text.integrations.pytorch.utils.data import dataloader
     from small_text.integrations.pytorch.utils.misc import _compile_if_possible, enable_dropout
 
@@ -174,7 +175,7 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
         tensors = []
         proba = []
 
-        with torch.no_grad():
+        with inference_mode():
             with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
                                 enabled=self.amp_args.use_amp):
                 with build_pbar_context(pbar, tqdm_kwargs={'total': len(data_set)}) as pbar:
@@ -600,7 +601,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
     def validate(self, validation_set):
 
-        with torch.no_grad():
+        with inference_mode():
             with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
                                 enabled=self.amp_args.use_amp):
                 valid_loss = torch.tensor(0., dtype=torch.float32, device=self.device)

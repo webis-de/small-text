@@ -23,6 +23,7 @@ try:
     from torch.nn.modules import CrossEntropyLoss, BCEWithLogitsLoss
     from torch.optim.lr_scheduler import LambdaLR
 
+    from small_text.integrations.pytorch.utils.contextmanager import inference_mode
     from small_text.integrations.pytorch.utils.data import dataloader, get_class_weights
     from small_text.integrations.pytorch.utils.loss import _LossAdapter2DTo1D
 except ImportError:
@@ -181,7 +182,7 @@ class PytorchClassifier(PytorchModelSelectionMixin, AMPMixin, Classifier):
 
         logits_transform = torch.sigmoid if self.multi_label else partial(F.softmax, dim=1)
 
-        with torch.no_grad():
+        with inference_mode():
             with torch.autocast(device_type=self.amp_args.device_type, dtype=torch.bfloat16,
                                 enabled=self.amp_args.use_amp):
                 if dropout_sampling <= 1:

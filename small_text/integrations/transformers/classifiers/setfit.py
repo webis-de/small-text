@@ -26,7 +26,10 @@ try:
     from setfit import SetFitModel, SetFitTrainer
 
     from small_text.integrations.pytorch.classifiers.base import AMPArguments
+
+    from small_text.integrations.pytorch.utils.contextmanager import inference_mode
     from small_text.integrations.pytorch.utils.misc import _compile_if_possible, enable_dropout
+
     from small_text.integrations.transformers.utils.classification import (
         _get_arguments_for_from_pretrained_model
     )
@@ -381,7 +384,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
         with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
                             enabled=self.amp_args.use_amp):
-            with torch.no_grad():
+            with inference_mode():
                 if dropout_sampling <= 1:
                     return self._predict_proba(dataset)
                 else:
