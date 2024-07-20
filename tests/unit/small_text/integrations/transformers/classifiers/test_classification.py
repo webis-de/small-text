@@ -10,8 +10,6 @@ from unittest.mock import patch
 
 from small_text.base import LABEL_UNLABELED
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.training.early_stopping import EarlyStopping, EarlyStoppingOrCondition
-from small_text.training.metrics import Metric
 from small_text.utils.logging import VERBOSITY_MORE_VERBOSE
 from small_text.utils.system import OFFLINE_MODE_VARIABLE
 
