@@ -604,10 +604,12 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
                     output = discr_model(representation)
 
                     if return_probas:
-                        prediction = F.softmax(output, dim=1).to('cpu').numpy()
+                        prediction = F.softmax(output, dim=1)
                     else:
-                        prediction = output.to('cpu').numpy()
+                        prediction = output
                     prediction = prediction[:, DiscriminativeActiveLearning.LABEL_UNLABELED_POOL]
+                    prediction = prediction.float().to('cpu').numpy()
+
                     predictions = np.append(predictions,
                                             prediction,
                                             axis=0)
