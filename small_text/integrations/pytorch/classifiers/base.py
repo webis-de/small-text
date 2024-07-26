@@ -186,15 +186,15 @@ class PytorchClassifier(PytorchModelSelectionMixin, AMPMixin, Classifier):
             with torch.autocast(device_type=self.amp_args.device_type, dtype=torch.bfloat16,
                                 enabled=self.amp_args.use_amp):
                 if dropout_sampling <= 1:
-                    return self._predict_proba(dataset_iter, logits_transform)
+                    return self._predict_proba(len(dataset), dataset_iter, logits_transform)
                 else:
-                    return self._predict_proba_dropout_sampling(dataset_iter, logits_transform,
+                    return self._predict_proba_dropout_sampling(len(dataset), dataset_iter, logits_transform,
                                                                 dropout_samples=dropout_sampling)
 
-    def _predict_proba(self, dataset_iter, logits_transform):
+    def _predict_proba(self, dataset_size, dataset_iter, logits_transform):
         raise NotImplementedError('_predict_proba() needs to be implemented')
 
-    def _predict_proba_dropout_sampling(self, dataset_iter, logits_transform, dropout_samples=2):
+    def _predict_proba_dropout_sampling(self, dataset_size, dataset_iter, logits_transform, dropout_samples=2):
         raise NotImplementedError('_predict_proba_dropout_sampling() needs to be implemented')
 
     def _get_default_criterion(self, class_weights, use_sample_weights=False):

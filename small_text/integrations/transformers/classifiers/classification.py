@@ -666,27 +666,32 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         """
         return super().predict_proba(dataset, dropout_sampling=dropout_sampling)
 
-    def _predict_proba(self, dataset_iter, logits_transform):
-        predictions = np.empty((0, self.num_classes), dtype=float)
+    def _predict_proba(self, dataset_size, dataset_iter, logits_transform):
+        predictions = np.empty((dataset_size, self.num_classes), dtype=float)
+        offset = 0
+
         for text, masks, *_ in dataset_iter:
             text, masks = text.to(self.device), masks.to(self.device)
+            batch_size = text.shape[0]
             outputs = self.model(text, attention_mask=masks)
 
-            predictions = np.append(predictions,
-                                    logits_transform(outputs.logits).to('cpu').numpy(),
-                                    axis=0)
+            predictions[offset:offset+batch_size] = logits_transform(outputs.logits).to('cpu').numpy()
+
+            offset += batch_size
             del text, masks
         return predictions
 
-    def _predict_proba_dropout_sampling(self, dataset_iter, logits_transform, dropout_samples=2):
+    def _predict_proba_dropout_sampling(self, dataset_size, dataset_iter, logits_transform, dropout_samples=2):
 
-        predictions = np.empty((0, dropout_samples, self.num_classes), dtype=float)
+        predictions = np.empty((dataset_size, dropout_samples, self.num_classes), dtype=float)
+        offset = 0
 
         with enable_dropout(self.model):
             for text, masks, *_ in dataset_iter:
                 batch_size, vector_len = text.shape
                 full_size = batch_size * dropout_samples
                 text, masks = text.to(self.device), masks.to(self.device)
+
                 text, masks = text.repeat(1, dropout_samples).resize(full_size, vector_len), \
                     masks.repeat(1, dropout_samples).resize(full_size, vector_len)
 
@@ -696,9 +701,9 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                 prediction_for_batch = prediction_for_batch.unsqueeze(dim=1)\
                     .resize(batch_size, dropout_samples, self.num_classes)
 
-                predictions = np.append(predictions,
-                                        prediction_for_batch.to('cpu').numpy(),
-                                        axis=0)
+                predictions[offset:offset+batch_size] = prediction_for_batch.to('cpu').numpy()
+
+                offset += batch_size
                 del text, masks
 
         return predictions

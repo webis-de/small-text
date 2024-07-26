@@ -386,42 +386,50 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                             enabled=self.amp_args.use_amp):
             with inference_mode():
                 if dropout_sampling <= 1:
-                    return self._predict_proba(dataset)
+                    return self._predict_proba(len(dataset), dataset)
                 else:
-                    return self._predict_proba_dropout_sampling(dataset, dropout_samples=dropout_sampling)
+                    return self._predict_proba_dropout_sampling(len(dataset), dataset, dropout_samples=dropout_sampling)
 
-    def _predict_proba(self, dataset):
-        proba = np.empty((0, self.num_classes), dtype=float)
+    def _predict_proba(self, dataset_size, dataset):
+        proba = np.empty((dataset_size, self.num_classes), dtype=float)
+        offset = 0
 
-        num_batches = int(np.ceil(len(dataset) / self.mini_batch_size))
+        num_batches = int(np.ceil(dataset_size / self.mini_batch_size))
         for batch in np.array_split(dataset.x, num_batches, axis=0):
+            batch_size = len(batch)
+
             proba_tmp = np.zeros((batch.shape[0], self.num_classes), dtype=float)
             proba_tmp[:, self.model.model_head.classes_] = self.model.predict_proba(batch)
-            proba = np.append(proba, proba_tmp, axis=0)
+            proba[offset:offset+batch_size] = proba_tmp
+
+            offset += batch_size
 
         return proba
 
-    def _predict_proba_dropout_sampling(self, dataset, dropout_samples=2):
-        # this whole method be done much more efficiently but this solution works without modifying setfit's code
+    def _predict_proba_dropout_sampling(self, dataset_size, dataset, dropout_samples=2):
+        # this whole method could be done much more efficiently but this solution works without modifying setfit's code
 
         self.model.model_body.train()
         model_body_eval = self.model.model_body.eval
         self.model.model_body.eval = types.MethodType(lambda x: x, self.model.model_body)
 
-        proba = np.empty((0, dropout_samples, self.num_classes), dtype=float)
-        proba[:, :, :] = np.inf
+        proba = np.empty((dataset_size, dropout_samples, self.num_classes), dtype=float)
+        offset = 0
 
         with enable_dropout(self.model.model_body):
-            num_batches = int(np.ceil(len(dataset) / self.mini_batch_size))
+            num_batches = int(np.ceil(dataset_size / self.mini_batch_size))
             for batch in np.array_split(dataset.x, num_batches, axis=0):
-                samples = np.empty((dropout_samples, len(batch), self.num_classes), dtype=float)
+                batch_size = len(batch)
+                samples = np.empty((dropout_samples, batch_size, self.num_classes), dtype=float)
                 for i in range(dropout_samples):
                     proba_tmp = np.zeros((batch.shape[0], self.num_classes), dtype=float)
                     proba_tmp[:, self.model.model_head.classes_] = self.model.predict_proba(batch)
                     samples[i] = proba_tmp
 
                 samples = np.swapaxes(samples, 0, 1)
-                proba = np.append(proba, samples, axis=0)
+                proba[offset:offset+batch_size] = samples
+
+                offset += batch_size
 
         self.model.model_body.eval = model_body_eval
 
