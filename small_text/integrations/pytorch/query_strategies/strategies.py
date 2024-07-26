@@ -34,6 +34,7 @@ try:
 
     from small_text.integrations.pytorch.utils.misc import _assert_layer_exists
     from small_text.integrations.pytorch.utils.data import dataloader
+    from small_text.integrations.pytorch.utils.contextmanager import inference_mode
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
@@ -124,7 +125,7 @@ class ExpectedGradientLength(QueryStrategy):
         batch_len = x.size(0)
 
         output = clf.model(x)
-        with torch.no_grad():
+        with inference_mode():
             sm = F.softmax(output, dim=1)
 
         for j in range(self.num_classes):
@@ -220,7 +221,7 @@ class ExpectedGradientLengthMaxWord(ExpectedGradientLength):
         clf.model.zero_grad()
 
         output = clf.model(x)
-        with torch.no_grad():
+        with inference_mode():
             sm = F.softmax(output, dim=1)
 
         for j in range(self.num_classes):
@@ -555,7 +556,6 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
         clip_grad_norm = self.train_kwargs.get('clip_grad_norm', 1)
 
         optimizer = Adam(discr_model.parameters(), lr=base_lr, eps=1e-8, weight_decay=0)
-
         scaler = GradScaler(enabled=self.amp_args.use_amp)
 
         criterion = BCEWithLogitsLoss()
@@ -592,14 +592,17 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
 
         data = list(zip(representations, np.zeros_like(representations)))
 
-        predictions = np.empty((0, ), dtype=float)
+        predictions = np.empty((representations.shape[0], ), dtype=float)
+        offset = 0
 
-        with torch.no_grad():
+        with inference_mode():
             with torch.autocast(device_type=self.amp_args.device_type, dtype=torch.bfloat16,
                                 enabled=self.amp_args.use_amp):
                 dataset_iter = dataloader(data, batch_size=self.mini_batch_size, train=False,
                                           collate_fn=_discr_repr_learning_collate_fn)
                 for representation, _ in dataset_iter:
+                    batch_size = representation.shape[0]
+
                     representation = representation.to(self.device)
                     output = discr_model(representation)
 
@@ -610,9 +613,8 @@ class DiscriminativeRepresentationLearning(QueryStrategy):
                     prediction = prediction[:, DiscriminativeActiveLearning.LABEL_UNLABELED_POOL]
                     prediction = prediction.float().to('cpu').numpy()
 
-                    predictions = np.append(predictions,
-                                            prediction,
-                                            axis=0)
+                    predictions[offset:offset+batch_size] = prediction
+                    offset += batch_size
 
         return predictions
 
