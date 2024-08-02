@@ -4,9 +4,10 @@
 
 ### Fixed
 
-- Fixed an out of bounds error which occurred when `DiscriminativeActiveLearning` would query all remaining unlabeled data.
+- Fixed an out of bounds error that occurred when `DiscriminativeActiveLearning` would query all remaining unlabeled data.
 - Fixed typos/wording in PoolBasedActiveLearner Docstrings.
-- Pinned setfit version in notebook example. ([#64](https://github.com/webis-de/small-text/issues/64))
+- Pinned SetFit version in notebook example. ([#64](https://github.com/webis-de/small-text/issues/64))
+- Fixed an out of bounds error that could occur in `SetFitClassification` for both 32bit systems and Windows. ([#66](https://github.com/webis-de/small-text/issues/66))
 
 ### Changed
 

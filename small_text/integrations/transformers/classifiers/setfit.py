@@ -15,6 +15,7 @@ from small_text.utils.classification import (
 )
 from small_text.utils.context import build_pbar_context
 from small_text.utils.labels import csr_to_list
+from small_text.utils.numpy import int_dtype
 from small_text.integrations.transformers.classifiers.base import (
     ModelLoadingStrategy
 )
@@ -257,7 +258,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         return sub_train, sub_valid
 
     def _fit(self, sub_train, sub_valid, setfit_train_kwargs):
-        seed = np.random.randint(2**32-1)
+        seed = np.random.randint(np.iinfo(int_dtype()).max)
         trainer = SetFitTrainer(
             self.model,
             sub_train,
