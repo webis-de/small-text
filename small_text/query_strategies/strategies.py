@@ -123,7 +123,7 @@ class ConfidenceBasedQueryStrategy(QueryStrategy):
         """
         pass
 
-    def __str__(self):
+    def __str__(self):  # type: ignore
         return 'ConfidenceBasedQueryStrategy()'
 
 
@@ -143,13 +143,14 @@ class BreakingTies(ConfidenceBasedQueryStrategy):
     def get_confidence(self,
                        clf: Classifier,
                        dataset: Dataset,
-                       _indices_unlabeled: npt.NDArray[np.uint],
-                       _indices_labeled: npt.NDArray[np.uint],
-                       _y: Union[npt.NDArray[np.uint], csr_matrix]):
+                       indices_unlabeled: npt.NDArray[np.uint],
+                       indices_labeled: npt.NDArray[np.uint],
+                       y: Union[npt.NDArray[np.uint], csr_matrix]):
+        _unused = indices_unlabeled, indices_labeled, y
         proba = clf.predict_proba(dataset)
         return np.apply_along_axis(lambda x: breaking_ties(x), 1, proba)
 
-    def __str__(self):
+    def __str__(self):  # type: ignore
         return 'BreakingTies()'
 
 
@@ -163,13 +164,14 @@ class LeastConfidence(ConfidenceBasedQueryStrategy):
     def get_confidence(self,
                        clf: Classifier,
                        dataset: Dataset,
-                       _indices_unlabeled: npt.NDArray[np.uint],
-                       _indices_labeled: npt.NDArray[np.uint],
-                       _y: Union[npt.NDArray[np.uint], csr_matrix]):
+                       indices_unlabeled: npt.NDArray[np.uint],
+                       indices_labeled: npt.NDArray[np.uint],
+                       y: Union[npt.NDArray[np.uint], csr_matrix]):
+        _unused = indices_unlabeled, indices_labeled, y
         proba = clf.predict_proba(dataset)
         return np.amax(proba, axis=1)
 
-    def __str__(self):
+    def __str__(self):  # type: ignore
         return 'LeastConfidence()'
 
 
@@ -181,13 +183,14 @@ class PredictionEntropy(ConfidenceBasedQueryStrategy):
     def get_confidence(self,
                        clf: Classifier,
                        dataset: Dataset,
-                       _indices_unlabeled: npt.NDArray[np.uint],
-                       _indices_labeled: npt.NDArray[np.uint],
-                       _y: Union[npt.NDArray[np.uint], csr_matrix]):
+                       indices_unlabeled: npt.NDArray[np.uint],
+                       indices_labeled: npt.NDArray[np.uint],
+                       y: Union[npt.NDArray[np.uint], csr_matrix]):
+        _unused = indices_unlabeled, indices_labeled, y
         proba = clf.predict_proba(dataset)
         return np.apply_along_axis(lambda x: entropy(x), 1, proba)
 
-    def __str__(self):
+    def __str__(self):  # type: ignore
         return 'PredictionEntropy()'
 
 
@@ -447,7 +450,7 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
 
         return indices
 
-    def __str__(self):
+    def __str__(self):  # type: ignore
         return f'EmbeddingKMeans(normalize={self.normalize})'
 
 
@@ -540,7 +543,7 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
 
         return indices
 
-    def __str__(self):
+    def __str__(self):  # type: ignore
         return f'ContrastiveActiveLearning(k={self.k}, ' \
                f'embed_kwargs={str(self.embed_kwargs)}, ' \
                f'normalize={self.normalize})'
@@ -763,7 +766,7 @@ class SEALS(QueryStrategy):
     def initialize_index(embeddings: npt.NDArray[np.double],
                          indices_unlabeled: npt.NDArray[np.uint],
                          hnsw_kwargs: dict):
-        import hnswlib
+        import hnswlib  # type: ignore[import]
 
         space = hnsw_kwargs.get('space', 'l2')
         ef_construction = hnsw_kwargs.get('ef_construction', 200)
