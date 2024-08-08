@@ -1,14 +1,25 @@
+from __future__ import annotations
+
 import warnings
 import numpy as np
 
+
 from abc import ABCMeta, abstractmethod
 from copy import copy
+
+from typing import Generic, Union, Sized
+
 from scipy.sparse import csr_matrix
 from scipy.sparse import issparse
 
 from small_text.base import LABEL_UNLABELED
 from small_text.data.exceptions import UnsupportedOperationException
-
+from small_text.data._typing import (
+    DATA,
+    LABELS,
+    VIEW,
+    SKLEARN_DATA
+)
 from small_text.utils.data import list_length
 from small_text.utils.labels import get_flattened_unique_labels
 
@@ -52,13 +63,32 @@ def get_updated_target_labels(is_multi_label, y, target_labels):
     return target_labels
 
 
-class Dataset(metaclass=ABCMeta):
+def _get_flattened_labels(y, multi_label=False):
+    if multi_label:
+        return y.indices
+    else:
+        return y[np.argwhere(y > LABEL_UNLABELED)]
+
+
+def _infer_target_labels(x, y, multi_label=False):
+    if list_length(x) == 0:
+        return np.array([0])
+    else:
+        unique_labels = np.unique(_get_flattened_labels(y, multi_label=multi_label))
+        if unique_labels.shape[0] > 0:
+            max_label_id = unique_labels.max()
+            return np.arange(max_label_id+1)
+        else:
+            return np.array([0])
+
+
+class Dataset(Sized, Generic[VIEW, DATA, LABELS], metaclass=ABCMeta):
     """A dataset contains a set of instances in the form of features, include a respective
     labeling for every instance."""
 
     @property
     @abstractmethod
-    def x(self):
+    def x(self) -> DATA:
         """Returns the features.
 
         Returns
@@ -74,7 +104,7 @@ class Dataset(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def y(self):
+    def y(self) -> LABELS:
         """Returns the labels.
 
         Returns
@@ -98,7 +128,7 @@ class Dataset(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def is_multi_label(self):
+    def is_multi_label(self) -> bool:
         """Returns `True` if this is a multi-label dataset, otherwise `False`."""
         pass
 
@@ -119,7 +149,7 @@ class Dataset(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def clone(self):
+    def clone(self) -> Dataset:
         """Returns an identical copy of the dataset.
 
         Returns
@@ -129,17 +159,61 @@ class Dataset(metaclass=ABCMeta):
         """
         pass
 
+    @abstractmethod
+    def __getitem__(self, item) -> VIEW:
+        pass
 
-class DatasetView(metaclass=Dataset.__class__):
+
+class DatasetView(Dataset[VIEW, DATA, LABELS], metaclass=Dataset.__class__):
     """An immutable view on a Dataset or a subset thereof."""
 
     @property
     @abstractmethod
-    def dataset(self):
+    def dataset(self) -> Union[Dataset, DatasetView]:
         pass
 
+    @property
+    @abstractmethod
+    def x(self):
+        """Returns the features.
 
-class SklearnDatasetView(DatasetView):
+        Returns
+        -------
+        x : object
+            Feature representation.
+        """
+        return super().x
+
+    @x.setter
+    def x(self, x_new):
+        super().x = x_new
+
+    @property
+    @abstractmethod
+    def y(self):
+        """Returns the labels.
+
+        Returns
+        -------
+        y : numpy.ndarray or scipy.sparse.csr_matrix
+            The labels as either numpy array (single-label) or sparse matrix (multi-label).
+        """
+        return super().y
+
+    @y.setter
+    def y(self, y_new):
+        """Assigns new labels to the existing instances.
+
+        Note
+        ----
+        This can alter `self.target_labels` but the set of target labels only grows, it is never
+        automatically reduced. This means, if labels in `y_new` occur, which are not in
+        `self.target_labels`, they will be added during this operation.
+        """
+        super().y = y_new
+
+
+class SklearnDatasetView(DatasetView[VIEW, SKLEARN_DATA, SKLEARN_DATA]):
     """An immutable view on a SklearnDataset or a subset thereof."""
 
     def __init__(self, dataset, selection):
@@ -157,7 +231,7 @@ class SklearnDatasetView(DatasetView):
         self.selection = selection
 
     @property
-    def dataset(self):
+    def dataset(self) -> Union[SklearnDataset, SklearnDatasetView]:
         return self._dataset
 
     @property
@@ -165,7 +239,7 @@ class SklearnDatasetView(DatasetView):
         return self.dataset.x[select(self.dataset, self.selection)]
 
     @x.setter
-    def x(self, x):
+    def x(self, x_new):
         raise UnsupportedOperationException('Cannot set x on a DatasetView')
 
     @property
@@ -177,11 +251,11 @@ class SklearnDatasetView(DatasetView):
             return np.atleast_1d(y_result)
 
     @y.setter
-    def y(self, y):
+    def y(self, y_new):
         raise UnsupportedOperationException('Cannot set y on a DatasetView')
 
     @property
-    def is_multi_label(self):
+    def is_multi_label(self) -> bool:
         return self.dataset.is_multi_label
 
     @property
@@ -192,7 +266,7 @@ class SklearnDatasetView(DatasetView):
     def target_labels(self, target_labels):
         raise UnsupportedOperationException('Cannot set target_labels on a DatasetView')
 
-    def clone(self):
+    def clone(self) -> SklearnDataset:
         if isinstance(self.x, csr_matrix):
             x = self.x.copy()
         else:
@@ -226,7 +300,7 @@ class SklearnDatasetView(DatasetView):
 class TextDatasetView(DatasetView):
     """An immutable view on a TextDataset or a subset thereof."""
 
-    def __init__(self, dataset, selection):
+    def __init__(self, dataset: Dataset, selection: Union[int, slice, np.s_.__class__]):
         """
         Parameters
         ----------
@@ -249,19 +323,18 @@ class TextDatasetView(DatasetView):
         if isinstance(self.selection, (int, np.integer)):
             return [self.dataset.x[self.selection]]
 
-        is_slice = isinstance(self.selection, slice) \
-            or isinstance(self.selection, np.lib.index_tricks.IndexExpression)
-        is_list = isinstance(self.selection, list)
+        is_slice_or_list = isinstance(self.selection, (np.s_.__class__, slice, list))
 
-        if is_slice or is_list:
-            selection = np.arange(len(self.dataset))[self.selection]
+        if is_slice_or_list:
+            dataset_len = len(self.dataset)
+            selection = np.arange(dataset_len)[self.selection]
         else:
             selection = self.selection
 
         return [self.dataset.x[i] for i in selection]
 
     @x.setter
-    def x(self, x):
+    def x(self, x_new):
         raise UnsupportedOperationException('Cannot set x on a DatasetView')
 
     @property
@@ -273,7 +346,7 @@ class TextDatasetView(DatasetView):
             return np.atleast_1d(y_result)
 
     @y.setter
-    def y(self, y):
+    def y(self, y_new):
         raise UnsupportedOperationException('Cannot set y on a DatasetView')
 
     @property
@@ -332,27 +405,7 @@ def select(dataset, selection):
     return selection
 
 
-class _InferLabelsMixin(object):
-
-    def _infer_target_labels(self):
-        if self.__len__() == 0:
-            self.target_labels = np.array([0])
-        else:
-            unique_labels = np.unique(self._get_flattened_labels())
-            if unique_labels.shape[0] > 0:
-                max_label_id = unique_labels.max()
-                self.target_labels = np.arange(max_label_id+1)
-            else:
-                self.target_labels = np.array([0])
-
-    def _get_flattened_labels(self):
-        if self.multi_label:
-            return self.y.indices
-        else:
-            return self.y[np.argwhere(self.y > LABEL_UNLABELED)]
-
-
-class SklearnDataset(_InferLabelsMixin, Dataset):
+class SklearnDataset(Dataset[VIEW, SKLEARN_DATA, SKLEARN_DATA]):
     """A dataset representations which is usable in combination with scikit-learn classifiers.
     """
 
@@ -379,7 +432,7 @@ class SklearnDataset(_InferLabelsMixin, Dataset):
             self.target_labels = target_labels
         else:
             self.track_target_labels = True
-            self._infer_target_labels()
+            self.target_labels = _infer_target_labels(self._x, self._y, multi_label=self.multi_label)
 
     @property
     def x(self):
@@ -393,23 +446,23 @@ class SklearnDataset(_InferLabelsMixin, Dataset):
         return self._x
 
     @x.setter
-    def x(self, x):
-        check_dataset_and_labels(x, self._y)
-        self._x = x
+    def x(self, x_new):
+        check_dataset_and_labels(x_new, self._y)
+        self._x = x_new
 
     @property
     def y(self):
         return self._y
 
     @y.setter
-    def y(self, y):
-        check_dataset_and_labels(self.x, y)
-        self._y = y
+    def y(self, y_new):
+        check_dataset_and_labels(self.x, y_new)
+        self._y = y_new
 
         if self.track_target_labels:
-            self.target_labels = get_updated_target_labels(self.is_multi_label, y, self.target_labels)
+            self.target_labels = get_updated_target_labels(self.is_multi_label, y_new, self.target_labels)
         else:
-            max_label_id = np.max(y)
+            max_label_id = np.max(y_new)
             max_target_labels_id = self.target_labels.max()
             if max_label_id > max_target_labels_id:
                 raise ValueError(f'Error while assigning new labels to dataset: '
@@ -498,14 +551,14 @@ class SklearnDataset(_InferLabelsMixin, Dataset):
 
         return SklearnDataset(x, y, target_labels=target_labels)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> SklearnDatasetView:
         return SklearnDatasetView(self, item)
 
     def __len__(self):
         return self._x.shape[0]
 
 
-class TextDataset(_InferLabelsMixin, Dataset):
+class TextDataset(Dataset):
     """A dataset representation consisting of raw text data.
     """
 
@@ -535,7 +588,7 @@ class TextDataset(_InferLabelsMixin, Dataset):
             self.target_labels = target_labels
         else:
             self.track_target_labels = True
-            self._infer_target_labels()
+            self.target_labels = _infer_target_labels(self._x, self._y, multi_label=self.multi_label)
 
     @property
     def x(self):
@@ -549,23 +602,23 @@ class TextDataset(_InferLabelsMixin, Dataset):
         return self._x
 
     @x.setter
-    def x(self, x):
-        check_dataset_and_labels(x, self._y)
-        self._x = x
+    def x(self, x_new):
+        check_dataset_and_labels(x_new, self._y)
+        self._x = x_new
 
     @property
     def y(self):
         return self._y
 
     @y.setter
-    def y(self, y):
-        check_dataset_and_labels(self.x, y)
-        self._y = y
+    def y(self, y_new):
+        check_dataset_and_labels(self.x, y_new)
+        self._y = y_new
 
         if self.track_target_labels:
-            self.target_labels = get_updated_target_labels(self.is_multi_label, y, self.target_labels)
+            self.target_labels = get_updated_target_labels(self.is_multi_label, y_new, self.target_labels)
         else:
-            max_label_id = np.max(y)
+            max_label_id = np.max(y_new)
             max_target_labels_id = self.target_labels.max()
             if max_label_id > max_target_labels_id:
                 raise ValueError(f'Error while assigning new labels to dataset: '
@@ -596,7 +649,7 @@ class TextDataset(_InferLabelsMixin, Dataset):
                              'still exists in the data. Create a new dataset instead.')
         self._target_labels = target_labels
 
-    def clone(self):
+    def clone(self) -> TextDataset:
         x = copy(self._x)
 
         if isinstance(self._y, csr_matrix):

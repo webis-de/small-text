@@ -16,6 +16,29 @@ except ModuleNotFoundError:
     raise PytorchNotFoundError('Could not import pytorch')
 
 
+def _get_flattened_labels(data, multi_label=False):
+    label_list = [d[TransformersDataset.INDEX_LABEL] if d[TransformersDataset.INDEX_LABEL] is not None else []
+                  for d in data]
+    if multi_label:
+        label_list = [label for lst in label_list for label in lst]
+
+    label_list = [label for label in label_list if label > LABEL_UNLABELED]
+
+    return label_list
+
+
+def _infer_target_labels(data, multi_label=False):
+    if len(data) == 0:
+        return np.array([0])
+    else:
+        unique_labels = np.unique(_get_flattened_labels(data, multi_label=multi_label))
+        if unique_labels.shape[0] > 0:
+            max_label_id = unique_labels.max()
+            return np.arange(max_label_id + 1)
+        else:
+            return np.array([0])
+
+
 class TransformersDatasetView(PytorchDatasetView):
 
     def clone(self):
@@ -70,28 +93,7 @@ class TransformersDataset(PytorchDataset):
             self._target_labels = np.array(target_labels)
         else:
             self.track_target_labels = True
-            self._infer_target_labels()
-
-    def _infer_target_labels(self):
-        if len(self._data) == 0:
-            self.target_labels = np.array([0])
-        else:
-            unique_labels = np.unique(self._get_flattened_labels())
-            if unique_labels.shape[0] > 0:
-                max_label_id = unique_labels.max()
-                self.target_labels = np.arange(max_label_id + 1)
-            else:
-                self.target_labels = np.array([0])
-
-    def _get_flattened_labels(self):
-        label_list = [d[self.INDEX_LABEL] if d[self.INDEX_LABEL] is not None else []
-                      for d in self._data]
-        if self.multi_label:
-            label_list = [label for lst in label_list for label in lst]
-
-        label_list = [label for label in label_list if label > LABEL_UNLABELED]
-
-        return label_list
+            self.target_labels = _infer_target_labels(self._data, multi_label=self.multi_label)
 
     @property
     def x(self):
