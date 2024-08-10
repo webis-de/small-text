@@ -487,7 +487,8 @@ class SklearnDataset(Dataset[VIEW, SKLEARN_DATA, SKLEARN_DATA]):
 
     @target_labels.setter
     def target_labels(self, target_labels):
-        encountered_labels = get_flattened_unique_labels(self)
+        labels = _get_flattened_labels(self._y, multi_label=self.multi_label)
+        encountered_labels = np.setdiff1d(labels, np.array([LABEL_UNLABELED]))
         if np.setdiff1d(encountered_labels, target_labels).shape[0] > 0:
             raise ValueError('Cannot remove existing labels from target_labels as long as they '
                              'still exists in the data. Create a new dataset instead.')
@@ -643,7 +644,8 @@ class TextDataset(Dataset):
 
     @target_labels.setter
     def target_labels(self, target_labels):
-        encountered_labels = get_flattened_unique_labels(self)
+        labels = _get_flattened_labels(self._y, multi_label=self.multi_label)
+        encountered_labels = np.setdiff1d(labels, np.array([LABEL_UNLABELED]))
         if np.setdiff1d(encountered_labels, target_labels).shape[0] > 0:
             raise ValueError('Cannot remove existing labels from target_labels as long as they '
                              'still exists in the data. Create a new dataset instead.')

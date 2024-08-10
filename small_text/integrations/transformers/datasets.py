@@ -180,7 +180,7 @@ class TransformersDataset(PytorchDataset):
 
     @target_labels.setter
     def target_labels(self, target_labels):
-        encountered_labels = np.unique(self._get_flattened_labels())
+        encountered_labels = np.unique(_get_flattened_labels(self.data, multi_label=self.multi_label))
         if np.setdiff1d(encountered_labels, target_labels).shape[0] > 0:
             raise ValueError('Cannot remove existing labels from target_labels as long as they '
                              'still exists in the data. Create a new dataset instead.')
