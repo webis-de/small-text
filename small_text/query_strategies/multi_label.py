@@ -7,7 +7,7 @@ from scipy.sparse import csr_matrix
 
 from small_text.classifiers import Classifier
 from small_text.data.datasets import Dataset
-from small_text.query_strategies.base import constraints
+from small_text.query_strategies.base import ScoringMixin, constraints
 from small_text.query_strategies.strategies import breaking_ties, QueryStrategy
 from small_text.utils.context import build_pbar_context
 
@@ -57,7 +57,7 @@ def _label_cardinality_inconsistency(y_pred_proba_unlabeled: npt.NDArray[np.doub
 
 
 @constraints(classification_type='multi-label')
-class LabelCardinalityInconsistency(QueryStrategy):
+class LabelCardinalityInconsistency(ScoringMixin, QueryStrategy):
     """Queries the instances which exhibit the maximum label cardinality inconsistency [LG13]_.
 
     .. seealso::
@@ -76,6 +76,27 @@ class LabelCardinalityInconsistency(QueryStrategy):
             Prediction threshold at which a confidence estimate is counted as a label.
         """
         self.prediction_threshold = _validate_bounds('Prediction threshold', prediction_threshold)
+        self.scores_: Union[npt.NDArray[np.double], None] = None
+
+    @property
+    def last_scores(self):
+        return self.scores_
+
+    def score(self,
+              clf: Classifier,
+              dataset: Dataset,
+              indices_unlabeled: npt.NDArray[np.uint],
+              indices_labeled: npt.NDArray[np.uint],
+              y: Union[npt.NDArray[np.uint], csr_matrix]) -> npt.NDArray[np.double]:
+        _unused = indices_labeled
+
+        y_pred_proba_unlabeled = clf.predict_proba(dataset[indices_unlabeled])
+        scores = _label_cardinality_inconsistency(y_pred_proba_unlabeled,
+                                                  y,
+                                                  prediction_threshold=self.prediction_threshold)
+        self.scores_ = scores
+
+        return scores
 
     def query(self,
               clf: Classifier,
@@ -86,9 +107,7 @@ class LabelCardinalityInconsistency(QueryStrategy):
               n: int = 10) -> np.ndarray:
         self._validate_query_input(indices_unlabeled, n)
 
-        # TODO: make prediction_threshold a classifier parameter?
-        y_pred_proba_unlabeled = clf.predict_proba(dataset[indices_unlabeled])
-        scores = _label_cardinality_inconsistency(y_pred_proba_unlabeled, y)
+        scores = self.score(clf, dataset, indices_unlabeled, indices_labeled, y)
 
         if len(indices_unlabeled) == n:
             return np.array(indices_unlabeled)
@@ -140,7 +159,7 @@ def _uncertainty_weighted_label_cardinality_inconsistency(y_pred_proba_unlabeled
 
 
 @constraints(classification_type='multi-label')
-class AdaptiveActiveLearning(QueryStrategy):
+class AdaptiveActiveLearning(ScoringMixin, QueryStrategy):
     """Queries the instances which exhibit the maximum inverse margin uncertainty-weighted
     label cardinality inconsistency [LG13]_.
 
@@ -169,6 +188,29 @@ class AdaptiveActiveLearning(QueryStrategy):
         self.uncertainty_weight = _validate_bounds('Uncertainty weight', uncertainty_weight)
         self.prediction_threshold = prediction_threshold
 
+        self.scores_: Union[npt.NDArray[np.double], None] = None
+
+    @property
+    def last_scores(self):
+        return self.scores_
+
+    def score(self,
+              clf: Classifier,
+              dataset: Dataset,
+              indices_unlabeled: npt.NDArray[np.uint],
+              indices_labeled: npt.NDArray[np.uint],
+              y: Union[npt.NDArray[np.uint], csr_matrix]) -> npt.NDArray[np.double]:
+        _unused = indices_labeled
+
+        y_pred_proba_unlabeled = clf.predict_proba(dataset[indices_unlabeled])
+        scores = _uncertainty_weighted_label_cardinality_inconsistency(y_pred_proba_unlabeled,
+                                                                       y,
+                                                                       uncertainty_weight=self.uncertainty_weight)
+
+        self.scores_ = scores
+
+        return scores
+
     def query(self,
               clf: Classifier,
               dataset: Dataset,
@@ -178,10 +220,7 @@ class AdaptiveActiveLearning(QueryStrategy):
               n: int = 10) -> np.ndarray:
         self._validate_query_input(indices_unlabeled, n)
 
-        y_pred_proba_unlabeled = clf.predict_proba(dataset[indices_unlabeled])
-        scores = _uncertainty_weighted_label_cardinality_inconsistency(y_pred_proba_unlabeled,
-                                                                       y,
-                                                                       uncertainty_weight=self.uncertainty_weight)
+        scores = self.score(clf, dataset, indices_unlabeled, indices_labeled, y)
 
         if len(indices_unlabeled) == n:
             return np.array(indices_unlabeled)
@@ -195,7 +234,7 @@ class AdaptiveActiveLearning(QueryStrategy):
 
 
 @constraints(classification_type='multi-label')
-class CategoryVectorInconsistencyAndRanking(QueryStrategy):
+class CategoryVectorInconsistencyAndRanking(ScoringMixin, QueryStrategy):
     """Uncertainty Sampling based on Category Vector Inconsistency and Ranking of Scores [RCV18]_
     selects instances based on the inconsistency of predicted labels and per-class label rankings.
     """
@@ -220,6 +259,27 @@ class CategoryVectorInconsistencyAndRanking(QueryStrategy):
         self.epsilon = epsilon
         self.pbar = pbar
 
+        self.scores_: Union[npt.NDArray[np.double], None] = None
+
+    @property
+    def last_scores(self):
+        return self.scores_
+
+    def score(self,
+              clf: Classifier,
+              dataset: Dataset,
+              indices_unlabeled: npt.NDArray[np.uint],
+              indices_labeled: npt.NDArray[np.uint],
+              y: Union[npt.NDArray[np.uint], csr_matrix]) -> npt.NDArray[np.double]:
+        _unused = indices_labeled
+
+        y_proba = clf.predict_proba(dataset[indices_unlabeled])
+        scores = self._compute_scores(indices_unlabeled, y, y_proba)
+
+        self.scores_ = scores
+
+        return scores
+
     def query(self,
               clf: Classifier,
               dataset: Dataset,
@@ -229,8 +289,7 @@ class CategoryVectorInconsistencyAndRanking(QueryStrategy):
               n: int = 10) -> np.ndarray:
         self._validate_query_input(indices_unlabeled, n)
 
-        y_proba = clf.predict_proba(dataset[indices_unlabeled])
-        scores = self._compute_scores(indices_unlabeled, y, y_proba)
+        scores = self.score(clf, dataset, indices_unlabeled, indices_labeled, y)
 
         if len(indices_unlabeled) == n:
             return np.array(indices_unlabeled)

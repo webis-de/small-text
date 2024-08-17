@@ -39,11 +39,3 @@ def assert_list_of_tensors_equal(unittest_obj, input, other):
 
 def assert_list_of_tensors_not_equal(unittest_obj, input, other):
     assert_raises(AssertionError, assert_list_of_tensors_equal, unittest_obj, input, other)
-
-
-class AnyNumpyArrayOfShape(object):
-    def __init__(self, shape):
-        self.shape = shape
-
-    def __eq__(self, other):
-        return self.shape == other.shape

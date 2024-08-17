@@ -12,7 +12,7 @@ from small_text import (
 from small_text.data.sampling import _get_class_histogram
 from small_text.query_strategies.class_balancing import ClassBalancer, _get_rebalancing_distribution
 
-from tests.utils.testing import AnyNumpyArrayOfShape
+from tests.utils.testing_numpy import AnyNumpyArrayOfShape
 
 
 class RebalanceDistributionTest(unittest.TestCase):

@@ -11,7 +11,7 @@ from small_text.base import check_optional_dependency
 from small_text.classifiers import Classifier
 from small_text.data import Dataset
 from small_text.utils.context import build_pbar_context
-from small_text.query_strategies.base import QueryStrategy
+from small_text.query_strategies.base import QueryStrategy, ScoringMixin
 
 
 class RandomSampling(QueryStrategy):
@@ -31,7 +31,7 @@ class RandomSampling(QueryStrategy):
         return 'RandomSampling()'
 
 
-class ConfidenceBasedQueryStrategy(QueryStrategy):
+class ConfidenceBasedQueryStrategy(ScoringMixin, QueryStrategy):
     """A base class for confidence-based querying.
 
     To use this class, create a subclass and implement `get_confidence()`.
@@ -58,34 +58,16 @@ class ConfidenceBasedQueryStrategy(QueryStrategy):
         indices_partitioned = np.argpartition(confidence[indices_unlabeled], n)[:n]
         return np.array([indices_unlabeled[i] for i in indices_partitioned])
 
+    @property
+    def last_scores(self):
+        return self.scores_
+
     def score(self,
               clf: Classifier,
               dataset: Dataset,
               indices_unlabeled: npt.NDArray[np.uint],
               indices_labeled: npt.NDArray[np.uint],
               y: Union[npt.NDArray[np.uint], csr_matrix]) -> npt.NDArray[np.double]:
-        """Assigns a confidence score to each instance.
-
-        Parameters
-        ----------
-        clf : small_text.classifiers.Classifier
-            A text classifier.
-        dataset : small_text.data.datasets.Dataset
-            A text dataset.
-        indices_unlabeled : np.ndarray[uint]
-            Indices (relative to `dataset`) for the unlabeled data.
-        indices_labeled : np.ndarray[uint]
-            Indices (relative to `dataset`) for the labeled data.
-        y : np.ndarray[uint] or csr_matrix
-            List of labels where each label maps by index position to `indices_labeled`.
-
-        Returns
-        -------
-        confidence : np.ndarray[float]
-            Array of confidence scores in the shape (n_samples, n_classes).
-            If `self.lower_is_better` the confiden values are flipped to negative so that
-            subsequent methods do not need to differentiate maximization/minimization.
-        """
 
         confidence = self.get_confidence(clf, dataset, indices_unlabeled, indices_labeled, y)
         self.scores_ = confidence
@@ -194,7 +176,7 @@ class PredictionEntropy(ConfidenceBasedQueryStrategy):
         return 'PredictionEntropy()'
 
 
-class SubsamplingQueryStrategy(QueryStrategy):
+class SubsamplingQueryStrategy(ScoringMixin, QueryStrategy):
     """A decorator that first subsamples randomly from the unlabeled pool and then applies
     the `base_query_strategy` on the sampled subset.
     """
@@ -240,9 +222,10 @@ class SubsamplingQueryStrategy(QueryStrategy):
                                               replace=False)
 
         subset = dataset[np.concatenate([subsampled_indices, indices_labeled])]
-        subset_indices_unlabeled = np.arange(self.subsample_size)
+        subset_indices_unlabeled = np.arange(self.subsample_size, dtype=np.uint)
         subset_indices_labeled = np.arange(self.subsample_size,
-                                           self.subsample_size + indices_labeled.shape[0])
+                                           self.subsample_size + indices_labeled.shape[0],
+                                           dtype=np.uint)
 
         indices = self.base_query_strategy.query(clf,
                                                  subset,
@@ -256,10 +239,20 @@ class SubsamplingQueryStrategy(QueryStrategy):
         return np.array([subsampled_indices[i] for i in indices])
 
     @property
-    def scores_(self):
-        if hasattr(self.base_query_strategy, 'scores_'):
-            return self.base_query_strategy.scores_[:self.subsample_size]
+    def last_scores(self):
+        if isinstance(self.base_query_strategy, ScoringMixin):
+            return self.base_query_strategy.last_scores
         return None
+
+    def score(self,
+              clf: Classifier,
+              dataset: Dataset,
+              indices_unlabeled: npt.NDArray[np.uint],
+              indices_labeled: npt.NDArray[np.uint],
+              y: Union[npt.NDArray[np.uint], csr_matrix]) -> npt.NDArray[np.double]:
+
+        _unused = clf, dataset, indices_unlabeled, indices_labeled, y
+        return NotImplementedError
 
     def __str__(self):
         return f'SubsamplingQueryStrategy(base_query_strategy={self.base_query_strategy}, ' \
@@ -673,7 +666,7 @@ class DiscriminativeActiveLearning(QueryStrategy):
                f'num_iterations={self.num_iterations}, unlabeled_factor={self.unlabeled_factor})'
 
 
-class SEALS(QueryStrategy):
+class SEALS(ScoringMixin, QueryStrategy):
     """Similarity Search for Efficient Active Learning and Search of Rare Concepts (SEALS)
     improves the computational efficiency of active learning by presenting a reduced subset
     of the unlabeled pool to a base strategy [CCK+22]_.
@@ -781,6 +774,22 @@ class SEALS(QueryStrategy):
         index.set_ef(ef)
 
         return index
+
+    @property
+    def last_scores(self):
+        if isinstance(self.base_query_strategy, ScoringMixin):
+            return self.base_query_strategy.last_scores
+        return None
+
+    def score(self,
+              clf: Classifier,
+              dataset: Dataset,
+              indices_unlabeled: npt.NDArray[np.uint],
+              indices_labeled: npt.NDArray[np.uint],
+              y: Union[npt.NDArray[np.uint], csr_matrix]) -> npt.NDArray[np.double]:
+
+        _unused = clf, dataset, indices_unlabeled, indices_labeled, y
+        return NotImplementedError
 
     def __str__(self):
         return f'SEALS(base_query_strategy={str(self.base_query_strategy)}, ' \

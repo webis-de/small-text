@@ -9,8 +9,9 @@ from unittest.mock import patch, Mock
 
 from small_text.classifiers import ConfidenceEnhancedLinearSVC, SklearnClassifier
 from small_text.classifiers.factories import SklearnClassifierFactory
-from small_text.data.datasets import SklearnDataset, DatasetView
+from small_text.data.datasets import SklearnDataset
 from small_text.exceptions import MissingOptionalDependencyError
+from small_text.query_strategies.base import ScoringMixin
 from small_text.query_strategies import EmptyPoolException, PoolExhaustedException
 from small_text.query_strategies import (
     BreakingTies,
@@ -30,22 +31,11 @@ from tests.utils.classification import (
     SklearnClassifierWithRandomEmbeddingsAndProba
 )
 from tests.utils.datasets import random_sklearn_dataset
+from tests.utils.testing_numpy import EqualNumpyArray
+from tests.utils.testing_smalltext import AnyDatasetView
 
 
 DEFAULT_QUERY_SIZE = 10
-
-
-class AnyDatasetView(object):
-    def __eq__(self, other):
-        return isinstance(other, DatasetView)
-
-
-class EqualNumpyArray(object):
-    def __init__(self, arr):
-        self.arr = arr
-
-    def __eq__(self, other):
-        return np.all(self.arr == other)
 
 
 def query_random_data(strategy, clf=None, num_samples=100, n=10, use_embeddings=False, embedding_dim=100):
@@ -93,9 +83,18 @@ class SamplingStrategiesTests(object):
 
     def test_default_query(self):
         """Tests the query with default args."""
-        indices = self._query(self._get_query_strategy(),
+
+        query_strategy = self._get_query_strategy()
+        if isinstance(query_strategy, ScoringMixin):
+            self.assertTrue(hasattr(query_strategy, 'last_scores'))
+            self.assertIsNone(query_strategy.last_scores)
+
+        indices = self._query(query_strategy,
                               num_samples=self.DEFAULT_NUM_SAMPLES)
         self.assertEqual(DEFAULT_QUERY_SIZE, len(indices))
+
+        if isinstance(query_strategy, ScoringMixin):
+            self.assertIsNotNone(query_strategy.last_scores)
 
     def test_query_takes_remaining_pool(self):
         indices = self._query(self._get_query_strategy(),
@@ -375,10 +374,12 @@ class SubSamplingTest(unittest.TestCase, SamplingStrategiesTests):
         return ConfidenceEnhancedLinearSVC()
 
     def _get_query_strategy(self):
-        return SubsamplingQueryStrategy(RandomSampling(), 20)
+        return SubsamplingQueryStrategy(PredictionEntropy(), 20)
 
     def test_subsampling_query_default(self):
-        indices = query_random_data(self._get_query_strategy())
+        clf_mock = Mock(SklearnClassifierFactory(ConfidenceEnhancedLinearSVC(), 2).new())
+        clf_mock.predict_proba = Mock(return_value=np.random.randn(30, 2))
+        indices = query_random_data(self._get_query_strategy(), clf=clf_mock)
         self.assertEqual(10, len(indices))
 
     def test_subsampling_empty_pool(self, num_samples=20, n=10):
@@ -393,18 +394,6 @@ class SubSamplingTest(unittest.TestCase, SamplingStrategiesTests):
 
         with self.assertRaises(EmptyPoolException):
             strategy.query(None, dataset, indices_unlabeled, indices_labeled, y, n=n)
-
-    def test_scores_property(self):
-        num_samples = 20
-        scores = np.random.rand(num_samples, 1)
-
-        strategy = self._get_query_strategy()
-
-        strategy.base_query_strategy.scores_ = scores
-        assert_array_equal(scores, strategy.scores_)
-
-        strategy = self._get_query_strategy()
-        self.assertIsNone(strategy.scores_)
 
     def test_subsampling_str(self):
         strategy = SubsamplingQueryStrategy(RandomSampling(), subsample_size=20)

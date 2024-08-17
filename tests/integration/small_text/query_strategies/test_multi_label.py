@@ -105,8 +105,7 @@ class AdaptiveActiveLearningTest(unittest.TestCase, SamplingStrategiesTests):
         return True
 
 
-class CategoryVectorInconsistencyAndRankingWithSingleLabelDataTest(unittest.TestCase,
-                                                                   SamplingStrategiesTests):
+class CategoryVectorInconsistencyAndRankingWithSingleLabelDataTest(unittest.TestCase, SamplingStrategiesTests):
 
     def _get_clf(self):
         return SklearnClassifierWithRandomEmbeddings(ConfidenceEnhancedLinearSVC(), 2)

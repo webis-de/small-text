@@ -52,11 +52,12 @@ class ImportTest(unittest.TestCase):
     def test_import_query_strategies_module(self):
         from small_text import constraints
         from small_text import ClassificationType
+        from small_text import QueryStrategy
+        from small_text import ScoringMixin
         from small_text import ClassBalancer
         from small_text import EmptyPoolException
         from small_text import QueryException
         from small_text import PoolExhaustedException
-        from small_text import QueryStrategy
         from small_text import RandomSampling
         from small_text import ConfidenceBasedQueryStrategy
         from small_text import BreakingTies

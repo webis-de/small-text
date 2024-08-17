@@ -1,4 +1,9 @@
-from small_text.query_strategies.base import constraints, ClassificationType
+from small_text.query_strategies.base import (
+    constraints,
+    ClassificationType,
+    QueryStrategy,
+    ScoringMixin
+)
 from small_text.query_strategies.class_balancing import ClassBalancer
 from small_text.query_strategies.coresets import (greedy_coreset,
                                                   GreedyCoreset,
@@ -14,7 +19,6 @@ from small_text.query_strategies.multi_label import (
     AdaptiveActiveLearning
 )
 from small_text.query_strategies.strategies import (
-    QueryStrategy,
     RandomSampling,
     ConfidenceBasedQueryStrategy,
     BreakingTies,
@@ -33,11 +37,12 @@ from small_text.query_strategies.subsampling import AnchorSubsampling
 __all__ = [
     'constraints',
     'ClassificationType',
+    'QueryStrategy',
+    'ScoringMixin',
     'ClassBalancer',
     'EmptyPoolException',
     'QueryException',
     'PoolExhaustedException',
-    'QueryStrategy',
     'RandomSampling',
     'ConfidenceBasedQueryStrategy',
     'BreakingTies',

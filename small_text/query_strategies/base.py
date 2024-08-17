@@ -65,6 +65,51 @@ class QueryStrategy(ABC):
                                          .format(len(indices_unlabeled), n))
 
 
+class ScoringMixin(ABC):
+    """Provides scoring methods to a query strategy. In this context, "scoring" means that each instance
+    in the dataset can be scored with numeric value."""
+
+    @property
+    @abstractmethod
+    def last_scores(self) -> Union[npt.NDArray[np.double], None]:
+        """Returns the scores that have been computed during the last `score()` call.
+
+        Returns
+        -------
+        score : np.ndarray[float] or None
+            Array of scores in the shape (n_samples, n_classes).
+        """
+        pass
+
+    @abstractmethod
+    def score(self,
+              clf: Classifier,
+              dataset: Dataset,
+              indices_unlabeled: npt.NDArray[np.uint],
+              indices_labeled: npt.NDArray[np.uint],
+              y: Union[npt.NDArray[np.uint], csr_matrix]) -> npt.NDArray[np.double]:
+        """Assigns a numeric score to each instance in the given dataset.
+
+        Parameters
+        ----------
+        clf : small_text.classifiers.Classifier
+            A text classifier.
+        dataset : small_text.data.datasets.Dataset
+            A text dataset.
+        indices_unlabeled : np.ndarray[uint]
+            Indices (relative to `dataset`) for the unlabeled data.
+        indices_labeled : np.ndarray[uint]
+            Indices (relative to `dataset`) for the labeled data.
+        y : np.ndarray[uint] or csr_matrix
+            List of labels where each label maps by index position to `indices_labeled`.
+
+        Returns
+        -------
+        scores : np.ndarray[double]
+            Array of scores in the shape (N,) where N is the size of `dataset` or a subset thereof.
+        """
+
+
 class ClassificationType(Enum):
     """Represents the classification type which can be either single-label or multi-label."""
     SINGLE_LABEL = 'single-label'
