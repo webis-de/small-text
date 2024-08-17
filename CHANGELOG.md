@@ -8,6 +8,7 @@
 - Fixed typos/wording in PoolBasedActiveLearner Docstrings.
 - Pinned SetFit version in notebook example. ([#64](https://github.com/webis-de/small-text/issues/64))
 - Fixed an out of bounds error that could occur in `SetFitClassification` for both 32bit systems and Windows. ([#66](https://github.com/webis-de/small-text/issues/66))
+- Fixed errors notebook examples that occurred with more recent seaborn / matplotlib versions.
 
 ### Changed
 
