@@ -2,6 +2,18 @@
 ActiveLearner API
 =================
 
+Everything in small-text revolves around the active learner.
+
+.. contents:: Overview
+   :depth: 2
+   :local:
+   :backlinks: none
+
+----
+
+Pool-Based Active Learner
+=========================
+
 .. py:currentmodule:: small_text.active_learner
 
 .. autoclass:: PoolBasedActiveLearner
