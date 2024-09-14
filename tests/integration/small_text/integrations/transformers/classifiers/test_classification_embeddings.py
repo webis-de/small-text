@@ -29,7 +29,7 @@ class _EmbeddingTest(object):
         clf_factory = TransformerBasedClassificationFactory(
             'sshleifer/tiny-distilroberta-base',
             self.num_classes,
-            kwargs=classifier_kwargs)
+            classification_kwargs=classifier_kwargs)
 
         train_set = twenty_news_transformers(20, num_labels=self.num_classes)
 
@@ -46,7 +46,7 @@ class _EmbeddingTest(object):
         clf_factory = TransformerBasedClassificationFactory(
             TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
             self.num_classes,
-            kwargs=classifier_kwargs)
+            classification_kwargs=classifier_kwargs)
 
         train_set = twenty_news_transformers(20, num_labels=self.num_classes)
 
@@ -72,7 +72,7 @@ class _EmbeddingTest(object):
         clf_factory = TransformerBasedClassificationFactory(
             TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
             self.num_classes,
-            kwargs=classifier_kwargs)
+            classification_kwargs=classifier_kwargs)
 
         train_set = twenty_news_transformers(20, num_labels=self.num_classes)
 
@@ -109,7 +109,7 @@ class _EmbeddingTest(object):
         clf_factory = TransformerBasedClassificationFactory(
             TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
             self.num_classes,
-            kwargs=classifier_kwargs)
+            classification_kwargs=classifier_kwargs)
 
         train_set = twenty_news_transformers(20, num_labels=self.num_classes)
 
@@ -132,7 +132,7 @@ class _EmbeddingTest(object):
         clf_factory = TransformerBasedClassificationFactory(
             TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
             self.num_classes,
-            kwargs=classifier_kwargs)
+            classification_kwargs=classifier_kwargs)
 
         train_set = twenty_news_transformers(20, num_labels=self.num_classes)
 

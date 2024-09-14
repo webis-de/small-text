@@ -33,7 +33,7 @@ class SerializationTest(unittest.TestCase):
         clf_factory = TransformerBasedClassificationFactory(
             TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
             num_labels,
-            kwargs={'device': 'cuda'})
+            classification_kwargs={'device': 'cuda'})
 
         query_strategy = RandomSampling()
 

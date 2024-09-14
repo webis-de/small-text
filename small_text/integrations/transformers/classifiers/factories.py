@@ -6,7 +6,7 @@ from small_text.integrations.transformers.classifiers.setfit import SetFitClassi
 
 class TransformerBasedClassificationFactory(AbstractClassifierFactory):
 
-    def __init__(self, transformer_model_args, num_classes, kwargs={}):
+    def __init__(self, transformer_model_args, num_classes, classification_kwargs={}):
         """
         Parameters
         ----------
@@ -14,12 +14,12 @@ class TransformerBasedClassificationFactory(AbstractClassifierFactory):
             Name of the sentence transformer model.
         num_classes : int
             Number of classes.
-        kwargs : dict
+        classification_kwargs : dict
             Keyword arguments which will be passed to `TransformerBasedClassification`.
         """
         self.transformer_model_args = transformer_model_args
         self.num_classes = num_classes
-        self.kwargs = kwargs
+        self.classification_kwargs = classification_kwargs
 
     def new(self):
         """Creates a new TransformerBasedClassification instance.
@@ -31,7 +31,7 @@ class TransformerBasedClassificationFactory(AbstractClassifierFactory):
         """
         return TransformerBasedClassification(self.transformer_model_args,
                                               self.num_classes,
-                                              **self.kwargs)
+                                              **self.classification_kwargs)
 
 
 class SetFitClassificationFactory(AbstractClassifierFactory):

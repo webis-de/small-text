@@ -29,7 +29,7 @@ class TransformerBasedClassificationFactoryTest(unittest.TestCase):
         factory = TransformerBasedClassificationFactory(
             TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
             num_classes,
-            kwargs=kwargs)
+            classification_kwargs=kwargs)
         clf = factory.new()
         self.assertTrue(isinstance(clf, TransformerBasedClassification))
         self.assertEqual(num_classes, clf.num_classes)
