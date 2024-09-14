@@ -91,17 +91,27 @@ for very specific (query or stopping) strategies or are purely convenience funct
 
 An overview of such dependencies is given in table below:
 
-+-------------------------+-----------------------------------------------------------------------------------------------------------------------------------+----------------------+
-| Dependency              | Required by                                                                                                                       | Version requirements |
-+=========================+===================================================================================================================================+======================+
-| `gensim`_               | Code Examples, Approval Tests, Integration Tests                                                                                  | >= 4.0.0             |
-+-------------------------+-----------------------------------------------------------------------------------------------------------------------------------+----------------------+
-| `hnswlib`_              | :py:class:`~small_text.query_strategies.strategies.SEALS`, :py:class:`~small_text.query_strategies.subsampling.AnchorSubsampling` |                      |
-+-------------------------+-----------------------------------------------------------------------------------------------------------------------------------+----------------------+
-| `scikit-learn`_         | :py:class:`~small_text.utils.clustering.init_kmeans_plusplus_safe()`                                                              | >= 1.3.0             |
-+-------------------------+-----------------------------------------------------------------------------------------------------------------------------------+----------------------+
-| `setfit`_               | :py:class:`~small_text.integrations.transformers.classifiers.setfit.SetFitClassification`                                         | < 1.0.0              |
-+-------------------------+-----------------------------------------------------------------------------------------------------------------------------------+----------------------+
+.. list-table::
+   :widths: 15 70 15
+   :header-rows: 1
+
+   * - Dependency
+     - Required
+     - Version requirements
+   * - `gensim`_
+     - Code Examples, Approval Tests, Integration Tests
+     - >= 4.0.0
+   * - `hnswlib`_
+     - :py:class:`~small_text.query_strategies.strategies.SEALS`, :py:class:`~small_text.query_strategies.subsampling.AnchorSubsampling`,
+       :doc:`Vector Indexes<api/vector_indexes>`
+     -
+   * - `scikit-learn`_
+     - :py:class:`~small_text.utils.clustering.init_kmeans_plusplus_safe()`
+     - >= 1.3.0
+   * - `setfit`_
+     - :py:class:`~small_text.integrations.transformers.classifiers.setfit.SetFitClassification`
+     - < 1.0.0
+
 
 .. _`gensim`: https://pypi.org/project/gensim/
 

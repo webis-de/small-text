@@ -29,6 +29,9 @@ On the other hand, this also allowed us to deal with further issues that contain
   - Query strategies now have a [tie-breaking mechanism](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/base.py) to randomly permutate when there is a tie in scores.
   - Added `ScoringMixin` to enable a reusable scoring mechanism for query strategies.
   - [LightweightCoreset](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/corsets.py) can now process input in batches. (#23)
+- Vector Index Functionality:
+  - A new vector index API provides implementations over a unified interface to use different implementations for k-nearest neighbor search.
+  - Existing strategies that used a hard-coded vector search ([ContrastiveActiveLearning](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/strategies.py), [SEALS](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/strategies.py), [AnchorSubsampling](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/subsampling.py)) have been adapted and can now be used with different vector index implementations.
 
 ### Fixed 
 

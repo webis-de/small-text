@@ -12,6 +12,9 @@ from small_text.classifiers import Classifier
 from small_text.data import Dataset
 from small_text.utils.context import build_pbar_context
 from small_text.query_strategies.base import QueryStrategy, ScoringMixin
+from small_text.vector_indexes.base import VectorIndexFactory
+from small_text.vector_indexes.hnsw import HNSWIndex
+from small_text.vector_indexes.knn import KNNIndex
 
 
 class RandomSampling(QueryStrategy):
@@ -451,7 +454,8 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
     """Contrastive Active Learning [MVB+21]_ selects instances whose k-nearest neighbours
     exhibit the largest mean Kullback-Leibler divergence."""
 
-    def __init__(self, k=10, embed_kwargs=dict(), normalize=True, batch_size=100, pbar='tqdm'):
+    def __init__(self, k=10, embed_kwargs=dict(), normalize=True,
+                 vector_index_factory=VectorIndexFactory(KNNIndex), batch_size=100, pbar='tqdm'):
         """
         Parameters
         ----------
@@ -461,6 +465,8 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
             Embedding keyword args which are passed to `clf.embed()`.
         normalize : bool, default=True
             Embeddings will be L2 normalized if `True`, otherwise they remain unchanged.
+        vector_index_factory : VectorIndexFactory
+
         batch_size : int, default=100
             Batch size which is used to process the embeddings.
         pbar : 'tqdm' or None, default='tqdm'
@@ -468,6 +474,7 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
         """
         self.embed_kwargs = embed_kwargs
         self.normalize = normalize
+        self.vector_index_factory = vector_index_factory
         self.k = k
         self.batch_size = batch_size
         self.pbar = pbar
@@ -488,7 +495,6 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
 
     def sample(self, _clf, dataset, indices_unlabeled, _indices_labeled, _y, n, embeddings,
                embeddings_proba=None):
-        from sklearn.neighbors import NearestNeighbors
 
         if embeddings_proba is None:
             raise ValueError('Error: embeddings_proba is None. '
@@ -498,14 +504,14 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
         if self.normalize:
             embeddings = normalize(embeddings, axis=1)
 
-        nn = NearestNeighbors(n_neighbors=n)
-        nn.fit(embeddings)
+        vector_index = self.vector_index_factory.new()
+        vector_index.build(embeddings)
 
         return self._contrastive_active_learning(dataset, embeddings, embeddings_proba,
-                                                 indices_unlabeled, nn, n)
+                                                 indices_unlabeled, vector_index, n)
 
     def _contrastive_active_learning(self, dataset, embeddings, embeddings_proba,
-                                     indices_unlabeled, nn, n):
+                                     indices_unlabeled, vector_index, n):
         from scipy.special import rel_entr
 
         scores = []
@@ -518,9 +524,9 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
         for batch_idx in np.array_split(np.arange(indices_unlabeled.shape[0]), num_batches,
                                         axis=0):
 
-            nn_indices = nn.kneighbors(embeddings_unlabeled[batch_idx],
-                                       n_neighbors=self.k,
-                                       return_distance=False)
+            nn_indices = vector_index.search(embeddings_unlabeled[batch_idx],
+                                             k=self.k,
+                                             return_distance=False)
 
             kl_divs = np.apply_along_axis(lambda v: np.mean([
                 rel_entr(embeddings_proba[i], embeddings_unlabelled_proba[v])
@@ -684,7 +690,7 @@ class SEALS(ScoringMixin, QueryStrategy):
     def __init__(self,
                  base_query_strategy: QueryStrategy,
                  k: int = 100,
-                 hnsw_kwargs: dict = {},
+                 vector_index_factory: VectorIndexFactory = VectorIndexFactory(HNSWIndex),
                  embed_kwargs: dict = {},
                  normalize: bool = True):
         """
@@ -692,10 +698,8 @@ class SEALS(ScoringMixin, QueryStrategy):
             A base query strategy which operates on the subset that is selected by SEALS.
         k : int, default=100
             Number of nearest neighbors that will be selected.
-        hnsw_kwargs : dict(), default=dict()
-            Kwargs which will be passed to the underlying hnsw index.
-            Check the `hnswlib github repository <https://github.com/nmslib/hnswlib>`_ on details
-            for the parameters `space`, `ef_construction`, `ef`, and `M`.
+        vector_index_factory : VectorIndexFactory, default=VectorIndexFactory(HNSWIndex)
+            A factory that provides the vector index for nearest neighbor queries.
         embed_kwargs : dict, default=dict()
             Kwargs that will be passed to the embed() method.
         normalize : bool, default=True
@@ -705,11 +709,11 @@ class SEALS(ScoringMixin, QueryStrategy):
 
         self.base_query_strategy = base_query_strategy
         self.k = k
-        self.hnsw_kwargs = hnsw_kwargs
+        self.vector_index_factory = vector_index_factory
         self.embed_kwargs = embed_kwargs
         self.normalize = normalize
 
-        self.nn = None
+        self.vector_index = None
 
     def query(self,
               clf: Classifier,
@@ -737,43 +741,23 @@ class SEALS(ScoringMixin, QueryStrategy):
                            indices_unlabeled: npt.NDArray[np.uint],
                            indices_labeled: npt.NDArray[np.uint],
                            pbar: str = 'tqdm'):
-        if self.nn is None:
+        if self.vector_index is None:
             self.embeddings = clf.embed(dataset, pbar=pbar)
             if self.normalize:
                 self.embeddings = normalize(self.embeddings, axis=1)
 
-            self.nn = self.initialize_index(self.embeddings, indices_unlabeled, self.hnsw_kwargs)
+            self.vector_index = self.vector_index_factory.new()
             self.indices_unlabeled = set(indices_unlabeled)
         else:
             recently_removed_elements = self.indices_unlabeled - set(indices_unlabeled)
             for el in recently_removed_elements:
-                self.nn.mark_deleted(el)
+                self.vector_index.mark_deleted(el)
             self.indices_unlabeled = set(indices_unlabeled)
 
-        indices_nn, _ = self.nn.knn_query(self.embeddings[indices_labeled], k=self.k)
+        indices_nn, _ = self.vector_index.knn_query(self.embeddings[indices_labeled], k=self.k)
         indices_nn = np.unique(indices_nn.astype(int).flatten())
 
         return indices_nn
-
-    @staticmethod
-    def initialize_index(embeddings: npt.NDArray[np.double],
-                         indices_unlabeled: npt.NDArray[np.uint],
-                         hnsw_kwargs: dict):
-        import hnswlib  # type: ignore[import]
-
-        space = hnsw_kwargs.get('space', 'l2')
-        ef_construction = hnsw_kwargs.get('ef_construction', 200)
-        m = hnsw_kwargs.get('M', 64)
-        ef = hnsw_kwargs.get('ef', 200)
-
-        index = hnswlib.Index(space=space, dim=embeddings.shape[1])
-        index.init_index(max_elements=embeddings.shape[0],
-                         ef_construction=ef_construction,
-                         M=m)
-        index.add_items(embeddings[indices_unlabeled], indices_unlabeled)
-        index.set_ef(ef)
-
-        return index
 
     @property
     def last_scores(self):

@@ -16,10 +16,42 @@ class KNNIndex(VectorIndex):
 
     .. versionadded:: 2.0.0
     """
+
     DEFAULT_NUM_NEIGHBORS = 10
 
-    def __init__(self, index_kwargs={}):
-        self.index_kwargs = index_kwargs
+    def __init__(self, algorithm='auto', radius=1.0, leaf_size=30, metric='minkowski', p=2,
+                 metric_params=None, n_jobs=None):
+        """
+        Parameters
+        ----------
+        algorithm : {'auto', 'ball_tree', 'kd_tree', 'brute'}, default='auto'
+            Algorithm used for the nearest neighbor computation.
+        radius : float, default=1.0
+            Ball of size `radius`
+        leaf_size : int, default=30
+            Leaf size for 'ball_tree' and 'kd_tree' algorithms.
+        metric : str or func, default='minkowski'
+            Metric or metric function for the nearest neighbor distance.
+        p : float, default=2
+            Parameter p for the Minkowski distance. The default `2` is equivalent to the euclidean distance.
+        metric_params : dict, default=None
+            Additional params for the metric function.
+        n_jobs : int, default=None
+            Number of jobs for nearest neighbor search.
+
+        .. seealso::
+           See the scikit-learn documentation for more details on the parameters.
+               https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.NearestNeighbors.html#sklearn.neighbors.NearestNeighbors
+
+        """
+        self.algorithm = algorithm
+        self.radius = radius
+        self.leaf_size = leaf_size
+        self.metric = metric
+        self.p = p
+        self.metric_params = metric_params
+        self.n_jobs = n_jobs
+
         self._index = None
         self._indices_deleted = set()
 

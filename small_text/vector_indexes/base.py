@@ -3,7 +3,7 @@ from typing import Optional
 
 
 class VectorIndex(ABC):
-    """A structure that allows to index and search for vectors.
+    """Abstract class for a structure that allows to index and search for vectors.
 
     .. versionadded:: 2.0.0
     """
@@ -27,15 +27,45 @@ class VectorIndex(ABC):
         Constructs an index from the given vectors.
 
         The order of `vectors` is later used to address them in the `remove()` operation.
+
+        Parameters
+        ----------
+        vectors : np.ndarray[np.float32]
+            A 2d matrix of vectors in the shape (num_vectors, num_dimensions).
         """
         pass
 
     @abstractmethod
     def remove(self, vector_indices):
+        """
+        Removes the given vectors (identified by the numeric indices) from the vector index. The indices
+         `vector_indices` correspond to the rows numbers in the matrix of vectors that has been passed to `build()`.
+        """
         pass
 
     @abstractmethod
     def search(self, vectors, k: int = 10, return_distance: bool = False):
+        """
+        For each of the given vectors, retrieve and return the `k` most similar vectors from the index.
+
+        Parameters
+        ----------
+        vectors : np.ndarray[np.float32]
+            A 2d matrix of vectors in the shape (num_vectors, num_dimensions).
+        k : int, k=10
+            Specified the number of similar vectors that are returned for each input vector.
+        return_distance : bool, default=False
+            Toggles if the distances should be returned in addition to the vector indices.
+
+        Returns
+        -------
+        indices : np.ndarray[int]
+            A 2d matrix of vectors in the shape (num_vectors, k) which holds `k` indices per row. The indices
+            refer to the vectors on which the index has been built, i.e.
+        distances : np.ndarray[np.float32]
+            A 2d matrix of vectors in the shape (num_vectors, k) which holds normalized distances between
+            `0.0` (most similar) and `1.0` (most dissimilar). Distances are only returned if `return_distance` is `True`.
+        """
         pass
 
 

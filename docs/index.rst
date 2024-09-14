@@ -111,6 +111,7 @@ License
    api/active_learner
    api/classifier
    api/dataset
+   api/vector_indexes
    misc/env
 
 
