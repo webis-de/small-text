@@ -1,14 +1,12 @@
 import types
 import numpy as np
 
+from sklearn.exceptions import NotFittedError
+from sklearn.utils.validation import check_is_fitted
+
 from small_text.base import check_optional_dependency
 from small_text.classifiers.classification import Classifier, EmbeddingMixin
 from small_text.exceptions import UnsupportedOperationException
-
-from small_text.integrations.transformers.classifiers.base import (
-    ModelLoadingStrategy,
-    get_default_model_loading_strategy
-)
 
 from small_text.utils.classification import (
     empty_result,
@@ -17,7 +15,10 @@ from small_text.utils.classification import (
 )
 from small_text.utils.context import build_pbar_context
 from small_text.utils.labels import csr_to_list
-from small_text.utils.logging import VERBOSITY_MORE_VERBOSE
+from small_text.utils.numpy import int_dtype
+from small_text.integrations.transformers.classifiers.base import (
+    ModelLoadingStrategy
+)
 
 try:
     import torch
@@ -25,11 +26,7 @@ try:
     from datasets import Dataset
     from setfit import SetFitModel, SetFitTrainer
 
-    from small_text.integrations.pytorch.classifiers.base import AMPArguments
-
-    from small_text.integrations.pytorch.utils.contextmanager import inference_mode
-    from small_text.integrations.pytorch.utils.misc import _compile_if_possible, enable_dropout
-
+    from small_text.integrations.pytorch.utils.misc import enable_dropout
     from small_text.integrations.transformers.utils.classification import (
         _get_arguments_for_from_pretrained_model
     )
@@ -44,15 +41,13 @@ except ImportError:
 
 
 class SetFitModelArguments(object):
-    """Model arguments for :py:class:`SetFitClassification`.
-
+    """
     .. versionadded:: 1.2.0
     """
 
     def __init__(self,
                  sentence_transformer_model: str,
-                 model_loading_strategy: ModelLoadingStrategy = get_default_model_loading_strategy(),
-                 compile_model: bool = False):
+                 model_loading_strategy: ModelLoadingStrategy = ModelLoadingStrategy.DEFAULT):
         """
         Parameters
         ----------
@@ -61,15 +56,9 @@ class SetFitModelArguments(object):
         model_loading_strategy: ModelLoadingStrategy, default=ModelLoadingStrategy.DEFAULT
             Specifies if there should be attempts to download the model or if only local
             files should be used.
-        compile_model : bool, default=False
-            Compiles the model (using `torch.compile`) if `True` and provided that
-            the PyTorch version greater or equal 2.0.0.
-
-            .. versionadded:: 2.0.0
         """
         self.sentence_transformer_model = sentence_transformer_model
         self.model_loading_strategy = model_loading_strategy
-        self.compile_model = compile_model
 
 
 class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
@@ -84,8 +73,6 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
 
         Parameters
         ----------
-        data_set : TextDataset
-            The dataset for which embeddings (and class probabilities) will be computed.
         return_proba : bool
             Also return the class probabilities for `data_set`.
         pbar : 'tqdm' or None, default='tqdm'
@@ -96,11 +83,14 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
         embeddings : np.ndarray
             Embeddings in the shape (N, hidden_layer_dimensionality).
         proba : np.ndarray
-            Class probabilities in the shape (N, num_classes) for `data_set` (only if `return_predictions` is `True`).
+            Class probabilities for `data_set` (only if `return_predictions` is `True`).
         """
 
-        if self.model is None:
-            raise ValueError('Model is not trained. Please call fit() first.')
+        if self.use_differentiable_head is False:
+            try:
+                check_is_fitted(self.model.model_head)
+            except NotFittedError:
+                raise ValueError('Model is not trained. Please call fit() first.')
 
         data_set = _truncate_texts(self.model, self.max_seq_len, data_set)[0]
 
@@ -109,15 +99,13 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
 
         num_batches = int(np.ceil(len(data_set) / self.mini_batch_size))
         with build_pbar_context(pbar, tqdm_kwargs={'total': len(data_set)}) as pbar:
-            with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
-                                enabled=self.amp_args.use_amp):
-                for batch in np.array_split(data_set.x, num_batches, axis=0):
+            for batch in np.array_split(data_set.x, num_batches, axis=0):
 
-                    batch_embeddings, probas = self._create_embeddings(batch)
-                    pbar.update(batch_embeddings.shape[0])
-                    embeddings.extend(batch_embeddings.tolist())
-                    if return_proba:
-                        predictions.extend(probas.tolist())
+                batch_embeddings, probas = self._create_embeddings(batch)
+                pbar.update(batch_embeddings.shape[0])
+                embeddings.extend(batch_embeddings.tolist())
+                if return_proba:
+                    predictions.extend(probas.tolist())
 
         if return_proba:
             return np.array(embeddings), np.array(predictions)
@@ -148,8 +136,8 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
     """
 
     def __init__(self, setfit_model_args, num_classes, multi_label=False, max_seq_len=512,
-                 use_differentiable_head=False, mini_batch_size=32, model_kwargs={},
-                 trainer_kwargs={}, amp_args=None, device=None, verbosity=VERBOSITY_MORE_VERBOSE):
+                 use_differentiable_head=False, mini_batch_size=32, model_kwargs=dict(),
+                 trainer_kwargs=dict(), device=None):
         """
         sentence_transformer_model : SetFitModelArguments
             Settings for the sentence transformer model to be used.
@@ -177,21 +165,8 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
             .. seealso:: `SetFit: src/setfit/trainer.py
                          <https://github.com/huggingface/setfit/blob/main/src/setfit/trainer.py>`_
-        amp_args : AMPArguments, default=None
-            Configures the use of Automatic Mixed Precision (AMP). Only affects the training.
-
-            .. seealso:: :py:class:`~small_text.integrations.pytorch.classifiers.base.AMPArguments`
-            .. versionadded:: 2.0.0
-
         device : str or torch.device, default=None
             Torch device on which the computation will be performed.
-        verbosity : int, default=VERBOSITY_MORE_VERBOSE
-            Controls the verbosity of logging messages. Lower values result in less log messages.
-            Set this to `VERBOSITY_QUIET` or `0` for the minimum amount of logging.
-        compile_model : bool, default=False
-            Compiles the model (using `torch.compile`) if `True` and PyTorch version is greater than or equal 2.0.0.
-
-            .. versionadded:: 2.0.0
         """
         check_optional_dependency('setfit')
 
@@ -202,16 +177,25 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         self.model_kwargs = _check_model_kwargs(model_kwargs)
         self.trainer_kwargs = _check_trainer_kwargs(trainer_kwargs)
 
-        self.model = None
+        model_kwargs = self.model_kwargs.copy()
+        if self.multi_label and 'multi_target_strategy' not in model_kwargs:
+            model_kwargs['multi_target_strategy'] = 'one-vs-rest'
+
+        from_pretrained_options = _get_arguments_for_from_pretrained_model(
+            self.setfit_model_args.model_loading_strategy
+        )
+        self.model = SetFitModel.from_pretrained(
+            self.setfit_model_args.sentence_transformer_model,
+            use_differentiable_head=use_differentiable_head,
+            force_download=from_pretrained_options.force_download,
+            local_files_only=from_pretrained_options.local_files_only,
+            **model_kwargs
+        )
 
         self.max_seq_len = max_seq_len
         self.use_differentiable_head = use_differentiable_head
         self.mini_batch_size = mini_batch_size
-
-        self._amp_args = amp_args
         self.device = device
-
-        self.verbosity = verbosity
 
     def fit(self, train_set, validation_set=None, setfit_train_kwargs=dict()):
         """Trains the model using the given train set.
@@ -231,9 +215,6 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             Returns the current classifier with a fitted model.
         """
         setfit_train_kwargs = _check_train_kwargs(setfit_train_kwargs)
-        if self.model is None:
-            self.model = self.initialize()
-
         if validation_set is None:
             train_set = _truncate_texts(self.model, self.max_seq_len, train_set)[0]
         else:
@@ -258,10 +239,6 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                                                                   x_valid,
                                                                   y_valid)
 
-        return self._fit_main(sub_train, sub_valid, setfit_train_kwargs)
-
-    def _fit_main(self, sub_train, sub_valid, setfit_train_kwargs):
-
         if self.use_differentiable_head:
             raise NotImplementedError
         else:
@@ -281,39 +258,17 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         return sub_train, sub_valid
 
     def _fit(self, sub_train, sub_valid, setfit_train_kwargs):
-        seed = np.random.randint(2**32-1)
+        seed = np.random.randint(np.iinfo(int_dtype()).max)
         trainer = SetFitTrainer(
             self.model,
             sub_train,
             eval_dataset=sub_valid,
             batch_size=self.mini_batch_size,
-            use_amp=self.amp_args.use_amp,  # TODO: device_type and dtype are not used
             seed=seed,
             **self.trainer_kwargs
         )
-        if not 'show_progress_bar' in setfit_train_kwargs:
-            setfit_train_kwargs['show_progress_bar'] = self.verbosity >= VERBOSITY_MORE_VERBOSE
-        trainer.train(max_length=self.max_seq_len,
-                      **setfit_train_kwargs)
+        trainer.train(max_length=self.max_seq_len, **setfit_train_kwargs)
         return self
-
-    def initialize(self):
-        from_pretrained_options = _get_arguments_for_from_pretrained_model(
-            self.setfit_model_args.model_loading_strategy
-        )
-        model_kwargs = self.model_kwargs.copy()
-        if self.multi_label and 'multi_target_strategy' not in model_kwargs:
-            model_kwargs['multi_target_strategy'] = 'one-vs-rest'
-
-        self.model = SetFitModel.from_pretrained(
-            self.setfit_model_args.sentence_transformer_model,
-            use_differentiable_head=self.use_differentiable_head,
-            force_download=from_pretrained_options.force_download,
-            local_files_only=from_pretrained_options.local_files_only,
-            **model_kwargs
-        )
-        self.model.model_body = _compile_if_possible(self.model.model_body, compile_model=self.setfit_model_args.compile_model)
-        return self.model
 
     def validate(self, _validation_set):
         if self.use_differentiable_head:
@@ -367,7 +322,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         Returns
         -------
         scores : np.ndarray
-            Confidence score distribution over all classes of shape (num_samples, num_classes).
+            Distribution of confidence scores over all classes of shape (num_samples, num_classes).
             If `dropout_sampling > 1` then the shape is (num_samples, dropout_sampling, num_classes).
 
         .. warning::
@@ -382,71 +337,48 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         if self.use_differentiable_head:
             raise NotImplementedError()
 
-        with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
-                            enabled=self.amp_args.use_amp):
-            with inference_mode():
-                if dropout_sampling <= 1:
-                    return self._predict_proba(len(dataset), dataset)
-                else:
-                    return self._predict_proba_dropout_sampling(len(dataset), dataset, dropout_samples=dropout_sampling)
+        with torch.no_grad():
+            if dropout_sampling <= 1:
+                return self._predict_proba(dataset)
+            else:
+                return self._predict_proba_dropout_sampling(dataset, dropout_samples=dropout_sampling)
 
-    def _predict_proba(self, dataset_size, dataset):
-        proba = np.empty((dataset_size, self.num_classes), dtype=float)
-        offset = 0
+    def _predict_proba(self, dataset):
+        proba = np.empty((0, self.num_classes), dtype=float)
 
-        num_batches = int(np.ceil(dataset_size / self.mini_batch_size))
+        num_batches = int(np.ceil(len(dataset) / self.mini_batch_size))
         for batch in np.array_split(dataset.x, num_batches, axis=0):
-            batch_size = len(batch)
-
             proba_tmp = np.zeros((batch.shape[0], self.num_classes), dtype=float)
             proba_tmp[:, self.model.model_head.classes_] = self.model.predict_proba(batch)
-            proba[offset:offset+batch_size] = proba_tmp
-
-            offset += batch_size
+            proba = np.append(proba, proba_tmp, axis=0)
 
         return proba
 
-    def _predict_proba_dropout_sampling(self, dataset_size, dataset, dropout_samples=2):
-        # this whole method could be done much more efficiently but this solution works without modifying setfit's code
+    def _predict_proba_dropout_sampling(self, dataset, dropout_samples=2):
+        # this whole method be done much more efficiently but this solution works without modifying setfit's code
 
         self.model.model_body.train()
         model_body_eval = self.model.model_body.eval
         self.model.model_body.eval = types.MethodType(lambda x: x, self.model.model_body)
 
-        proba = np.empty((dataset_size, dropout_samples, self.num_classes), dtype=float)
-        offset = 0
+        proba = np.empty((0, dropout_samples, self.num_classes), dtype=float)
+        proba[:, :, :] = np.inf
 
         with enable_dropout(self.model.model_body):
-            num_batches = int(np.ceil(dataset_size / self.mini_batch_size))
+            num_batches = int(np.ceil(len(dataset) / self.mini_batch_size))
             for batch in np.array_split(dataset.x, num_batches, axis=0):
-                batch_size = len(batch)
-                samples = np.empty((dropout_samples, batch_size, self.num_classes), dtype=float)
+                samples = np.empty((dropout_samples, len(batch), self.num_classes), dtype=float)
                 for i in range(dropout_samples):
                     proba_tmp = np.zeros((batch.shape[0], self.num_classes), dtype=float)
                     proba_tmp[:, self.model.model_head.classes_] = self.model.predict_proba(batch)
                     samples[i] = proba_tmp
 
                 samples = np.swapaxes(samples, 0, 1)
-                proba[offset:offset+batch_size] = samples
-
-                offset += batch_size
+                proba = np.append(proba, samples, axis=0)
 
         self.model.model_body.eval = model_body_eval
 
         return proba
-
-    @property
-    def amp_args(self):
-        if self._amp_args is None:
-            device_type = 'cpu' if self.model is None else self.model.model_body.device.type
-            amp_args = AMPArguments(device_type=device_type, dtype=torch.bfloat16)
-        else:
-            amp_args = AMPArguments(use_amp=self._amp_args.use_amp,
-                                    device_type=self._amp_args.device_type,
-                                    dtype=self._amp_args.dtype)
-        if self.model is None or self.model.model_body.device.type == 'cpu':
-            amp_args.use_amp = False
-        return amp_args
 
     def __del__(self):
         try:

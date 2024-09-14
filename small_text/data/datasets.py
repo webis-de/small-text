@@ -689,7 +689,7 @@ class TextDataset(Dataset):
 
         .. seealso::
            `scikit-learn docs: Vectorizer API reference
-           <https://scikit-learn.org/stable/modules/classes.html
+           <https://scikit-learn.org/stable/api/sklearn.feature_extraction.html
            #module-sklearn.feature_extraction.text>`_
 
         .. versionadded:: 1.2.0

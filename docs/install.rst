@@ -55,7 +55,7 @@ To enable the Pytorch Integration, install the library with the `pytorch` extra:
 
 .. code-block:: console
 
-    conda install small-text "torch>=1.6.0" "torchtext>=0.7.0"
+    conda install -c conda-forge small-text "torch>=1.6.0" "torchtext>=0.7.0"
 
 .. note:: After installation, make sure the installed `torchtext and Pytorch versions are compatible <https://github.com/pytorch/text#user-content-installation>`_.
 

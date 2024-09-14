@@ -8,6 +8,7 @@
 - Raghav Prabhakar ([RaghavPrabhakar66](https://github.com/RaghavPrabhakar66))
 - Humza Zaki ([@zakih2](https://github.com/zakih2))
 - Vijay Manchiraju ([@vmanc](https://github.com/vmanc))
+- PD Hall ([@pdhall99](https://github.com/pdhall99))
 
 ## Acknowledgments
 

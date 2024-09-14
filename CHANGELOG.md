@@ -60,9 +60,29 @@ On the other hand, this also allowed us to deal with further issues that contain
 
 ---
 
+## Version 1.4.1 - 2024-08-18
+
+### Fixed
+
+- Fixed an out of bounds error that occurred when `DiscriminativeActiveLearning` queries all remaining unlabeled data.
+- Fixed typos/wording in PoolBasedActiveLearner docstrings.
+- Pinned SetFit version in notebook example. ([#64](https://github.com/webis-de/small-text/issues/64))
+- Fixed an out of bounds error that could occur in `SetFitClassification` for both 32bit systems and Windows. ([#66](https://github.com/webis-de/small-text/issues/66))
+- Fixed errors in notebook examples that occurred with more recent seaborn / matplotlib versions.
+
+### Changed
+
+- Documentation: added links to bibliography. ([#65](https://github.com/webis-de/small-text/issues/65))
+
+### Contributors
+
+[@pdhall99](https://github.com/pdhall99)
+
+---
+
 ## Version 1.4.0 - 2024-06-09
 
-### Added
+## Added
 
 - New query strategy: [AnchorSubsampling](https://github.com/webis-de/small-text/blob/v1.4.0/small_text/query_strategies/subsampling.py).
 
@@ -72,8 +92,6 @@ On the other hand, this also allowed us to deal with further issues that contain
 
 ### Changed
 
-- Documentation: Added a section where compatible transformer models are listed.
-- Documentation: Updated showcase section.
 
 ---
 

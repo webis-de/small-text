@@ -582,6 +582,9 @@ class DiscriminativeActiveLearning(QueryStrategy):
     def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
         self._validate_query_input(indices_unlabeled, n)
 
+        if len(indices_unlabeled) == n:
+            return np.array(indices_unlabeled)
+
         query_sizes = self._get_query_sizes(self.num_iterations, n)
         indices = self.discriminative_active_learning(dataset, indices_unlabeled, indices_labeled,
                                                       query_sizes)

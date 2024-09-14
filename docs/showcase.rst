@@ -49,4 +49,4 @@ Papers
 Tutorials
 ---------
 
-- | `👂 Active learning for text classification with small-text <https://docs.argilla.io/en/latest/tutorials/notebooks/training-textclassification-smalltext-activelearning.html>`_
+- | `👂 Active learning for text classification with small-text <https://docs.v1.argilla.io/en/latest/tutorials/notebooks/training-textclassification-smalltext-activelearning.html>`_

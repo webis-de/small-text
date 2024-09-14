@@ -165,6 +165,12 @@ class SubsamplingQueryStrategyTest(unittest.TestCase, SamplingStrategiesTests):
         base_strategy_query_spy.assert_called_once()
         self.assertTrue(len(base_strategy_query_spy.call_args[0][2]) <= 50)
 
+    def test_query_takes_remaining_pool(self):
+        indices = self._query(self._get_query_strategy(),
+                              num_samples=self.DEFAULT_NUM_SAMPLES,
+                              n=10)
+        self.assertEqual(10, len(indices))
+
     def test_query_when_unlabeled_pool_is_smaller_than_k(self, num_samples=100, n=10):
         dataset = random_sklearn_dataset(num_samples, vocab_size=10)
         base_query_strategy = LeastConfidence()
