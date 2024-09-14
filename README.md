@@ -120,7 +120,7 @@ Read the latest documentation [here][documentation_main]. Noteworthy pages inclu
 
 ## Scope of Features
 
-<table style="max-width: 100%; display:table; margin: 0px auto;">
+<table align="center">
   <caption>Extension of Table 1 in the <a href="https://aclanthology.org/2023.eacl-demo.11v2.pdf" target="_blank">EACL 2023 paper</a>.</caption>
   <thead>
     <tr>
