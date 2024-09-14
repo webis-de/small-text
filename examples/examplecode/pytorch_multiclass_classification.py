@@ -12,7 +12,7 @@ from small_text import (
     ActiveLearnerException,
     EmptyPoolException,
     BreakingTies,
-    KimCNNFactory,
+    KimCNNClassifierFactory,
     PoolBasedActiveLearner,
     PoolExhaustedException,
     random_initialization_stratified
@@ -52,7 +52,7 @@ def main(num_iterations=10, device='cuda'):
         'amp_args': AMPArguments(use_amp=True, device_type='cuda')
     }
 
-    clf_factory = KimCNNFactory(num_classes, classifier_kwargs)
+    clf_factory = KimCNNClassifierFactory(num_classes, classifier_kwargs)
     query_strategy = BreakingTies()
 
     # Active learner

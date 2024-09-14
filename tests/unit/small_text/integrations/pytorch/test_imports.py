@@ -23,7 +23,7 @@ class ImportTest(unittest.TestCase):
 
     def test_import_factories_module(self):
         from small_text import AbstractClassifierFactory
-        from small_text import KimCNNFactory
+        from small_text import KimCNNClassifierFactory
 
     def test_import_datasets_module(self):
         from small_text import PytorchDataset

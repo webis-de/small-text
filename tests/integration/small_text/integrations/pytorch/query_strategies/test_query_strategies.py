@@ -14,7 +14,7 @@ from tests.integration.small_text.query_strategies.test_query_strategies import 
 try:
     import torch
     from small_text.integrations.pytorch.classifiers.base import AMPArguments
-    from small_text.integrations.pytorch.classifiers import KimCNNFactory
+    from small_text.integrations.pytorch.classifiers import KimCNNClassifierFactory
     from small_text.integrations.pytorch.classifiers.factories import KimCNNClassifier
     from small_text.integrations.pytorch.query_strategies import (
         BADGE,
@@ -38,8 +38,8 @@ class QueryStrategiesTest(QueryStrategiesExhaustiveIntegrationTest, unittest.Tes
 
     def _get_factory(self, num_classes, multi_label=False):
 
-        return KimCNNFactory(num_classes,
-                             {
+        return KimCNNClassifierFactory(num_classes,
+                                       {
                                  'embedding_matrix': torch.rand(10, 300),
                                  'num_epochs': 2
                              })

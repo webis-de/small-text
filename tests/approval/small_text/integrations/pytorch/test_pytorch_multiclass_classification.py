@@ -13,7 +13,7 @@ from examplecode.data.example_data_multiclass import (
 )
 from examplecode.pytorch_multiclass_classification import load_gensim_embedding, initialize_active_learner
 
-from small_text import KimCNNFactory, BreakingTies, PoolBasedActiveLearner
+from small_text import KimCNNClassifierFactory, BreakingTies, PoolBasedActiveLearner
 from tests.utils.misc import random_seed
 
 
@@ -65,7 +65,7 @@ class PytorchMulticlassClassificationApprovalTest(unittest.TestCase):
             'device': device
         }
 
-        clf_factory = KimCNNFactory(num_classes, classifier_kwargs)
+        clf_factory = KimCNNClassifierFactory(num_classes, classifier_kwargs)
         query_strategy = BreakingTies()
 
         active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)

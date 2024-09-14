@@ -2,7 +2,7 @@ from small_text.classifiers.factories import AbstractClassifierFactory
 from small_text.integrations.pytorch.classifiers.kimcnn import KimCNNClassifier
 
 
-class KimCNNFactory(AbstractClassifierFactory):
+class KimCNNClassifierFactory(AbstractClassifierFactory):
 
     def __init__(self, num_classes: int, kwargs: dict = {}):
         """

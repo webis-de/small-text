@@ -13,7 +13,7 @@ from tests.integration.small_text.query_strategies.test_query_strategies import 
 
 try:
     import torch
-    from small_text.integrations.pytorch.classifiers import KimCNNFactory
+    from small_text.integrations.pytorch.classifiers import KimCNNClassifierFactory
     from small_text.query_strategies.bayesian import BALD
 
     from tests.utils.datasets import random_text_classification_dataset
@@ -30,7 +30,7 @@ class BaldTest(QueryStrategiesExhaustiveIntegrationTest, unittest.TestCase):
 
     def _get_factory(self, num_classes, multi_label=False):
 
-        return KimCNNFactory(num_classes, {'embedding_matrix': torch.rand(10, 20), 'num_epochs': 2})
+        return KimCNNClassifierFactory(num_classes, {'embedding_matrix': torch.rand(10, 20), 'num_epochs': 2})
 
     def test_bald(self):
         query_strategy = BALD(dropout_samples=3)

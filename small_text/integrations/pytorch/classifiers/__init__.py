@@ -3,7 +3,7 @@ from small_text.integrations.pytorch.classifiers.base import (
     PytorchClassifier,
     PytorchModelSelectionMixin
 )
-from small_text.integrations.pytorch.classifiers.factories import KimCNNFactory
+from small_text.integrations.pytorch.classifiers.factories import KimCNNClassifierFactory
 from small_text.integrations.pytorch.classifiers.kimcnn import (
     KimCNNEmbeddingMixin,
     KimCNNClassifier
@@ -14,7 +14,7 @@ __all__ = [
     'AMPArguments',
     'PytorchClassifier',
     'PytorchModelSelectionMixin',
-    'KimCNNFactory',
+    'KimCNNClassifierFactory',
     'KimCNNEmbeddingMixin',
     'KimCNNClassifier'
 ]

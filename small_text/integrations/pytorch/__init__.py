@@ -8,7 +8,7 @@ try:
     )
     from small_text.integrations.pytorch.classifiers.factories import (
         AbstractClassifierFactory,
-        KimCNNFactory
+        KimCNNClassifierFactory
     )
     from small_text.integrations.pytorch.classifiers.kimcnn import (
         kimcnn_collate_fn,
@@ -34,7 +34,7 @@ try:
         'PytorchModelSelectionMixin',
         'PytorchClassifier',
         'AbstractClassifierFactory',
-        'KimCNNFactory',
+        'KimCNNClassifierFactory',
         'KimCNN',
         'kimcnn_collate_fn',
         'KimCNNEmbeddingMixin',
