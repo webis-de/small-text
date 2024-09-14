@@ -52,7 +52,7 @@ which can be easily mixed and matched to build active learning experiments or ap
     Special thanks to [Pietro Lesci](https://github.com/pietrolesci) for the correspondence and code review. 
 
 - **Paper published at EACL 2023 🎉**
-  - The [paper][paper_arxiv] introducing small-text has been accepted at [EACL 2023](https://2023.eacl.org/). Meet us at the conference in May!
+  - The [paper][paper_published] introducing small-text has been accepted at [EACL 2023](https://2023.eacl.org/). Meet us at the conference in May!
   - Update: the paper was awarded [EACL Best System Demonstration](https://aclanthology.org/2023.eacl-demo.11/). Thank you, for your support!
 
 [For a complete list of changes, see the change log.][changelog]
@@ -118,9 +118,40 @@ Read the latest documentation [here][documentation_main]. Noteworthy pages inclu
 
 ---
 
+## Scope of Features
+
+<table style="max-width: 100%; display:table; margin: 0px auto;">
+  <caption>Extension of Table 1 in the <a href="https://aclanthology.org/2023.eacl-demo.11v2.pdf" target="_blank">EACL 2023 paper</a>.</caption>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th colspan="2">Active Learning</th>
+    </tr>
+    <tr>
+      <th></th>
+      <th>Query Strategies</th>
+      <th>Stopping Criteria</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>small-text v1.3.0</td>
+      <td>14</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>small-text v2.0.0</td>
+      <td>18</td>
+      <td>5</td>
+    </tr>
+  </tbody>
+</table>
+
 ## Alternatives
 
 [modAL](https://github.com/modAL-python/modAL), [ALiPy](https://github.com/NUAA-AL/ALiPy), [libact](https://github.com/ntucllab/libact), [ALToolbox](https://github.com/AIRI-Institute/al_toolbox)
+
+---
 
 ## Contribution
 
@@ -166,4 +197,4 @@ Small-Text has been introduced in detail in the EACL23 System Demonstration Pape
 [changelog_1.4.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-4-1-2024-08-18
 [argilla]: https://github.com/argilla-io/argilla
 [argilla_al_tutorial]: https://docs.argilla.io/en/latest/tutorials/notebooks/training-textclassification-smalltext-activelearning.html
-[paper_arxiv]: https://arxiv.org/abs/2107.10314
+[paper_published]: https://aclanthology.org/2023.eacl-demo.11v2.pdf
