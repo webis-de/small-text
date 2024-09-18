@@ -1,8 +1,10 @@
-from abc import ABC, abstractmethod
-from typing import Optional
+from abc import ABCMeta, abstractmethod
+from typing import Generic, Optional
+
+from small_text.vector_indexes._typing import INDEX_TYPE
 
 
-class VectorIndex(ABC):
+class VectorIndex(Generic[INDEX_TYPE], metaclass=ABCMeta):
     """Abstract class for a structure that allows to index and search for vectors.
 
     .. versionadded:: 2.0.0
@@ -10,7 +12,7 @@ class VectorIndex(ABC):
 
     @property
     @abstractmethod
-    def index(self) -> Optional[object]:
+    def index(self) -> Optional[INDEX_TYPE]:
         """
         Returns the underlying index implementation.
 
@@ -22,24 +24,24 @@ class VectorIndex(ABC):
         return
 
     @abstractmethod
-    def build(self, vectors):
+    def build(self, vectors, ids=None):
         """
-        Constructs an index from the given vectors.
-
-        The order of `vectors` is later used to address them in the `remove()` operation.
+        Constructs an index from the given vectors. Each vector is identified by an id. If no ids are passed,
+        each vector gets assigned an ascending id starting at zero.
 
         Parameters
         ----------
         vectors : np.ndarray[np.float32]
             A 2d matrix of vectors in the shape (num_vectors, num_dimensions).
+        ids : np.ndarray[int] or None, default=None
+            An array of ids where each item corresponds to the respective row in the `vectors` argument.
         """
         pass
 
     @abstractmethod
-    def remove(self, vector_indices):
+    def remove(self, ids):
         """
-        Removes the given vectors (identified by the numeric indices) from the vector index. The indices
-         `vector_indices` correspond to the rows numbers in the matrix of vectors that has been passed to `build()`.
+        Removes the given vectors (identified by their ids) from the vector index.
         """
         pass
 
@@ -59,7 +61,7 @@ class VectorIndex(ABC):
 
         Returns
         -------
-        indices : np.ndarray[int]
+        ids : np.ndarray[int]
             A 2d matrix of vectors in the shape (num_vectors, k) which holds `k` indices per row. The indices
             refer to the vectors on which the index has been built, i.e.
         distances : np.ndarray[np.float32]

@@ -53,20 +53,34 @@ class KNNIndex(VectorIndex):
         self.n_jobs = n_jobs
 
         self._index = None
+        self._ids_to_indices = None
+        self._indices_to_ids = None
         self._indices_deleted = set()
 
     @property
     def index(self) -> Union[None, object]:
         return self._index
 
-    def build(self, vectors):
-        self._index = NearestNeighbors(n_neighbors=self.DEFAULT_NUM_NEIGHBORS, **self.index_kwargs)
+    def build(self, vectors, ids=None):
+        self._index = NearestNeighbors(n_neighbors=self.DEFAULT_NUM_NEIGHBORS,
+                                       algorithm=self.algorithm,
+                                       metric=self.metric,
+                                       p=self.p,
+                                       metric_params=self.metric_params,
+                                       n_jobs=self.n_jobs)
         self._index.fit(vectors)
+
+        if ids is None:
+            ids = np.arange(vectors.shape[0])
+
+        self._ids_to_indices = {id_: idx for idx, id_ in enumerate(ids)}
+        self._indices_to_ids = {idx: id_ for idx, id_ in enumerate(ids)}
+
         self._indices_deleted = set()
 
-    def remove(self, vector_indices):
-        for idx in vector_indices.tolist():
-            self._indices_deleted.add(idx)
+    def remove(self, ids):
+        for id_ in ids.tolist():
+            self._indices_deleted.add(self._ids_to_indices[id_])
 
     def search(self, vectors, k: int = 10, return_distance: bool = False):
         try:
@@ -80,11 +94,15 @@ class KNNIndex(VectorIndex):
             raise e
 
         if return_distance:
-            indices = np.array([[idx for idx in indices if idx.item() not in self._indices_deleted]
-                                for indices in result[0]])
-            distances = np.array([[idx for idx in indices if idx.item() not in self._indices_deleted]
-                                   for indices in result[1]])
+            distances = np.array([[idx for idx in indices if idx.item() not in self._indices_deleted][:k]
+                                   for indices in result[0]])
+            indices = np.array([
+                [self._indices_to_ids[idx] for idx in indices if idx.item() not in self._indices_deleted][:k]
+                for indices in result[1]
+            ])
             return indices, distances
         else:
-            return np.array([[idx for idx in indices if idx.item() not in self._indices_deleted]
-                            for indices in result])
+            return np.array([
+                [self._indices_to_ids[idx] for idx in indices if idx.item() not in self._indices_deleted][:k]
+                for indices in result
+            ])

@@ -146,14 +146,11 @@ Base
 .. autoclass:: ClassBalancer
     :special-members: __init__
 
-.. py:module:: small_text.query_strategies.strategies
+.. py:module:: small_text.query_strategies.subsampling
     :noindex:
 
 .. autoclass:: SEALS
     :special-members: __init__
-
-.. py:module:: small_text.query_strategies.subsampling
-    :noindex:
 
 .. autoclass:: AnchorSubsampling
     :special-members: __init__

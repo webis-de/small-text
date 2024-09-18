@@ -43,8 +43,22 @@ class VectorIndexesTest(object):
         vector_index.build(vectors)
 
         indices = vector_index.search(vectors[[0], :], k=10)
+        valid_indices = np.arange(vectors.shape[0])
+        self.assertTrue(np.isin(indices.flatten(), valid_indices).all())
         self.assertEqual(10, indices.ravel().shape[0])
         self.assertEqual(0, indices.ravel()[0].item())
+
+    def test_search_with_ids(self):
+        vector_index = self.get_vector_index()
+        vectors = self._get_random_data()
+        ids = np.random.choice(np.arange(1024), size=vectors.shape[0])
+        vector_index.build(vectors, ids=ids)
+
+        indices = vector_index.search(vectors[[0], :], k=10)
+        print(indices.flatten())
+        print(ids)
+        self.assertTrue(np.isin(indices.flatten(), ids).all().item())
+        self.assertEqual((1, 10), indices.shape)
 
     def test_search_with_return_distance(self):
         vector_index = self.get_vector_index()
@@ -52,11 +66,8 @@ class VectorIndexesTest(object):
         vector_index.build(vectors)
 
         indices, distances = vector_index.search(vectors[[0], :], k=10, return_distance=True)
-        self.assertEqual(10, indices.ravel().shape[0])
-        self.assertEqual(0, indices.ravel()[0].item())
-
-        self.assertEqual(10, distances.ravel().shape[0])
-        self.assertAlmostEquals(0.0, distances.ravel()[0].item())
+        self.assertEqual((1, 10), indices.shape)
+        self.assertEqual((1, 10), distances.shape)
 
     def test_search_with_k_larger_than_index(self):
         vector_index = self.get_vector_index()

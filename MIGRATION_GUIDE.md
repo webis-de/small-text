@@ -13,5 +13,7 @@ The following classes amd variables have been renamed for consistency:
 
 ### Moved Classed / Changed Import Paths
 
-
-
+- SEALS has been moved from `small_text.query_strategies.strategies` to `small_text.query_strategies.subsampling`. You either have to fix the import or switch to use the convenience report:
+  ```
+  from small_text import SEALS
+  ```

@@ -7,13 +7,11 @@ from scipy.sparse import csr_matrix
 from scipy.stats import entropy
 from sklearn.preprocessing import normalize
 
-from small_text.base import check_optional_dependency
 from small_text.classifiers import Classifier
 from small_text.data import Dataset
 from small_text.utils.context import build_pbar_context
 from small_text.query_strategies.base import QueryStrategy, ScoringMixin
 from small_text.vector_indexes.base import VectorIndexFactory
-from small_text.vector_indexes.hnsw import HNSWIndex
 from small_text.vector_indexes.knn import KNNIndex
 
 
@@ -452,7 +450,10 @@ class EmbeddingKMeans(EmbeddingBasedQueryStrategy):
 
 class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
     """Contrastive Active Learning [MVB+21]_ selects instances whose k-nearest neighbours
-    exhibit the largest mean Kullback-Leibler divergence."""
+    exhibit the largest mean Kullback-Leibler divergence.
+
+    .. versionchanged:: 2.0.0
+    """
 
     def __init__(self, k=10, embed_kwargs=dict(), normalize=True,
                  vector_index_factory=VectorIndexFactory(KNNIndex), batch_size=100, pbar='tqdm'):
@@ -673,111 +674,3 @@ class DiscriminativeActiveLearning(QueryStrategy):
     def __str__(self):
         return f'DiscriminativeActiveLearning(classifier_factory={str(self.classifier_factory)}, ' \
                f'num_iterations={self.num_iterations}, unlabeled_factor={self.unlabeled_factor})'
-
-
-class SEALS(ScoringMixin, QueryStrategy):
-    """Similarity Search for Efficient Active Learning and Search of Rare Concepts (SEALS)
-    improves the computational efficiency of active learning by presenting a reduced subset
-    of the unlabeled pool to a base strategy [CCK+22]_.
-
-    This method is to be applied in conjunction with a base query strategy. SEALS selects a
-    subset of the unlabeled pool by selecting the `k` nearest neighbours of the current labeled
-    pool.
-
-    If the size of the unlabeled pool falls below the given `k`, this implementation will
-    not select a subset anymore and will just delegate to the base strategy instead.
-
-    .. note ::
-       This strategy requires the optional dependency `hnswlib`.
-    """
-    def __init__(self,
-                 base_query_strategy: QueryStrategy,
-                 k: int = 100,
-                 vector_index_factory: VectorIndexFactory = VectorIndexFactory(HNSWIndex),
-                 embed_kwargs: dict = {},
-                 normalize: bool = True):
-        """
-        base_query_strategy : small_text.query_strategy.QueryStrategy
-            A base query strategy which operates on the subset that is selected by SEALS.
-        k : int, default=100
-            Number of nearest neighbors that will be selected.
-        vector_index_factory : VectorIndexFactory, default=VectorIndexFactory(HNSWIndex)
-            A factory that provides the vector index for nearest neighbor queries.
-        embed_kwargs : dict, default=dict()
-            Kwargs that will be passed to the embed() method.
-        normalize : bool, default=True
-            Embeddings will be L2 normalized if `True`, otherwise they remain unchanged.
-        """
-        check_optional_dependency('hnswlib')
-
-        self.base_query_strategy = base_query_strategy
-        self.k = k
-        self.vector_index_factory = vector_index_factory
-        self.embed_kwargs = embed_kwargs
-        self.normalize = normalize
-
-        self.vector_index = None
-
-    def query(self,
-              clf: Classifier,
-              dataset: Dataset,
-              indices_unlabeled: npt.NDArray[np.uint],
-              indices_labeled: npt.NDArray[np.uint],
-              y: Union[npt.NDArray[np.uint], csr_matrix],
-              n: int = 10,
-              pbar: str = 'tqdm'):
-
-        if self.k > indices_unlabeled.shape[0]:
-            return self.base_query_strategy.query(clf, dataset, indices_unlabeled, indices_labeled,
-                                                  y, n=n)
-
-        indices_subset = self.get_subset_indices(clf,
-                                                 dataset,
-                                                 indices_unlabeled,
-                                                 indices_labeled,
-                                                 pbar=pbar)
-        return self.base_query_strategy.query(clf, dataset, indices_subset, indices_labeled, y, n=n)
-
-    def get_subset_indices(self,
-                           clf: Classifier,
-                           dataset: Dataset,
-                           indices_unlabeled: npt.NDArray[np.uint],
-                           indices_labeled: npt.NDArray[np.uint],
-                           pbar: str = 'tqdm'):
-        if self.vector_index is None:
-            self.embeddings = clf.embed(dataset, pbar=pbar)
-            if self.normalize:
-                self.embeddings = normalize(self.embeddings, axis=1)
-
-            self.vector_index = self.vector_index_factory.new()
-            self.indices_unlabeled = set(indices_unlabeled)
-        else:
-            recently_removed_elements = self.indices_unlabeled - set(indices_unlabeled)
-            for el in recently_removed_elements:
-                self.vector_index.mark_deleted(el)
-            self.indices_unlabeled = set(indices_unlabeled)
-
-        indices_nn, _ = self.vector_index.knn_query(self.embeddings[indices_labeled], k=self.k)
-        indices_nn = np.unique(indices_nn.astype(int).flatten())
-
-        return indices_nn
-
-    @property
-    def last_scores(self):
-        if isinstance(self.base_query_strategy, ScoringMixin):
-            return self.base_query_strategy.last_scores
-        return None
-
-    def score(self,
-              clf: Classifier,
-              dataset: Dataset,
-              indices_unlabeled: npt.NDArray[np.uint],
-              indices_labeled: npt.NDArray[np.uint],
-              y: Union[npt.NDArray[np.uint], csr_matrix]) -> npt.NDArray[np.double]:
-
-        _unused = clf, dataset, indices_unlabeled, indices_labeled, y
-        return NotImplementedError
-
-    def __str__(self):
-        return f'SEALS(base_query_strategy={str(self.base_query_strategy)}, ' \
-               f'k={self.k}, embed_kwargs={self.embed_kwargs}, normalize={self.normalize})'

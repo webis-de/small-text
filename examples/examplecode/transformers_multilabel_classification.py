@@ -39,7 +39,7 @@ def main(num_iterations=10):
     num_classes = 28
     clf_factory = TransformerBasedClassificationFactory(TRANSFORMER_MODEL,
                                                         num_classes,
-                                                        kwargs={
+                                                        classification_kwargs={
                                                             'device': 'cuda',
                                                             'multi_label': True
                                                         })

@@ -10,7 +10,6 @@ from unittest.mock import patch, Mock
 from small_text.classifiers import ConfidenceEnhancedLinearSVC, SklearnClassifier
 from small_text.classifiers.factories import SklearnClassifierFactory
 from small_text.data.datasets import SklearnDataset
-from small_text.exceptions import MissingOptionalDependencyError
 from small_text.query_strategies.base import ScoringMixin
 from small_text.query_strategies import EmptyPoolException, PoolExhaustedException
 from small_text.query_strategies import (
@@ -22,8 +21,7 @@ from small_text.query_strategies import (
     PredictionEntropy,
     EmbeddingBasedQueryStrategy,
     EmbeddingKMeans,
-    DiscriminativeActiveLearning,
-    SEALS
+    DiscriminativeActiveLearning
 )
 
 from tests.utils.classification import (
@@ -842,11 +840,3 @@ class DiscriminativeActiveLearningTest(unittest.TestCase, SamplingStrategiesTest
                        'base_estimator=ConfidenceEnhancedLinearSVC, num_classes=2, kwargs={}), ' \
                        'num_iterations=3, unlabeled_factor=10)'
         self.assertEqual(expected_str, str(strategy))
-
-
-class SEALSTest(unittest.TestCase):
-
-    def test_init(self):
-        with self.assertRaisesRegex(MissingOptionalDependencyError,
-                                    'The optional dependency \'hnswlib\''):
-            SEALS(LeastConfidence())

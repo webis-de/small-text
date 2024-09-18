@@ -1,12 +1,16 @@
-from typing import Union
+import numpy as np
+from typing import Union, Optional
 
 from small_text.base import check_optional_dependency
 from small_text.vector_indexes.base import VectorIndex
 
 
-class HNSWIndex(VectorIndex):
+class HNSWIndex(VectorIndex['hnswlib.Index']):
     """
     A vector index that relies on Hierarchical Navigable Small Worlds (HNSW).
+
+    .. note ::
+       This strategy requires the optional dependency `hnswlib`.
 
      .. seealso::
        GitHub repository of the underlying implementation.
@@ -47,13 +51,13 @@ class HNSWIndex(VectorIndex):
         self.m = m
         self.random_seed = random_seed
 
-        self._index = None
+        self._index: Optional['hnswlib.Index'] = None
 
     @property
-    def index(self) -> Union[None, object]:
+    def index(self) -> Optional['hnswlib.Index']:
         return self._index
 
-    def build(self, vectors):
+    def build(self, vectors, ids=None):
         import hnswlib
         dim = vectors.shape[1]
         self._index = hnswlib.Index(space=self.space, dim=dim)
@@ -61,12 +65,16 @@ class HNSWIndex(VectorIndex):
                                ef_construction=self.ef_construction,
                                M=self.m,
                                random_seed=self.random_seed)
-        self._index.add_items(vectors)
+
+        if ids is None:
+            ids = np.arange(vectors.shape[0])
+
+        self._index.add_items(vectors, ids)
         self._index.set_ef(self.ef)
 
-    def remove(self, vector_indices):
-        for el in vector_indices:
-            self.index.mark_deleted(el)
+    def remove(self, ids):
+        for id_ in ids:
+            self.index.mark_deleted(id_)
 
     def search(self, vectors, k: int = 10, return_distance: bool = False):
         try:

@@ -9,15 +9,20 @@ from small_text import (
     PoolBasedActiveLearner,
     PoolExhaustedException,
     RandomSampling,
+    AnchorSubsampling,
+    SEALS,
     TransformerBasedClassificationFactory,
     TransformerModelArguments,
-    random_initialization_balanced
+    random_initialization_balanced,
+    ContrastiveActiveLearning
 )
+from small_text.vector_indexes.base import VectorIndexFactory
+from small_text.vector_indexes.hnsw import HNSWIndex
 
 from examplecode.data.corpus_twenty_news import get_twenty_newsgroups_corpus
 from examplecode.data.example_data_transformers import preprocess_data
 from examplecode.shared import evaluate
-
+from small_text.vector_indexes.knn import KNNIndex
 
 TRANSFORMER_MODEL = TransformerModelArguments('distilroberta-base')
 
@@ -31,11 +36,13 @@ def main(num_iterations=10):
     num_classes = len(TWENTY_NEWS_SUBCATEGORIES)
     clf_factory = TransformerBasedClassificationFactory(TRANSFORMER_MODEL,
                                                         num_classes,
-                                                        kwargs={
+                                                        classification_kwargs={
                                                             'device': 'cuda',
                                                             'amp_args': AMPArguments(use_amp=True, device_type='cuda')
                                                         })
-    query_strategy = RandomSampling()
+    # query_strategy = ContrastiveActiveLearning(vector_index_factory=VectorIndexFactory(HNSWIndex))
+    query_strategy = AnchorSubsampling(ContrastiveActiveLearning(), vector_index_factory=VectorIndexFactory(KNNIndex))
+    # query_strategy = SEALS(ContrastiveActiveLearning())
 
     # Prepare some data
     train, test = get_twenty_newsgroups_corpus(categories=TWENTY_NEWS_SUBCATEGORIES)

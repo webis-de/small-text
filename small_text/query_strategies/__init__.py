@@ -28,10 +28,9 @@ from small_text.query_strategies.strategies import (
     EmbeddingBasedQueryStrategy,
     EmbeddingKMeans,
     ContrastiveActiveLearning,
-    DiscriminativeActiveLearning,
-    SEALS
+    DiscriminativeActiveLearning
 )
-from small_text.query_strategies.subsampling import AnchorSubsampling
+from small_text.query_strategies.subsampling import AnchorSubsampling, SEALS
 
 
 __all__ = [
@@ -53,7 +52,6 @@ __all__ = [
     'EmbeddingKMeans',
     'ContrastiveActiveLearning',
     'DiscriminativeActiveLearning',
-    'SEALS',
     'greedy_coreset',
     'GreedyCoreset',
     'lightweight_coreset',
@@ -62,5 +60,6 @@ __all__ = [
     'CategoryVectorInconsistencyAndRanking',
     'LabelCardinalityInconsistency',
     'AdaptiveActiveLearning',
-    'AnchorSubsampling'
+    'AnchorSubsampling',
+    'SEALS'
 ]
