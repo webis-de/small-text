@@ -76,7 +76,7 @@ To enable the Transformers Integration, install the library with the `transforme
 
 .. code-block:: console
 
-    conda install small-text "torch>=1.6.0" "torchtext>=0.7.0" "transformers>=4.0.0"
+    conda install small-text "torch>=1.6.0" "transformers>=4.0.0"
 
 The Transformers Integration also requires Pytorch, so installing this automatically
 entails an installation of the Pytorch Integration.
@@ -110,7 +110,7 @@ An overview of such dependencies is given in table below:
      - >= 1.3.0
    * - `setfit`_
      - :py:class:`~small_text.integrations.transformers.classifiers.setfit.SetFitClassification`
-     - < 1.0.0
+     - >= 1.1.0
 
 
 .. _`gensim`: https://pypi.org/project/gensim/
