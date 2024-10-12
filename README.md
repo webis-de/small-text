@@ -80,7 +80,7 @@ For conda, which lacks the extra requirements feature, a full installation can b
 conda install -c conda-forge "torch>=1.6.0" transformers small-text
 ```
 
-The library requires Python 3.7 or newer. For using the GPU, CUDA 10.1 or newer is required. 
+The library requires Python 3.8 or newer. For using the GPU, CUDA 10.1 or newer is required. 
 More information regarding the installation can be found in the 
 [documentation][documentation_install].
 
@@ -94,12 +94,15 @@ or check out the notebooks.
 
 ### Notebooks
 
-| # | Notebook                                                                                                                                                                                                       |                                                                                                                                                                                                                                                  |
-| --- |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+<div align="center">
+
+| # | Notebook                                                                                                                                                                                                        |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 1 | [Intro: Active Learning for Text Classification with Small-Text](https://github.com/webis-de/small-text/blob/v1.4.1/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.4.1/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
 | 2 | [Using Stopping Criteria for Active Learning](https://github.com/webis-de/small-text/blob/v1.4.1/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb)                                           | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.4.1/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb)                        |
 | 3 | [Active Learning using SetFit](https://github.com/webis-de/small-text/blob/v1.4.1/examples/notebooks/03-active-learning-with-setfit.ipynb)                                                                     | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.4.1/examples/notebooks/03-active-learning-with-setfit.ipynb)                                   |
 | 4 | [Using SetFit's Zero Shot Capabilities for Cold Start Initialization](https://github.com/webis-de/small-text/blob/v1.4.1/examples/notebooks/04-zero-shot-cold-start.ipynb)                                     | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v1.4.1/examples/notebooks/04-zero-shot-cold-start.ipynb)                                          |
+
+</div>
 
 ### Showcase
 
