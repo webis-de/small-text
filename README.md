@@ -145,7 +145,7 @@ Read the latest documentation [here][documentation_main]. Noteworthy pages inclu
     </tr>
     <tr>
       <td>small-text v2.0.0</td>
-      <td>18</td>
+      <td>19</td>
       <td>5</td>
     </tr>
   </tbody>

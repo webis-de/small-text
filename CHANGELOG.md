@@ -25,10 +25,10 @@ On the other hand, this also allowed us to deal with further issues that contain
 - Pytorch:
   - Added an `inference_mode()` context manager that applies `torch.inference_mode` or `torch.no_grad` for older Pytorch versions.
 - Query Strategies:
-  - New strategies: [DiscriminativeRepresentationLearning](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/integrations/pytorch/query_strategies/strategies.py), [LabelCardinalityInconsistency](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/multi_label.py) and [ClassBalancer](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/class_balancing.py).
+  - New strategies: [DiscriminativeRepresentationLearning](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/integrations/pytorch/query_strategies/strategies.py), [LabelCardinalityInconsistency](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/multi_label.py), [ClassBalancer](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/class_balancing.py), and [ProbCover](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/vector_space.py).
   - Query strategies now have a [tie-breaking mechanism](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/base.py) to randomly permutate when there is a tie in scores.
   - Added `ScoringMixin` to enable a reusable scoring mechanism for query strategies.
-  - [LightweightCoreset](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/corsets.py) can now process input in batches. (#23)
+  - [LightweightCoreset](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/corsets.py) can now process input in batches. ([#23](https://github.com/webis-de/small-text/issues/23))
 - Vector Index Functionality:
   - A new vector index API provides implementations over a unified interface to use different implementations for k-nearest neighbor search.
   - Existing strategies that used a hard-coded vector search ([ContrastiveActiveLearning](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/strategies.py), [SEALS](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/strategies.py), [AnchorSubsampling](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/subsampling.py)) have been adapted and can now be used with different vector index implementations.

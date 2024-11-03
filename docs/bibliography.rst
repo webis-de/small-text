@@ -72,6 +72,18 @@ Active Learning
    `Stopping Active Learning based on Predicted Change of F Measure for Text Classification <https://doi.org/10.1109/ICOSC.2019.8665646>`_.
    In International Conference on Semantic Computing (ICSC 2019).
 
+.. [EHG+20] Liat Ein-Dor, Alon Halfon, Ariel Gera, Eyal Shnarch, Lena Dankin, Leshem Choshen, Marina Danilevsky, Ranit Aharonov, Yoav Katz, and Noam Slonim. 2020.
+   `Active Learning for BERT: An Empirical Study <https://doi.org/10.18653/v1/2020.emnlp-main.638>`_.
+   In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP), pages 7949–7962.
+
+.. [SNP22] Christopher Schröder, Andreas Niekler, and Martin Potthast. 2022.
+   `Revisiting Uncertainty-based Query Strategies for Active Learning with Transformers <https://doi.org/10.18653/v1/2022.findings-acl.172>`_.
+   In Findings of the Association for Computational Linguistics: ACL 2022, pages 2194–2203.
+
+
+Query Strategies
+================
+
 .. [GS19] Daniel Gissin and Shai Shalev-Shwartz. 2019.
    `Discriminative Active Learning <https://doi.org/10.48550/arXiv.1907.06347>`_.
    ArXiv abs/1907.06347.
@@ -85,29 +97,22 @@ Active Learning
    In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)
    Association for Computational Linguistics, pages 7935–7948.
 
-.. [EHG+20] Liat Ein-Dor, Alon Halfon, Ariel Gera, Eyal Shnarch, Lena Dankin, Leshem Choshen, Marina Danilevsky, Ranit Aharonov, Yoav Katz, and Noam Slonim. 2020.
-   `Active Learning for BERT: An Empirical Study <https://doi.org/10.18653/v1/2020.emnlp-main.638>`_.
-   In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP), pages 7949–7962.
-
-.. [CCK+22] Cody Coleman, Edward Chou, Julian Katz-Samuels, Sean Culatana, Peter Bailis, Alexander C. Berg, Robert Nowak, Roshan Sumbaly, Matei Zaharia, and I. Zeki Yalniz. 2022.
-   `Similarity Search for Efficient Active Learning and Search of Rare Concepts <https://doi.org/10.48550/arXiv.2007.00077>`_.
-   Proceedings of the AAAI Conference on Artificial Intelligence, 36(6), 6402-6410
-
 .. [MVB+21] Katerina Margatina, Giorgos Vernikos, Loïc Barrault, and Nikolaos Aletras. 2021.
    `Active Learning by Acquiring Contrastive Examples <https://doi.org/10.18653/v1/2021.emnlp-main.51>`_.
    In Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing (EMNLP), pages 650–663.
 
-.. [SNP22] Christopher Schröder, Andreas Niekler, and Martin Potthast. 2022.
-   `Revisiting Uncertainty-based Query Strategies for Active Learning with Transformers <https://doi.org/10.18653/v1/2022.findings-acl.172>`_.
-   In Findings of the Association for Computational Linguistics: ACL 2022, pages 2194–2203.
+.. [CCK+22] Cody Coleman, Edward Chou, Julian Katz-Samuels, Sean Culatana, Peter Bailis, Alexander C. Berg, Robert Nowak, Roshan Sumbaly, Matei Zaharia, and I. Zeki Yalniz. 2022.
+   `Similarity Search for Efficient Active Learning and Search of Rare Concepts <https://doi.org/10.48550/arXiv.2007.00077>`_.
+   Proceedings of the AAAI Conference on Artificial Intelligence, 36(6), pages 6402–6410.
 
-.. [TRE+22] Lewis Tunstall, Nils Reimers, Unso Eun Seo Jo, Luke Bates, Daniel Korat, Moshe Wasserblat, and Oren Pereg. 2022.
-   `Efficient Few-Shot Learning Without Prompts <https://doi.org/10.48550/arXiv.2209.11055>`_.
-   ArXiv, abs/2209.11055.
+.. [YDH+22] Ofer Yehuda, Avihu Dekel, Guy Hacohen, Daphna Weinshall. 2022.
+   `Active Learning Through a Covering Lens <https://proceedings.neurips.cc/paper_files/paper/2022/file/8c64bc3f7796d31caa7c3e6b969bf7da-Paper-Conference.pdf>`_.
+   Advances in Neural Information Processing Systems 35 (NeurIPS 2022), pages 22354–22367.
 
 .. [LV24] Pietro Lesci and Andreas Vlachos. 2024.
    `AnchorAL: Computationally Efficient Active Learning for Large and Imbalanced Datasets <https://aclanthology.org/2024.naacl-long.467>`_.
    ArXiv abs/2404.05623.
+
 
 Misc
 ====
@@ -115,3 +120,7 @@ Misc
 .. [JGP+17] Eric Jang, Shixiang Gu, and Ben Poole. 2017.
    `Categorical Reparameterization with Gumbel-Softmax. <https://openreview.net/pdf?id=rkE3y85ee>`__
    International Conference on Learning Representations 2017 (ICLR 2017).
+
+.. [TRE+22] Lewis Tunstall, Nils Reimers, Unso Eun Seo Jo, Luke Bates, Daniel Korat, Moshe Wasserblat, and Oren Pereg. 2022.
+   `Efficient Few-Shot Learning Without Prompts <https://doi.org/10.48550/arXiv.2209.11055>`_.
+   ArXiv, abs/2209.11055.

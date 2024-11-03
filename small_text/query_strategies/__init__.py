@@ -31,6 +31,7 @@ from small_text.query_strategies.strategies import (
     DiscriminativeActiveLearning
 )
 from small_text.query_strategies.subsampling import AnchorSubsampling, SEALS
+from small_text.query_strategies.vector_space import ProbCover
 
 
 __all__ = [
@@ -61,5 +62,6 @@ __all__ = [
     'LabelCardinalityInconsistency',
     'AdaptiveActiveLearning',
     'AnchorSubsampling',
-    'SEALS'
+    'SEALS',
+    'ProbCover'
 ]

@@ -466,8 +466,8 @@ class ContrastiveActiveLearning(EmbeddingBasedQueryStrategy):
             Embedding keyword args which are passed to `clf.embed()`.
         normalize : bool, default=True
             Embeddings will be L2 normalized if `True`, otherwise they remain unchanged.
-        vector_index_factory : VectorIndexFactory
-
+        vector_index_factory : VectorIndexFactory, default=VectorIndexFactory(KNNIndex)
+            A factory that provides the vector index for nearest neighbor queries.
         batch_size : int, default=100
             Batch size which is used to process the embeddings.
         pbar : 'tqdm' or None, default='tqdm'

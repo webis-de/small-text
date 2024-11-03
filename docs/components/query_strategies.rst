@@ -22,6 +22,7 @@ General
 * :py:class:`EmbeddingKMeans`
 * :py:class:`~small_text.query_strategies.coresets.GreedyCoreset`
 * :py:class:`~small_text.query_strategies.coresets.LightweightCoreset`
+* :py:class:`~small_text.query_strategies.vector_space.ProbCover`
 * :py:class:`ContrastiveActiveLearning`
 * :py:class:`DiscriminativeActiveLearning`
 * :py:class:`~small_text.query_strategies.multi_label.CategoryVectorInconsistencyAndRanking`
@@ -119,6 +120,11 @@ Base
     :special-members: __init__
 
 .. autoclass:: LightweightCoreset
+    :special-members: __init__
+
+.. py:module:: small_text.query_strategies.vector_space
+
+.. autoclass:: ProbCover
     :special-members: __init__
 
 .. py:module:: small_text.query_strategies.strategies
