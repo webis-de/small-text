@@ -88,7 +88,7 @@ Pytorch Integration
 
 .. currentmodule:: small_text.integrations.pytorch.classifiers.factories
 
-.. autoclass:: KimCNNFactory
+.. autoclass:: KimCNNClassifierFactory
     :members: new
     :member-order: bysource
     :special-members: __init__
