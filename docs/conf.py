@@ -117,6 +117,6 @@ def linkcode_resolve(domain, info):
 
 intersphinx_mapping = {
     'numpy': ('https://numpy.org/doc/stable/', None),
-    'torch': ('https://pytorch.org/docs/master/', None),
-    'scipy': ('http://docs.scipy.org/doc/scipy/reference', None)
+    'torch': ('https://pytorch.org/docs/main/', None),
+    'scipy': ('http://docs.scipy.org/doc/scipy/', None)
 }
