@@ -21,7 +21,6 @@ from small_text.data._typing import (
     SKLEARN_DATA
 )
 from small_text.utils.data import list_length
-from small_text.utils.labels import get_flattened_unique_labels
 
 
 def check_size(expected_num_samples, num_samples):

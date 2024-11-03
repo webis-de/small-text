@@ -55,6 +55,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 
 - Deprecated functionality
   - Removed `default_tensor_type()` method.
+  - Removed `small_text.utils.labels.get_flattened_unique_labels()`.
   - Removed `small_text.integrations.pytorch.utils.labels.get_flattened_unique_labels()`.
   - Classification
     - Removed early stopping legacy arguments in `__init__()` for KimCNN and TransformerBasedClassification. (Use `fit()` keyword arguments instead.) 
