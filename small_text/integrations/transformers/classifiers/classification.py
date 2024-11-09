@@ -39,6 +39,9 @@ try:
 
     from small_text.integrations.transformers.datasets import TransformersDataset
     from small_text.integrations.transformers.utils.classification import (
+        _check_for_managed_config_kwargs,
+        _check_for_managed_tokenizer_kwargs,
+        _check_for_managed_model_kwargs,
         _initialize_transformer_components,
         _build_layer_specific_params
     )
@@ -97,6 +100,9 @@ class TransformerModelArguments(object):
                  model,
                  tokenizer=None,
                  config=None,
+                 model_kwargs={},
+                 tokenizer_kwargs={},
+                 config_kwargs={},
                  model_loading_strategy: ModelLoadingStrategy = get_default_model_loading_strategy(),
                  compile_model: bool = False):
         """
@@ -110,18 +116,51 @@ class TransformerModelArguments(object):
         config : str, default=None
             Name of the config if deviating from the model name. Will be passed into
             `AutoConfig.from_pretrained()`.
+        model_kwargs : dict, default={}
+            Additional kwargs that will be passed into `AutoModelForSequenceClassification.from_pretrained()`.
+            Arguments that are managed by small-text (such as the model name given by `model`) are excluded.
+
+            .. seealso::
+
+                `AutoModelForSequenceClassification.from_pretrained()
+                <https://huggingface.co/docs/transformers/en/model_doc/auto#transformers.AutoModelForSequenceClassification>`_
+                in transformers.
+
+        tokenizer_kwargs : dict, default={}
+            Additional kwargs that will be passed into `AutoTokenizer.from_pretrained()`.
+            Arguments that are managed by small-text (such as the tokenizer name given by `tokenizer`) are excluded.
+
+            .. seealso::
+
+                `AutoTokenizer.from_pretrained()
+                <https://huggingface.co/docs/transformers/en/model_doc/auto#transformers.AutoTokenizer>`_ in transformers.
+
+        config_kwargs : dict, default={}
+            Additional kwargs that will be passed into `AutoConfig.from_pretrained()`.
+            Arguments that are managed by small-text (such as the tokenizer name given by `tokenizer`) are excluded.
+
+            .. seealso::
+
+                `AutoConfig.from_pretrained()
+                <https://huggingface.co/docs/transformers/en/model_doc/auto#transformers.AutoConfig>`_ in transformers.
+
         model_loading_strategy: ModelLoadingStrategy, default=ModelLoadingStrategy.DEFAULT
             Specifies if there should be attempts to download the model or if only local
             files should be used.
         compile_model : bool, default=False
             Compiles the model (using `torch.compile`) if `True` and provided that
-            the PyTorch version greater or equal 2.0.0.
+            the PyTorch version is greater or equal to 2.0.0.
 
             .. versionadded:: 2.0.0
+
         """
         self.model = model
         self.tokenizer = tokenizer
         self.config = config
+
+        self.model_kwargs = _check_for_managed_model_kwargs(model_kwargs)
+        self.tokenizer_kwargs = _check_for_managed_tokenizer_kwargs(tokenizer_kwargs)
+        self.config_kwargs = _check_for_managed_config_kwargs(config_kwargs)
 
         if self.tokenizer is None:
             self.tokenizer = model

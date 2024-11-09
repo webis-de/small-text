@@ -67,9 +67,19 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual('bert-base-uncased', model_args.model)
         self.assertEqual(config, model_args.config)
         self.assertEqual(tokenizer, model_args.tokenizer)
+        self._assert_empty_kwargs(model_args)
         self.assertIsNotNone(model_args.model_loading_strategy)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
         self.assertFalse(model_args.compile_model)
+
+    def _assert_empty_kwargs(self, model_args):
+        self._assert_dict_not_none_and_empty(model_args.model_kwargs)
+        self._assert_dict_not_none_and_empty(model_args.tokenizer_kwargs)
+        self._assert_dict_not_none_and_empty(model_args.config_kwargs)
+
+    def _assert_dict_not_none_and_empty(self, dict_to_check):
+        self.assertIsNotNone(dict_to_check)
+        self.assertEqual(0, len(dict_to_check))
 
     def test_transformer_model_arguments_init_with_model_loading_strategy(self):
         tokenizer = '/path/to/tokenizer/'
@@ -82,6 +92,7 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual('bert-base-uncased', model_args.model)
         self.assertEqual(config, model_args.config)
         self.assertEqual(tokenizer, model_args.tokenizer)
+        self._assert_empty_kwargs(model_args)
         self.assertIsNotNone(model_args.model_loading_strategy)
         self.assertEqual(model_loading_strategy, model_args.model_loading_strategy)
         self.assertFalse(model_args.compile_model)
@@ -100,6 +111,7 @@ class TestTransformerModelArguments(unittest.TestCase):
             self.assertEqual('bert-base-uncased', model_args.model)
             self.assertEqual(config, model_args.config)
             self.assertEqual(tokenizer, model_args.tokenizer)
+            self._assert_empty_kwargs(model_args)
             self.assertIsNotNone(model_args.model_loading_strategy)
             self.assertEqual(ModelLoadingStrategy.ALWAYS_LOCAL, model_args.model_loading_strategy)
             self.assertFalse(model_args.compile_model)
@@ -114,9 +126,97 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual('bert-base-uncased', model_args.model)
         self.assertEqual(config, model_args.config)
         self.assertEqual(tokenizer, model_args.tokenizer)
+        self._assert_empty_kwargs(model_args)
         self.assertIsNotNone(model_args.model_loading_strategy)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
         self.assertFalse(model_args.compile_model)
+
+    def test_transformer_model_arguments_init_model_kwargs(self):
+        tokenizer = '/path/to/tokenizer/'
+        config = '/path/to/config/'
+        model_kwargs = {'torch_dtype': 'bfloat16'}
+        model_args = TransformerModelArguments('bert-base-uncased',
+                                               tokenizer=tokenizer,
+                                               config=config,
+                                               model_kwargs=model_kwargs)
+        self.assertEqual('bert-base-uncased', model_args.model)
+        self.assertEqual(config, model_args.config)
+        self.assertEqual(tokenizer, model_args.tokenizer)
+        self.assertEqual(model_kwargs, model_args.model_kwargs)
+        self._assert_dict_not_none_and_empty(model_args.tokenizer_kwargs)
+        self._assert_dict_not_none_and_empty(model_args.config_kwargs)
+        self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
+        self.assertFalse(model_args.compile_model)
+
+    def test_transformer_model_arguments_init_model_kwargs_invalid(self):
+        tokenizer = '/path/to/tokenizer/'
+        config = '/path/to/config/'
+        model_kwargs = {'cache_dir': '/path/to/cache'}
+
+        with self.assertRaisesRegex(ValueError, 'Cannot override managed keyword argument in model_kwargs'):
+            TransformerModelArguments('bert-base-uncased',
+                                      tokenizer=tokenizer,
+                                      config=config,
+                                      model_kwargs=model_kwargs)
+
+    def test_transformer_model_arguments_init_tokenizer_kwargs(self):
+        tokenizer = '/path/to/tokenizer/'
+        config = '/path/to/config/'
+        tokenizer_kwargs = {'eos_token': '</s>'}
+        model_args = TransformerModelArguments('bert-base-uncased',
+                                               tokenizer=tokenizer,
+                                               config=config,
+                                               tokenizer_kwargs=tokenizer_kwargs)
+        self.assertEqual('bert-base-uncased', model_args.model)
+        self.assertEqual(config, model_args.config)
+        self.assertEqual(tokenizer, model_args.tokenizer)
+        self._assert_dict_not_none_and_empty(model_args.model_kwargs)
+        self.assertEqual(tokenizer_kwargs, model_args.tokenizer_kwargs)
+        self._assert_dict_not_none_and_empty(model_args.config_kwargs)
+        self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
+        self.assertFalse(model_args.compile_model)
+
+    def test_transformer_model_arguments_init_tokenizer_kwargs_invalid(self):
+        tokenizer = '/path/to/tokenizer/'
+        config = '/path/to/config/'
+        tokenizer_kwargs = {'cache_dir': '/path/to/cache'}
+
+        with self.assertRaisesRegex(ValueError, 'Cannot override managed keyword argument in tokenizer_kwargs'):
+            TransformerModelArguments('bert-base-uncased',
+                                      tokenizer=tokenizer,
+                                      config=config,
+                                      tokenizer_kwargs=tokenizer_kwargs)
+
+    def test_transformer_model_arguments_init_config_kwargs(self):
+        tokenizer = '/path/to/tokenizer/'
+        config = '/path/to/config/'
+        config_kwargs = {'output_attentions': True}
+        model_args = TransformerModelArguments('bert-base-uncased',
+                                               tokenizer=tokenizer,
+                                               config=config,
+                                               config_kwargs=config_kwargs)
+        self.assertEqual('bert-base-uncased', model_args.model)
+        self.assertEqual(config, model_args.config)
+        self.assertEqual(tokenizer, model_args.tokenizer)
+        self._assert_dict_not_none_and_empty(model_args.model_kwargs)
+        self._assert_dict_not_none_and_empty(model_args.tokenizer_kwargs)
+        self.assertEqual(config_kwargs, model_args.config_kwargs)
+        self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
+        self.assertFalse(model_args.compile_model)
+
+    def test_transformer_model_arguments_init_config_kwargs_invalid(self):
+        tokenizer = '/path/to/tokenizer/'
+        config = '/path/to/config/'
+        config_kwargs = {'cache_dir': '/path/to/cache'}
+
+        with self.assertRaisesRegex(ValueError, 'Cannot override managed keyword argument in config_kwargs'):
+            TransformerModelArguments('bert-base-uncased',
+                                      tokenizer=tokenizer,
+                                      config=config,
+                                      config_kwargs=config_kwargs)
 
 
 @pytest.mark.pytorch

@@ -118,5 +118,6 @@ def linkcode_resolve(domain, info):
 intersphinx_mapping = {
     'numpy': ('https://numpy.org/doc/stable/', None),
     'torch': ('https://pytorch.org/docs/main/', None),
-    'scipy': ('http://docs.scipy.org/doc/scipy/', None)
+    'scipy': ('http://docs.scipy.org/doc/scipy/', None),
+    'transformers': ('https://huggingface.co/docs/transformers/master/en/', None),
 }
