@@ -9,7 +9,7 @@
 [![Twitter URL](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fwebis-de%2Fsmall-text)](https://twitter.com/intent/tweet?text=https%3A%2F%2Fgithub.com%2Fwebis-de%2Fsmall-text)
 
 <p align="center">
-<img width="372" height="80" src="https://raw.githubusercontent.com/webis-de/small-text/master/docs/_static/small-text-logo.png" alt="small-text logo" />
+<img width="400" src="https://raw.githubusercontent.com/webis-de/small-text/dev/docs/_static/small-text-logo.png" alt="small-text logo" />
 </p>
 
 > Active Learning for Text Classification in Python.
