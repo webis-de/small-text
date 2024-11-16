@@ -6,7 +6,6 @@
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 [![MIT License](https://img.shields.io/github/license/webis-de/small-text)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13338289.svg)](https://zenodo.org/records/13338289)
-[![Twitter URL](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fwebis-de%2Fsmall-text)](https://twitter.com/intent/tweet?text=https%3A%2F%2Fgithub.com%2Fwebis-de%2Fsmall-text)
 
 <p align="center">
 <img width="450" src="https://github.com/webis-de/small-text/blob/dev/docs/_static/small-text-logo.png?raw=true" alt="small-text logo" />
