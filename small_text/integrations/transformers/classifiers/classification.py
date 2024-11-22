@@ -240,7 +240,6 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
         masks = masks.to(self.device, non_blocking=True)
 
         outputs = self.model(text,
-                             token_type_ids=None,
                              attention_mask=masks,
                              output_hidden_states=True)
 
