@@ -73,12 +73,6 @@ For a full installation via pip, you just need to include the `transformers` ext
 pip install small-text[transformers]
 ```
 
-For conda, which lacks the extra requirements feature, a full installation can be achieved as follows:
-
-```bash
-conda install -c conda-forge "torch>=1.6.0" transformers small-text
-```
-
 The library requires Python 3.8 or newer. For using the GPU, CUDA 10.1 or newer is required. 
 More information regarding the installation can be found in the 
 [documentation][documentation_install].
