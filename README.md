@@ -44,7 +44,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
-**Version 2.0.0 dev1** ([v2.0.0.dev1][changelog_2.0.0dev1])  - November 22nd, 2024
+**Version 2.0.0 dev1** ([v2.0.0.dev1][changelog_2.0.0dev1])  - November 24th, 2024
   - This a development release with the most changes so far. You can consider this an alpha release, which does not guarantee you stable interfaces yet, 
     but is otherwise ready to use.
   - Version 2.0.0 offers cleaned up interfaces, new query strategies, improved classifiers, and new functionality such as vector indices. See the [changelog][changelog_2.0.0dev1] for a full list of changes.
