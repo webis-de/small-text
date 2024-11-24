@@ -5,7 +5,7 @@
 ![Maintained Yes](https://img.shields.io/badge/maintained-yes-green)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 [![MIT License](https://img.shields.io/github/license/webis-de/small-text)](LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13338289.svg)](https://zenodo.org/records/13338289)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14212697.svg)](https://zenodo.org/records/14212697)
 
 <p align="center">
 <img width="450" src="https://github.com/webis-de/small-text/blob/dev/docs/_static/small-text-logo.png?raw=true" alt="small-text logo" />
