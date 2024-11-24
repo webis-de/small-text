@@ -41,7 +41,7 @@ Pytorch Integration
 .. _api-datasets-pytorch-text-classification-dataset:
 
 .. autoclass:: PytorchTextClassificationDataset
-    :members: x, y, target_labels, data, vocab, clone, to, from_arrays
+    :members: x, y, target_labels, data, clone, to, from_arrays
     :member-order: bysource
     :special-members: __init__
 

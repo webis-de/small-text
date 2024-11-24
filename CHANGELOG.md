@@ -36,7 +36,7 @@ On the other hand, this also allowed us to deal with further issues that contain
   - [LightweightCoreset](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/corsets.py) can now process input in batches. ([#23](https://github.com/webis-de/small-text/issues/23))
 - Vector Index Functionality:
   - A new vector index API provides implementations over a unified interface to use different implementations for k-nearest neighbor search.
-  - Existing strategies that used a hard-coded vector search ([ContrastiveActiveLearning](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/strategies.py), [SEALS](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/strategies.py), [AnchorSubsampling](https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/subsampling.py)) have been adapted and can now be used with different vector index implementations.
+  - Existing strategies that used a hard-coded vector search ([ContrastiveActiveLearning][contrastive_active_learning], [SEALS][seals], [AnchorSubsampling][anchor_subsampling]) have been adapted and can now be used with different vector index implementations.
 
 ### Fixed 
 
@@ -93,7 +93,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 
 ## Added
 
-- New query strategy: [AnchorSubsampling](https://github.com/webis-de/small-text/blob/v1.4.0/small_text/query_strategies/subsampling.py).
+- New query strategy: [AnchorSubsampling][anchor_subsampling].
 
 ### Fixed
 
@@ -288,7 +288,7 @@ First stable release.
     that creates an identical copy of the respective dataset.
 - Query Strategies:
   - New strategies: [DiscriminativeActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py) 
-    and [SEALS](https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py).
+    and [SEALS][seals].
 
 ### Changed
 
@@ -312,7 +312,7 @@ First stable release.
 
 ### Added
 
-- New query strategy: [ContrastiveActiveLearning](https://github.com/webis-de/small-text/blob/v1.0.0b3/small_text/query_strategies/strategies.py).
+- New query strategy: [ContrastiveActiveLearning][contrastive_active_learning].
 - Added [Reproducibility Notes](https://small-text.readthedocs.io/en/v1.0.0b3/reproducibility_notes.html).
 
 ### Changed
@@ -372,3 +372,8 @@ First beta release with multi-label functionality and stopping criteria.
 
 - Removed `device` kwarg from `PytorchDataset.__init__()`, 
 `PytorchTextClassificationDataset.__init__()` and `TransformersDataset.__init__()`.
+
+
+[contrastive_active_learning]: https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/strategies.py
+[anchor_subsampling]: https://github.com/webis-de/small-text/blob/v2.0.0/small_text/query_strategies/subsampling.py
+[seals]: https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py
