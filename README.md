@@ -20,6 +20,16 @@ Small-Text provides state-of-the-art **Active Learning** for Text Classification
 Several pre-implemented Query Strategies, Initialization Strategies, and Stopping Critera are provided, 
 which can be easily mixed and matched to build active learning experiments or applications.
 
+## What is Active Learning?
+[Active Learning](https://small-text.readthedocs.io/en/latest/active_learning.html) allows you to efficiently label training data for supervised learning in a scenario where you have little to no labeled data.
+
+<p align="center">
+
+<img src="https://raw.githubusercontent.com/webis-de/small-text/dev/docs/_static/learning-curve-example.gif?raw=true" alt="Learning curve example for the TREC-6 dataset." width="60%">
+
+</p>
+
+
 ## Features
 
 - Provides unified interfaces for Active Learning so that you can 
@@ -30,27 +40,18 @@ which can be easily mixed and matched to build active learning experiments or ap
   a lightweight installation only requires a minimal set of dependencies.
 - Multiple scientifically evaluated components are pre-implemented and ready to use (Query Strategies, Initialization Strategies, and Stopping Criteria).
 
-## What is Active Learning?
-[Active Learning](https://small-text.readthedocs.io/en/latest/active_learning.html) allows you to efficiently label training data for supervised learning in a scenario where you have little to no labeled data.
-
-<p align="center">
-
-<img src="https://raw.githubusercontent.com/webis-de/small-text/dev/docs/_static/learning-curve-example.gif?raw=true" alt="Learning curve example for the TREC-6 dataset." width="60%">
-
-</p>
-
 ---
 
 ## News
 
-- **Version 1.4.1** ([v1.4.1][changelog_1.4.1]) - August 18th, 2024
+**Version 1.4.1** ([v1.4.1][changelog_1.4.1]) - August 18th, 2024
   - Bugfix release.
 
-- **Version 1.4.0** ([v1.4.0][changelog_1.4.0]) - June 9th, 2024
+**Version 1.4.0** ([v1.4.0][changelog_1.4.0]) - June 9th, 2024
   - New query strategy: [AnchorSubsampling](https://small-text.readthedocs.io/en/v1.3.3/components/query_strategies.html#small_text.query_strategies.subsampling.AnchorSubsampling) (aka [AnchorAL](https://arxiv.org/abs/2404.05623)).  
     Special thanks to [Pietro Lesci](https://github.com/pietrolesci) for the correspondence and code review. 
 
-- **Paper published at EACL 2023 🎉**
+**Paper published at EACL 2023 🎉**
   - The [paper][paper_published] introducing small-text has been accepted at [EACL 2023](https://2023.eacl.org/). Meet us at the conference in May!
   - Update: the paper was awarded [EACL Best System Demonstration](https://aclanthology.org/2023.eacl-demo.11/). Thank you, for your support!
 
@@ -60,7 +61,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## Installation
 
-Small-Text can be easily installed via pip (or conda):
+Small-Text can be easily installed via pip:
 
 ```bash
 pip install small-text
@@ -143,6 +144,9 @@ Read the latest documentation [here][documentation_main]. Noteworthy pages inclu
     </tr>
   </tbody>
 </table>
+
+We use the numbers only to show to tremendous progress that small-text has made over time. 
+There many features and improvements that are not reflected in these numbers.
 
 ## Alternatives
 
