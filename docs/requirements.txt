@@ -1,4 +1,4 @@
 docutils==0.20.0
 sphinx>=8.1.3
 sphinx-rtd-theme==3.0.1
-m2r2>=m2r2-0.3.3.post2
+m2r2>=0.3.3.post2
