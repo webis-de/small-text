@@ -157,6 +157,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
             if hasattr(self, '_clf'):
                 del self._clf
             self._clf = clf_or_indices
+            self.y = np.empty(shape=(0,), dtype=int)
         else:
             raise ValueError('Initialization failed: argument "clf_or_indices" must be of type '
                              'Classifier or ndarray')
