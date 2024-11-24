@@ -44,6 +44,11 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## News
 
+**Version 2.0.0 dev1** ([v2.0.0dev1][changelog_2.0.0dev1])  - November 22nd, 2024
+  - This a development release with the most changes so far. You can consider this an alpha release, which does not guarantee you stable interfaces yet, 
+    but is otherwise ready to use.
+  - Version 2.0.0 offers cleaned up interfaces, new query strategies, improved classifiers, and new functionality such as vector indices. See the [changelog][changelog_2.0.0dev1] for a full list of changes.
+
 **Version 1.4.1** ([v1.4.1][changelog_1.4.1]) - August 18th, 2024
   - Bugfix release.
 
@@ -192,10 +197,9 @@ Small-Text has been introduced in detail in the EACL23 System Demonstration Pape
 [documentation_showcase]: https://small-text.readthedocs.io/en/vv2.0.0dev1/showcase.html
 [documentation_reproducibility_notes]: https://small-text.readthedocs.io/en/vv2.0.0dev1/reproducibility_notes.html
 [changelog]: https://small-text.readthedocs.io/en/latest/changelog.html
-[changelog_1.3.2]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-3-2-2023-08-19
-[changelog_1.3.3]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-3-3-2023-12-29
 [changelog_1.4.0]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-4-0-2024-06-09
 [changelog_1.4.1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-1-4-1-2024-08-18
+[changelog_2.0.0dev1]: https://small-text.readthedocs.io/en/latest/changelog.html#version-2-0-0dev1-2024-11-24
 [argilla]: https://github.com/argilla-io/argilla
 [argilla_al_tutorial]: https://docs.argilla.io/en/latest/tutorials/notebooks/training-textclassification-smalltext-activelearning.html
 [paper_published]: https://aclanthology.org/2023.eacl-demo.11v2.pdf
