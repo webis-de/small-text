@@ -1,6 +1,8 @@
 # Changelog
 
-## Version 2.0.0 - unreleased
+## Version 2.0.0dev1 - 2024-11-24
+
+*This section is going to be updated and will become v2.0.0 eventually.*
 
 This is the first release with breaking changes, coming sooner than we would have liked. 
 
@@ -20,6 +22,9 @@ On the other hand, this also allowed us to deal with further issues that contain
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support `torch.compile()` which can be enabled on demand. (Requires PyTorch >= 2.0.0). 
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support Automatic Mixed Precision. 
   - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v2.0.0/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.
+  - TransformerBasedClassification:
+    - Removed unnecessary `token_type_ids` keyword argument in model call.
+    - Additional keyword args for config, tokenizer, and model can now be configured.
 - Embeddings:
   - Prevented unnecessary gradient computations for some embedding types and unified code structure.
 - Pytorch:
