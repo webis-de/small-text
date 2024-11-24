@@ -25,7 +25,7 @@ and (optionally) a :doc:`stopping criterion<components/stopping_criteria>`.
 .. figure:: _static/figures/active-learning-setup.svg
   :align: center
   :class: active-learning-setup
-  :width: 70%
+  :width: 350px
   :alt: A schematic of component types within an active learning setup.
 
   A schematic of component types within an active learning setup.
