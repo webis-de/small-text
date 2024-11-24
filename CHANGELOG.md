@@ -8,7 +8,7 @@ This is the first release with breaking changes, coming sooner than we would hav
 
 The need for this came from relying on some legacy interfaces in torchtext for too long, which now have been dropped. The result was that with never PyTorch Versions, which also requires a matching torchtext version, which in turn broke some parts of the PyTorch integration.
 
-On the other hand, this also allowed us to deal with further issues that contain breaking changes but needed to be done eventually. **All of this should not cause you too much trouble**, but still to make the transition as easy as possible there is a [migration guide](https://github.com/webis-de/small-text/blob/v2.0.0-dev1/MIGRATION_GUIDE.md), which lists all breaking changes.
+On the other hand, this also allowed us to deal with further issues that contain breaking changes but needed to be done eventually. **All of this should not cause you too much trouble**, but still to make the transition as easy as possible there is a [migration guide](https://github.com/webis-de/small-text/blob/v2.0.0.dev1/MIGRATION_GUIDE.md), which lists all breaking changes.
 
 ### Added
 
@@ -21,7 +21,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 - Classification:
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support `torch.compile()` which can be enabled on demand. (Requires PyTorch >= 2.0.0). 
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support Automatic Mixed Precision. 
-  - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v2.0.0-dev1/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.
+  - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v2.0.0.dev1/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.
   - TransformerBasedClassification:
     - Removed unnecessary `token_type_ids` keyword argument in model call.
     - Additional keyword args for config, tokenizer, and model can now be configured.
@@ -30,10 +30,10 @@ On the other hand, this also allowed us to deal with further issues that contain
 - Pytorch:
   - Added an `inference_mode()` context manager that applies `torch.inference_mode` or `torch.no_grad` for older Pytorch versions.
 - Query Strategies:
-  - New strategies: [DiscriminativeRepresentationLearning](https://github.com/webis-de/small-text/blob/v2.0.0-dev1/small_text/integrations/pytorch/query_strategies/strategies.py), [LabelCardinalityInconsistency](https://github.com/webis-de/small-text/blob/v2.0.0-dev1/small_text/query_strategies/multi_label.py), [ClassBalancer](https://github.com/webis-de/small-text/blob/v2.0.0-dev1/small_text/query_strategies/class_balancing.py), and [ProbCover](https://github.com/webis-de/small-text/blob/v2.0.0-dev1/small_text/query_strategies/vector_space.py).
-  - Query strategies now have a [tie-breaking mechanism](https://github.com/webis-de/small-text/blob/v2.0.0-dev1/small_text/query_strategies/base.py) to randomly permutate when there is a tie in scores.
+  - New strategies: [DiscriminativeRepresentationLearning](https://github.com/webis-de/small-text/blob/v2.0.0.dev1/small_text/integrations/pytorch/query_strategies/strategies.py), [LabelCardinalityInconsistency](https://github.com/webis-de/small-text/blob/v2.0.0.dev1/small_text/query_strategies/multi_label.py), [ClassBalancer](https://github.com/webis-de/small-text/blob/v2.0.0.dev1/small_text/query_strategies/class_balancing.py), and [ProbCover](https://github.com/webis-de/small-text/blob/v2.0.0.dev1/small_text/query_strategies/vector_space.py).
+  - Query strategies now have a [tie-breaking mechanism](https://github.com/webis-de/small-text/blob/v2.0.0.dev1/small_text/query_strategies/base.py) to randomly permutate when there is a tie in scores.
   - Added `ScoringMixin` to enable a reusable scoring mechanism for query strategies.
-  - [LightweightCoreset](https://github.com/webis-de/small-text/blob/v2.0.0-dev1/small_text/query_strategies/corsets.py) can now process input in batches. ([#23](https://github.com/webis-de/small-text/issues/23))
+  - [LightweightCoreset](https://github.com/webis-de/small-text/blob/v2.0.0.dev1/small_text/query_strategies/corsets.py) can now process input in batches. ([#23](https://github.com/webis-de/small-text/issues/23))
 - Vector Index Functionality:
   - A new vector index API provides implementations over a unified interface to use different implementations for k-nearest neighbor search.
   - Existing strategies that used a hard-coded vector search ([ContrastiveActiveLearning][contrastive_active_learning], [SEALS][seals], [AnchorSubsampling][anchor_subsampling]) have been adapted and can now be used with different vector index implementations.
@@ -374,6 +374,6 @@ First beta release with multi-label functionality and stopping criteria.
 `PytorchTextClassificationDataset.__init__()` and `TransformersDataset.__init__()`.
 
 
-[contrastive_active_learning]: https://github.com/webis-de/small-text/blob/v2.0.0-dev1/small_text/query_strategies/strategies.py
-[anchor_subsampling]: https://github.com/webis-de/small-text/blob/v2.0.0-dev1/small_text/query_strategies/subsampling.py
+[contrastive_active_learning]: https://github.com/webis-de/small-text/blob/v2.0.0.dev1/small_text/query_strategies/strategies.py
+[anchor_subsampling]: https://github.com/webis-de/small-text/blob/v2.0.0.dev1/small_text/query_strategies/subsampling.py
 [seals]: https://github.com/webis-de/small-text/blob/v1.0.0b4/small_text/query_strategies/strategies.py
