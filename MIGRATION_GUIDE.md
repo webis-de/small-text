@@ -1,7 +1,15 @@
 # Migration Guide
 
+The migration guide is intended to help you adapt your code after major version releases, which can and are likely to break some interfaces. 
+This is not an exhaustive list of changes, but here we try to collect changes that break existing code.
+
 ## 1.3.0 to 2.0.0
 
+*Work in progress. If in doubt, look at the code and docstrings.*
+
+### Interfaces Changes
+- [PoolBasedActiveLearner](https://small-text.readthedocs.io/en/latest/api/active_learner.html#activelearner-api):  
+  `initialize_data()` has been changed to `initialize()`. The method now takes a list of initial indices or an initialized first (proxy-)model.
 
 ### Renamed Classes
 
