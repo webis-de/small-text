@@ -16,6 +16,21 @@ In this section, we collect publications, tutorials, and other resources that ha
 Papers
 ------
 
+2024
+^^^^
+
+- | Lukas Kriesch and Sebastian Losacker. 2024.
+  | `A global patent dataset of bioeconomy-related inventions <https://doi.org/10.1038/s41597-024-04163-6>`_
+  | In: Scientific Data Volume 11, Article number: 1308.
+
+- | David Hanny, Sebastian Schmidt, and Bernd Resch. 2024.
+  | `Active Learning for Identifying Disaster-Related Tweets: A Comparison with Keyword Filtering and Generic Fine-Tuning. <https://doi.org/10.1007/978-3-031-66428-1_8>`_
+  | In: Intelligent Systems and Applications (IntelliSys 2024). Lecture Notes in Networks and Systems, pages 126–142.
+
+- | Muhammad Afzal, Jamil Hussain, Asim Abbas, Maqbool Hussain, Muhammad Attique, and Sungyoung Lee. 2024.
+  | `Transformer-based active learning for multi-class text annotation and classification. <https://doi.org/10.1177/20552076241287357>`_
+  | In: DIGITAL HEALTH Volume 10.
+
 2023
 ^^^^
 
