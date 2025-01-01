@@ -4,7 +4,9 @@ Transformers Integration
 
 The Transformers Integration makes :ref:`transformer-based classification <libraries/transformers_integration:Transformer-based Classification>` and
 :ref:`sentence transformer finetuning <libraries/transformers_integration:Sentence Transformer Finetuning>` usable in small-text.
-It relies on the :doc:`Pytorch Integration<pytorch_integration>` which is a prerequisite.
+In contrast to classical machine learning models, transformer models provide superior performance in most scenarios.
+However, this comes at the cost of increased computational requirements.
+These models are generally trained on GPUs, making the :doc:`Pytorch Integration<pytorch_integration>` a prerequisite for this integration.
 
 .. note:: Some implementation make use of :ref:`optional dependencies <install:Optional Dependencies>`.
 
@@ -41,12 +43,23 @@ With the integration you will have access to the following additional components
 
 ----
 
+Model Architectures
+===================
+
+This integration supports both encoder and decoder transformer models.
+To learn more about the difference between these two transformer architectures we refer to `blog post by Sebastian Raschka on encoder and decoder models <https://magazine.sebastianraschka.com/p/understanding-encoder-and-decoder>`_.
+In general, encoder models are better suited for classification, the key task of this library.
+Nevertheless, decoder models are equally applicable as well, and sometimes the decoder model might even be better
+or you might not have a choice e.g., when requiring a model in a specific language.
+
 Compatible Models
 =================
 
-While this integration is tailored to the `transformers library <https://github.com/huggingface/transformers>`_,
-but since models (and their corresponding) tokenizers can vary considerably, not all models are applicable for small-text classifiers.
-To help you with finding a suitable model, we list a subset of compatible models in the following which you can use as a starting point:
+The transformers integration is tailored to the `transformers library <https://github.com/huggingface/transformers>`_.
+In theory, all architectures should be usable from small-text, but practically limitations may arise due to deviations
+in the implementation of models and tokenizers.
+
+To help you with finding a suitable model, we provide a (non-exhaustive) curated list of compatible models below:
 
 .. list-table::
    :widths: 30 70
@@ -68,7 +81,7 @@ To help you with finding a suitable model, we list a subset of compatible models
 - ELECTRA: `google/electra-base-discriminator <https://huggingface.co/google/electra-base-discriminator>`_, `google/electra-small-discriminator <https://huggingface.co/google/electra-small-discriminator>`_
 - BioGPT: `microsoft/biogpt <https://huggingface.co/microsoft/biogpt>`_
 
-This list is not exhaustive. Let us know when you have tested other models that might belong on these lists.
+Let us know when you have successfully tested other models that should be listed here.
 
 ----
 
@@ -106,4 +119,3 @@ An example is provided in :file:`examples/examplecode/setfit_multiclass_classifi
 
 .. literalinclude:: ../../examples/examplecode/setfit_multiclass_classification.py
    :language: python
-
