@@ -3,8 +3,6 @@ graft docs
 graft tests
 prune examples
 
-include small_text/version.json
-
 include LICENSE
 include THIRDPARTY-CODE
 include CHANGELOG.md

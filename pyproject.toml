@@ -1,6 +1,58 @@
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=62",
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "small-text"
+version = "2.0.0.dev2"
+license = {file = "LICENSE"}
+description="Active Learning for Text Classification in Python."
+authors = [
+  {name = "Christopher Schröder", email = "small-text@protonmail.com"}
+]
+maintainers = [
+  {name = "Christopher Schröder", email = "small-text@protonmail.com"}
+]
+readme = {file = "README.md", content-type = "text/markdown"}
+keywords = ["active learning", "text classification"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Text Processing :: Linguistic",
+]
+requires-python = ">= 3.8"
+dependencies = [
+  "dill>=0.3.7",
+  "scipy",
+  "numpy>=1.21.0",
+  "scikit-learn>=0.24.1",
+  "tqdm",
+  "packaging",
+  "tokenizers>=0.11.5",
+  "toml"
+]
+
+[project.optional-dependencies]
+pytorch = [
+  "torch>=1.6.0"
+]
+transformers = [
+  "small-text[pytorch]",
+  "transformers>=4.0.0"
+]
+
+[project.urls]
+Documentation = "https://small-text.readthedocs.io"
+Repository = "https://github.com/webis-de/small-text"
+Issues = "https://github.com/webis-de/small-text/issues"
+Changelog = "https://github.com/webis-de/small-text/blob/main/CHANGELOG.md"

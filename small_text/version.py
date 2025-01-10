@@ -1,17 +1,7 @@
-import json
+import toml
 from pathlib import Path
 
 from packaging.version import parse
-
-
-with open(Path(__file__).parent.joinpath('version.json')) as f:
-    version = json.load(f)
-
-version_str = '.'.join(map(str, [version['major'], version['minor'], version['micro']]))
-if version['pre_release'] != '':
-    version_str += '.' + version['pre_release']
-
-__version__ = version_str
 
 
 def get_version():
@@ -22,4 +12,12 @@ def get_version():
     version : packaging.version.Version
         A version object.
     """
-    return parse(__version__)
+    main_package = Path(__file__).parent
+    pyproject_toml = main_package.parent / 'pyproject.toml'
+
+    pyproject_toml_data = toml.load(pyproject_toml)
+
+    return parse(pyproject_toml_data['project']['version'])
+
+
+__version__ = str(get_version())
