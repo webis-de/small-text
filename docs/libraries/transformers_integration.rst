@@ -43,17 +43,17 @@ With the integration you will have access to the following additional components
 
 ----
 
-Model Architectures
-===================
+Transformers
+============
 
-This integration supports both encoder and decoder transformer models.
+This integration supports both encoder and decoder transformer model architectures.
 To learn more about the difference between these two transformer architectures we refer to `blog post by Sebastian Raschka on encoder and decoder models <https://magazine.sebastianraschka.com/p/understanding-encoder-and-decoder>`_.
 In general, encoder models are better suited for classification, the key task of this library.
 Nevertheless, decoder models are equally applicable as well, and sometimes the decoder model might even be better
 or you might not have a choice e.g., when requiring a model in a specific language.
 
-Compatible Models
-=================
+Compatible Model Weights
+------------------------
 
 The transformers integration is tailored to the `transformers library <https://github.com/huggingface/transformers>`_.
 In theory, all architectures should be usable from small-text, but practically limitations may arise due to deviations
@@ -82,6 +82,14 @@ To help you with finding a suitable model, we provide a (non-exhaustive) curated
 - BioGPT: `microsoft/biogpt <https://huggingface.co/microsoft/biogpt>`_
 
 Let us know when you have successfully tested other models that should be listed here.
+
+----
+
+Sentence Transformers
+=====================
+
+Compatible Model Weights
+------------------------
 
 ----
 
