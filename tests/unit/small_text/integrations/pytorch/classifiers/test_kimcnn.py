@@ -16,7 +16,7 @@ try:
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
 
     from tests.utils.datasets import random_text_classification_dataset
-except PytorchNotFoundError:
+except (ModuleNotFoundError, PytorchNotFoundError):
     pass
 
 

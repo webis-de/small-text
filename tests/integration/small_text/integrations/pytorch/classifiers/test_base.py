@@ -1,13 +1,14 @@
 import unittest
 
 import pytest
-import torch
 
 import numpy as np
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 try:
+    import torch
+
     from torch.optim import Adadelta, AdamW
     from torch.optim.lr_scheduler import ExponentialLR
 
@@ -15,7 +16,7 @@ try:
     from small_text.integrations.pytorch.classifiers import PytorchClassifier, KimCNNClassifier
     from small_text.integrations.pytorch.models.kimcnn import KimCNN
     from tests.utils.datasets import random_text_classification_dataset
-except PytorchNotFoundError:
+except (PytorchNotFoundError, ModuleNotFoundError):
     pass
 
 

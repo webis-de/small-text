@@ -9,3 +9,4 @@ approvaltests
 datasets>=2.14.6
 pytest-approvaltests
 gensim>=4.3.0
+nox

@@ -1,4 +1,5 @@
 import unittest
+import pytest
 
 from unittest.mock import patch
 
@@ -8,10 +9,11 @@ try:
     import torch
     from small_text.integrations.pytorch.utils.contextmanager import inference_mode
     from small_text.integrations.pytorch.utils import contextmanager
-except PytorchNotFoundError:
+except (PytorchNotFoundError, ModuleNotFoundError):
     pass
 
 
+@pytest.mark.pytorch
 class ContextmanagerTest(unittest.TestCase):
 
     def test_inference_mode(self):

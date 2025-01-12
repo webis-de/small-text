@@ -11,7 +11,7 @@ try:
     from small_text.integrations.pytorch.classifiers.factories import (
         KimCNNClassifierFactory
     )
-except PytorchNotFoundError:
+except (ModuleNotFoundError, PytorchNotFoundError):
     pass
 
 

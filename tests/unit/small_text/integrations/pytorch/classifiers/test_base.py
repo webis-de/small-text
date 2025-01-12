@@ -1,11 +1,10 @@
-import numpy as np
 import pytest
 import unittest
 
-from unittest.mock import Mock, PropertyMock, patch
+from unittest.mock import Mock, patch
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.training.model_selection import ModelSelection, NoopModelSelection
+from small_text.training.model_selection import NoopModelSelection
 from tests.utils.datasets import random_text_classification_dataset
 
 try:
@@ -28,10 +27,11 @@ try:
             pass
 
 
-except PytorchNotFoundError:
+except (PytorchNotFoundError, ModuleNotFoundError):
     pass
 
 
+@pytest.mark.pytorch
 class AMPArgumentsTest(unittest.TestCase):
 
     def test_init_default(self):
@@ -52,8 +52,8 @@ class AMPArgumentsTest(unittest.TestCase):
 
 class ModelMock(object):
 
-    def __init__(self, device=torch.device('cpu')):
-        self.device = device
+    def __init__(self, device='cpu'):
+        self.device = torch.device(device)
 
         self.eval = Mock()
 

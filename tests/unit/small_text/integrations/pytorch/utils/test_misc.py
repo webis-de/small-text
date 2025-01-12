@@ -7,17 +7,18 @@ try:
     import torch
     import torch.nn as nn
     from small_text.integrations.pytorch.utils.misc import enable_dropout
-except (ImportError, PytorchNotFoundError):
+
+
+    class SimpleNet(nn.Module):
+        def __init__(self):
+            super(SimpleNet, self).__init__()
+
+            self.dropout1 = nn.Dropout()
+            self.dropout2 = nn.Dropout2d()
+            self.fc = nn.Linear(10, 4)
+
+except (ModuleNotFoundError, PytorchNotFoundError):
     pass
-
-
-class SimpleNet(nn.Module):
-    def __init__(self):
-        super(SimpleNet, self).__init__()
-
-        self.dropout1 = nn.Dropout()
-        self.dropout2 = nn.Dropout2d()
-        self.fc = nn.Linear(10, 4)
 
 
 @pytest.mark.pytorch

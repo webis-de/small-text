@@ -2,7 +2,6 @@ import unittest
 
 import numpy as np
 import pytest
-import torch
 
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 from scipy.sparse import csr_matrix

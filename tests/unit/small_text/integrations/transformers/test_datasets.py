@@ -9,7 +9,7 @@ from numpy.testing import assert_array_equal
 from parameterized import parameterized_class
 
 from small_text.base import LABEL_UNLABELED
-from small_text.integrations.pytorch.datasets import PytorchDatasetView
+
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from tests.utils.misc import increase_dense_labels_safe
 from tests.utils.testing import (
@@ -20,26 +20,23 @@ from tests.utils.testing import (
     assert_list_of_tensors_not_equal
 )
 
+from tests.unit.small_text.integrations.pytorch.test_datasets import (
+    _PytorchDatasetViewTest
+)
+
 try:
     import torch
+    from small_text.integrations.pytorch.datasets import PytorchDatasetView
     from small_text.integrations.transformers.datasets import (
         TransformersDataset,
         TransformersDatasetView
-    )
-    from tests.unit.small_text.integrations.pytorch.test_datasets import (
-        _PytorchDatasetViewTest
     )
     from tests.utils.datasets import random_transformer_dataset
 except (ModuleNotFoundError, PytorchNotFoundError):
     pass
 
 
-@pytest.mark.pytorch
-@parameterized_class([{'target_labels': 'explicit', 'multi_label': True},
-                      {'target_labels': 'explicit', 'multi_label': False},
-                      {'target_labels': 'inferred', 'multi_label': True},
-                      {'target_labels': 'inferred', 'multi_label': False}])
-class TransformersDatasetTest(unittest.TestCase):
+class _TransformersDatasetTest(object):
     NUM_SAMPLES = 100
     NUM_LABELS = 3
 
@@ -264,6 +261,38 @@ class TransformersDatasetTest(unittest.TestCase):
         assert_list_of_tensors_equal(self, expected, result.x)
 
 
+@pytest.mark.pytorch
+class TransformersDatasetMultiLabelExplicitTest(unittest.TestCase, _TransformersDatasetTest):
+
+    def setUp(self):
+        self.target_labels = 'explicit'
+        self.multi_label = True
+
+
+@pytest.mark.pytorch
+class TransformersDatasetSingleLabelExplicitTest(unittest.TestCase, _TransformersDatasetTest):
+
+    def setUp(self):
+        self.target_labels = 'explicit'
+        self.multi_label = False
+
+
+@pytest.mark.pytorch
+class TransformersDatasetMultiLabelInferredTest(unittest.TestCase, _TransformersDatasetTest):
+
+    def setUp(self):
+        self.target_labels = 'inferred'
+        self.multi_label = True
+
+
+@pytest.mark.pytorch
+class TransformersDatasetSingleLabelInferredTest(unittest.TestCase, _TransformersDatasetTest):
+
+    def setUp(self):
+        self.target_labels = 'inferred'
+        self.multi_label = False
+
+
 class _TransformersDatasetViewTest(_PytorchDatasetViewTest):
 
     @property
@@ -326,6 +355,7 @@ class _TransformersDatasetViewTest(_PytorchDatasetViewTest):
         assert_array_not_equal(ds_view.target_labels, ds_cloned.target_labels)
 
 
+@pytest.mark.pytorch
 class TransformersDatasetViewSingleLabelExplicitTest(unittest.TestCase, _TransformersDatasetViewTest):
 
     def setUp(self):
@@ -343,6 +373,7 @@ class TransformersDatasetViewSingleLabelExplicitTest(unittest.TestCase, _Transfo
         return dataset
 
 
+@pytest.mark.pytorch
 class TransformersDatasetViewSingleLabelInferredTest(unittest.TestCase,
                                                      _TransformersDatasetViewTest):
 
@@ -361,6 +392,7 @@ class TransformersDatasetViewSingleLabelInferredTest(unittest.TestCase,
         return dataset
 
 
+@pytest.mark.pytorch
 class TransformersDatasetViewMultiLabelExplicitTest(unittest.TestCase, _TransformersDatasetViewTest):
 
     def setUp(self):
@@ -378,6 +410,7 @@ class TransformersDatasetViewMultiLabelExplicitTest(unittest.TestCase, _Transfor
         return dataset
 
 
+@pytest.mark.pytorch
 class TransformersDatasetViewMultiLabelInferredTest(unittest.TestCase, _TransformersDatasetViewTest):
 
     def setUp(self):

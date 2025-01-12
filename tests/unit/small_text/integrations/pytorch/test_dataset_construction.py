@@ -6,7 +6,6 @@ import numpy as np
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from tests.utils.datasets import random_labeling, random_labels, _train_tokenizer
 
-
 try:
     from tokenizers import Tokenizer, models, normalizers, pre_tokenizers
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset

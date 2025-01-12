@@ -7,7 +7,6 @@ from abc import abstractmethod
 from scipy.sparse import csr_matrix
 
 from numpy.testing import assert_array_equal
-from parameterized import parameterized_class
 
 from small_text.base import LABEL_UNLABELED
 from small_text.data.exceptions import UnsupportedOperationException
@@ -32,12 +31,7 @@ except (PytorchNotFoundError, ModuleNotFoundError):
     pass
 
 
-@pytest.mark.pytorch
-@parameterized_class([{'target_labels': 'explicit', 'multi_label': True},
-                      {'target_labels': 'explicit', 'multi_label': False},
-                      {'target_labels': 'inferred', 'multi_label': True},
-                      {'target_labels': 'inferred', 'multi_label': False}])
-class PytorchTextClassificationDatasetTest(unittest.TestCase):
+class _PytorchTextClassificationDatasetTest(object):
 
     NUM_SAMPLES = 100
     NUM_LABELS = 3
@@ -540,6 +534,40 @@ class _PytorchTextClassificationDatasetViewTest(_PytorchDatasetViewTest):
         assert_array_not_equal(ds_view.target_labels, ds_cloned.target_labels)
 
 
+@pytest.mark.pytorch
+class PytorchTextClassificationDatasetMultiLabelExplicitTest(unittest.TestCase,
+                                                             _PytorchTextClassificationDatasetTest):
+
+    def setUp(self):
+        self.target_labels = 'explicit'
+        self.multi_label = True
+
+
+@pytest.mark.pytorch
+class PytorchTextClassificationDatasetSingleLabelExplicitTest(unittest.TestCase,
+                                                              _PytorchTextClassificationDatasetTest):
+    def setUp(self):
+        self.target_labels = 'explicit'
+        self.multi_label = False
+
+
+@pytest.mark.pytorch
+class PytorchTextClassificationDatasetMultiLabelInferredTest(unittest.TestCase,
+                                                             _PytorchTextClassificationDatasetTest):
+    def setUp(self):
+        self.target_labels = 'inferred'
+        self.multi_label = True
+
+
+@pytest.mark.pytorch
+class PytorchTextClassificationDatasetSingleLabelInferredTest(unittest.TestCase,
+                                                              _PytorchTextClassificationDatasetTest):
+    def setUp(self):
+        self.target_labels = 'inferred'
+        self.multi_label = False
+
+
+@pytest.mark.pytorch
 class PytorchTextClassificationDatasetViewSingleLabelExplicitTest(
     unittest.TestCase,
     _PytorchTextClassificationDatasetViewTest
@@ -558,6 +586,7 @@ class PytorchTextClassificationDatasetViewSingleLabelExplicitTest(
         return dataset
 
 
+@pytest.mark.pytorch
 class PytorchTextClassificationDatasetViewSingleLabelInferredTest(
     unittest.TestCase,
     _PytorchTextClassificationDatasetViewTest
@@ -576,6 +605,7 @@ class PytorchTextClassificationDatasetViewSingleLabelInferredTest(
         return dataset
 
 
+@pytest.mark.pytorch
 class PytorchTextClassificationDatasetViewMultiLabelExplicitTest(
     unittest.TestCase,
     _PytorchTextClassificationDatasetViewTest
@@ -595,6 +625,7 @@ class PytorchTextClassificationDatasetViewMultiLabelExplicitTest(
         return dataset
 
 
+@pytest.mark.pytorch
 class PytorchTextClassificationDatasetViewMultiLabelInferredTest(
     unittest.TestCase,
     _PytorchTextClassificationDatasetViewTest
@@ -676,6 +707,7 @@ class _NestedPytorchTextClassificationDatasetViewTest(_PytorchDatasetViewTest):
         assert_array_not_equal(ds_view.target_labels, ds_cloned.target_labels)
 
 
+@pytest.mark.pytorch
 class NestedPytorchTextClassificationDatasetViewSingleLabelExplicitTest(
     unittest.TestCase,
     _NestedPytorchTextClassificationDatasetViewTest
@@ -702,6 +734,7 @@ class NestedPytorchTextClassificationDatasetViewSingleLabelExplicitTest(
         return self.NUM_SAMPLES_VIEW
 
 
+@pytest.mark.pytorch
 class NestedPytorchTextClassificationDatasetViewMultiLabelInferredTest(
     unittest.TestCase,
     _NestedPytorchTextClassificationDatasetViewTest

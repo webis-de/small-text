@@ -10,11 +10,12 @@ from small_text.utils.labels import csr_to_list, list_to_csr
 
 try:
     import torch
+    TORCH_DTYPE_LONG = torch.long
 
     from small_text.integrations.pytorch.datasets import PytorchTextClassificationDataset
     from small_text.integrations.transformers.datasets import TransformersDataset
 except ImportError:
-    pass
+    TORCH_DTYPE_LONG = None
 
 try:
     from transformers import AutoTokenizer
@@ -119,7 +120,7 @@ def _dataset_to_text_classification_dataset(dataset, tokenizer, target_labels):
 
 
 def random_text_classification_dataset(num_samples=10, max_length=60, num_classes=2, multi_label=False, vocab_size=10,
-                                       device='cpu', target_labels='inferred', dtype=torch.long):
+                                       device='cpu', target_labels='inferred', dtype=TORCH_DTYPE_LONG):
 
     if target_labels not in ['explicit', 'inferred']:
         raise ValueError(f'Invalid test parameter value for target_labels: {str(target_labels)}')
@@ -204,7 +205,7 @@ def assure_all_labels_occur_numpy(y, num_classes, multi_label=False):
 
 
 def random_transformer_dataset(num_samples, max_length=60, num_classes=2, multi_label=False,
-                               num_tokens=1000, target_labels='inferred', dtype=torch.long):
+                               num_tokens=1000, target_labels='inferred', dtype=TORCH_DTYPE_LONG):
 
     if target_labels not in ['explicit', 'inferred']:
         raise ValueError(f'Invalid test parameter value for target_labels: {str(target_labels)}')

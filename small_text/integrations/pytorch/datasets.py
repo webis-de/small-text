@@ -1,4 +1,3 @@
-import torch
 import numpy as np
 
 from abc import ABC, abstractmethod
@@ -8,6 +7,13 @@ from small_text.data import DatasetView
 from small_text.data.datasets import check_size, check_target_labels, get_updated_target_labels
 from small_text.data.exceptions import UnsupportedOperationException
 from small_text.utils.labels import csr_to_list, get_num_labels, list_to_csr
+
+from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+
+try:
+    import torch
+except ModuleNotFoundError:
+    raise PytorchNotFoundError('Could not import pytorch')
 
 
 def _get_flattened_labels(data, multi_label=False):
