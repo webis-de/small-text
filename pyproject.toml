@@ -39,7 +39,7 @@ dependencies = [
   "tqdm",
   "packaging",
   "tokenizers>=0.11.5,<=0.20.3",
-  "toml"
+  "tomli"
 ]
 
 [project.optional-dependencies]

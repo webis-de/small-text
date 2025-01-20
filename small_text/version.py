@@ -1,4 +1,4 @@
-import toml
+import tomli
 from pathlib import Path
 
 from packaging.version import parse
@@ -15,9 +15,9 @@ def get_version():
     main_package = Path(__file__).parent
     pyproject_toml = main_package.parent / 'pyproject.toml'
 
-    pyproject_toml_data = toml.load(pyproject_toml)
-
-    return parse(pyproject_toml_data['project']['version'])
+    with open(pyproject_toml, 'rb') as f:
+        pyproject_toml_data = tomli.load(f)
+        return parse(pyproject_toml_data['project']['version'])
 
 
 __version__ = str(get_version())
