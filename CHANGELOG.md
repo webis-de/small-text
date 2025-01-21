@@ -27,6 +27,9 @@ On the other hand, this also allowed us to deal with further issues that contain
   - TransformerBasedClassification:
     - Removed unnecessary `token_type_ids` keyword argument in model call.
     - Additional keyword args for config, tokenizer, and model can now be configured.
+  - SetFitClassification:
+    - Additional keyword args for trainer and model are now attached to `SetFitModelArguments` instead of `SetFitClassification`.
+
 - Embeddings:
   - Prevented unnecessary gradient computations for some embedding types and unified code structure.
 - Pytorch:

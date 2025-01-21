@@ -36,6 +36,36 @@ class TestSetFitModelArguments(unittest.TestCase):
         sentence_transformer_model = 'sentence-transformers/all-MiniLM-L6-v2'
         args = SetFitModelArguments(sentence_transformer_model)
         self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
+        self.assertIsNotNone(args.model_kwargs)
+        self.assertEqual(0, len(args.model_kwargs))
+        self.assertIsNotNone(args.trainer_kwargs)
+        self.assertEqual(0, len(args.trainer_kwargs))
+        self.assertIsNotNone(args.model_loading_strategy)
+        self.assertEqual(ModelLoadingStrategy.DEFAULT, args.model_loading_strategy)
+        self.assertFalse(args.compile_model)
+
+    def test_setfit_model_arguments_init_with_model_kwargs(self):
+        sentence_transformer_model = 'sentence-transformers/all-MiniLM-L6-v2'
+        model_kwargs = {'cache_dir': '/tmp/cache'}
+        args = SetFitModelArguments(sentence_transformer_model, model_kwargs=model_kwargs)
+        self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
+        self.assertIsNotNone(args.model_kwargs)
+        self.assertEqual(1, len(args.model_kwargs))
+        self.assertIsNotNone(args.trainer_kwargs)
+        self.assertEqual(0, len(args.trainer_kwargs))
+        self.assertIsNotNone(args.model_loading_strategy)
+        self.assertEqual(ModelLoadingStrategy.DEFAULT, args.model_loading_strategy)
+        self.assertFalse(args.compile_model)
+
+    def test_setfit_model_arguments_init_with_trainer_kwargs(self):
+        sentence_transformer_model = 'sentence-transformers/all-MiniLM-L6-v2'
+        trainer_kwargs = {'batch_size': 32}
+        args = SetFitModelArguments(sentence_transformer_model, trainer_kwargs=trainer_kwargs)
+        self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
+        self.assertIsNotNone(args.model_kwargs)
+        self.assertEqual(0, len(args.model_kwargs))
+        self.assertIsNotNone(args.trainer_kwargs)
+        self.assertEqual(1, len(args.trainer_kwargs))
         self.assertIsNotNone(args.model_loading_strategy)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, args.model_loading_strategy)
         self.assertFalse(args.compile_model)
@@ -46,6 +76,10 @@ class TestSetFitModelArguments(unittest.TestCase):
         args = SetFitModelArguments(sentence_transformer_model,
                                     model_loading_strategy=model_loading_strategy)
         self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
+        self.assertIsNotNone(args.model_kwargs)
+        self.assertEqual(0, len(args.model_kwargs))
+        self.assertIsNotNone(args.trainer_kwargs)
+        self.assertEqual(0, len(args.trainer_kwargs))
         self.assertIsNotNone(args.model_loading_strategy)
         self.assertEqual(model_loading_strategy, args.model_loading_strategy)
         self.assertFalse(args.compile_model)
@@ -61,6 +95,10 @@ class TestSetFitModelArguments(unittest.TestCase):
             args = SetFitModelArguments(sentence_transformer_model)
 
             self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
+            self.assertIsNotNone(args.model_kwargs)
+            self.assertEqual(0, len(args.model_kwargs))
+            self.assertIsNotNone(args.trainer_kwargs)
+            self.assertEqual(0, len(args.trainer_kwargs))
             self.assertIsNotNone(args.model_loading_strategy)
             self.assertEqual(ModelLoadingStrategy.ALWAYS_LOCAL, args.model_loading_strategy)
             self.assertFalse(args.compile_model)
@@ -70,6 +108,10 @@ class TestSetFitModelArguments(unittest.TestCase):
         args = SetFitModelArguments(sentence_transformer_model,
                                     compile_model=True)
         self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
+        self.assertIsNotNone(args.model_kwargs)
+        self.assertEqual(0, len(args.model_kwargs))
+        self.assertIsNotNone(args.trainer_kwargs)
+        self.assertEqual(0, len(args.trainer_kwargs))
         self.assertIsNotNone(args.model_loading_strategy)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, args.model_loading_strategy)
         self.assertTrue(args.compile_model)

@@ -19,6 +19,13 @@ from small_text.integrations.transformers.classifiers.base import (
     ModelLoadingStrategy
 )
 
+from small_text.integrations.transformers.utils.setfit import (
+    _check_model_kwargs,
+    _check_trainer_kwargs,
+    _check_train_kwargs,
+    _truncate_texts
+)
+
 try:
     import torch
 
@@ -29,34 +36,54 @@ try:
     from small_text.integrations.transformers.utils.classification import (
         _get_arguments_for_from_pretrained_model
     )
-    from small_text.integrations.transformers.utils.setfit import (
-        _check_model_kwargs,
-        _check_trainer_kwargs,
-        _check_train_kwargs,
-        _truncate_texts
-    )
-except ImportError:
-    pass
+except ImportError as e:
+    print(e)
+    print(e)
 
 
 class SetFitModelArguments(object):
-    """
+    """Model arguments for :py:class:`SetFitClassification`.
+
     .. versionadded:: 1.2.0
     """
 
     def __init__(self,
                  sentence_transformer_model: str,
+                 model_kwargs={},
+                 trainer_kwargs={},
                  model_loading_strategy: ModelLoadingStrategy = ModelLoadingStrategy.DEFAULT):
         """
         Parameters
         ----------
         sentence_transformer_model : str
             Name of a sentence transformer model.
+        model_kwargs : dict, default={}
+            Keyword arguments used for the SetFit model. The keyword `use_differentiable_head` is
+            excluded and managed by this class. The other keywords are directly passed to
+            `SetFitModel.from_pretrained()`. Additional kwargs that will be passed into
+            `SetFitModel.from_pretrained()`. Arguments that are managed by small-text
+            (such as the model name given by `model`) are excluded.
+
+            .. seealso::
+
+                `SetFitModel.from_pretrained()
+                <https://huggingface.co/docs/setfit/en/reference/main#setfit.SetFitModel.from_pretrained>`_
+                in the SetFit documentation.
+        trainer_kwargs : dict
+            Keyword arguments used for the SetFit model. The keyword `batch_size` is excluded and
+            is instead controlled by the keyword `mini_batch_size` of this class. The other
+            keywords are directly passed to `SetFitTrainer.__init__()`.
+
+            .. seealso:: `Trainer
+                         <https://huggingface.co/docs/setfit/en/reference/trainer>`_
+                         in the SetFit documentation.
         model_loading_strategy: ModelLoadingStrategy, default=ModelLoadingStrategy.DEFAULT
             Specifies if there should be attempts to download the model or if only local
             files should be used.
         """
         self.sentence_transformer_model = sentence_transformer_model
+        self.model_kwargs = _check_model_kwargs(model_kwargs)
+        self.trainer_kwargs = _check_trainer_kwargs(trainer_kwargs)
         self.model_loading_strategy = model_loading_strategy
 
 
@@ -135,8 +162,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
     """
 
     def __init__(self, setfit_model_args, num_classes, multi_label=False, max_seq_len=512,
-                 use_differentiable_head=False, mini_batch_size=32, model_kwargs=dict(),
-                 trainer_kwargs=dict(), device=None):
+                 use_differentiable_head=False, mini_batch_size=32, device=None):
         """
         sentence_transformer_model : SetFitModelArguments
             Settings for the sentence transformer model to be used.
@@ -149,21 +175,6 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             Uses a differentiable head instead of a logistic regression for the classification head.
             Corresponds to the keyword argument with the same name in
             `SetFitModel.from_pretrained()`.
-        model_kwargs : dict
-            Keyword arguments used for the SetFit model. The keyword `use_differentiable_head` is
-            excluded and managed by this class. The other keywords are directly passed to
-            `SetFitModel.from_pretrained()`.
-
-            .. seealso:: `SetFit: src/setfit/modeling.py
-                         <https://github.com/huggingface/setfit/blob/main/src/setfit/modeling.py>`_
-
-        trainer_kwargs : dict
-            Keyword arguments used for the SetFit model. The keyword `batch_size` is excluded and
-            is instead controlled by the keyword `mini_batch_size` of this class. The other
-            keywords are directly passed to `SetFitTrainer.__init__()`.
-
-            .. seealso:: `SetFit: src/setfit/trainer.py
-                         <https://github.com/huggingface/setfit/blob/main/src/setfit/trainer.py>`_
         device : str or torch.device, default=None
             Torch device on which the computation will be performed.
         """
@@ -173,10 +184,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         self.num_classes = num_classes
         self.multi_label = multi_label
 
-        self.model_kwargs = _check_model_kwargs(model_kwargs)
-        self.trainer_kwargs = _check_trainer_kwargs(trainer_kwargs)
-
-        model_kwargs = self.model_kwargs.copy()
+        model_kwargs = self.setfit_model_args.model_kwargs.copy()
         if self.multi_label and 'multi_target_strategy' not in model_kwargs:
             model_kwargs['multi_target_strategy'] = 'one-vs-rest'
 
@@ -264,7 +272,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             eval_dataset=sub_valid,
             batch_size=self.mini_batch_size,
             seed=seed,
-            **self.trainer_kwargs
+            **self.setfit_model_args.trainer_kwargs
         )
         trainer.train(max_length=self.max_seq_len, **setfit_train_kwargs)
         return self

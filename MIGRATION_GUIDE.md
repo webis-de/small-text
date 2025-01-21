@@ -11,9 +11,11 @@ This is not an exhaustive list of changes, but here we try to collect changes th
 - [PoolBasedActiveLearner](https://small-text.readthedocs.io/en/latest/api/active_learner.html#activelearner-api):  
   `initialize_data()` has been changed to `initialize()`. The method now takes a list of initial indices or an initialized first (proxy-)model.
 
+- SetFitClassification: `model_kwargs` and `trainer_kwargs` are now attached to `SetFitModelArguments` instead of `SetFitClassification`.
+
 ### Renamed Classes
 
-The following classes amd variables have been renamed for consistency:
+The following classes and variables have been renamed for consistency:
 
 - KimCNNFactory -> KimCNNClassifierFactory
 
