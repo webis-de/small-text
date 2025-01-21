@@ -424,6 +424,19 @@ class _TextDatasetTest(_DatasetTest):
         with self.assertRaisesRegex(ValueError, 'Feature and label dimensions do not match'):
             TextDataset(x, y, target_labels=ds.target_labels)
 
+    def test_init_when_samples_are_none(self):
+        x = [None] * self.NUM_SAMPLES
+        y = random_labels(self.NUM_SAMPLES, self.NUM_LABELS,
+                          multi_label=self.labels_type == 'sparse')
+
+        if self.target_labels not in ['explicit', 'inferred']:
+            raise ValueError('Invalid test parameter value for target_labels:' + self.target_labels)
+
+        target_labels = None if self.target_labels == 'inferred' else np.arange(5)
+
+        with self.assertRaisesRegex(ValueError, 'instance #0 is None which is not allowed.'):
+            TextDataset(x, y, target_labels=target_labels)
+
     def test_init_when_some_samples_are_unlabeled(self):
         x = random_text_data(self.NUM_SAMPLES)
         y = random_labels(self.NUM_SAMPLES, self.NUM_LABELS,
@@ -479,6 +492,11 @@ class _TextDatasetTest(_DatasetTest):
         ds.x = ds_new.x
 
         assert_array_equal(ds.x, ds_new.x)
+
+    def test_set_features_when_samples_are_none(self):
+        ds, x, _ = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)
+        with self.assertRaisesRegex(ValueError, 'instance #0 is None which is not allowed.'):
+            ds.x = [None] * len(x)
 
     def test_set_features_with_dimension_mismatch(self):
         ds, x, _ = self._dataset(num_samples=self.NUM_SAMPLES, return_data=True)

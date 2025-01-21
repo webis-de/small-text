@@ -18,6 +18,8 @@ On the other hand, this also allowed us to deal with further issues that contain
   - Added environment variables `SMALL_TEXT_PROGRESS_BARS` and `SMALL_TEXT_OFFLINE` to control the default behavior for progress bars and model downloading.
 - PoolBasedActiveLearner:
   - `initialize_data()` has been replaced by `initialize()` which can now also be used to provide an initial model in cold start scenarios. ([#10](https://github.com/webis-de/small-text/pull/10))
+- Datasets
+  - Validation has been added to prevent TextDataset objects from containing None items (instead of str) either during initialization or when setting the x property. ([#73](https://github.com/webis-de/small-text/pull/73))
 - Classification:
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support `torch.compile()` which can be enabled on demand. (Requires PyTorch >= 2.0.0). 
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support Automatic Mixed Precision. 

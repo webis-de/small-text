@@ -40,6 +40,12 @@ def check_dataset_and_labels(x, y):
                              f'x = ({len_x},), y.shape= ({y.shape[0]},) ### {type(x)} / {type(y)}')
 
 
+def check_text_data(x):
+    for i, item in enumerate(x):
+        if item is None:
+            raise ValueError(f'instance #{i} is None which is not allowed.')
+
+
 def check_target_labels(target_labels):
     if target_labels is None:
         warnings.warn('Passing target_labels=None is discouraged as it can lead to '
@@ -573,6 +579,7 @@ class TextDataset(Dataset):
         target_labels : numpy.ndarray[int] or None, default=None
             List of possible labels. Will be inferred from `y` if `None` is passed."""
         check_dataset_and_labels(x, y)
+        check_text_data(x)
         check_target_labels(target_labels)
 
         if isinstance(x, np.ndarray):
@@ -603,6 +610,7 @@ class TextDataset(Dataset):
 
     @x.setter
     def x(self, x_new):
+        check_text_data(x_new)
         check_dataset_and_labels(x_new, self._y)
         self._x = x_new
 
