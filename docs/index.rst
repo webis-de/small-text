@@ -38,7 +38,6 @@ Getting Started
    :hidden:
 
    datasets
-   install
 
 .. toctree::
    :caption: Components
