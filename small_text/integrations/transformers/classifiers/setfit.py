@@ -7,6 +7,7 @@ from sklearn.utils.validation import check_is_fitted
 from small_text.base import check_optional_dependency
 from small_text.classifiers.classification import Classifier, EmbeddingMixin
 from small_text.exceptions import UnsupportedOperationException
+from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 from small_text.utils.classification import (
     empty_result,
@@ -36,9 +37,8 @@ try:
     from small_text.integrations.transformers.utils.classification import (
         _get_arguments_for_from_pretrained_model
     )
-except ImportError as e:
-    print(e)
-    print(e)
+except ImportError:
+    raise PytorchNotFoundError('Could not import pytorch')
 
 
 class SetFitModelArguments(object):
