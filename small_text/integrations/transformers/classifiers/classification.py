@@ -459,7 +459,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
     def _train(self, sub_train, sub_valid, weights, early_stopping, model_selection, optimizer,
                scheduler, tmp_dir):
 
-        scaler = torch.cuda.amp.GradScaler(enabled=self.amp_args.use_amp)
+        scaler = torch.amp.GradScaler(enabled=self.amp_args.use_amp)
 
         stop = False
         for epoch in range(0, self.num_epochs):
