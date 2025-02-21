@@ -6,7 +6,6 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 from numpy.testing import assert_array_equal
-from parameterized import parameterized_class
 
 from small_text.base import LABEL_UNLABELED
 
