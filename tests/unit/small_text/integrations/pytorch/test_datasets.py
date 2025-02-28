@@ -119,7 +119,7 @@ class _PytorchTextClassificationDatasetTest(object):
         tensor_pairs = zip([item for item in ds.x], [item for item in ds_new.x])
         is_equal = [torch.equal(first, second)
                     for first, second in tensor_pairs]
-        self.assertTrue(np.alltrue(is_equal))
+        self.assertTrue(np.all(is_equal))
 
     def test_get_labels(self):
         ds = self._random_data(num_samples=self.NUM_SAMPLES)

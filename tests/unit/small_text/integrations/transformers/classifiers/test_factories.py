@@ -1,4 +1,6 @@
+import importlib
 import unittest
+
 import pytest
 
 from small_text.exceptions import MissingOptionalDependencyError
@@ -37,6 +39,7 @@ class TransformerBasedClassificationFactoryTest(unittest.TestCase):
 
 
 @pytest.mark.pytorch
+@pytest.mark.skipif(importlib.util.find_spec('setfit') is not None, reason='preconditions for dependency test not met')
 class SetFitClassificationFactoryTest(unittest.TestCase):
 
     def test_factory_new_with_missing_optional_dependency(self):
