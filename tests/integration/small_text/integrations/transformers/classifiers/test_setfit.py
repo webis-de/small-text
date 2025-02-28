@@ -173,16 +173,16 @@ class _ClassificationTest(object):
                 clf.validate(valid_set)
 
     def test_fit_with_non_default_settings(self):
-        # in particularly we test max_seq_len and mini_batch_size here
+        # in particularly we test max_length and mini_batch_size here
         mini_batch_size = 8
-        max_seq_len = 32
+        max_length = 32
         device = 'cuda:0'
         classification_kwargs = {
             'use_differentiable_head': self.use_differentiable_head,
             'multi_label': self.multi_label,
             'device': device,
             'mini_batch_size': mini_batch_size,
-            'max_seq_len': max_seq_len
+            'max_length': max_length
         }
         setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
         clf_factory = SetFitClassificationFactory(
@@ -203,7 +203,7 @@ class _ClassificationTest(object):
 
             train_mock = setfit_trainer_mock.return_value.train
             self.assertEqual(1, train_mock.call_count)
-            self.assertEqual(max_seq_len, train_mock.call_args_list[0].kwargs['max_length'])
+            self.assertEqual(max_length, train_mock.call_args_list[0].kwargs['max_length'])
 
     def test_fit_prevent_fixed_seed(self):
         ds = twenty_news_text(10, num_classes=self.num_classes, multi_label=self.multi_label)
@@ -245,18 +245,6 @@ class SetFitClassificationDifferentiableHeadSingleLabelTest(unittest.TestCase, _
         self.multi_label = False
         self.use_differentiable_head = True
 
-    def test_fit_and_predict(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_fit_and_predict()
-
-    def test_fit_and_validate(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_fit_and_validate()
-
-    def test_fit_with_non_default_settings(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_fit_with_non_default_settings()
-
 
 @pytest.mark.pytorch
 @pytest.mark.optional
@@ -276,18 +264,6 @@ class SetFitClassificationDifferentiableHeadMultiLabelTest(unittest.TestCase, _C
         self.num_classes = 3
         self.multi_label = False
         self.use_differentiable_head = True
-
-    def test_fit_and_predict(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_fit_and_predict()
-
-    def test_fit_and_validate(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_fit_and_validate()
-
-    def test_fit_with_non_default_settings(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_fit_with_non_default_settings()
 
 
 @pytest.mark.pytorch

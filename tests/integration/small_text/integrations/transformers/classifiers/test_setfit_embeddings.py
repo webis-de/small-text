@@ -34,8 +34,12 @@ class _EmbeddingTest(object):
         train_set = twenty_news_text(20, num_classes=self.num_classes, multi_label=self.multi_label)
 
         clf = clf_factory.new()
-        with self.assertRaisesRegex(ValueError, 'Model is not trained'):
+
+        if self.use_differentiable_head:
             clf.embed(train_set)
+        else:
+            with self.assertRaisesRegex(ValueError, 'Model is not trained'):
+                clf.embed(train_set)
 
     def test_embed(self):
         classification_kwargs = {
@@ -85,8 +89,14 @@ class _EmbeddingTest(object):
             self.assertEqual(1, encode_spy.call_count)
             self.assertEqual(1, len(encode_spy.call_args_list[0].args))
             self.assertEqual(len(train_set.x), len(encode_spy.call_args_list[0].args[0]))
-            self.assertEqual(1, len(encode_spy.call_args_list[0].kwargs))
-            self.assertEqual(device, encode_spy.call_args_list[0].kwargs['device'])
+
+            if self.use_differentiable_head:
+                self.assertEqual(2, len(encode_spy.call_args_list[0].kwargs))
+                self.assertTrue(encode_spy.call_args_list[0].kwargs['convert_to_tensor'])
+                self.assertEqual(device, encode_spy.call_args_list[0].kwargs['device'])
+            else:
+                self.assertEqual(1, len(encode_spy.call_args_list[0].kwargs))
+                self.assertEqual(device, encode_spy.call_args_list[0].kwargs['device'])
 
             self.assertEqual(2, len(embeddings.shape))
             self.assertEqual(len(train_set), embeddings.shape[0])
@@ -158,22 +168,6 @@ class EmbeddingDifferentiableHeadSingleLabelTest(unittest.TestCase, _EmbeddingTe
         self.multi_label = False
         self.use_differentiable_head = True
 
-    def test_embed_untrained(self):
-        # same logic regardless of the classification head
-        super().test_embed_untrained()
-
-    def test_embed(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_embed()
-
-    def test_embed_with_proba(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_embed_with_proba()
-
-    def test_embed_with_amp_args(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_embed_with_proba()
-
 
 @pytest.mark.pytorch
 @pytest.mark.optional
@@ -183,19 +177,3 @@ class EmbeddingDifferentiableHeadMultiLabelTest(unittest.TestCase, _EmbeddingTes
         self.num_classes = 3
         self.multi_label = True
         self.use_differentiable_head = True
-
-    def test_embed_untrained(self):
-        # same logic regardless of the classification head
-        super().test_embed_untrained()
-
-    def test_embed(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_embed()
-
-    def test_embed_with_proba(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_embed_with_proba()
-
-    def test_embed_with_amp_args(self):
-        with self.assertRaises(NotImplementedError):
-            super().test_embed_with_proba()
