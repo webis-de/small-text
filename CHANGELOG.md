@@ -13,7 +13,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 ### Added
 
 - General
-  - Python requirements raised to Python 3.8 since Python 3.7 has reached [end of life on 2023-06-27](https://devguide.python.org/versions/).
+  - Python requirements raised to Python 3.9 since Python 3.8 has reached [end of life on 2024-10-07](https://devguide.python.org/versions/).
   - Dropped torchtext as an integration dependency. For individual use cases it can of course still be used.
   - Added environment variables `SMALL_TEXT_PROGRESS_BARS` and `SMALL_TEXT_OFFLINE` to control the default behavior for progress bars and model downloading.
 - PoolBasedActiveLearner:
@@ -51,6 +51,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 
 ### Changed
 
+- Minimum required Python version was raised to 3.9.
 - General
   - Moved `split_data()` method from `small_text.data.datasets` to `small_text.data.splits`.
 - Dependencies
