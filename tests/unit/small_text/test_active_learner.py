@@ -248,6 +248,23 @@ class _PoolBasedActiveLearnerTest(object):
         self.assertIsNotNone(active_learner._index_to_position)
         self.assertEqual(0, clf_mock.fit.call_count)
 
+    def test_initialize_with_none(self):
+
+        clf_factory = self._get_classifier_factory()
+        clf_mock = Mock(clf_factory.new())
+        clf_factory.new = Mock(return_value=clf_mock)
+        query_strategy = RandomSampling()
+        num_classes = 3 if self.multi_label else 2
+        dataset = random_sklearn_dataset(100, num_classes=num_classes, multi_label=self.multi_label)
+
+        active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, dataset)
+
+        active_learner.initialize(None)
+
+        self.assertIsNone(active_learner.classifier)
+        self.assertIsNotNone(active_learner._index_to_position)
+        self.assertEqual(0, clf_mock.fit.call_count)
+
     def test_initialize_with_invalid_argument(self):
         clf_factory = self._get_classifier_factory()
         query_strategy = RandomSampling()
@@ -257,7 +274,7 @@ class _PoolBasedActiveLearnerTest(object):
         active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, dataset)
 
         with self.assertRaisesRegex(ValueError, 'Initialization failed: argument "clf_or_indices"'):
-            active_learner.initialize(None)
+            active_learner.initialize(str(123))
 
     def test_query_without_prior_initialize_data(self):
         clf_factory = self._get_classifier_factory()

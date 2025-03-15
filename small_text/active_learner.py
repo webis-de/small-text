@@ -130,10 +130,11 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
 
         Parameters
         ----------
-        clf_or_indices : Classifier or numpy.ndarray
-            Either a classifier or an array of indices for initializing the current active learner
-            with an initial model. If a classifier is passed, it is set as the initial classifier.
-            Otherwise, the indices, relative to `self.dataset`,
+        clf_or_indices : Classifier or numpy.ndarray or None
+            By default you will provide indices relative to `self.dataset`, which are then used to train the initial
+            model. Alternatively, you can provide a classifier to be used as initial model. You can also pass `None`
+            to initialize the active learning without having an initial model. `None` will not work with most
+            query strategies and is only intended for cold start active learning.
         indices_validation : numpy.ndarray, default=None
             The given indices (relative to `self.indices_labeled`) define a custom validation set
             if provided. Otherwise, each classifier that uses a validation set will be responsible
@@ -157,6 +158,8 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
             if hasattr(self, '_clf'):
                 del self._clf
             self._clf = clf_or_indices
+            self.y = np.empty(shape=(0,), dtype=int)
+        elif clf_or_indices is None:
             self.y = np.empty(shape=(0,), dtype=int)
         else:
             raise ValueError('Initialization failed: argument "clf_or_indices" must be of type '
