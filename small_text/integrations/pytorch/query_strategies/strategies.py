@@ -23,7 +23,7 @@ try:
     import torch
     import torch.nn.functional as F  # noqa: N812
 
-    from torch.cuda.amp import GradScaler  # pyright: ignore
+    from torch.amp import GradScaler  # pyright: ignore
     from torch.nn import BCEWithLogitsLoss
     from torch.nn.utils import clip_grad_norm_  # pyright: ignore
 
