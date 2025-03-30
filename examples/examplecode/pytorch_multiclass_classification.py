@@ -1,15 +1,9 @@
 """Example of a multiclass active learning text classification with pytorch.
-
-Note:
-This examples requires gensim>=4.0.0 which is used for obtaining word2vec embeddings.
 """
-import torch
+
 import numpy as np
 
-from collections import Counter
-
 from small_text import (
-    ActiveLearnerException,
     EmptyPoolException,
     BreakingTies,
     KimCNNClassifierFactory,
@@ -20,32 +14,26 @@ from small_text import (
 
 from examplecode.data.example_data_multiclass import (
     get_train_test,
-    preprocess_data
+    preprocess_data,
+    load_pretrained_word_vectors
 )
 from examplecode.shared import evaluate
-
-try:
-    import gensim.downloader as api
-except ImportError:
-    raise ActiveLearnerException('This example requires the gensim library. '
-                                 'Please install gensim>=4.0.0 to run this example.')
 
 
 def main(num_iterations=10, device='cuda'):
     from small_text.integrations.pytorch.classifiers.base import AMPArguments
-    pretrained_vectors = api.load('word2vec-google-news-300')
 
+    words, pretrained_vectors = load_pretrained_word_vectors()
+
+    # loads a 3-class subset of 20news
     train, test = get_train_test()
-
-    # TODO: use another dataset
-    train, test, tokenizer = preprocess_data(train, test, pretrained_vectors)
+    train, test, tokenizer, pretrained_vectors = preprocess_data(train, test, words, pretrained_vectors)
 
     num_classes = len(np.unique(train.y))
 
     # Active learning parameters
-    # TODO: the selection of embedding vectors can still be improved
     classifier_kwargs = {
-        'embedding_matrix': load_gensim_embedding(train.data, tokenizer, pretrained_vectors),
+        'embedding_matrix': pretrained_vectors,
         'max_seq_len': 512,
         'num_epochs': 4,
         'device': device,
@@ -61,7 +49,6 @@ def main(num_iterations=10, device='cuda'):
 
     try:
         perform_active_learning(active_learner, train, indices_labeled, test, num_iterations)
-
     except PoolExhaustedException:
         print('Error! Not enough samples left to handle the query.')
     except EmptyPoolException:
@@ -84,30 +71,6 @@ def perform_active_learning(active_learner, train, indices_labeled, test, num_it
 
         print('Iteration #{:d} ({} samples)'.format(i, len(indices_labeled)))
         evaluate(active_learner, train[indices_labeled], test)
-
-
-def load_gensim_embedding(texts, tokenizer, pretrained_vectors, min_freq=1, num_special_tokens=2):
-
-    vectors = [
-        np.zeros(pretrained_vectors.vectors.shape[1])
-        for _ in range(num_special_tokens)
-    ]
-    vocab = tokenizer.get_vocab()
-    vectors += [
-        pretrained_vectors.get_vector(tokenizer.id_to_token(i))
-        if pretrained_vectors.has_index_for(tokenizer.id_to_token(i))
-        else np.zeros(pretrained_vectors.vectors.shape[1])
-        for i in range(num_special_tokens, len(vocab))
-    ]
-
-    token_id_list = [text[0].cpu().numpy().tolist() for text in texts]
-    word_frequencies = Counter([token for tokens in token_id_list for token in tokens])
-    for i in range(num_special_tokens, len(vocab)):
-        is_in_vocab = pretrained_vectors.has_index_for(tokenizer.id_to_token(i))
-        if not is_in_vocab and word_frequencies[tokenizer.id_to_token(i)] >= min_freq:
-            vectors[i] = np.random.uniform(-0.25, 0.25, pretrained_vectors.vectors.shape[1])
-
-    return torch.as_tensor(np.stack(vectors))
 
 
 def initialize_active_learner(active_learner, y_train):

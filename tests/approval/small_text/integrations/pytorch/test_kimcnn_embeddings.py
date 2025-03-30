@@ -4,13 +4,12 @@ import pytest
 import numpy as np
 
 from approvaltests import verify
-import gensim.downloader as api
 
 from examplecode.data.example_data_multiclass import (
     get_train_test,
     preprocess_data
 )
-from examplecode.pytorch_multiclass_classification import load_gensim_embedding, initialize_active_learner
+from examplecode.pytorch_multiclass_classification import load_pretrained_word_vectors, initialize_active_learner
 
 from small_text import KimCNNClassifierFactory, BreakingTies, PoolBasedActiveLearner
 from small_text.integrations.pytorch.classifiers.base import AMPArguments
@@ -21,11 +20,11 @@ from tests.utils.misc import random_seed
 class PytorchKimCNNEmbeddingsApprovalTest(unittest.TestCase):
 
     @random_seed(seed=42, set_torch_seed=True)
-    def test_gradient_embeddings(self, device='cuda'):
+    def test_embeddings(self, device='cuda'):
         train, test = get_train_test()
+        words, pretrained_vectors = load_pretrained_word_vectors()
 
-        pretrained_vectors = api.load('word2vec-google-news-300')
-        train, test, tokenizer = preprocess_data(train, test, pretrained_vectors)
+        train, test, tokenizer, pretrained_vectors = preprocess_data(train, test, words, pretrained_vectors)
 
         train = train[:100].clone()
         test = test[:10].clone()
@@ -33,7 +32,7 @@ class PytorchKimCNNEmbeddingsApprovalTest(unittest.TestCase):
         num_classes = len(np.unique(train.y))
 
         classifier_kwargs = {
-            'embedding_matrix': load_gensim_embedding(train.data, tokenizer, pretrained_vectors),
+            'embedding_matrix': pretrained_vectors,
             'max_seq_len': 256,
             'num_epochs': 2,
             'device': device
@@ -50,11 +49,11 @@ class PytorchKimCNNEmbeddingsApprovalTest(unittest.TestCase):
         verify(output)
 
     @random_seed(seed=42, set_torch_seed=True)
-    def test_gradient_embeddings_amp(self, device='cuda'):
+    def test_embeddings_amp(self, device='cuda'):
         train, test = get_train_test()
+        words, pretrained_vectors = load_pretrained_word_vectors()
 
-        pretrained_vectors = api.load('word2vec-google-news-300')
-        train, test, tokenizer = preprocess_data(train, test, pretrained_vectors)
+        train, test, tokenizer, pretrained_vectors = preprocess_data(train, test, words, pretrained_vectors)
 
         train = train[:100].clone()
         test = test[:10].clone()
@@ -63,7 +62,7 @@ class PytorchKimCNNEmbeddingsApprovalTest(unittest.TestCase):
 
         amp_args = AMPArguments(use_amp=True, device_type='cuda')
         classifier_kwargs = {
-            'embedding_matrix': load_gensim_embedding(train.data, tokenizer, pretrained_vectors),
+            'embedding_matrix': pretrained_vectors,
             'max_seq_len': 256,
             'num_epochs': 2,
             'device': device,

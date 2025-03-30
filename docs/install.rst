@@ -91,9 +91,6 @@ An overview of such dependencies is given in table below:
    * - Dependency
      - Required
      - Version requirements
-   * - `gensim`_
-     - Code Examples, Approval Tests, Integration Tests
-     - >= 4.0.0
    * - `hnswlib`_
      - :py:class:`~small_text.query_strategies.strategies.SEALS`, :py:class:`~small_text.query_strategies.subsampling.AnchorSubsampling`,
        :doc:`Vector Indexes<api/vector_indexes>`

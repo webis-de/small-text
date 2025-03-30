@@ -74,6 +74,7 @@ On the other hand, this also allowed us to deal with further issues that contain
     - Removed early stopping legacy arguments in `__init__()` for KimCNN and TransformerBasedClassification. (Use `fit()` keyword arguments instead.) 
     - Removed model selection legacy argument in `TransformerBasedClassification.__init__()`.
 - The explicit installation instruction for conda was removed, but the small-text conda-forge package will remain.
+- Removed gensim dependency in the PyTorch multiclass example.
 
 ---
 
