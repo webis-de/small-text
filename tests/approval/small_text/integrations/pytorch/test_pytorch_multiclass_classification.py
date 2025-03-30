@@ -4,14 +4,13 @@ import pytest
 import numpy as np
 
 from approvaltests import verify
-import gensim.downloader as api
 from sklearn.metrics import f1_score
 
 from examplecode.data.example_data_multiclass import (
     get_train_test,
     preprocess_data
 )
-from examplecode.pytorch_multiclass_classification import load_gensim_embedding, initialize_active_learner
+from examplecode.pytorch_multiclass_classification import load_pretrained_word_vectors, initialize_active_learner
 
 from small_text import KimCNNClassifierFactory, BreakingTies, PoolBasedActiveLearner
 from tests.utils.misc import random_seed
@@ -53,13 +52,14 @@ class PytorchMulticlassClassificationApprovalTest(unittest.TestCase):
         num_iterations = 3
 
         train, test = get_train_test()
+        words, pretrained_vectors = load_pretrained_word_vectors()
 
-        pretrained_vectors = api.load('word2vec-google-news-300')
-        train, test, tokenizer = preprocess_data(train, test, pretrained_vectors)
+        train, test, tokenizer, pretrained_vectors = preprocess_data(train, test, words, pretrained_vectors)
+
         num_classes = len(np.unique(train.y))
 
         classifier_kwargs = {
-            'embedding_matrix': load_gensim_embedding(train.data, tokenizer, pretrained_vectors),
+            'embedding_matrix': pretrained_vectors,
             'max_seq_len': 512,
             'num_epochs': 4,
             'device': device

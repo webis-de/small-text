@@ -76,12 +76,12 @@ def _build_embeddings(texts, tokenizer, vocab, pretrained_vectors, min_freq=1, n
         pretrained_vectors[i]
         if tokenizer.id_to_token(i) in vocab
         else np.zeros(pretrained_vectors.shape[1])
-        for i in range(num_special_tokens, len(vocab))
+        for i in range(0, len(vocab) - num_special_tokens)
     ]
 
     token_id_list = [text.cpu().numpy().tolist() for text in texts]
     word_frequencies = Counter([token for tokens in token_id_list for token in tokens])
-    for i in range(num_special_tokens, len(vocab)):
+    for i in range(0, len(vocab) - num_special_tokens):
         is_in_vocab = tokenizer.id_to_token(i) in vocab
         if not is_in_vocab and word_frequencies[tokenizer.id_to_token(i)] >= min_freq:
             vectors[i] = np.random.uniform(-0.25, 0.25, pretrained_vectors.shape[1])
