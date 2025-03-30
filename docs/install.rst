@@ -106,8 +106,6 @@ An overview of such dependencies is given in table below:
      - >= 3.0.0
 
 
-.. _`gensim`: https://pypi.org/project/gensim/
-
 .. _hnswlib: https://pypi.org/project/hnswlib/
 
 .. _`scikit-learn`: https://pypi.org/project/scikit-learn/
