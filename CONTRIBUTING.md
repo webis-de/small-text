@@ -180,7 +180,7 @@ The following steps need to be done before a new release can be created.
 
 #### Raising the Version
 
-- Update small_text/version.json
+- Update version in pyproject.toml
 - examples/notebooks: Set the small-text version to the new release.
   - Check notebook using a temporary small-text installation via github.
 - docs/index.rst: Set the small-text version to the new release.
