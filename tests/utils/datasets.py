@@ -81,7 +81,7 @@ def random_sklearn_dataset(num_samples, vocab_size=60, num_classes=2, multi_labe
     else:
         y = np.random.randint(0, high=num_classes, size=x.shape[0])
 
-    return SklearnDataset(x, y)
+    return SklearnDataset(x, y, target_labels=np.arange(num_classes))
 
 
 def trec_dataset(vocab_size=10_000):
