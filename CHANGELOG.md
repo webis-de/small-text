@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 2.0.0.dev1 - 2024-11-24
+## Version 2.0.0.dev2 - 2025-04-06
 
 *This section is going to be updated and will become v2.0.0 eventually.*
 
