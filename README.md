@@ -1,11 +1,11 @@
-[![PyPI](https://img.shields.io/pypi/v/small-text/v2.0.0.dev1)](https://pypi.org/project/small-text/)
+[![PyPI](https://img.shields.io/pypi/v/small-text/v2.0.0.dev2)](https://pypi.org/project/small-text/)
 [![Conda Forge](https://img.shields.io/conda/v/conda-forge/small-text?label=conda-forge)](https://anaconda.org/conda-forge/small-text)
 [![codecov](https://codecov.io/gh/webis-de/small-text/branch/master/graph/badge.svg?token=P86CPABQOL)](https://codecov.io/gh/webis-de/small-text)
-[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v2.0.0.dev1)](https://small-text.readthedocs.io/en/v2.0.0.dev1/) 
+[![Documentation Status](https://readthedocs.org/projects/small-text/badge/?version=v2.0.0.dev2)](https://small-text.readthedocs.io/en/v2.0.0.dev2/) 
 ![Maintained Yes](https://img.shields.io/badge/maintained-yes-green)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 [![MIT License](https://img.shields.io/github/license/webis-de/small-text)](LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14212697.svg)](https://zenodo.org/records/14212697)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15163677.svg)](https://zenodo.org/records/15163677)
 
 <p align="center">
 <img width="450" src="https://github.com/webis-de/small-text/blob/dev/docs/_static/small-text-logo.png?raw=true" alt="small-text logo" />
@@ -97,7 +97,7 @@ or check out the notebooks.
 
 | # | Notebook                                                                                                                                                                                                       |                                                                                                                                                                                                                                                  |
 | --- |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| 
-| 1 | [Intro: Active Learning for Text Classification with Small-Text](https://github.com/webis-de/small-text/blob/v2.0.0.dev1/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v2.0.0.dev2/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
+| 1 | [Intro: Active Learning for Text Classification with Small-Text](https://github.com/webis-de/small-text/blob/v2.0.0.dev2/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v2.0.0.dev2/examples/notebooks/01-active-learning-for-text-classification-with-small-text-intro.ipynb) |
 | 2 | [Using Stopping Criteria for Active Learning](https://github.com/webis-de/small-text/blob/v2.0.0.dev2/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb)                                           | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v2.0.0.dev2/examples/notebooks/02-active-learning-with-stopping-criteria.ipynb)                        |
 | 3 | [Active Learning using SetFit](https://github.com/webis-de/small-text/blob/v2.0.0.dev2/examples/notebooks/03-active-learning-with-setfit.ipynb)                                                                     | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v2.0.0.dev2/examples/notebooks/03-active-learning-with-setfit.ipynb)                                   |
 | 4 | [Using SetFit's Zero Shot Capabilities for Cold Start Initialization](https://github.com/webis-de/small-text/blob/v2.0.0.dev2/examples/notebooks/04-zero-shot-cold-start.ipynb)                                     | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/webis-de/small-text/blob/v2.0.0.dev2/examples/notebooks/04-zero-shot-cold-start.ipynb)                                          |
