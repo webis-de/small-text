@@ -118,7 +118,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
                                                                                 embedding_method=embedding_method,
                                                                                 module_selector=module_selector)
 
-                    embeddings = embeddings.detach().to('cpu', non_blocking=True).numpy(force=True)
+                    embeddings = embeddings.detach().to('cpu').numpy(force=True)
 
                     pbar.update(batch_len)
                     if return_proba:
@@ -132,7 +132,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
     def _create_embeddings(self, batch, embedding_method='pooled', module_selector=lambda x: x['fc']):
         text, *_ = batch
 
-        text = text.to(self.device, non_blocking=True)
+        text = text.to(self.device)
 
         if embedding_method == self.EMBEDDING_METHOD_POOLED:
             embeddings = self.model._forward_pooled(text)
