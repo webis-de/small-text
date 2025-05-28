@@ -1,4 +1,5 @@
 import unittest
+import warnings
 import numpy as np
 
 from small_text.classifiers import ConfidenceEnhancedLinearSVC
@@ -17,8 +18,17 @@ class BALDHelperTest(unittest.TestCase):
 
     def test_bald_with_only_zeros_no_epsilon(self):
         p = np.zeros((10, 5, 3))
-        # Don't set eps=0. This yields nan values in the result.
-        result = _bald(p, eps=0)
+        with warnings.catch_warnings():
+
+            warnings.filterwarnings('ignore',
+                                    category=RuntimeWarning,
+                                    message='invalid value encountered in multiply')
+            warnings.filterwarnings('ignore',
+                                    category=RuntimeWarning,
+                                    message='divide by zero encountered in log2')
+
+            # Don't set eps=0. This yields nan values in the result.
+            result = _bald(p, eps=0)
         self.assertTrue(np.all(np.isnan(result)))
 
 
