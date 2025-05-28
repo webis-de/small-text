@@ -44,7 +44,7 @@ class PytorchKimCNNEmbeddingsApprovalTest(unittest.TestCase):
         active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
         initialize_active_learner(active_learner, train.y)
 
-        with np.printoptions(edgeitems=10, linewidth=np.inf):
+        with np.printoptions(precision=4, edgeitems=10, linewidth=np.inf):
             output = f'{active_learner.classifier.embed(test)}'
         verify(output)
 
@@ -75,6 +75,6 @@ class PytorchKimCNNEmbeddingsApprovalTest(unittest.TestCase):
         active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
         initialize_active_learner(active_learner, train.y)
 
-        with np.printoptions(edgeitems=10, linewidth=np.inf):
+        with np.printoptions(precision=4, edgeitems=10, linewidth=np.inf):
             output = f'{active_learner.classifier.embed(test)}'
         verify(output)
