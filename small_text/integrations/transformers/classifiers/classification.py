@@ -9,7 +9,10 @@ from functools import partial
 
 from small_text.classifiers.classification import EmbeddingMixin
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.utils.classification import get_splits
+from small_text.utils.classification import (
+    _check_classifier_dataset_consistency,
+    get_splits
+)
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data
 from small_text.utils.datetime import format_timedelta
@@ -378,6 +381,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self : TransformerBasedClassification
             Returns the current classifier with a fitted model.
         """
+        _check_classifier_dataset_consistency(self, train_set, dataset_name_in_error='training')
+        _check_classifier_dataset_consistency(self, validation_set, dataset_name_in_error='validation')
         check_training_data(train_set, validation_set, weights=weights)
 
         optimizer_or_scheduler_given = optimizer is not None or scheduler is not None

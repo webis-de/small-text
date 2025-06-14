@@ -322,6 +322,27 @@ class _SetFitClassification(object):
             self.assertTrue(from_pretrained_mock.call_args.kwargs['force_download'])
             self.assertFalse(from_pretrained_mock.call_args.kwargs['local_files_only'])
 
+    def test_fit_with_train_set_mismatch(self):
+        train_set = random_text_dataset(10, multi_label=not self.multi_label)
+        num_classes = 5
+
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        classifier = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
+
+        with self.assertRaisesRegex(ValueError, 'The classifier is configured for '):
+            classifier.fit(train_set)
+
+    def test_fit_with_validation_set_mismatch(self):
+        train_set = random_text_dataset(10, multi_label=self.multi_label)
+        validation_set = random_text_dataset(2, multi_label=not self.multi_label)
+        num_classes = 5
+
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        classifier = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
+
+        with self.assertRaisesRegex(ValueError, 'The classifier is configured for '):
+            classifier.fit(train_set, validation_set=validation_set)
+
     def test_fit_without_train_kwargs(self):
         ds = random_text_dataset(10, multi_label=self.multi_label)
         num_classes = 5

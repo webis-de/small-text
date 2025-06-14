@@ -151,6 +151,69 @@ class KimCNNTest(unittest.TestCase):
             self.assertEqual(len(train), len(call_args[0]))
             self.assertEqual(len(valid), len(call_args[1]))
 
+    def test_fit_with_train_set_mismatch_multi_and_single(self):
+        num_classes = 3
+        train_set = random_text_classification_dataset(8,
+                                                       max_length=60,
+                                                       num_classes=num_classes,
+                                                       multi_label=True)
+
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        classifier = KimCNNClassifier(num_classes,
+                                      embedding_matrix=embedding_matrix)
+
+        with self.assertRaisesRegex(ValueError, 'The classifier is configured for '):
+            classifier.fit(train_set)
+
+    def test_fit_with_train_set_mismatch_single_and_multi(self):
+        num_classes = 3
+        train_set = random_text_classification_dataset(8,
+                                                       max_length=60,
+                                                       num_classes=num_classes)
+
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        classifier = KimCNNClassifier(num_classes,
+                                      multi_label=True,
+                                      embedding_matrix=embedding_matrix)
+
+        with self.assertRaisesRegex(ValueError, 'The classifier is configured for '):
+            classifier.fit(train_set)
+
+    def test_fit_with_validation_set_mismatch_multi_and_single(self):
+        num_classes = 3
+        train_set = random_text_classification_dataset(15,
+                                                       max_length=60,
+                                                       num_classes=num_classes)
+        validation_set = random_text_classification_dataset(5,
+                                                            max_length=60,
+                                                            num_classes=num_classes,
+                                                            multi_label=True)
+
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        classifier = KimCNNClassifier(num_classes,
+                                      embedding_matrix=embedding_matrix)
+
+        with self.assertRaisesRegex(ValueError, 'The classifier is configured for '):
+            classifier.fit(train_set, validation_set=validation_set)
+
+    def test_fit_with_validation_set_mismatch_single_and_multi(self):
+        num_classes = 3
+        train_set = random_text_classification_dataset(15,
+                                                       max_length=60,
+                                                       num_classes=num_classes,
+                                                       multi_label=True)
+        validation_set = random_text_classification_dataset(5,
+                                                            max_length=60,
+                                                            num_classes=num_classes)
+
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        classifier = KimCNNClassifier(num_classes,
+                                      multi_label=True,
+                                      embedding_matrix=embedding_matrix)
+
+        with self.assertRaisesRegex(ValueError, 'The classifier is configured for '):
+            classifier.fit(train_set, validation_set=validation_set)
+
     def test_fit_where_y_train_contains_unlabeled(self):
         train_set = random_text_classification_dataset(10)
         train_set.y = np.array([LABEL_UNLABELED] * 10)

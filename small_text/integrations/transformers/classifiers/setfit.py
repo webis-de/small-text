@@ -10,6 +10,7 @@ from small_text.exceptions import UnsupportedOperationException
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 
 from small_text.utils.classification import (
+    _check_classifier_dataset_consistency,
     empty_result,
     _multi_label_list_to_multi_hot,
     prediction_result
@@ -235,6 +236,9 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         self : SetFitClassification
             Returns the current classifier with a fitted model.
         """
+        _check_classifier_dataset_consistency(self, train_set, dataset_name_in_error='training')
+        _check_classifier_dataset_consistency(self, validation_set, dataset_name_in_error='validation')
+
         setfit_train_kwargs = _check_train_kwargs(setfit_train_kwargs)
         if self.model is None:
             self.model = self.initialize()

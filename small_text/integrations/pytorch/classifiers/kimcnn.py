@@ -13,7 +13,10 @@ from small_text.integrations.pytorch.classifiers.base import PytorchClassifier
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.integrations.pytorch.models.kimcnn import KimCNN
 from small_text.training.model_selection import NoopModelSelection
-from small_text.utils.classification import get_splits
+from small_text.utils.classification import (
+    _check_classifier_dataset_consistency,
+    get_splits
+)
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data, list_length
 from small_text.utils.labels import csr_to_list
@@ -314,6 +317,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         self : KimCNNClassifier
             Returns the current classifier with a fitted model.
         """
+        _check_classifier_dataset_consistency(self, train_set, dataset_name_in_error='training')
+        _check_classifier_dataset_consistency(self, validation_set, dataset_name_in_error='validation')
         check_training_data(train_set, validation_set, weights=weights)
 
         if weights is not None:

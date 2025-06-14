@@ -306,6 +306,44 @@ class TestTransformerBasedClassification(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Validation set labels must be labeled'):
             classifier.fit(train_set, validation_set=validation_set)
 
+    def test_fit_with_train_set_mismatch_single_and_multi(self):
+        train_set = random_transformer_dataset(10)
+
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args, 2, multi_label=True)
+
+        with self.assertRaisesRegex(ValueError, 'The classifier is configured for single-label classification'):
+            classifier.fit(train_set)
+
+    def test_fit_with_train_set_mismatch_multi_and_single(self):
+        train_set = random_transformer_dataset(10, num_classes=3, multi_label=True)
+
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args, 3)
+
+        with self.assertRaisesRegex(ValueError, 'The classifier is configured for single-label classification'):
+            classifier.fit(train_set)
+
+    def test_fit_with_validation_set_mismatch_single_and_multi(self):
+        train_set = random_transformer_dataset(10, num_classes=3, multi_label=True)
+        validation_set = random_transformer_dataset(2)
+
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args, 2, multi_label=True)
+
+        with self.assertRaisesRegex(ValueError, 'The classifier is configured for single-label classification'):
+            classifier.fit(train_set, validation_set=validation_set)
+
+    def test_fit_with_validation_set_mismatch_multi_and_single(self):
+        train_set = random_transformer_dataset(10)
+        validation_set = random_transformer_dataset(2, num_classes=3, multi_label=True)
+
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args, 3)
+
+        with self.assertRaisesRegex(ValueError, 'The classifier is configured for single-label classification'):
+            classifier.fit(train_set, validation_set=validation_set)
+
     def test_fit_without_validation_set(self):
         dataset = random_transformer_dataset(10)
 

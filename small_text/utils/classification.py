@@ -157,3 +157,17 @@ def empty_result(multi_label, num_classes, return_prediction=True, return_proba=
 def _multi_label_list_to_multi_hot(multi_label_list, num_classes):
     return [[0 if i not in set(entry) else 1 for i in range(num_classes)]
             for entry in multi_label_list]
+
+
+def _check_classifier_dataset_consistency(classifier, dataset, dataset_name_in_error='dataset'):
+    if dataset is None:
+        return
+
+    if classifier.multi_label and not dataset.is_multi_label:
+        raise ValueError(f'The classifier is configured for single-label classification, '
+                         f'but the {dataset_name_in_error} data is labeled for multi-label classification. '
+                         f'Please update the classifier settings or adjust the dataset accordingly.')
+    elif not classifier.multi_label and dataset.is_multi_label:
+        raise ValueError(f'The classifier is configured for single-label classification, '
+                         f'but the {dataset_name_in_error} data is labeled for multi-label classification. '
+                         f'Please update the classifier settings or adjust the dataset accordingly.')
