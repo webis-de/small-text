@@ -27,7 +27,7 @@ def check_training_data(train_set, validation_set, weights=None):
     Raises
     ------
     ValueError
-        If either the given train set or validation set contains contains a `LABEL_UNLABELED` label.
+        If either the given train set or validation set contains a `LABEL_UNLABELED` label.
     """
 
     if train_set.is_multi_label is False:
