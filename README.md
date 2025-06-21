@@ -17,7 +17,7 @@
 [Installation](#installation) | [Quick Start](#quick-start) | [Contribution](CONTRIBUTING.md) | [Changelog][changelog] | [**Docs**][documentation_main]
 
 Small-Text provides state-of-the-art **Active Learning** for Text Classification. 
-Several pre-implemented Query Strategies, Initialization Strategies, and Stopping Critera are provided, 
+Several pre-implemented Query Strategies, Initialization Strategies, and Stopping Criteria are provided, 
 which can be easily mixed and matched to build active learning experiments or applications.
 
 ## What is Active Learning?
@@ -32,12 +32,12 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 ## Features
 
-- Provides unified interfaces for Active Learning so that you can 
+- Provides unified interfaces for Active Learning, allowing you to 
   easily mix and match query strategies with classifiers provided by [sklearn](https://scikit-learn.org/), [Pytorch](https://pytorch.org/), or [transformers](https://github.com/huggingface/transformers).
 - Supports GPU-based [Pytorch](https://pytorch.org/) models and integrates [transformers](https://github.com/huggingface/transformers) 
   so that you can use state-of-the-art Text Classification models for Active Learning.
-- GPU is supported but not required. In case of a CPU-only use case, 
-  a lightweight installation only requires a minimal set of dependencies.
+- GPU is supported but not required. CPU-only use cases require only 
+  a lightweight installation with minimal dependencies.
 - Multiple scientifically evaluated components are pre-implemented and ready to use (Query Strategies, Initialization Strategies, and Stopping Criteria).
 
 ---
@@ -47,7 +47,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 **Version 2.0.0 dev2** ([v2.0.0.dev2][changelog_2.0.0dev2]) - April 6th, 2025
   - This is a development release with the most changes so far. You can consider it an alpha release, which does not guarantee you stable interfaces yet, 
     but is otherwise ready to use.
-  - Version 2.0.0 offers cleaned up interfaces, new query strategies, improved classifiers, and new functionality such as vector indices. See the [changelog][changelog_2.0.0dev2] for a full list of changes.
+  - Version 2.0.0 offers refined interfaces, new query strategies, improved classifiers, and new functionality such as vector indices. See the [changelog][changelog_2.0.0dev2] for a full list of changes.
 
 **Version 1.4.1** ([v1.4.1][changelog_1.4.1]) - August 18th, 2024
   - Bugfix release.
@@ -58,7 +58,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 **Paper published at EACL 2023 🎉**
   - The [paper][paper_published] introducing small-text has been accepted at [EACL 2023](https://2023.eacl.org/). Meet us at the conference in May!
-  - Update: the paper was awarded [EACL Best System Demonstration](https://aclanthology.org/2023.eacl-demo.11/). Thank you, for your support!
+  - Update: the paper was awarded [EACL Best System Demonstration](https://aclanthology.org/2023.eacl-demo.11/). Thank you for your support!
 
 [For a complete list of changes, see the change log.][changelog]
 
@@ -150,7 +150,7 @@ Read the latest documentation [here][documentation_main]. Noteworthy pages inclu
   </tbody>
 </table>
 
-We use the numbers only to show to tremendous progress that small-text has made over time. 
+We use the numbers only to show the tremendous progress that small-text has made over time. 
 There many features and improvements that are not reflected in these numbers.
 
 ## Alternatives
