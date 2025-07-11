@@ -1,3 +1,4 @@
+import importlib
 import types
 import numpy as np
 
@@ -32,7 +33,6 @@ try:
     import torch
 
     from datasets import Dataset
-    from setfit import SetFitModel, SetFitTrainer, TrainingArguments
 
     from small_text.integrations.pytorch.classifiers.base import AMPArguments
 
@@ -43,6 +43,14 @@ try:
     )
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
+
+
+if importlib.util.find_spec('setfit') is not None:
+    from setfit import SetFitModel, SetFitTrainer, TrainingArguments
+else:
+    SetFitModel = None
+    SetFitTrainer = None
+    TrainingArguments = None
 
 
 class SetFitModelArguments(object):
