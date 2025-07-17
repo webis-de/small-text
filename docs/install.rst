@@ -100,7 +100,7 @@ An overview of such dependencies is given in table below:
      - >= 1.3.0
    * - `setfit`_
      - :py:class:`~small_text.integrations.transformers.classifiers.setfit.SetFitClassification`
-     - >= 1.1.0
+     - >= 1.1.2
    * - `networkx`_
      - :py:class:`~small_text.query_strategies.vector_space.ProbCover`
      - >= 3.0.0
