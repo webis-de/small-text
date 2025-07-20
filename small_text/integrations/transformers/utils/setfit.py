@@ -35,14 +35,6 @@ def _check_trainer_kwargs(trainer_kwargs):
     return trainer_kwargs
 
 
-def _check_train_kwargs(train_kwargs):
-    if 'max_length' in train_kwargs:
-        raise ValueError('Invalid keyword argument in setfit_train_kwargs: '
-                         'Argument "max_length" can be set via "max_seq_len" in '
-                         'SetFitClassification.')
-    return train_kwargs
-
-
 def _truncate_texts(setfit_model, max_seq_len, *datasets):
     tokenizer = setfit_model.model_body.tokenizer
     datasets_out = []

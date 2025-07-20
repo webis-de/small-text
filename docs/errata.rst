@@ -15,6 +15,7 @@ Classifiers
 ===========
 
 - TransformerBasedClassification: parameter groups were omitted when using the layer-specific fine-tuning functionality (`#38 <https://github.com/webis-de/small-text/pull/38>`_; fixed in v1.3.1).
+- SetFitClassification: certain training arguments (such as num_epochs and max_steps) were not passed correctly (`#79 <https://github.com/webis-de/small-text/pull/79>`_; affects small-text v2.0.0dev1, v2.0.0dev2 with setfit>=1.0.0; fixed in v2.0.0.dev3 / v2.0.0).
 
 Stopping Critera
 ================

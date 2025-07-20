@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 2.0.0.dev2 - 2025-04-06
+## Version 2.0.0.dev3 - unreleased
 
 *This section is going to be updated and will become v2.0.0 eventually.*
 
@@ -29,6 +29,7 @@ On the other hand, this also allowed us to deal with further issues that contain
     - Additional keyword args for config, tokenizer, and model can now be configured.
   - SetFitClassification:
     - Additional keyword args for trainer and model are now attached to `SetFitModelArguments` instead of `SetFitClassification`.
+    - Removed `setfit_train_kwargs` from `SetFitClassification.fit()`.
 
 - Embeddings:
   - Prevented unnecessary gradient computations for some embedding types and unified code structure.
@@ -55,7 +56,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 - General
   - Moved `split_data()` method from `small_text.data.datasets` to `small_text.data.splits`.
 - Dependencies
-  - Raised setfit version to 1.1.0.
+  - Raised minimum required setfit version to 1.1.0.
 - Classification:
   - The `initialize()` methods of all PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) are now more unified. ([#57](https://github.com/webis-de/small-text/issues/57))
   - KimCNNClassifier / TransformerBasedClassification: model selection is now disabled by default. Also, it no longer saves models when disabled, thereby greatly reducing the runtime.

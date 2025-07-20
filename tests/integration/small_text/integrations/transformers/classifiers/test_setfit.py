@@ -28,18 +28,6 @@ except (ImportError, PytorchNotFoundError):
 
 class _ClassificationTest(object):
 
-    def test_fit_with_misplaced_max_length_kwargs(self):
-        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
-        num_classes = 5
-
-        setfit_train_kwargs = {'max_length': 20}
-
-        texts = ['this is a sentence', 'another sentence']
-        clf = SetFitClassification(setfit_model_args, num_classes)
-        dataset = TextDataset.from_arrays(texts, np.array([1, 0]), target_labels=np.array([0, 1]))
-        with self.assertRaisesRegex(ValueError, 'Invalid keyword argument in setfit_train_kwargs'):
-            clf.fit(dataset, setfit_train_kwargs=setfit_train_kwargs)
-
     def test_fit_and_predict(self):
         classification_kwargs = {
             'use_differentiable_head': self.use_differentiable_head,
@@ -210,16 +198,15 @@ class _ClassificationTest(object):
         num_classes = 5
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
-        setfit_train_kwargs = {'show_progress_bar': False}
 
         with patch('setfit.trainer.set_seed') as set_seed_mock:
             clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
 
-            clf.fit(ds, setfit_train_kwargs=setfit_train_kwargs)
+            clf.fit(ds)
             self.assertEqual(1, set_seed_mock.call_count)
             first_seed = set_seed_mock.call_args_list[0][0]
 
-            clf.fit(ds, setfit_train_kwargs=setfit_train_kwargs)
+            clf.fit(ds)
             self.assertEqual(2, set_seed_mock.call_count)
             second_seed = set_seed_mock.call_args_list[1][0]
 

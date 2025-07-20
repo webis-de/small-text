@@ -176,6 +176,85 @@ class TestSetFitClassificationKeywordArguments(unittest.TestCase):
             SetFitClassification(setfit_model_args, num_classes, trainer_kwargs=trainer_kwargs)
 
 
+@pytest.mark.pytorch
+@pytest.mark.optional
+class TestSetFitModelArguments(unittest.TestCase):
+
+    def test_defaults(self):
+
+        ds = random_text_dataset(10)
+        num_classes = 5
+
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        clf = SetFitClassification(setfit_model_args, num_classes)
+
+        with (patch.object(clf, '_call_setfit_trainer') as call_setfit_trainer_mock,
+              patch.object(clf, '_get_training_args', wraps=clf._get_training_args) as get_training_args_mock):
+            clf.fit(ds)
+
+            self.assertEqual(2, len(get_training_args_mock.call_args))
+            call_args = get_training_args_mock.call_args.args
+            self.assertTrue(isinstance(call_args[0], SetFitModelArguments))
+            self.assertTrue(isinstance(call_args[1], AMPArguments))
+
+            model_args = call_args[0]
+
+            self.assertIsNone(model_args.max_length)
+            self.assertEqual((16, 2), model_args.mini_batch_size)
+            self.assertEqual((1, 16), model_args.num_epochs)
+            self.assertEqual(-1, model_args.max_steps)
+            self.assertEqual('oversampling', model_args.sampling_strategy)
+            self.assertIsNone(model_args.num_iterations)
+            self.assertEqual((2e-5, 1e-5), model_args.body_learning_rate)
+            self.assertEqual(1e-2, model_args.head_learning_rate)
+            self.assertFalse(model_args.end_to_end)
+            self.assertIsNone(model_args.seed)
+
+            call_setfit_trainer_mock.assert_called()
+
+    def test_non_defaults(self):
+
+        ds = random_text_dataset(10)
+        num_classes = 5
+
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2',
+                                                 max_length=1024,
+                                                 mini_batch_size=(8, 4),
+                                                 num_epochs=(2, 4),
+                                                 max_steps=100,
+                                                 sampling_strategy='undersampling',
+                                                 num_iterations=100,
+                                                 body_learning_rate=(5e-5, 2e-5),
+                                                 head_learning_rate=1e-3,
+                                                 end_to_end=True,
+                                                 seed=42)
+        clf = SetFitClassification(setfit_model_args, num_classes)
+
+        with (patch.object(clf, '_call_setfit_trainer') as call_setfit_trainer_mock,
+              patch.object(clf, '_get_training_args', wraps=clf._get_training_args) as get_training_args_mock):
+            clf.fit(ds)
+
+            self.assertEqual(2, len(get_training_args_mock.call_args))
+            call_args = get_training_args_mock.call_args.args
+            self.assertTrue(isinstance(call_args[0], SetFitModelArguments))
+            self.assertTrue(isinstance(call_args[1], AMPArguments))
+
+            model_args = call_args[0]
+
+            self.assertEqual(1024, model_args.max_length)
+            self.assertEqual((8, 4), model_args.mini_batch_size)
+            self.assertEqual((2, 4), model_args.num_epochs)
+            self.assertEqual(100, model_args.max_steps)
+            self.assertEqual('undersampling', model_args.sampling_strategy)
+            self.assertEqual(100, model_args.num_iterations)
+            self.assertEqual((5e-5, 2e-5), model_args.body_learning_rate)
+            self.assertEqual(1e-3, model_args.head_learning_rate)
+            self.assertTrue(model_args.end_to_end)
+            self.assertEqual(42, model_args.seed)
+
+            call_setfit_trainer_mock.assert_called()
+
+
 class _SetFitClassification(object):
 
     def test_init(self):
@@ -358,24 +437,6 @@ class _SetFitClassification(object):
             self.assertIsNotNone(clf.model)
             trainer_mock.return_value.train.assert_called_with(max_length=512, show_progress_bar=True)
 
-    def test_fit_with_train_kwargs(self):
-        ds = random_text_dataset(10, multi_label=self.multi_label)
-        num_classes = 5
-
-        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
-        setfit_train_kwargs = {'l2_weight': 0.2}
-
-        with patch('small_text.integrations.transformers.classifiers.setfit.SetFitTrainer') as trainer_mock:
-            clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
-            self.assertIsNone(clf.model)
-            clf.fit(ds, setfit_train_kwargs=setfit_train_kwargs)
-
-            trainer_mock.return_value.train.assert_called()
-
-            self.assertIsNotNone(clf.model)
-            call_args = trainer_mock.return_value.train.call_args
-            self.assertTrue('l2_weight' in call_args.kwargs)
-            self.assertEqual(0.2, call_args.kwargs['l2_weight'])
 
     def test_fit_with_amp(self):
         ds = random_text_dataset(10, multi_label=self.multi_label)

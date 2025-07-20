@@ -2,6 +2,8 @@ import importlib
 import types
 import numpy as np
 
+from typing import Union, Tuple
+
 from sklearn.exceptions import NotFittedError
 from sklearn.utils.validation import check_is_fitted
 
@@ -25,7 +27,6 @@ from small_text.integrations.transformers.classifiers.base import (
 from small_text.integrations.transformers.utils.setfit import (
     _check_model_kwargs,
     _check_trainer_kwargs,
-    _check_train_kwargs,
     _truncate_texts
 )
 
@@ -46,7 +47,7 @@ except ImportError:
 
 
 if importlib.util.find_spec('setfit') is not None:
-    from setfit import SetFitModel, SetFitTrainer, TrainingArguments
+    from setfit import SetFitModel, Trainer, TrainingArguments
 else:
     SetFitModel = None
     SetFitTrainer = None
@@ -56,11 +57,36 @@ else:
 class SetFitModelArguments(object):
     """Model arguments for :py:class:`SetFitClassification`.
 
+    Most of these parameters are delegated to setfit. Refer to the setfit documentation for detailed information.
+
+    Differences between setfit and the small-text integration of setfit:
+    - Seed is None by default, i.e., not fixed and multiple runs may yield different results.
+    - AMP is controlled via `SetFitClassification`'s `amp_args`.
+
+    .. seealso::
+
+       Setfit documentation.
+           https://huggingface.co/docs/setfit/en/tutorials/overview
+
+       Class `TrainingArguments` arguments in the setfit code.
+           https://github.com/huggingface/setfit/blob/main/src/setfit/training_args.py
+
     .. versionadded:: 1.2.0
+    .. versionchanged:: 2.0.0
     """
 
     def __init__(self,
                  sentence_transformer_model: str,
+                 max_length : Union[None, int] = None,
+                 mini_batch_size: Union[int, Tuple[int, int]] = (16, 2),
+                 num_epochs: Union[int, Tuple[int, int]] = (1, 16),
+                 max_steps: int = -1,
+                 sampling_strategy: str = 'oversampling',
+                 num_iterations : Union[None, int] = None,
+                 body_learning_rate : Union[float, Tuple[float, float]] = (2e-5, 1e-5),
+                 head_learning_rate : float = 1e-2,
+                 end_to_end : bool = False,
+                 seed : Union[None, int] = None,
                  model_kwargs={},
                  trainer_kwargs={},
                  model_loading_strategy: ModelLoadingStrategy = ModelLoadingStrategy.DEFAULT,
@@ -70,6 +96,34 @@ class SetFitModelArguments(object):
         ----------
         sentence_transformer_model : str
             Name of a sentence transformer model.
+        max_length : int or None, default=None
+            Maximum number of tokens (size of context window). This should match the underlying model.
+        mini_batch_size : Tuple[int, int] or int, default=(16, 2)
+            Size of mini batches during training. Corresponds to setfit's batch_size parameter.
+        num_epochs : Tuple[int, int] or int, default=12
+            Number of epochs for model body and head. If only a single value is passed it will be used
+            for body and head. The head value will only be used if the model has a differentiable head.
+        max_steps : int, default=-1
+            Maximum number of training steps. This setting overrides `num_epochs`.
+        sampling_strategy : ['oversampling', 'undersampling', 'unique'], default='oversampling'
+            Sampling strategies that is used for drawing pairs during training. This is overridden by `num_iterations`.
+
+           .. seealso::
+               Overview of sampling strategies for setfit.
+                   https://huggingface.co/docs/setfit/en/conceptual_guides/sampling_strategies
+
+        num_iterations : int, default=None
+            Alternative way to `sampling_strategy` for controlling the generation of training pairs.
+        body_learning_rate : Tuple[float, float] or float
+            Learning rate(s) for the classifier body and head. If only a single value is passed it will be used
+            for body and head. Body learning rate will only be used if the model has a differentiable head and
+            end-to-end training is enabled.
+        head_learning_rate : float
+            Learning rate for the classifier head. Will only be used if the model has a differentiable head.
+        end_to_end : bool, default=False
+            Determines whether the model is trained end-to-end, otherwise body is trained before the head.
+        seed : int or None
+            Random seed. Set this to control reproducibility.
         model_kwargs : dict, default={}
             Keyword arguments used for the SetFit model. The keyword `use_differentiable_head` is
             excluded and managed by this class. The other keywords are directly passed to
@@ -100,6 +154,17 @@ class SetFitModelArguments(object):
             .. versionadded:: 2.0.0
         """
         self.sentence_transformer_model = sentence_transformer_model
+        self.max_length = max_length
+        self.mini_batch_size = mini_batch_size
+        self.num_epochs = num_epochs
+        self.max_steps = max_steps
+        self.sampling_strategy = sampling_strategy
+        self.num_iterations = num_iterations
+        self.body_learning_rate = body_learning_rate
+        self.head_learning_rate = head_learning_rate
+        self.end_to_end = end_to_end
+        self.seed = seed
+
         self.model_kwargs = _check_model_kwargs(model_kwargs)
         self.trainer_kwargs = _check_trainer_kwargs(trainer_kwargs)
         self.model_loading_strategy = model_loading_strategy
@@ -114,7 +179,8 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
     def embed(self, data_set, return_proba=False, pbar='tqdm'):
         """Embeds each sample in the given `data_set`.
 
-        The embedding is created by using the underlying sentence transformer model.
+        The embedding is created by using the underlying sentence transformer model configured in setfit.
+        The resulting embedding depends on the selected transformer model and the subsequent pooling strategy.
 
         Parameters
         ----------
@@ -186,6 +252,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
        This strategy requires the optional dependency `setfit`.
 
     .. versionadded:: 1.2.0
+    .. versionchanged:: 2.0.0
     """
 
     def __init__(self, setfit_model_args, num_classes, multi_label=False, max_length=512,
@@ -227,7 +294,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         self._amp_args = amp_args
         self.device = device
 
-    def fit(self, train_set, validation_set=None, setfit_train_kwargs=dict()):
+    def fit(self, train_set, validation_set=None):
         """Trains the model using the given train set.
 
         Parameters
@@ -236,8 +303,6 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             A dataset used for training the model.
         validation_set : TextDataset or None, default None
             A dataset used for validation during training.
-        setfit_train_kwargs : dict
-            Additional keyword arguments that are passed to `SetFitTrainer.train()`
 
         Returns
         -------
@@ -247,7 +312,6 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         _check_classifier_dataset_consistency(self, train_set, dataset_name_in_error='training')
         _check_classifier_dataset_consistency(self, validation_set, dataset_name_in_error='validation')
 
-        setfit_train_kwargs = _check_train_kwargs(setfit_train_kwargs)
         if self.model is None:
             self.model = self.initialize()
 
@@ -276,7 +340,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                                                                   y_valid)
 
         self.model.model_body.to(self.device)
-        return self._fit(sub_train, sub_valid, setfit_train_kwargs)
+        return self._fit(sub_train, sub_valid)
 
     def _get_train_and_valid_sets(self, x_train, y_train, x_valid, y_valid):
         sub_train = Dataset.from_dict({'text': x_train, 'label': y_train})
@@ -289,24 +353,39 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                 sub_valid = None
         return sub_train, sub_valid
 
-    def _fit(self, sub_train, sub_valid, setfit_train_kwargs):
-        seed = np.random.randint(np.iinfo(np.uint32).max, dtype=np.uint32).item()
-        trainer = SetFitTrainer(
-            self.model,
-            sub_train,
-            eval_dataset=sub_valid,
-            batch_size=self.mini_batch_size,
-            use_amp=self.amp_args.use_amp,
-            seed=seed,
-            **self.setfit_model_args.trainer_kwargs
-        )
-        # TODO:
-        train_args = TrainingArguments(num_epochs=(1, 5),
-                                       end_to_end=False,
-                                       max_length=self.max_length,
-                                       head_learning_rate=2e-5)
-        trainer.train(args=train_args, **setfit_train_kwargs)
+    def _fit(self, sub_train, sub_valid):
+        train_args = self._get_training_args(self.setfit_model_args, self.amp_args)
+        self._call_setfit_trainer(sub_train, sub_valid, train_args)
         return self
+
+    def _call_setfit_trainer(self, sub_train, sub_valid, train_args):
+        trainer = Trainer(
+            model=self.model,
+            args=train_args,
+            train_dataset=sub_train,
+            eval_dataset=sub_valid
+        )
+        trainer.train(args=train_args)
+
+    def _get_training_args(self, setfit_model_args, amp_args):
+        if self.setfit_model_args.seed is None:
+            seed = np.random.randint(np.iinfo(np.uint32).max, dtype=np.uint32).item()
+        else:
+            seed = self.setfit_model_args.seed
+
+        train_args = TrainingArguments(max_length=setfit_model_args.max_length,
+                                       batch_size=setfit_model_args.mini_batch_size,
+                                       num_epochs=setfit_model_args.num_epochs,
+                                       max_steps=setfit_model_args.max_steps,
+                                       sampling_strategy=setfit_model_args.sampling_strategy,
+                                       num_iterations=setfit_model_args.num_iterations,
+                                       body_learning_rate=setfit_model_args.body_learning_rate,
+                                       head_learning_rate=setfit_model_args.head_learning_rate,
+                                       end_to_end=setfit_model_args.end_to_end,
+                                       seed=seed,
+                                       use_amp=amp_args.use_amp,
+                                       **setfit_model_args.trainer_kwargs)
+        return train_args
 
     def initialize(self):
         from_pretrained_options = _get_arguments_for_from_pretrained_model(
