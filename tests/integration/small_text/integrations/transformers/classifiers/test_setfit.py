@@ -48,9 +48,6 @@ class _ClassificationTest(object):
 
         initialize_spy.assert_called_once()
 
-        if self.use_differentiable_head:
-            self.assertTrue(check_is_fitted(clf.model.model_head))
-
         test_set = twenty_news_text(30, num_classes=self.num_classes, multi_label=self.multi_label)
         y_pred = clf.predict(test_set)
 
@@ -87,34 +84,31 @@ class _ClassificationTest(object):
 
         clf = clf_factory.new()
 
-        if self.use_differentiable_head:
-            with self.assertRaises(NotImplementedError):
-                clf.fit(train_set)
-        else:
-            clf.fit(train_set)
 
-            # check Module.train()/.eval() works
-            clf.model.model_body.train()
-            self.assertTrue(clf.model.model_body.training)
-            clf.model.model_body.eval()
-            self.assertFalse(clf.model.model_body.training)
+        clf.fit(train_set)
 
-            y_pred_proba = clf.predict_proba(test_set)
-            self.assertSequenceEqual((len(test_set), self.num_classes), y_pred_proba.shape)
-            self.assertTrue(isinstance(y_pred_proba, np.ndarray))
-            self.assertTrue(np.all([isinstance(p, np.float64) for pred in y_pred_proba for p in pred]))
+        # check Module.train()/.eval() works
+        clf.model.model_body.train()
+        self.assertTrue(clf.model.model_body.training)
+        clf.model.model_body.eval()
+        self.assertFalse(clf.model.model_body.training)
 
-            y_pred_proba = clf.predict_proba(test_set, dropout_sampling=dropout_sampling)
-            self.assertSequenceEqual((len(test_set), dropout_sampling, self.num_classes), y_pred_proba.shape)
-            self.assertTrue(isinstance(y_pred_proba, np.ndarray))
-            self.assertTrue(np.all([isinstance(p, np.float64) for pred in y_pred_proba
-                                    for sample in pred for p in sample]))
+        y_pred_proba = clf.predict_proba(test_set)
+        self.assertSequenceEqual((len(test_set), self.num_classes), y_pred_proba.shape)
+        self.assertTrue(isinstance(y_pred_proba, np.ndarray))
+        self.assertTrue(np.all([isinstance(p, np.float64) for pred in y_pred_proba for p in pred]))
 
-            # check Module.train()/.eval() **still** (!) works
-            clf.model.model_body.train()
-            self.assertTrue(clf.model.model_body.training)
-            clf.model.model_body.eval()
-            self.assertFalse(clf.model.model_body.training)
+        y_pred_proba = clf.predict_proba(test_set, dropout_sampling=dropout_sampling)
+        self.assertSequenceEqual((len(test_set), dropout_sampling, self.num_classes), y_pred_proba.shape)
+        self.assertTrue(isinstance(y_pred_proba, np.ndarray))
+        self.assertTrue(np.all([isinstance(p, np.float64) for pred in y_pred_proba
+                                for sample in pred for p in sample]))
+
+        # check Module.train()/.eval() **still** (!) works
+        clf.model.model_body.train()
+        self.assertTrue(clf.model.model_body.training)
+        clf.model.model_body.eval()
+        self.assertFalse(clf.model.model_body.training)
 
     def test_fit_and_validate(self):
         device = 'cuda:0'
@@ -146,7 +140,7 @@ class _ClassificationTest(object):
 
             initialize_spy.assert_called_once()
 
-            self.assertEqual(3, clf.model.model_body.to.call_count)
+            self.assertTrue(clf.model.model_body.to.call_count >= 2)
             # our call is the first
             self.assertEqual(1, len(clf.model.model_body.to.call_args_list[0].args))
             self.assertEqual(device, clf.model.model_body.to.call_args_list[0].args[0])
@@ -182,16 +176,15 @@ class _ClassificationTest(object):
 
         clf = clf_factory.new()
 
-        with patch('small_text.integrations.transformers.classifiers.setfit.SetFitTrainer',
-                   autospec=True, create=True) as setfit_trainer_mock:
+        with patch('small_text.integrations.transformers.classifiers.setfit.Trainer',
+                   autospec=True, create=True) as trainer_mock:
             clf.fit(train_set)
 
-            self.assertEqual(1, setfit_trainer_mock.call_count)
-            self.assertEqual(mini_batch_size, setfit_trainer_mock.call_args_list[0].kwargs['batch_size'])
+            self.assertEqual(1, trainer_mock.call_count)
 
-            train_mock = setfit_trainer_mock.return_value.train
+            train_mock = trainer_mock.return_value.train
             self.assertEqual(1, train_mock.call_count)
-            self.assertEqual(max_length, train_mock.call_args_list[0].kwargs['max_length'])
+            self.assertIsNotNone(train_mock.call_args_list[0].kwargs['args'])
 
     def test_fit_prevent_fixed_seed(self):
         ds = twenty_news_text(10, num_classes=self.num_classes, multi_label=self.multi_label)

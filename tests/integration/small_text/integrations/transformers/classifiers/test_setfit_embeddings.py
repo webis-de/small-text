@@ -35,11 +35,8 @@ class _EmbeddingTest(object):
 
         clf = clf_factory.new()
 
-        if self.use_differentiable_head:
+        with self.assertRaisesRegex(ValueError, 'Model is not trained'):
             clf.embed(train_set)
-        else:
-            with self.assertRaisesRegex(ValueError, 'Model is not trained'):
-                clf.embed(train_set)
 
     def test_embed(self):
         classification_kwargs = {
@@ -129,8 +126,14 @@ class _EmbeddingTest(object):
             self.assertEqual(1, encode_spy.call_count)
             self.assertEqual(1, len(encode_spy.call_args_list[0].args))
             self.assertEqual(len(train_set.x), len(encode_spy.call_args_list[0].args[0]))
-            self.assertEqual(1, len(encode_spy.call_args_list[0].kwargs))
-            self.assertEqual(device, encode_spy.call_args_list[0].kwargs['device'])
+
+            if self.use_differentiable_head:
+                self.assertEqual(2, len(encode_spy.call_args_list[0].kwargs))
+                self.assertTrue(encode_spy.call_args_list[0].kwargs['convert_to_tensor'])
+                self.assertEqual(device, encode_spy.call_args_list[0].kwargs['device'])
+            else:
+                self.assertEqual(1, len(encode_spy.call_args_list[0].kwargs))
+                self.assertEqual(device, encode_spy.call_args_list[0].kwargs['device'])
 
             self.assertEqual(2, len(embeddings.shape))
             self.assertEqual(len(train_set), embeddings.shape[0])
