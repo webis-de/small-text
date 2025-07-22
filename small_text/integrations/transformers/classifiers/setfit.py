@@ -344,13 +344,12 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
     def _get_train_and_valid_sets(self, x_train, y_train, x_valid, y_valid):
         sub_train = Dataset.from_dict({'text': x_train, 'label': y_train})
+
         if x_valid is not None:
             sub_valid = Dataset.from_dict({'text': x_valid, 'label': y_valid})
         else:
-            if self.use_differentiable_head:
-                raise NotImplementedError
-            else:
-                sub_valid = None
+            sub_valid = None
+
         return sub_train, sub_valid
 
     def _fit(self, sub_train, sub_valid):
@@ -472,9 +471,6 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                                 return_proba=True)
         dataset = _truncate_texts(self.model, self.max_length, dataset)[0]
 
-        # if self.use_differentiable_head:
-        #     raise NotImplementedError()
-
         with inference_mode():
             if dropout_sampling <= 1:
                 return self._predict_proba(dataset)
@@ -493,7 +489,6 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
     def _predict_proba_dropout_sampling(self, dataset, dropout_samples=2):
         # this whole method be done much more efficiently but this solution works without modifying setfit's code
-
         self.model.model_body.train()
         model_body_eval = self.model.model_body.eval
         self.model.model_body.eval = types.MethodType(lambda x: x, self.model.model_body)
@@ -506,9 +501,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             for batch in np.array_split(dataset.x, num_batches, axis=0):
                 samples = np.empty((dropout_samples, len(batch), self.num_classes), dtype=float)
                 for i in range(dropout_samples):
-                    proba_tmp = np.zeros((batch.shape[0], self.num_classes), dtype=float)
-                    proba_tmp[:, self.model.model_head.classes_] = self.model.predict_proba(batch)
-                    samples[i] = proba_tmp
+                    samples[i] = self.model.predict_proba(batch, as_numpy=True)
 
                 samples = np.swapaxes(samples, 0, 1)
                 proba = np.append(proba, samples, axis=0)
