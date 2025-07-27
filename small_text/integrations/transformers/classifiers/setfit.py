@@ -21,7 +21,8 @@ from small_text.utils.classification import (
 from small_text.utils.context import build_pbar_context
 from small_text.utils.labels import csr_to_list
 from small_text.integrations.transformers.classifiers.base import (
-    ModelLoadingStrategy
+    ModelLoadingStrategy,
+    get_default_model_loading_strategy
 )
 
 from small_text.integrations.transformers.utils.setfit import (
@@ -36,9 +37,9 @@ try:
     from datasets import Dataset
 
     from small_text.integrations.pytorch.classifiers.base import AMPArguments
-
     from small_text.integrations.pytorch.utils.contextmanager import inference_mode
     from small_text.integrations.pytorch.utils.misc import _compile_if_possible, enable_dropout
+
     from small_text.integrations.transformers.utils.classification import (
         _get_arguments_for_from_pretrained_model
     )
@@ -87,9 +88,10 @@ class SetFitModelArguments(object):
                  head_learning_rate : float = 1e-2,
                  end_to_end : bool = False,
                  seed : Union[None, int] = None,
+                 output_dir : str = None,
                  model_kwargs={},
                  trainer_kwargs={},
-                 model_loading_strategy: ModelLoadingStrategy = ModelLoadingStrategy.DEFAULT,
+                 model_loading_strategy: ModelLoadingStrategy = get_default_model_loading_strategy(),
                  compile_model: bool = False):
         """
         Parameters
@@ -124,6 +126,8 @@ class SetFitModelArguments(object):
             Determines whether the model is trained end-to-end, otherwise body is trained before the head.
         seed : int or None
             Random seed. Set this to control reproducibility.
+        output_dir : str
+            Output directory for temporary files and results such as model checkpoints.
         model_kwargs : dict, default={}
             Keyword arguments used for the SetFit model. The keyword `use_differentiable_head` is
             excluded and managed by this class. The other keywords are directly passed to
@@ -164,6 +168,7 @@ class SetFitModelArguments(object):
         self.head_learning_rate = head_learning_rate
         self.end_to_end = end_to_end
         self.seed = seed
+        self.output_dir = output_dir
 
         self.model_kwargs = _check_model_kwargs(model_kwargs)
         self.trainer_kwargs = _check_trainer_kwargs(trainer_kwargs)
@@ -382,6 +387,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                                        head_learning_rate=setfit_model_args.head_learning_rate,
                                        end_to_end=setfit_model_args.end_to_end,
                                        seed=seed,
+                                       output_dir=setfit_model_args.output_dir,
                                        use_amp=amp_args.use_amp,
                                        **setfit_model_args.trainer_kwargs)
         return train_args

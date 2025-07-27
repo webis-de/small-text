@@ -192,9 +192,10 @@ def assure_all_labels_occur_numpy(y, num_classes, multi_label=False):
     hist = _get_class_histogram(all_labels, num_classes)
     missing_labels = np.arange(hist.shape[0])[hist == 0]
 
+    assert len(y) >= missing_labels.shape[0]
     for i, label_idx in enumerate(missing_labels):
         if multi_label:
-            y[i] = y[i][:-1] + (np.sort(np.append(y[i][-1], [label_idx])).tolist(),)
+            y[i] = np.sort(np.append(y[i], [label_idx])).tolist()
         else:
             y[i] = y[i][:-1] + (label_idx,)
 
@@ -270,7 +271,7 @@ def twenty_news_text(n, num_classes=10, subset='train', multi_label=False):
     return TextDataset(x, y)
 
 
-def random_text_dataset(n, num_classes=10, multi_label=False):
+def random_text_dataset(n, num_classes=10, multi_label=False, assure_all_labels_occur=True):
     x = random_text_data(n)
     if multi_label:
         y = list_to_csr([np.sort(random_labeling(num_classes, multi_label)).tolist()
@@ -278,7 +279,8 @@ def random_text_dataset(n, num_classes=10, multi_label=False):
     else:
         y = np.random.randint(0, num_classes, size=n)
 
-    y = assure_all_labels_occur_numpy(y, num_classes, multi_label=multi_label)
+    if assure_all_labels_occur:
+        y = assure_all_labels_occur_numpy(y, num_classes, multi_label=multi_label)
     return TextDataset(x, y)
 
 

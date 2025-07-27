@@ -33,7 +33,8 @@ class _ClassificationTest(object):
             'use_differentiable_head': self.use_differentiable_head,
             'multi_label': self.multi_label
         }
-        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
+        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2',
+                                                 output_dir='/tmp')
         clf_factory = SetFitClassificationFactory(
             setfit_model_args,
             self.num_classes,
@@ -73,7 +74,8 @@ class _ClassificationTest(object):
             'use_differentiable_head': self.use_differentiable_head,
             'multi_label': self.multi_label
         }
-        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
+        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2',
+                                                 output_dir='/tmp')
         clf_factory = SetFitClassificationFactory(
             setfit_model_args,
             self.num_classes,
@@ -117,7 +119,8 @@ class _ClassificationTest(object):
             'multi_label': self.multi_label,
             'device': device
         }
-        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
+        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2',
+                                                 output_dir='/tmp')
         clf_factory = SetFitClassificationFactory(
             setfit_model_args,
             self.num_classes,
@@ -190,7 +193,8 @@ class _ClassificationTest(object):
         ds = twenty_news_text(10, num_classes=self.num_classes, multi_label=self.multi_label)
         num_classes = 5
 
-        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2',
+                                                 output_dir='/tmp')
 
         with patch('setfit.trainer.set_seed') as set_seed_mock:
             clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)

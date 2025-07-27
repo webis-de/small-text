@@ -43,7 +43,8 @@ class _EmbeddingTest(object):
             'use_differentiable_head': self.use_differentiable_head,
             'multi_label': self.multi_label
         }
-        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
+        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2',
+                                                 output_dir='/tmp')
         clf_factory = SetFitClassificationFactory(
             setfit_model_args,
             self.num_classes,
@@ -69,7 +70,8 @@ class _EmbeddingTest(object):
             'multi_label': self.multi_label,
             'device': device
         }
-        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
+        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2',
+                                                 output_dir='/tmp')
         clf_factory = SetFitClassificationFactory(
             setfit_model_args,
             self.num_classes,
@@ -109,7 +111,8 @@ class _EmbeddingTest(object):
             'device': device,
             'amp_args': AMPArguments(use_amp=True, device_type='cuda', dtype=torch.bfloat16),
         }
-        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
+        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2',
+                                                 output_dir='/tmp')
         clf_factory = SetFitClassificationFactory(
             setfit_model_args,
             self.num_classes,
