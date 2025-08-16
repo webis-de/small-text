@@ -46,7 +46,7 @@ class TestSetFitModelArguments(unittest.TestCase):
         self.assertEqual(1e-2, args.head_learning_rate)
         self.assertFalse(args.end_to_end)
         self.assertIsNone(args.seed)
-        self.assertIsNone(args.output_dir)
+        self.assertEqual('checkpoints', args.output_dir)
         self.assertIsNotNone(args.model_kwargs)
         self.assertEqual(0, len(args.model_kwargs))
         self.assertIsNotNone(args.trainer_kwargs)

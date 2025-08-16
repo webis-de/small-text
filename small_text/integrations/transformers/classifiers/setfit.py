@@ -90,7 +90,7 @@ class SetFitModelArguments(object):
                  end_to_end : bool = False,
                  show_progress_bar : Union[None, bool] = None,
                  seed : Union[None, int] = None,
-                 output_dir : str = None,
+                 output_dir : str = 'checkpoints',
                  model_kwargs={},
                  trainer_kwargs={},
                  model_loading_strategy: ModelLoadingStrategy = get_default_model_loading_strategy(),
@@ -130,7 +130,7 @@ class SetFitModelArguments(object):
             Determines whether progress bars are shown. If none, the small-text default is used.
         seed : int or None
             Random seed. Set this to control reproducibility.
-        output_dir : str
+        output_dir : str, default='checkpoints'
             Output directory for temporary files and results such as model checkpoints.
         model_kwargs : dict, default={}
             Keyword arguments used for the SetFit model. The keyword `use_differentiable_head` is
