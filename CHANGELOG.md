@@ -16,6 +16,7 @@ On the other hand, this also allowed us to deal with further issues that contain
   - Python requirements raised to Python 3.9 since Python 3.8 has reached [end of life on 2024-10-07](https://devguide.python.org/versions/).
   - Dropped torchtext as an integration dependency. For individual use cases it can of course still be used.
   - Added environment variables `SMALL_TEXT_PROGRESS_BARS` and `SMALL_TEXT_OFFLINE` to control the default behavior for progress bars and model downloading.
+  - Minimum required SetFit version has been raised to `1.1.2` ([#71](https://github.com/webis-de/small-text/issues/71)).
 - PoolBasedActiveLearner:
   - `initialize_data()` has been replaced by `initialize()` which can now also be used to provide an initial model in cold start scenarios. ([#10](https://github.com/webis-de/small-text/pull/10))
 - Datasets
@@ -23,6 +24,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 - Classification:
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support `torch.compile()` which can be enabled on demand. (Requires PyTorch >= 2.0.0). 
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support Automatic Mixed Precision. 
+  - All classifiers have gained an additional convenience check that raises an error on single-/multi-label.
   - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v2.0.0.dev2/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.
   - TransformerBasedClassification:
     - Removed unnecessary `token_type_ids` keyword argument in model call.
@@ -30,6 +32,7 @@ On the other hand, this also allowed us to deal with further issues that contain
   - SetFitClassification:
     - Additional keyword args for trainer and model are now attached to `SetFitModelArguments` instead of `SetFitClassification`.
     - Removed `setfit_train_kwargs` from `SetFitClassification.fit()`.
+    - Using a differentiable head no longer requires a validation set.
 
 - Embeddings:
   - Prevented unnecessary gradient computations for some embedding types and unified code structure.
