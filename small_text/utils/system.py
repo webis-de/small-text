@@ -21,12 +21,12 @@ def get_offline_mode() -> bool:
     return False
 
 
-def get_progress_bars_default() -> Union[str, None]:
+def get_show_progress_bars_default() -> bool:
     if PROGRESS_BARS_VARIABLE in os.environ:
-        if os.environ[PROGRESS_BARS_VARIABLE] == '0':
-            return None
+        if os.environ[PROGRESS_BARS_VARIABLE] == '0' or os.environ[PROGRESS_BARS_VARIABLE].lower() == 'false':
+            return False
 
-    return 'tqdm'
+    return True
 
 
 def get_tmp_dir_base() -> Union[str, None]:
