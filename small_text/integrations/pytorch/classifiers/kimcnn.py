@@ -22,7 +22,7 @@ from small_text.utils.data import check_training_data, list_length
 from small_text.utils.labels import csr_to_list
 from small_text.utils.datetime import format_timedelta
 from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
-from small_text.utils.system import get_tmp_dir_base
+from small_text.utils.system import get_show_progress_bar_default, get_tmp_dir_base
 
 try:
     import torch
@@ -78,7 +78,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
     EMBEDDING_METHOD_GRADIENT = 'gradient'
 
     def embed(self, data_set, return_proba=False, embedding_method=EMBEDDING_METHOD_POOLED,
-              module_selector=lambda x: x['fc'], pbar='tqdm'):
+              module_selector=lambda x: x['fc']):
         """Embeds each sample in the given `data_set`.
 
         The embedding is created by using the underlying sentence transformer model.
@@ -91,8 +91,6 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
             Also return the class probabilities for `data_set`.
         embedding_method : str, default='pooled'
             Embedding method to use ['pooled', 'gradient'].
-        pbar : 'tqdm' or None, default='tqdm'
-            Displays a progress bar if 'tqdm' is passed.
 
         Returns
         -------
@@ -113,7 +111,7 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
         requires_grad = embedding_method == self.EMBEDDING_METHOD_GRADIENT
         with torch.set_grad_enabled(requires_grad):
-            with build_pbar_context(pbar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
+            with build_pbar_context(self.show_progress_bar, tqdm_kwargs={'total': list_length(data_set)}) as pbar:
                 for batch in dataset_iter:
                     with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
                                         enabled=self.amp_args.use_amp):
@@ -207,8 +205,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
     def __init__(self, num_classes, multi_label=False, embedding_matrix=None, device=None,
                  num_epochs=10, mini_batch_size=25, lr=0.001, max_seq_len=60, out_channels=100,
                  filter_padding=0, dropout=0.5, validation_set_size=0.1, padding_idx=0,
-                 kernel_heights=[3, 4, 5], class_weight=None, amp_args=None, compile_model=False,
-                 verbosity=VERBOSITY_MORE_VERBOSE):
+                 kernel_heights=[3, 4, 5], show_progress_bar=None, class_weight=None, amp_args=None,
+                 compile_model=False, verbosity=VERBOSITY_MORE_VERBOSE):
         """
         num_classes : int
             Number of classes.
@@ -242,6 +240,8 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         class_weight : 'balanced' or None, default=None
             If 'balanced', then the loss function is weighted inversely proportional to the
             label distribution to the current train set.
+        show_progress_bar : bool or None
+            Determines whether progress bars are shown. If none, the small-text default is used.
         amp_args : AMPArguments, default=None
             Configures the use of Automatic Mixed Precision (AMP).
 
@@ -273,6 +273,10 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         self.scheduler = None
 
         self.class_weight = class_weight
+        if show_progress_bar is None:
+            self.show_progress_bar = get_show_progress_bar_default()
+        else:
+            self.show_progress_bar = show_progress_bar
         self.compile_model = compile_model
 
         # KimCNN (pytorch model) parameters

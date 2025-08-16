@@ -20,6 +20,7 @@ from small_text.utils.classification import (
 )
 from small_text.utils.context import build_pbar_context
 from small_text.utils.labels import csr_to_list
+from small_text.utils.system import get_show_progress_bar_default
 from small_text.integrations.transformers.classifiers.base import (
     ModelLoadingStrategy,
     get_default_model_loading_strategy
@@ -87,6 +88,7 @@ class SetFitModelArguments(object):
                  body_learning_rate : Union[float, Tuple[float, float]] = (2e-5, 1e-5),
                  head_learning_rate : float = 1e-2,
                  end_to_end : bool = False,
+                 show_progress_bar : Union[None, bool] = None,
                  seed : Union[None, int] = None,
                  output_dir : str = None,
                  model_kwargs={},
@@ -124,6 +126,8 @@ class SetFitModelArguments(object):
             Learning rate for the classifier head. Will only be used if the model has a differentiable head.
         end_to_end : bool, default=False
             Determines whether the model is trained end-to-end, otherwise body is trained before the head.
+        show_progress_bar : bool or None
+            Determines whether progress bars are shown. If none, the small-text default is used.
         seed : int or None
             Random seed. Set this to control reproducibility.
         output_dir : str
@@ -167,6 +171,10 @@ class SetFitModelArguments(object):
         self.body_learning_rate = body_learning_rate
         self.head_learning_rate = head_learning_rate
         self.end_to_end = end_to_end
+        if show_progress_bar is None:
+            self.show_progress_bar = get_show_progress_bar_default()
+        else:
+            self.show_progress_bar = show_progress_bar
         self.seed = seed
         self.output_dir = output_dir
 
@@ -181,7 +189,7 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
     .. versionadded:: 1.2.0
     """
 
-    def embed(self, data_set, return_proba=False, pbar='tqdm'):
+    def embed(self, data_set, return_proba=False):
         """Embeds each sample in the given `data_set`.
 
         The embedding is created by using the underlying sentence transformer model configured in setfit.
@@ -193,8 +201,6 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
             The dataset for which embeddings (and class probabilities) will be computed.
         return_proba : bool
             Also return the class probabilities for `data_set`.
-        pbar : 'tqdm' or None, default='tqdm'
-            Displays a progress bar if 'tqdm' is passed.
 
         Returns
         -------
@@ -219,7 +225,8 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
         predictions = []
 
         num_batches = int(np.ceil(len(data_set) / self.mini_batch_size))
-        with build_pbar_context(pbar, tqdm_kwargs={'total': len(data_set)}) as pbar:
+        with build_pbar_context(self.setfit_model_args.show_progress_bar,
+                                tqdm_kwargs={'total': len(data_set)}) as pbar:
             with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
                                 enabled=self.amp_args.use_amp):
                 for batch in np.array_split(data_set.x, num_batches, axis=0):
@@ -386,6 +393,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                                        body_learning_rate=setfit_model_args.body_learning_rate,
                                        head_learning_rate=setfit_model_args.head_learning_rate,
                                        end_to_end=setfit_model_args.end_to_end,
+                                       show_progress_bar=setfit_model_args.show_progress_bar,
                                        seed=seed,
                                        output_dir=setfit_model_args.output_dir,
                                        use_amp=amp_args.use_amp,

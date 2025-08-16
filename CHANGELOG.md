@@ -65,7 +65,7 @@ On the other hand, this also allowed us to deal with further issues that contain
   - KimCNNClassifier / TransformerBasedClassification: model selection is now disabled by default. Also, it no longer saves models when disabled, thereby greatly reducing the runtime.
 - Utils
   - `init_kmeans_plusplus_safe()` now supports weighted kmeans++ initialization for `scikit-learn>=1.3.0`.
-  - `get_progress_bars_default()` has been renamed to `get_show_progress_bars_default()`. It's functionality has been slightly generalized and always returns a boolean.
+  - `get_progress_bars_default()` has been renamed to `get_show_progress_bar_default()`. It's functionality has been slightly generalized and always returns a boolean.
 - Documentation:
   - Extended the section on initializing the active learning process.
 

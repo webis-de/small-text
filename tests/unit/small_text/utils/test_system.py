@@ -8,7 +8,7 @@ from small_text.utils.system import (
     PROGRESS_BARS_VARIABLE,
     TMP_DIR_VARIABLE,
     get_offline_mode,
-    get_show_progress_bars_default,
+    get_show_progress_bar_default,
     get_tmp_dir_base
 )
 
@@ -22,20 +22,20 @@ class SystemUtilsTest(unittest.TestCase):
         with patch.dict(os.environ, {OFFLINE_MODE_VARIABLE: '1'}):
             self.assertTrue(get_offline_mode())
 
-    def test_get_show_progress_bars_default(self):
-        self.assertTrue(get_show_progress_bars_default())
+    def test_get_show_progress_bar_default(self):
+        self.assertTrue(get_show_progress_bar_default())
 
-    def test_get_show_progress_bars_default_with_env_false(self):
+    def test_get_show_progress_bar_default_with_env_false(self):
         with patch.dict(os.environ, {PROGRESS_BARS_VARIABLE: '0'}):
-            self.assertFalse(get_show_progress_bars_default())
+            self.assertFalse(get_show_progress_bar_default())
         with patch.dict(os.environ, {PROGRESS_BARS_VARIABLE: 'false'}):
-            self.assertFalse(get_show_progress_bars_default())
+            self.assertFalse(get_show_progress_bar_default())
 
     def test_get_show_progress_bars_default_with_env_true(self):
         with patch.dict(os.environ, {PROGRESS_BARS_VARIABLE: '1'}):
-            self.assertTrue(get_show_progress_bars_default())
+            self.assertTrue(get_show_progress_bar_default())
         with patch.dict(os.environ, {PROGRESS_BARS_VARIABLE: 'true'}):
-            self.assertTrue(get_show_progress_bars_default())
+            self.assertTrue(get_show_progress_bar_default())
 
     def test_get_tmp_dir_base(self):
         self.assertIsNone(get_tmp_dir_base())

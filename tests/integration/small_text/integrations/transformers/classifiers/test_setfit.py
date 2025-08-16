@@ -86,7 +86,6 @@ class _ClassificationTest(object):
 
         clf = clf_factory.new()
 
-
         clf.fit(train_set)
 
         # check Module.train()/.eval() works

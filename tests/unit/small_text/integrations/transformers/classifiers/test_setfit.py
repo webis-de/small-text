@@ -206,6 +206,7 @@ class TestTrainingArgumentsConversion(unittest.TestCase):
             self.assertEqual(1e-2, model_args.head_learning_rate)
             self.assertFalse(model_args.end_to_end)
             self.assertIsNone(model_args.seed)
+            self.assertTrue(model_args.show_progress_bar)
 
             call_setfit_trainer_mock.assert_called()
 
@@ -224,6 +225,7 @@ class TestTrainingArgumentsConversion(unittest.TestCase):
                                                  body_learning_rate=(5e-5, 2e-5),
                                                  head_learning_rate=1e-3,
                                                  end_to_end=True,
+                                                 show_progress_bar=False,
                                                  seed=42)
         clf = SetFitClassification(setfit_model_args, num_classes)
 
@@ -248,6 +250,7 @@ class TestTrainingArgumentsConversion(unittest.TestCase):
             self.assertEqual(1e-3, model_args.head_learning_rate)
             self.assertTrue(model_args.end_to_end)
             self.assertEqual(42, model_args.seed)
+            self.assertFalse(model_args.show_progress_bar)
 
             call_setfit_trainer_mock.assert_called()
 
@@ -429,6 +432,20 @@ class _SetFitClassification(object):
 
             trainer_mock.return_value.train.assert_called()
             self.assertTrue(trainer_mock.call_args_list[0].kwargs['args'].use_amp)
+
+    def test_fit_with_show_progress_bar(self):
+        ds = random_text_dataset(10, multi_label=self.multi_label)
+        num_classes = 5
+
+        setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2', show_progress_bar=False)
+
+        with patch('small_text.integrations.transformers.classifiers.setfit.Trainer') as trainer_mock:
+            clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
+            self.assertIsNone(clf.model)
+            clf.fit(ds)
+
+            trainer_mock.return_value.train.assert_called()
+            self.assertFalse(trainer_mock.call_args_list[0].kwargs['args'].show_progress_bar)
 
 
 @pytest.mark.pytorch

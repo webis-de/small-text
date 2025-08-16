@@ -21,7 +21,7 @@ def get_offline_mode() -> bool:
     return False
 
 
-def get_show_progress_bars_default() -> bool:
+def get_show_progress_bar_default() -> bool:
     if PROGRESS_BARS_VARIABLE in os.environ:
         if os.environ[PROGRESS_BARS_VARIABLE] == '0' or os.environ[PROGRESS_BARS_VARIABLE].lower() == 'false':
             return False

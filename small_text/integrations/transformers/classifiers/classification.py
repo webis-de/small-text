@@ -6,6 +6,7 @@ import warnings
 import numpy as np
 
 from functools import partial
+from typing import Union
 
 from small_text.classifiers.classification import EmbeddingMixin
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
@@ -24,7 +25,7 @@ from small_text.integrations.transformers.classifiers.base import (
 
 from small_text.training.model_selection import NoopModelSelection
 from small_text.utils.logging import verbosity_logger, VERBOSITY_MORE_VERBOSE
-from small_text.utils.system import get_tmp_dir_base
+from small_text.utils.system import get_show_progress_bar_default, get_tmp_dir_base
 
 try:
     import torch
@@ -106,6 +107,7 @@ class TransformerModelArguments(object):
                  model_kwargs={},
                  tokenizer_kwargs={},
                  config_kwargs={},
+                 show_progress_bar : Union[None, bool] = None,
                  model_loading_strategy: ModelLoadingStrategy = get_default_model_loading_strategy(),
                  compile_model: bool = False):
         """
@@ -147,6 +149,8 @@ class TransformerModelArguments(object):
                 `AutoConfig.from_pretrained()
                 <https://huggingface.co/docs/transformers/en/model_doc/auto#transformers.AutoConfig>`_ in transformers.
 
+        show_progress_bar : None or bool, default=None
+            Determines whether progress bars are shown. If none, the small-text default is used.
         model_loading_strategy: ModelLoadingStrategy, default=ModelLoadingStrategy.DEFAULT
             Specifies if there should be attempts to download the model or if only local
             files should be used.
@@ -170,6 +174,11 @@ class TransformerModelArguments(object):
         if self.config is None:
             self.config = model
 
+        if show_progress_bar is None:
+            self.show_progress_bar = get_show_progress_bar_default()
+        else:
+            self.show_progress_bar = show_progress_bar
+
         self.model_loading_strategy = model_loading_strategy
         self.compile_model = compile_model
 
@@ -180,7 +189,7 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
     EMBEDDING_METHOD_CLS_TOKEN = 'cls'
 
     def embed(self, data_set, return_proba=False, embedding_method=EMBEDDING_METHOD_AVG,
-              hidden_layer_index=-1, pbar='tqdm'):
+              hidden_layer_index=-1):
         """Embeds each sample in the given `data_set`.
 
         The embedding is created by using hidden representation from the transformer model's
@@ -196,8 +205,6 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
             Embedding method to use ['avg', 'cls'].
         hidden_layer_index : int, default=-1
             Index of the hidden layer.
-        pbar : 'tqdm' or None, default='tqdm'
-            Displays a progress bar if 'tqdm' is passed.
 
         Returns
         -------
@@ -220,7 +227,8 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
         with inference_mode():
             with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
                                 enabled=self.amp_args.use_amp):
-                with build_pbar_context(pbar, tqdm_kwargs={'total': len(data_set)}) as pbar:
+                with build_pbar_context(self.transformer_model.show_progress_bar,
+                                        tqdm_kwargs={'total': len(data_set)}) as pbar:
                     for batch in train_iter:
                         batch_len, logits, embeddings = self._create_embeddings(tensors,
                                                                                 batch,

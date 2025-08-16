@@ -11,7 +11,7 @@ from unittest.mock import patch
 from small_text.base import LABEL_UNLABELED
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.logging import VERBOSITY_MORE_VERBOSE
-from small_text.utils.system import OFFLINE_MODE_VARIABLE
+from small_text.utils.system import OFFLINE_MODE_VARIABLE, PROGRESS_BARS_VARIABLE
 
 try:
     from torch.optim import AdamW
@@ -55,6 +55,7 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual('bert-base-uncased', model_args.config)
         self.assertEqual('bert-base-uncased', model_args.tokenizer)
         self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertTrue(model_args.show_progress_bar)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
         self.assertFalse(model_args.compile_model)
 
@@ -69,6 +70,7 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual(tokenizer, model_args.tokenizer)
         self._assert_empty_kwargs(model_args)
         self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertTrue(model_args.show_progress_bar)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
         self.assertFalse(model_args.compile_model)
 
@@ -81,7 +83,39 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertIsNotNone(dict_to_check)
         self.assertEqual(0, len(dict_to_check))
 
-    def test_transformer_model_arguments_init_with_model_loading_strategy(self):
+    def test_transformer_model_arguments_init_show_progress_bar(self):
+        tokenizer = '/path/to/tokenizer/'
+        config = '/path/to/config/'
+        model_args = TransformerModelArguments('bert-base-uncased',
+                                               tokenizer=tokenizer,
+                                               config=config,
+                                               show_progress_bar=False)
+        self.assertEqual('bert-base-uncased', model_args.model)
+        self.assertEqual(config, model_args.config)
+        self.assertEqual(tokenizer, model_args.tokenizer)
+        self._assert_empty_kwargs(model_args)
+        self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertFalse(model_args.show_progress_bar)
+        self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
+        self.assertFalse(model_args.compile_model)
+
+    def test_transformer_model_arguments_init_show_progress_bar_env_override(self):
+        with patch.dict(os.environ, {PROGRESS_BARS_VARIABLE: '0'}):
+            tokenizer = '/path/to/tokenizer/'
+            config = '/path/to/config/'
+            model_args = TransformerModelArguments('bert-base-uncased',
+                                                   tokenizer=tokenizer,
+                                                   config=config)
+            self.assertEqual('bert-base-uncased', model_args.model)
+            self.assertEqual(config, model_args.config)
+            self.assertEqual(tokenizer, model_args.tokenizer)
+            self._assert_empty_kwargs(model_args)
+            self.assertIsNotNone(model_args.model_loading_strategy)
+            self.assertFalse(model_args.show_progress_bar)
+            self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
+            self.assertFalse(model_args.compile_model)
+
+    def test_transformer_model_arguments_init_model_loading_strategy(self):
         tokenizer = '/path/to/tokenizer/'
         config = '/path/to/config/'
         model_loading_strategy = ModelLoadingStrategy.ALWAYS_LOCAL
@@ -94,10 +128,11 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual(tokenizer, model_args.tokenizer)
         self._assert_empty_kwargs(model_args)
         self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertTrue(model_args.show_progress_bar)
         self.assertEqual(model_loading_strategy, model_args.model_loading_strategy)
         self.assertFalse(model_args.compile_model)
 
-    def test_transformer_model_arguments_init_with_env_override(self):
+    def test_transformer_model_arguments_init_model_loading_strategy_with_env_override(self):
         with patch.dict(os.environ, {OFFLINE_MODE_VARIABLE: '1'}):
             # reload TransformerModelArguments so that updated environment variables are read
             reload(small_text.integrations.transformers.classifiers.classification)
@@ -113,6 +148,7 @@ class TestTransformerModelArguments(unittest.TestCase):
             self.assertEqual(tokenizer, model_args.tokenizer)
             self._assert_empty_kwargs(model_args)
             self.assertIsNotNone(model_args.model_loading_strategy)
+            self.assertTrue(model_args.show_progress_bar)
             self.assertEqual(ModelLoadingStrategy.ALWAYS_LOCAL, model_args.model_loading_strategy)
             self.assertFalse(model_args.compile_model)
 
@@ -128,6 +164,7 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual(tokenizer, model_args.tokenizer)
         self._assert_empty_kwargs(model_args)
         self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertTrue(model_args.show_progress_bar)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
         self.assertFalse(model_args.compile_model)
 
@@ -146,6 +183,7 @@ class TestTransformerModelArguments(unittest.TestCase):
         self._assert_dict_not_none_and_empty(model_args.tokenizer_kwargs)
         self._assert_dict_not_none_and_empty(model_args.config_kwargs)
         self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertTrue(model_args.show_progress_bar)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
         self.assertFalse(model_args.compile_model)
 
@@ -175,6 +213,7 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual(tokenizer_kwargs, model_args.tokenizer_kwargs)
         self._assert_dict_not_none_and_empty(model_args.config_kwargs)
         self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertTrue(model_args.show_progress_bar)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
         self.assertFalse(model_args.compile_model)
 
@@ -204,6 +243,7 @@ class TestTransformerModelArguments(unittest.TestCase):
         self._assert_dict_not_none_and_empty(model_args.tokenizer_kwargs)
         self.assertEqual(config_kwargs, model_args.config_kwargs)
         self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertTrue(model_args.show_progress_bar)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
         self.assertFalse(model_args.compile_model)
 
