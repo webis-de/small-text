@@ -23,16 +23,17 @@ TWENTY_NEWS_SUBCATEGORIES = ['rec.sport.baseball', 'sci.med', 'rec.autos']
 def main(num_iterations=10):
     # Active learning parameters
     num_classes = len(TWENTY_NEWS_SUBCATEGORIES)
-    model_args = SetFitModelArguments('sentence-transformers/paraphrase-mpnet-base-v2')
+    model_args = SetFitModelArguments('sentence-transformers/paraphrase-mpnet-base-v2',
+                                      max_length=64,
+                                      mini_batch_size=8,
+                                      show_progress_bar=False)
     # If GPU memory is a problem:
     # model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
 
     clf_factory = SetFitClassificationFactory(model_args,
                                               num_classes,
                                               classification_kwargs={
-                                                  'device': 'cuda',
-                                                  'max_seq_len': 64,
-                                                  'mini_batch_size': 8
+                                                  'device': 'cuda'
                                               })
 
     query_strategy = BreakingTies()
@@ -45,9 +46,7 @@ def main(num_iterations=10):
     test = TextDataset(test.data, test.target, target_labels=np.arange(num_classes))
 
     # Active learner
-    setfit_train_kwargs = {'show_progress_bar': False}
-    active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train,
-                                            fit_kwargs={'setfit_train_kwargs': setfit_train_kwargs})
+    active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
     indices_labeled = initialize_active_learner(active_learner, train.y)
 
     try:

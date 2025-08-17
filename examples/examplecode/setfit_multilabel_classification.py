@@ -23,7 +23,15 @@ from examplecode.shared import evaluate_multi_label
 def main(num_iterations=10):
     # Active learning parameters
     num_classes = 28
-    model_args = SetFitModelArguments('sentence-transformers/paraphrase-mpnet-base-v2')
+    model_args = SetFitModelArguments('sentence-transformers/paraphrase-mpnet-base-v2',
+                                      max_length=512,
+                                      mini_batch_size=16,
+                                      show_progress_bar=False,
+                                      num_epochs=(1, 1),
+                                      end_to_end=True,
+                                      body_learning_rate=(1e-5, 1e-5),
+                                      head_learning_rate=1e-5)
+
     # If GPU memory is a problem:
     # model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
 
@@ -32,8 +40,6 @@ def main(num_iterations=10):
                                               classification_kwargs={
                                                   'use_differentiable_head': True,
                                                   'device': 'cuda',
-                                                  'max_seq_len': 512,
-                                                  'mini_batch_size': 16,
                                                   'multi_label': True
                                               })
 
@@ -42,21 +48,16 @@ def main(num_iterations=10):
     # Prepare some data
     train, test = get_train_test()
 
-    train = TextDataset.from_arrays(train['text'], list_to_csr(train['labels'], (len(train), num_classes)), target_labels=np.arange(num_classes))
-    test = TextDataset(test['text'], list_to_csr(test['labels'], (len(test), num_classes)), target_labels=np.arange(num_classes))
+    train = TextDataset.from_arrays(train['text'],
+                                    list_to_csr(train['labels'], (len(train), num_classes)),
+                                    target_labels=np.arange(num_classes))
+    test = TextDataset(test['text'],
+                       list_to_csr(test['labels'], (len(test), num_classes)),
+                       target_labels=np.arange(num_classes))
 
     # Active learner
-    setfit_train_kwargs = {'show_progress_bar': False,
-                           'num_epochs': (1, 1),
-                           'end_to_end': True,
-                           'body_learning_rate': (1e-5, 1e-5),
-                           'head_learning_rate': 1e-5}
-    active_learner = PoolBasedActiveLearner(clf_factory,
-                                            query_strategy, train,
-                                            fit_kwargs={'setfit_train_kwargs': setfit_train_kwargs})
+    active_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
     indices_labeled = initialize_active_learner(active_learner, train.y)
-
-    # active_learner.save("test.pkl")
 
     try:
         perform_active_learning(active_learner, train, indices_labeled, test, num_iterations)
@@ -82,6 +83,7 @@ def perform_active_learning(active_learner, train, indices_labeled, test, num_it
 
         print('Iteration #{:d} ({} samples)'.format(i, len(active_learner.indices_labeled)))
         evaluate_multi_label(active_learner, train[active_learner.indices_labeled], test)
+
 
 def initialize_active_learner(active_learner, y_train):
 
