@@ -28,12 +28,8 @@ def main(num_iterations=10):
                                       mini_batch_size=16,
                                       show_progress_bar=False,
                                       num_epochs=(1, 1),
-                                      end_to_end=True,
                                       body_learning_rate=(1e-5, 1e-5),
-                                      head_learning_rate=1e-5,
-                                      model_kwargs={
-                                          'multi_target_strategy': 'classifier-chain'
-                                      })
+                                      head_learning_rate=1e-5)
 
     # If GPU memory is a problem:
     # model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
