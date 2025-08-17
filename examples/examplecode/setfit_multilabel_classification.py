@@ -30,7 +30,10 @@ def main(num_iterations=10):
                                       num_epochs=(1, 1),
                                       end_to_end=True,
                                       body_learning_rate=(1e-5, 1e-5),
-                                      head_learning_rate=1e-5)
+                                      head_learning_rate=1e-5,
+                                      model_kwargs={
+                                          'multi_target_strategy': 'classifier-chain'
+                                      })
 
     # If GPU memory is a problem:
     # model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
@@ -38,7 +41,6 @@ def main(num_iterations=10):
     clf_factory = SetFitClassificationFactory(model_args,
                                               num_classes,
                                               classification_kwargs={
-                                                  'use_differentiable_head': True,
                                                   'device': 'cuda',
                                                   'multi_label': True
                                               })
