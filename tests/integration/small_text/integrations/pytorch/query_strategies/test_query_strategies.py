@@ -66,7 +66,7 @@ class QueryStrategiesTest(QueryStrategiesExhaustiveIntegrationTest, unittest.Tes
 
     def test_badge_with_classifier_that_does_not_return_embeddings_proba(self):
         # fake_embed return random embeddings and does not return probabilities
-        def fake_embed(data_set, module_selector=lambda x: x['fc'], pbar='tqdm'):
+        def fake_embed(data_set, module_selector=lambda x: x['fc']):
             return np.random.rand(len(data_set), 10)
 
         query_strategy = BADGE(6)

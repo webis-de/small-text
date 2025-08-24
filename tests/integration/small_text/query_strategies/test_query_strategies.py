@@ -40,14 +40,12 @@ class SklearnClassifierWithRandomEmbeddingsAndProbaFactory(SklearnClassifierFact
 class QueryStrategiesExhaustiveIntegrationTest(object):
 
     def _get_dataset(self, num_classes, multi_label=False):
-        return random_sklearn_dataset(60, multi_label=multi_label, num_classes=num_classes)
+        raise NotImplementedError('This method must be implemented by the subclass. '
+                                  'It should return a Dataset.')
 
     def _get_factory(self, num_classes, multi_label=False):
-        return SklearnClassifierWithRandomEmbeddingsAndProbaFactory(
-            ConfidenceEnhancedLinearSVC(),
-            num_classes,
-            kwargs={'multi_label': multi_label}
-        )
+        raise NotImplementedError('This method must be implemented by the subclass. '
+                                  'It should return a ClassifierFactory.')
 
     def _simple_exhaustive_active_learning_test(self, query_strategy, query_size=10,
                                                 num_classes=6, num_initial=30, multi_label=False):
@@ -74,7 +72,17 @@ class QueryStrategiesExhaustiveIntegrationTest(object):
         self.assertEqual(query_size * 3 + num_initial, active_learner.indices_labeled.shape[0])
 
 
-class QueryStrategiesTest(QueryStrategiesExhaustiveIntegrationTest, unittest.TestCase):
+class QueryStrategiesTestSklearnClassifier(QueryStrategiesExhaustiveIntegrationTest, unittest.TestCase):
+
+    def _get_dataset(self, num_classes, multi_label=False):
+        return random_sklearn_dataset(60, multi_label=multi_label, num_classes=num_classes)
+
+    def _get_factory(self, num_classes, multi_label=False):
+        return SklearnClassifierWithRandomEmbeddingsAndProbaFactory(
+            ConfidenceEnhancedLinearSVC(),
+            num_classes,
+            kwargs={'multi_label': multi_label}
+        )
 
     def test_breaking_ties(self):
         query_strategy = BreakingTies()

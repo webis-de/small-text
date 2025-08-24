@@ -13,9 +13,8 @@ class SklearnClassifierWithRandomEmbeddings(SklearnClassifier):
 
 class SklearnClassifierWithRandomEmbeddingsAndProba(SklearnClassifier):
 
-    def embed(self, dataset, return_proba=False, embed_dim=5, pbar=None):
+    def embed(self, dataset, return_proba=False, embed_dim=5):
         self.embeddings_ = np.random.rand(len(dataset), embed_dim)
-        _unused = pbar  # noqa:F841
         if return_proba:
             self.proba_ = np.random.rand(len(dataset))
             return self.embeddings_, self.proba_

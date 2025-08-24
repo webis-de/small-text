@@ -287,12 +287,12 @@ class EmbeddingBasedQueryStrategy(QueryStrategy):
         else:
             try:
                 embeddings, proba = clf.embed(dataset[indices_subset_all],
-                                              return_proba=True, pbar=pbar, **embed_kwargs) \
+                                              return_proba=True, **embed_kwargs) \
                     if embeddings is None else embeddings
 
             except TypeError as e:
                 if 'got an unexpected keyword argument \'return_proba\'' in e.args[0]:
-                    embeddings = clf.embed(dataset[indices_subset_all], pbar=pbar,
+                    embeddings = clf.embed(dataset[indices_subset_all],
                                            **embed_kwargs) if embeddings is None else embeddings
                     proba = None
                 else:
