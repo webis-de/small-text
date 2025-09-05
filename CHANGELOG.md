@@ -58,6 +58,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 - Minimum required Python version was raised to 3.9.
 - General
   - Moved `split_data()` method from `small_text.data.datasets` to `small_text.data.splits`.
+  - Moved `get_splits()` method from `small_text.utils.classification` to `small_text.data.splits`.
 - Dependencies
   - Raised minimum required setfit version to 1.1.0.
 - Classification:

@@ -6,61 +6,6 @@ from small_text.data.splits import split_data
 from small_text.utils.labels import list_to_csr
 
 
-# TODO: This calls the split_data method which is outside of utils (prone to circular imports).
-#    Move to small_text.data.splits in 2.0.0.
-def get_splits(train_set, validation_set, weights=None, multi_label=False, validation_set_size=0.1):
-    """Helper method to ensure that a validation set is available after calling this method.
-    This is only necessary when the previous code did not select a validation set prior to this,
-    otherwise the passed `validation_set` variable is not None and no action is necessary here.
-
-    If a split is necessary, stratified sampling is used in the single-label case,
-    and random sampling is used in the multi-label case.
-
-    Parameters
-    ----------
-    train_set : Dataset
-        Training set.
-    validation_set : Dataset
-        Validation set.
-    multi_label : bool, default=False
-        Indicates if the splits are for a multi-label problem.
-    validation_set_size : float, default=0.1
-        Specifies the size of the validation set (as a percentage of the training set). Only
-        used if a new split is created.
-
-    Returns
-    -------
-    sub_train : Dataset
-        A subset used for training. Defaults to `train_set` if `validation_set` is not `None`.
-    sub_valid : Dataset
-        A subset used for validation. Defaults to `validation_set` is
-    """
-    has_validation_set = validation_set is not None
-    if has_validation_set:
-        indices_train = np.arange(len(train_set))
-        result = train_set, validation_set
-    else:
-        if multi_label:
-            # note: this is not an optimal multi-label strategy right now
-            indices_train, indices_valid = split_data(train_set,
-                                                      y=train_set.y.indices,
-                                                      strategy='random',
-                                                      validation_set_size=validation_set_size,
-                                                      return_indices=True)
-        else:
-            indices_train, indices_valid = split_data(train_set,
-                                                      y=train_set.y,
-                                                      strategy='stratified',
-                                                      validation_set_size=validation_set_size,
-                                                      return_indices=True)
-        result = train_set[indices_train], train_set[indices_valid]
-
-    if weights is not None:
-        result += (weights,) if not has_validation_set else (weights[indices_train],)
-
-    return result
-
-
 # TODO: make prediction threshold configurable
 def prediction_result(proba, multi_label, num_classes, return_proba=False):
     """Helper method which returns a single- or multi-label prediction result.
