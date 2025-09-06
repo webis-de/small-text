@@ -18,7 +18,7 @@ from small_text.data.sampling import (
     multilabel_stratified_subsets_sampling,
     stratified_sampling
 )
-from small_text.data.splits import split_data
+from small_text.data.splits import get_splits, split_data
 
 
 __all__ = [
@@ -36,6 +36,7 @@ __all__ = [
     'TextDatasetView',
     'UnsupportedOperationException',
     'split_data',
+    'get_splits',
     'balanced_sampling',
     'multilabel_stratified_subsets_sampling',
     'stratified_sampling'

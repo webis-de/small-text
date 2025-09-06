@@ -1,13 +1,10 @@
 import numpy as np
 
 from scipy.sparse import csr_matrix
-
-from small_text.data.splits import split_data
 from small_text.utils.labels import list_to_csr
 
 
-# TODO: make prediction threshold configurable
-def prediction_result(proba, multi_label, num_classes, return_proba=False):
+def prediction_result(proba, multi_label, num_classes, multi_label_threshold=0.5, return_proba=False):
     """Helper method which returns a single- or multi-label prediction result.
 
     Parameters
@@ -17,6 +14,9 @@ def prediction_result(proba, multi_label, num_classes, return_proba=False):
     multi_label : bool
         If True, this method returns a result suitable for a multi-label classification,
         otherwise for a single-label classification.
+    multi_label_threshold  : float
+        Predictions with a probability value of greater than `multi_label_threshold` will be treated
+        as a prediction for that class. Only
     num_classes : int
         The number of classes.
     return_proba : bool, default=False
@@ -33,7 +33,7 @@ def prediction_result(proba, multi_label, num_classes, return_proba=False):
     """
 
     if multi_label:
-        predictions_binarized = np.where(proba > 0.5, 1, 0)
+        predictions_binarized = np.where(proba > multi_label_threshold, 1, 0)
 
         def multihot_to_list(x):
             return [i for i, item in enumerate(x) if item > 0]

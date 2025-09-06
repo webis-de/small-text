@@ -4,7 +4,6 @@ import numpy as np
 
 from numpy.testing import assert_array_equal
 from scipy.sparse import csr_matrix
-from sklearn.preprocessing import MultiLabelBinarizer
 
 from small_text.utils.classification import empty_result, prediction_result
 from tests.utils.testing import assert_csr_matrix_equal
@@ -51,6 +50,22 @@ class ClassificationUtilsTest(unittest.TestCase):
         ]))
         assert_csr_matrix_equal(expected, result)
 
+    def test_prediction_result_multilabel_with_threshold(self):
+        proba = np.array([
+            [0.1, 0.2, 0.6, 0.1],
+            [0.25, 0.25, 0.25, 0.25],
+            [0.3, 0.3, 0.2, 0.2],
+            [0.3, 0.2, 0.5, 0.1],
+        ])
+        result = prediction_result(proba, True, proba.shape[1], multi_label_threshold=0.2)
+        expected = csr_matrix(np.array([
+            [0, 0, 1, 0],
+            [1, 1, 1, 1],
+            [1, 1, 0, 0],
+            [1, 0, 1, 0],
+        ]))
+        assert_csr_matrix_equal(expected, result)
+
     def test_prediction_result_multilabel_with_proba(self):
         proba = np.array([
             [0.1, 0.2, 0.6, 0.1],
@@ -71,6 +86,33 @@ class ClassificationUtilsTest(unittest.TestCase):
             [0, 0, 0, 0],
             [0, 0, 0, 0],
             [0, 0, 0, 0],
+        ]))
+        assert_csr_matrix_equal(expected_proba, proba_result)
+
+    def test_prediction_result_multilabel_with_proba_and_threshold(self):
+        proba = np.array([
+            [0.1, 0.2, 0.6, 0.1],
+            [0.25, 0.25, 0.25, 0.25],
+            [0.3, 0.3, 0.2, 0.2],
+            [0.3, 0.2, 0.5, 0.1],
+        ])
+        result, proba_result = prediction_result(proba,
+                                                 True,
+                                                 proba.shape[1],
+                                                 multi_label_threshold=0.2,
+                                                 return_proba=True)
+        expected = csr_matrix(np.array([
+            [0, 0, 1, 0],
+            [1, 1, 1, 1],
+            [1, 1, 0, 0],
+            [1, 0, 1, 0],
+        ]))
+        assert_csr_matrix_equal(expected, result)
+        expected_proba = csr_matrix(np.array([
+            [0, 0, 0.6, 0],
+            [0.25, 0.25, 0.25, 0.25],
+            [0.3, 0.3, 0, 0],
+            [0.3, 0, 0.5, 0],
         ]))
         assert_csr_matrix_equal(expected_proba, proba_result)
 
