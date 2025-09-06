@@ -9,7 +9,8 @@ from small_text import (
     query_strategies,
     stopping_criteria,
     training,
-    utils
+    utils,
+    vector_indexes
 )
 
 from small_text.classifiers import *
@@ -21,6 +22,7 @@ from small_text.query_strategies import *
 from small_text.stopping_criteria import *
 from small_text.training import *
 from small_text.utils import *
+from small_text.vector_indexes import *
 
 from small_text.active_learner import (
     ActiveLearner,
@@ -72,6 +74,7 @@ __all__ += query_strategies.__all__
 __all__ += stopping_criteria.__all__
 __all__ += training.__all__
 __all__ += utils.__all__
+__all__ += vector_indexes.__all__
 
 __all__ += pytorch.__all__
 __all__ += transformers.__all__

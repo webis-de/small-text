@@ -121,3 +121,9 @@ class ImportTest(unittest.TestCase):
         from small_text import VERBOSITY_ALL
         from small_text import get_tmp_dir_base
         from small_text import TMP_DIR_VARIABLE
+
+    def test_import_vector_indexes_modules(self):
+        from small_text.vector_indexes.base import VectorIndex
+        from small_text.vector_indexes.base import VectorIndexFactory
+        from small_text.vector_indexes.hnsw import HNSWIndex
+        from small_text.vector_indexes.knn import KNNIndex

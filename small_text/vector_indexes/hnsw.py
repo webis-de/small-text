@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Union, Optional
+from typing import Optional
 
 from small_text.base import check_optional_dependency
 from small_text.vector_indexes.base import VectorIndex
