@@ -9,13 +9,13 @@ from functools import partial
 from sklearn.preprocessing import MultiLabelBinarizer
 
 from small_text.classifiers.classification import EmbeddingMixin
+from small_text.data.splits import get_splits
 from small_text.integrations.pytorch.classifiers.base import PytorchClassifier
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.integrations.pytorch.models.kimcnn import KimCNN
 from small_text.training.model_selection import NoopModelSelection
 from small_text.utils.classification import (
-    _check_classifier_dataset_consistency,
-    get_splits
+    _check_classifier_dataset_consistency
 )
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data, list_length

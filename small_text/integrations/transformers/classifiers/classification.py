@@ -9,10 +9,10 @@ from functools import partial
 from typing import Union
 
 from small_text.classifiers.classification import EmbeddingMixin
+from small_text.data.splits import get_splits
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.classification import (
-    _check_classifier_dataset_consistency,
-    get_splits
+    _check_classifier_dataset_consistency
 )
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data
