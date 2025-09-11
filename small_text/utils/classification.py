@@ -4,7 +4,7 @@ from scipy.sparse import csr_matrix
 from small_text.utils.labels import list_to_csr
 
 
-def prediction_result(proba, multi_label, num_classes, multi_label_threshold=0.5, return_proba=False):
+def prediction_result(proba, multi_label, num_classes, return_proba=False, multi_label_threshold=0.5):
     """Helper method which returns a single- or multi-label prediction result.
 
     Parameters
@@ -14,15 +14,15 @@ def prediction_result(proba, multi_label, num_classes, multi_label_threshold=0.5
     multi_label : bool
         If True, this method returns a result suitable for a multi-label classification,
         otherwise for a single-label classification.
-    multi_label_threshold  : float
-        Predictions with a probability value of greater than `multi_label_threshold` will be treated
-        as a prediction for that class. Only
     num_classes : int
         The number of classes.
     return_proba : bool, default=False
         Also returns the probability if `True`. This is intended to be used with `multi_label=True`
         where it returns a sparse matrix with only the probabilities for the predicted labels. For
         the single-label case this simply returns the given `proba` input.
+    multi_label_threshold : float, default=0.5
+        In multi-label classification, a label is predicted for a sample only if the respective probability value
+        is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when `multi_label` is False.
 
     Returns
     -------

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-import numpy.typing as npt
+from typing import TYPE_CHECKING
 
 from sklearn.base import BaseEstimator
 from sklearn.multiclass import OneVsRestClassifier
@@ -13,14 +13,20 @@ from small_text.data.datasets import Dataset
 from small_text.utils.classification import empty_result, prediction_result
 from small_text.utils.data import check_training_data
 
+if TYPE_CHECKING:
+    import numpy.typing as npt
+
+    from typing import Union, Tuple
+    from scipy.sparse import csr_matrix
+
 
 class Classifier(ABC):
     """Abstract base class for classifiers that can be used with the active learning components.
     """
 
     @abstractmethod
-    def fit(self, train_set: Dataset, weights: npt.NDArray[np.double] = None):
-        """Trains the model using the given train set.
+    def fit(self, train_set: Dataset, weights: "Union[npt.NDArray[np.double], None]" = None) -> "Classifier":
+        """Train the model using the given train set.
 
         Parameters
         ----------
@@ -32,7 +38,13 @@ class Classifier(ABC):
         pass
 
     @abstractmethod
-    def predict(self, data_set: Dataset, return_proba: bool = False, **kwargs) -> npt.NDArray[np.uint]:
+    def predict(self,
+                data_set: Dataset,
+                return_proba: bool = False,
+                multi_label_threshold: float = 0.5,
+                **kwargs) \
+            -> "Union[npt.NDArray[np.uint], Tuple[npt.NDArray[np.uint], npt.NDArray[np.double]]," \
+               "csr_matrix, Tuple[csr_matrix, csr_matrix]]":
         """Predicts the labels for each sample in the given dataset.
 
         Parameters
@@ -41,17 +53,26 @@ class Classifier(ABC):
             A dataset for which the labels are to be predicted.
         return_proba : bool, default=False
             If `True`, also returns a probability-like class distribution.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when `multi_label` is False.
         """
         pass
 
     @abstractmethod
-    def predict_proba(self, data_set: Dataset, **kwargs) -> npt.NDArray[np.double]:
+    def predict_proba(self,
+                      data_set: Dataset,
+                      multi_label_threshold: float = 0.5,
+                      **kwargs) -> "npt.NDArray[np.double]":
         """Predicts the label distribution for each sample in the given dataset.
 
         Parameters
         ----------
         data_set : Dataset
             A dataset for which the labels are to be predicted.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when `multi_label` is False.
         """
         pass
 
@@ -115,7 +136,7 @@ class SklearnClassifier(Classifier):
         self.model.fit(train_set.x, y, **fit_kwargs)
         return self
 
-    def predict(self, data_set: Dataset, return_proba=False):
+    def predict(self, data_set: Dataset, return_proba=False, multi_label_threshold: float = 0.5):
         """
         Predicts the labels for the given dataset.
 
@@ -125,6 +146,9 @@ class SklearnClassifier(Classifier):
             A dataset for which the labels are to be predicted.
         return_proba : bool, default=False
             If `True`, also returns a probability-like class distribution.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when `multi_label` is False.
 
         Returns
         -------
@@ -140,15 +164,22 @@ class SklearnClassifier(Classifier):
 
         proba = self.model.predict_proba(data_set.x)
 
-        return prediction_result(proba, self.multi_label, self.num_classes, return_proba=return_proba)
+        return prediction_result(proba,
+                                 self.multi_label,
+                                 self.num_classes,
+                                 return_proba=return_proba,
+                                 multi_label_threshold=multi_label_threshold)
 
-    def predict_proba(self, data_set: Dataset):
+    def predict_proba(self, data_set: Dataset, multi_label_threshold: float = 0.5):
         """Predicts the label distribution for each sample in the given dataset.
 
         Parameters
         ----------
         data_set : SklearnDataset
             A dataset for which the labels are to be predicted.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when `multi_label` is False.
         """
         if len(data_set) == 0:
             return empty_result(self.multi_label, self.num_classes, return_prediction=False, return_proba=True)
@@ -205,11 +236,17 @@ class ConfidenceEnhancedLinearSVC(LinearSVC):
 class EmbeddingMixin(ABC):
 
     @abstractmethod
-    def embed(self, data_set) -> npt.NDArray[np.double]:
+    def embed(self, data_set, return_proba=False, multi_label_threshold: float = 0.5, **kwargs) \
+            -> "Union[npt.NDArray[np.double]]":
         """
         Parameters
         ----------
         data_set : Dataset
             A dataset for which each instance is used to compute its embedding vector.
+        return_proba : bool, default=False
+            If `True`, also returns a probability-like class distribution.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when `multi_label` is False.
         """
         pass

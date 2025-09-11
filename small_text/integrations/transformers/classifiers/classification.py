@@ -12,7 +12,8 @@ from small_text.classifiers.classification import EmbeddingMixin
 from small_text.data.splits import get_splits
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.classification import (
-    _check_classifier_dataset_consistency
+    _check_classifier_dataset_consistency,
+    prediction_result
 )
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data
@@ -188,7 +189,11 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
     EMBEDDING_METHOD_AVG = 'avg'
     EMBEDDING_METHOD_CLS_TOKEN = 'cls'
 
-    def embed(self, data_set, return_proba=False, embedding_method=EMBEDDING_METHOD_AVG,
+    def embed(self,
+              data_set,
+              return_proba=False,
+              multi_label_threshold: float = 0.5,
+              embedding_method=EMBEDDING_METHOD_AVG,
               hidden_layer_index=-1):
         """Embeds each sample in the given `data_set`.
 
@@ -201,10 +206,14 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
             The dataset for which embeddings (and class probabilities) will be computed.
         return_proba : bool
             Also return the class probabilities for `data_set`.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when either `return_proba`
+            or `multi_label` is False.
         embedding_method : str
             Embedding method to use ['avg', 'cls'].
         hidden_layer_index : int, default=-1
-            Index of the hidden layer.
+            Index of the hidden layer whose weights are used as embedding vectors.
 
         Returns
         -------
@@ -230,8 +239,7 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
                 with build_pbar_context(self.transformer_model.show_progress_bar,
                                         tqdm_kwargs={'total': len(data_set)}) as pbar:
                     for batch in train_iter:
-                        batch_len, logits, embeddings = self._create_embeddings(tensors,
-                                                                                batch,
+                        batch_len, logits, embeddings = self._create_embeddings(batch,
                                                                                 embedding_method=embedding_method,
                                                                                 hidden_layer_index=hidden_layer_index)
                         pbar.update(batch_len)
@@ -240,11 +248,16 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
                         tensors.extend(embeddings)
 
         if return_proba:
-            return np.array(tensors), np.array(proba)
+            _, proba = prediction_result(np.array(proba),
+                                         self.multi_label,
+                                         self.num_classes,
+                                         return_proba=return_proba,
+                                         multi_label_threshold=multi_label_threshold)
+            return np.array(tensors), proba
 
         return np.array(tensors)
 
-    def _create_embeddings(self, tensors, batch, embedding_method='avg', hidden_layer_index=-1):
+    def _create_embeddings(self, batch, embedding_method='avg', hidden_layer_index=-1):
 
         text, masks, *_ = batch
         text = text.to(self.device, non_blocking=True)
@@ -678,7 +691,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         return valid_loss.item() / len(validation_set), acc.item() / len(validation_set)
 
-    def predict(self, dataset, return_proba=False):
+    def predict(self, dataset, return_proba: bool = False, multi_label_threshold: float = 0.5):
         """Predicts the labels for the given dataset.
 
         Parameters
@@ -687,6 +700,9 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             A dataset on whose instances predictions are made.
         return_proba : bool, default=False
             If True, additionally returns the confidence distribution over all classes.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when `multi_label` is False.
 
         Returns
         -------
@@ -698,13 +714,16 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         """
         return super().predict(dataset, return_proba=return_proba)
 
-    def predict_proba(self, dataset, dropout_sampling=1):
+    def predict_proba(self, dataset, multi_label_threshold: float = 0.5, dropout_sampling = 1):
         """Predicts the label distributions.
 
         Parameters
         ----------
         dataset : TransformersDataset
             A dataset whose labels will be predicted.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when `multi_label` is False.
         dropout_sampling : int, default=1
             If `dropout_sampling > 1` then all dropout modules will be enabled during prediction and
             multiple rounds of predictions will be sampled for each instance.

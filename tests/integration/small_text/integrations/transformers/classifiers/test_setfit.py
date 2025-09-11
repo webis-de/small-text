@@ -3,12 +3,10 @@ import pytest
 import numpy as np
 
 from unittest.mock import create_autospec, patch
-from scipy.sparse import issparse
+from scipy.sparse import issparse, csr_matrix
 
-from small_text.data.datasets import TextDataset
 from small_text.exceptions import UnsupportedOperationException
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from sklearn.utils.validation import check_is_fitted
 from tests.utils.datasets import twenty_news_text
 
 try:
@@ -65,9 +63,14 @@ class _ClassificationTest(object):
 
         y_pred_proba = clf.predict_proba(test_set)
         self.assertEqual((30, self.num_classes), y_pred_proba.shape)
-        self.assertTrue(isinstance(y_pred_proba, np.ndarray))
-        self.assertTrue(np.all([isinstance(y, np.float64) for row in y_pred_proba for y in row]))
-        self.assertTrue(np.logical_or(y_pred_proba.all() >= 0.0, y_pred_proba.all() <= 1.0))
+        if self.multi_label:
+            self.assertTrue(isinstance(y_pred_proba, csr_matrix))
+            self.assertTrue(np.all([isinstance(y, np.float64) for y in y_pred_proba.data]))
+            self.assertTrue(np.logical_or(y_pred_proba.data.all() >= 0.0, y_pred_proba.data.all() <= 1.0))
+        else:
+            self.assertTrue(isinstance(y_pred_proba, np.ndarray))
+            self.assertTrue(np.all([isinstance(y, np.float64) for row in y_pred_proba for y in row]))
+            self.assertTrue(np.logical_or(y_pred_proba.all() >= 0.0, y_pred_proba.all() <= 1.0))
 
     def test_fit_and_predict_proba_dropout(self, dropout_sampling=3):
         classification_kwargs = {
@@ -96,8 +99,12 @@ class _ClassificationTest(object):
 
         y_pred_proba = clf.predict_proba(test_set)
         self.assertSequenceEqual((len(test_set), self.num_classes), y_pred_proba.shape)
-        self.assertTrue(isinstance(y_pred_proba, np.ndarray))
-        self.assertTrue(np.all([isinstance(p, np.float64) for pred in y_pred_proba for p in pred]))
+        if self.multi_label:
+            self.assertTrue(isinstance(y_pred_proba, csr_matrix))
+            self.assertTrue(np.all([isinstance(p, np.float64) for p in y_pred_proba.data]))
+        else:
+            self.assertTrue(isinstance(y_pred_proba, np.ndarray))
+            self.assertTrue(np.all([isinstance(p, np.float64) for pred in y_pred_proba for p in pred]))
 
         y_pred_proba = clf.predict_proba(test_set, dropout_sampling=dropout_sampling)
         self.assertSequenceEqual((len(test_set), dropout_sampling, self.num_classes), y_pred_proba.shape)

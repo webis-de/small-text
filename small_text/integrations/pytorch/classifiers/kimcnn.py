@@ -15,7 +15,8 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.integrations.pytorch.models.kimcnn import KimCNN
 from small_text.training.model_selection import NoopModelSelection
 from small_text.utils.classification import (
-    _check_classifier_dataset_consistency
+    _check_classifier_dataset_consistency,
+    prediction_result
 )
 from small_text.utils.context import build_pbar_context
 from small_text.utils.data import check_training_data, list_length
@@ -77,8 +78,11 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
     EMBEDDING_METHOD_POOLED = 'pooled'
     EMBEDDING_METHOD_GRADIENT = 'gradient'
 
-    def embed(self, data_set, return_proba=False, embedding_method=EMBEDDING_METHOD_POOLED,
-              module_selector=lambda x: x['fc']):
+    def embed(self, data_set,
+              return_proba: bool = False,
+              multi_label_threshold: float = 0.5,
+              embedding_method: str = EMBEDDING_METHOD_POOLED,
+              module_selector = lambda x: x['fc']):
         """Embeds each sample in the given `data_set`.
 
         The embedding is created by using the underlying sentence transformer model.
@@ -89,6 +93,10 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
             The dataset for which embeddings (and class probabilities) will be computed.
         return_proba : bool
             Also return the class probabilities for `data_set`.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when either `return_proba`
+            or `multi_label` is False.
         embedding_method : str, default='pooled'
             Embedding method to use ['pooled', 'gradient'].
 
@@ -126,7 +134,12 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
                         proba.extend(F.softmax(logits, dim=1).detach().to('cpu').tolist())
                     tensors.extend(embeddings)
         if return_proba:
-            return np.array(tensors), np.array(proba)
+            _, proba = prediction_result(np.array(proba),
+                                         self.multi_label,
+                                         self.num_classes,
+                                         return_proba=return_proba,
+                                         multi_label_threshold=multi_label_threshold)
+            return np.array(tensors), proba
 
         return np.array(tensors)
 
@@ -551,7 +564,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
                 return valid_loss.item() / len(validation_set), acc.item() / len(validation_set)
 
-    def predict(self, dataset, return_proba=False):
+    def predict(self, dataset, return_proba=False, multi_label_threshold: float = 0.5):
         """Predicts the labels for the given dataset.
 
         Parameters
@@ -560,6 +573,9 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             A dataset on whose instances predictions are made.
         return_proba : bool
             If True, additionally returns the confidence distribution over all classes.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when `multi_label` is False.
 
         Returns
         -------
@@ -571,13 +587,16 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         """
         return super().predict(dataset, return_proba=return_proba)
 
-    def predict_proba(self, dataset, dropout_sampling=1):
+    def predict_proba(self, dataset, multi_label_threshold: float = 0.5, dropout_sampling=1):
         """Predicts the label distributions.
 
         Parameters
         ----------
         dataset : PytorchTextClassificationDataset
             A dataset whose labels will be predicted.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when `multi_label` is False.
         dropout_sampling : int
             If `dropout_sampling > 1` then all dropout modules will be enabled during prediction and
             multiple rounds of predictions will be sampled for each instance.
@@ -586,7 +605,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         -------
         scores : np.ndarray
             Confidence score distribution over all classes of shape (num_samples, num_classes).
-            If `dropout_sampling > 1` then the shape is (num_samples, dropour_samples, num_classes).
+            If `dropout_sampling > 1` then the shape is (num_samples, dropout_sampling, num_classes).
         """
         return super().predict_proba(dataset, dropout_sampling=dropout_sampling)
 

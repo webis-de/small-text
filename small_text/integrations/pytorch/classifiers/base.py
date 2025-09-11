@@ -127,7 +127,7 @@ class PytorchClassifier(PytorchModelSelectionMixin, AMPMixin, Classifier):
     def fit(self, train_set, validation_set=None, weights=None, **kwargs):
         pass
 
-    def predict(self, data_set, return_proba=False):
+    def predict(self, data_set, return_proba=False, multi_label_threshold: float=0.5):
         """
         Parameters
         ----------
@@ -149,14 +149,18 @@ class PytorchClassifier(PytorchModelSelectionMixin, AMPMixin, Classifier):
                                 return_proba=return_proba)
 
         proba = self.predict_proba(data_set)
-        predictions = prediction_result(proba, self.multi_label, self.num_classes)
+        # TODO: For multi-label, we convert from csr -> ndarray -> csr. This can be made more efficient.
+        predictions = prediction_result(proba.toarray() if self.multi_label else proba,
+                                        self.multi_label,
+                                        self.num_classes,
+                                        multi_label_threshold=multi_label_threshold)
 
         if return_proba:
             return predictions, proba
 
         return predictions
 
-    def predict_proba(self, dataset, dropout_sampling=1):
+    def predict_proba(self, dataset, multi_label_threshold: float = 0.5, dropout_sampling=1):
         """
         Parameters
         ----------
@@ -186,10 +190,18 @@ class PytorchClassifier(PytorchModelSelectionMixin, AMPMixin, Classifier):
             with torch.autocast(device_type=self.amp_args.device_type, dtype=torch.bfloat16,
                                 enabled=self.amp_args.use_amp):
                 if dropout_sampling <= 1:
-                    return self._predict_proba(len(dataset), dataset_iter, logits_transform)
+                    proba = self._predict_proba(len(dataset), dataset_iter, logits_transform)
                 else:
-                    return self._predict_proba_dropout_sampling(len(dataset), dataset_iter, logits_transform,
-                                                                dropout_samples=dropout_sampling)
+                    proba = self._predict_proba_dropout_sampling(len(dataset), dataset_iter, logits_transform,
+                                                                 dropout_samples=dropout_sampling)
+        if self.multi_label and dropout_sampling <= 1:
+            _, proba = prediction_result(proba,
+                                         self.multi_label,
+                                         self.num_classes,
+                                         return_proba=True,
+                                         multi_label_threshold=multi_label_threshold)
+
+        return proba
 
     def _predict_proba(self, dataset_size, dataset_iter, logits_transform):
         raise NotImplementedError('_predict_proba() needs to be implemented')

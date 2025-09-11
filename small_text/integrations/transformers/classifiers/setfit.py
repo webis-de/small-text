@@ -189,7 +189,7 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
     .. versionadded:: 1.2.0
     """
 
-    def embed(self, data_set, return_proba=False):
+    def embed(self, data_set, return_proba: bool = False, multi_label_threshold: float = 0.5):
         """Embeds each sample in the given `data_set`.
 
         The embedding is created by using the underlying sentence transformer model configured in setfit.
@@ -201,13 +201,17 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
             The dataset for which embeddings (and class probabilities) will be computed.
         return_proba : bool
             Also return the class probabilities for `data_set`.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when either `return_proba`
+            or `multi_label` is False.
 
         Returns
         -------
         embeddings : np.ndarray
             Embeddings in the shape (N, hidden_layer_dimensionality).
-        proba : np.ndarray
-            Class probabilities for `data_set` (only if `return_predictions` is `True`).
+        proba : np.ndarray or csr_matrix
+            Class probabilities for `data_set` (only if `return_proba` is `True`).
         """
 
         if self.model is None:
@@ -225,20 +229,26 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
         predictions = []
 
         num_batches = int(np.ceil(len(data_set) / self.mini_batch_size))
-        with build_pbar_context(self.setfit_model_args.show_progress_bar,
-                                tqdm_kwargs={'total': len(data_set)}) as pbar:
-            with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
-                                enabled=self.amp_args.use_amp):
-                for batch in np.array_split(data_set.x, num_batches, axis=0):
+        with inference_mode():
+            with build_pbar_context(self.setfit_model_args.show_progress_bar,
+                                    tqdm_kwargs={'total': len(data_set)}) as pbar:
+                with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
+                                    enabled=self.amp_args.use_amp):
+                    for batch in np.array_split(data_set.x, num_batches, axis=0):
 
-                    batch_embeddings, probas = self._create_embeddings(batch)
-                    pbar.update(batch_embeddings.shape[0])
-                    embeddings.extend(batch_embeddings.tolist())
-                    if return_proba:
-                        predictions.extend(probas.tolist())
+                        batch_embeddings, probas = self._create_embeddings(batch)
+                        pbar.update(batch_embeddings.shape[0])
+                        embeddings.extend(batch_embeddings.tolist())
+                        if return_proba:
+                            predictions.extend(probas.tolist())
 
         if return_proba:
-            return np.array(embeddings), np.array(predictions)
+            _, proba = prediction_result(np.array(predictions),
+                                         self.multi_label,
+                                         self.num_classes,
+                                         return_proba=return_proba,
+                                         multi_label_threshold=multi_label_threshold)
+            return np.array(embeddings), proba
 
         return np.array(embeddings)
 
@@ -429,7 +439,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                 'validate() is not available when use_differentiable_head is set to False'
             )
 
-    def predict(self, dataset, return_proba=False):
+    def predict(self, dataset, return_proba: bool = False, multi_label_threshold: float = 0.5):
         """Predicts the labels for the given dataset.
 
         Parameters
@@ -438,6 +448,9 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             A dataset on whose instances predictions are made.
         return_proba : bool, default=False
             If True, additionally returns the confidence distribution over all classes.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when `multi_label` is False.
 
         Returns
         -------
@@ -445,36 +458,58 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             List of predictions if the classifier was fitted on single-label data,
             otherwise a sparse matrix of predictions.
         probas : np.ndarray[np.float32], optional
-            List of probabilities (or confidence estimates) if `return_proba` is True.
+             Predicted confidence scores over all classes. Only returned if `return_proba` is True.
+
+            Shape and type depends on the configuration:
+
+            - Single-label, no dropout sampling: returns ndarray of shape (num_samples, num_classes).
+            - Multi-label, no dropout sampling: returns csr_matrix of shape (num_samples, num_classes).
+
+            Values represent (probability-like) confidence scores and sum to 1.0 across classes for
+            single-label problems, or are independent probabilities for multi-label problems.
         """
         if len(dataset) == 0:
             return empty_result(self.multi_label, self.num_classes, return_prediction=True,
                                 return_proba=return_proba)
 
-        proba = self.predict_proba(dataset)
-        predictions = prediction_result(proba, self.multi_label, self.num_classes)
+        dataset = _truncate_texts(self.model, self.max_length, dataset)[0]
+        proba = self._predict_proba(dataset)
+        predictions, proba = prediction_result(proba,
+                                               self.multi_label,
+                                               self.num_classes,
+                                               return_proba=True,
+                                               multi_label_threshold=multi_label_threshold)
 
         if return_proba:
             return predictions, proba
 
         return predictions
 
-    def predict_proba(self, dataset, dropout_sampling=1):
+    def predict_proba(self, dataset, multi_label_threshold: float = 0.5, dropout_sampling : int = 1):
         """Predicts the label distributions.
 
         Parameters
         ----------
         dataset : TextDataset
             A dataset whose labels will be predicted.
+        multi_label_threshold : float, default=0.5
+            In multi-label classification, a label is predicted for a sample only if the respective probability value
+            is greater than `multi_label_threshold`. Must be between 0.0 and 1.0. Ignored when `multi_label` is False.
         dropout_sampling : int, default=1
             If `dropout_sampling > 1` then all dropout modules will be enabled during prediction and
             multiple rounds of predictions will be sampled for each instance.
 
         Returns
         -------
-        scores : np.ndarray
-            Distribution of confidence scores over all classes of shape (num_samples, num_classes).
-            If `dropout_sampling > 1` then the shape is (num_samples, dropout_sampling, num_classes).
+        scores : np.ndarray or csr_matrix
+            Predicted confidence scores over all classes with shape and type depending on the configuration:
+
+            - Single-label, no dropout sampling: returns ndarray of shape (num_samples, num_classes).
+            - Multi-label, no dropout sampling: returns csr_matrix of shape (num_samples, num_classes).
+            - With dropout sampling: with shape (num_samples, dropout_sampling, num_classes).
+
+            Values represent (probability-like) confidence scores and sum to 1.0 across classes for
+            single-label problems, or are independent probabilities for multi-label problems.
 
         .. warning::
            This function is not thread-safe if `dropout_sampling > 1`, since the underlying model gets
@@ -487,17 +522,26 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
         with inference_mode():
             if dropout_sampling <= 1:
-                return self._predict_proba(dataset)
+                proba = self._predict_proba(dataset, multi_label_threshold=multi_label_threshold)
             else:
-                return self._predict_proba_dropout_sampling(dataset, dropout_samples=dropout_sampling)
+                proba = self._predict_proba_dropout_sampling(dataset, dropout_samples=dropout_sampling)
 
-    def _predict_proba(self, dataset):
+        return proba
+
+    def _predict_proba(self, dataset, multi_label_threshold: float = 0.5):
         proba = np.empty((0, self.num_classes), dtype=float)
 
         num_batches = int(np.ceil(len(dataset) / self.mini_batch_size))
         for batch in np.array_split(dataset.x, num_batches, axis=0):
             proba_tmp = self.model.predict_proba(batch).cpu().detach().numpy()
             proba = np.append(proba, proba_tmp, axis=0)
+
+        if self.multi_label:
+            _, proba = prediction_result(proba,
+                                         self.multi_label,
+                                         self.num_classes,
+                                         return_proba=True,
+                                         multi_label_threshold=multi_label_threshold)
 
         return proba
 

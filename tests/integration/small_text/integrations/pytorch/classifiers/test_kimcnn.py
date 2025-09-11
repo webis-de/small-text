@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from unittest import mock
 from unittest.mock import Mock
-from scipy.sparse import issparse
+from scipy.sparse import issparse, csr_matrix
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.training.early_stopping import EarlyStopping, NoopEarlyStopping, EarlyStoppingOrCondition
@@ -126,8 +126,12 @@ class _KimCNNClassifierTest(object):
 
         y_pred_proba = clf.predict_proba(test_set)
         self.assertSequenceEqual((len(test_set), num_classes), y_pred_proba.shape)
-        self.assertTrue(isinstance(y_pred_proba, np.ndarray))
-        self.assertTrue(np.all([isinstance(p, np.float64) for pred in y_pred_proba for p in pred]))
+        if self.multi_label:
+            self.assertTrue(isinstance(y_pred_proba, csr_matrix))
+            self.assertTrue(np.all([isinstance(p, np.float64) for p in y_pred_proba.data]))
+        else:
+            self.assertTrue(isinstance(y_pred_proba, np.ndarray))
+            self.assertTrue(np.all([isinstance(p, np.float64) for pred in y_pred_proba for p in pred]))
 
         y_pred_proba = clf.predict_proba(test_set, dropout_sampling=dropout_sampling)
         self.assertSequenceEqual((len(test_set), dropout_sampling, num_classes), y_pred_proba.shape)
