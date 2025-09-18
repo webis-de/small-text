@@ -47,7 +47,7 @@ pytorch = [
 ]
 transformers = [
   "small-text[pytorch]",
-  "transformers>=4.0.0"
+  "transformers>=4.0.0,<5.0.0"
 ]
 
 [project.urls]
