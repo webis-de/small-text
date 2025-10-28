@@ -107,6 +107,7 @@ or check out the notebooks.
 ### Showcase
 
 - [Tutorial: 👂 Active learning for text classification with small-text][argilla_al_tutorial] (Use small-text conveniently from the [argilla][argilla] UI.)
+- [Updated Example](examples/examplecode/05-active-learning-with-argilla-interface.ipynb) of using small-text 2.0 in combination with Argilla 2.0 API.
 
 A full list of showcases can be found [in the docs][documentation_showcase].
 
