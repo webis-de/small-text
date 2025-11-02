@@ -86,7 +86,7 @@ def random_sklearn_dataset(num_samples, vocab_size=60, num_classes=2, multi_labe
 
 def trec_dataset(vocab_size=10_000):
     import datasets
-    trec_dataset = datasets.load_dataset('trec')
+    trec_dataset = datasets.load_dataset('SetFit/TREC-QC')
 
     num_classes = 6
     target_labels = np.arange(num_classes)
@@ -114,7 +114,7 @@ def _dataset_to_text_classification_dataset(dataset, tokenizer, target_labels):
     import torch
 
     data = [(torch.LongTensor(tokenizer.encode(example).ids), label)
-            for example, label in zip(dataset['text'], dataset['coarse_label'])]
+            for example, label in zip(dataset['text'], dataset['label_coarse'])]
 
     return PytorchTextClassificationDataset(data, target_labels=target_labels)
 
