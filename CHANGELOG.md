@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 2.0.0.dev3 - 2025-08-17
+## Version 2.0.0.dev4 - unreleased
 
 *This section is going to be updated and will become v2.0.0 eventually.*
 
@@ -17,6 +17,8 @@ On the other hand, this also allowed us to deal with further issues that contain
   - Dropped torchtext as an integration dependency. For individual use cases it can of course still be used.
   - Added environment variables `SMALL_TEXT_PROGRESS_BARS` and `SMALL_TEXT_OFFLINE` to control the default behavior for progress bars and model downloading.
   - Minimum required SetFit version has been raised to `1.1.2` ([#71](https://github.com/webis-de/small-text/issues/71)).
+- Examples and Notebooks:
+  - New notebook that shows how to combine small-text 2.0.0 with Argilla 2 ([#83](https://github.com/webis-de/small-text/issues/83)).
 - PoolBasedActiveLearner:
   - `initialize_data()` has been replaced by `initialize()` which can now also be used to provide an initial model in cold start scenarios. ([#10](https://github.com/webis-de/small-text/pull/10))
 - Datasets
@@ -82,16 +84,20 @@ On the other hand, this also allowed us to deal with further issues that contain
 - The explicit installation instruction for conda was removed, but the small-text conda-forge package will remain.
 - Removed gensim dependency in the PyTorch multiclass example.
 
+### Contributors
+
+[@PeterK-end](https://github.com/PeterK-end)
+
 ---
 
 ## Version 1.4.1 - 2024-08-18
 
 ### Fixed
 
-- Fixed an out of bounds error that occurred when `DiscriminativeActiveLearning` queries all remaining unlabeled data.
+- Fixed an out-of-bounds error that occurred when `DiscriminativeActiveLearning` queries all remaining unlabeled data.
 - Fixed typos/wording in PoolBasedActiveLearner docstrings.
 - Pinned SetFit version in notebook example. ([#64](https://github.com/webis-de/small-text/issues/64))
-- Fixed an out of bounds error that could occur in `SetFitClassification` for both 32bit systems and Windows. ([#66](https://github.com/webis-de/small-text/issues/66))
+- Fixed an out-of-bounds error that could occur in `SetFitClassification` for both 32bit systems and Windows. ([#66](https://github.com/webis-de/small-text/issues/66))
 - Fixed errors in notebook examples that occurred with more recent seaborn / matplotlib versions.
 
 ### Changed
