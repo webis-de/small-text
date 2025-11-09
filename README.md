@@ -21,7 +21,7 @@ Several pre-implemented Query Strategies, Initialization Strategies, and Stoppin
 which can be easily mixed and matched to build active learning experiments or applications.
 
 ## What is Active Learning?
-[Active Learning](https://small-text.readthedocs.io/en/latest/active_learning.html) allows you to efficiently label training data for supervised learning in a scenario where you have little to no labeled data.
+[Active Learning](https://small-text.readthedocs.io/en/latest/active_learning.html) allows you to efficiently label training data for supervised learning when you have little to no labeled data.
 
 <p align="center">
 
@@ -33,7 +33,7 @@ which can be easily mixed and matched to build active learning experiments or ap
 ## Features
 
 - Provides unified interfaces for Active Learning, allowing you to 
-  easily mix and match query strategies with classifiers provided by [sklearn](https://scikit-learn.org/), [Pytorch](https://pytorch.org/), or [transformers](https://github.com/huggingface/transformers).
+  easily mix and match query strategies with classifiers provided by [sklearn](https://scikit-learn.org/), [PyTorch](https://pytorch.org/), or [transformers](https://github.com/huggingface/transformers).
 - Supports GPU-based [Pytorch](https://pytorch.org/) models and integrates [transformers](https://github.com/huggingface/transformers) 
   so that you can use state-of-the-art Text Classification models for Active Learning.
 - GPU is supported but not required. CPU-only use cases require only 
@@ -152,7 +152,7 @@ Read the latest documentation [here][documentation_main]. Noteworthy pages inclu
 </table>
 
 We use the numbers only to show the tremendous progress that small-text has made over time. 
-There many features and improvements that are not reflected in these numbers.
+There are many features and improvements that are not reflected in these numbers.
 
 ## Alternatives
 
