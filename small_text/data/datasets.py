@@ -463,11 +463,14 @@ class SklearnDataset(Dataset[VIEW, SKLEARN_DATA, SKLEARN_DATA]):
 
     @y.setter
     def y(self, y_new):
+        if self.track_target_labels:
+            target_labels = get_updated_target_labels(self.is_multi_label, y_new, self.target_labels)
+
         check_dataset_and_labels(self.x, y_new)
         self._y = y_new
 
         if self.track_target_labels:
-            self.target_labels = get_updated_target_labels(self.is_multi_label, y_new, self.target_labels)
+            self.target_labels = target_labels
         else:
             max_label_id = np.max(y_new)
             max_target_labels_id = self.target_labels.max()
@@ -622,11 +625,14 @@ class TextDataset(Dataset):
 
     @y.setter
     def y(self, y_new):
+        if self.track_target_labels:
+            target_labels = get_updated_target_labels(self.is_multi_label, y_new, self.target_labels)
+
         check_dataset_and_labels(self.x, y_new)
         self._y = y_new
 
         if self.track_target_labels:
-            self.target_labels = get_updated_target_labels(self.is_multi_label, y_new, self.target_labels)
+            self.target_labels = target_labels
         else:
             max_label_id = np.max(y_new)
             max_target_labels_id = self.target_labels.max()

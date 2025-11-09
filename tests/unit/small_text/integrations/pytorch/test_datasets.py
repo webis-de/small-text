@@ -219,7 +219,8 @@ class _PytorchTextClassificationDatasetTest(object):
             assert_array_equal(ds.target_labels, ds_cloned.target_labels)
         else:
             self.assertTrue(ds.track_target_labels)
-            self.assertTrue(ds_cloned.track_target_labels)
+            # cloning changes this to track target labels
+            self.assertFalse(ds_cloned.track_target_labels)
 
         # mutability test
         ds_cloned.x[0][0] += 1
@@ -394,7 +395,7 @@ class _PytorchDatasetViewTest(object):
         if self.multi_label:
             # get first row which has at least one label
             indptr_deltas = np.array([ds.y.indptr[i + 1] - ds.y.indptr[i]
-                                      for i in range(ds.y.indptr.shape[0])])
+                                      for i in range(ds.y.indptr.shape[0] - 1)])
             index = np.where(indptr_deltas > 0)[0][0]
             index = int(index)
         else:
@@ -511,7 +512,8 @@ class _PytorchTextClassificationDatasetViewTest(_PytorchDatasetViewTest):
             assert_array_equal(ds_view.target_labels, ds_cloned.target_labels)
         else:
             self.assertTrue(ds_view.dataset.track_target_labels)
-            self.assertTrue(ds_cloned.track_target_labels)
+            # cloning changes this to track target labels
+            self.assertFalse(ds_cloned.track_target_labels)
 
         # mutability test
         ds_cloned.x[0][0] += 1
@@ -684,7 +686,8 @@ class _NestedPytorchTextClassificationDatasetViewTest(_PytorchDatasetViewTest):
         else:
             # TODO: we would not need a third nesting level here (caused by indexing)
             self.assertTrue(ds_view.dataset.dataset.dataset.track_target_labels)
-            self.assertTrue(ds_cloned.track_target_labels)
+            # cloning changes this to track target labels
+            self.assertFalse(ds_cloned.track_target_labels)
 
         # mutability test
         ds_cloned.x[0][0] += 1

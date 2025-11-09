@@ -148,11 +148,7 @@ class PytorchTextClassificationDatasetView(PytorchDatasetView):
         while hasattr(dataset, 'dataset'):
             dataset = dataset.dataset
 
-        if dataset.track_target_labels:
-            target_labels = None
-        else:
-            target_labels = np.copy(dataset.target_labels)
-
+        target_labels = np.copy(self.target_labels)
         return PytorchTextClassificationDataset(data,
                                                 multi_label=self.is_multi_label,
                                                 target_labels=target_labels)
@@ -214,10 +210,16 @@ class PytorchTextClassificationDataset(PytorchDataset):
         if self.multi_label:
             label_list = [d[self.INDEX_LABEL] if d[self.INDEX_LABEL] is not None else []
                           for d in self._data]
-            flattened_list = [label
-                              for sub_label_list in label_list
-                              for label in sub_label_list if len(sub_label_list) > 0]
-            num_classes = np.array(flattened_list).max() + 1
+            num_classes = self.target_labels.max() + 1
+
+            # workaround that is required for the y setter
+            label_list_flattened = [label
+                                    for sub_label_list in label_list
+                                    for label in sub_label_list if len(sub_label_list) > 0]
+            if len(label_list_flattened) > 0:
+                num_classes_data = np.array(label_list_flattened).max() + 1
+                num_classes = max(num_classes, num_classes_data)
+
             return list_to_csr(label_list, shape=(len(self.data), num_classes))
         else:
             return np.array([d[self.INDEX_LABEL]
@@ -227,6 +229,9 @@ class PytorchTextClassificationDataset(PytorchDataset):
 
     @y.setter
     def y(self, y):
+        if self.track_target_labels:
+            target_labels = self.target_labels
+
         expected_num_samples = len(self.data)
         if self.multi_label:
             num_samples = y.indptr.shape[0] - 1
@@ -245,7 +250,7 @@ class PytorchTextClassificationDataset(PytorchDataset):
                 self._data[i] = (self._data[i][self.INDEX_TEXT], _y)
 
         if self.track_target_labels:
-            self.target_labels = get_updated_target_labels(self.is_multi_label, y, self.target_labels)
+            self.target_labels = get_updated_target_labels(self.is_multi_label, y, target_labels)
         else:
             max_label_id = get_num_labels(y) - 1
             max_target_labels_id = self.target_labels.max()
@@ -298,11 +303,7 @@ class PytorchTextClassificationDataset(PytorchDataset):
             data = [(torch.clone(d[self.INDEX_TEXT]),
                      d[self.INDEX_LABEL]) for d in self._data]
 
-        if self.track_target_labels:
-            target_labels = None
-        else:
-            target_labels = np.copy(self._target_labels)
-
+        target_labels = np.copy(self.target_labels)
         return PytorchTextClassificationDataset(data,
                                                 multi_label=self.multi_label,
                                                 target_labels=target_labels)
