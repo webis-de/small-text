@@ -9,6 +9,7 @@ from small_text.classifiers import Classifier
 from small_text.data.datasets import Dataset
 from small_text.query_strategies.base import ScoringMixin, constraints
 from small_text.query_strategies.strategies import breaking_ties, QueryStrategy
+from small_text.utils.classification import _check_classifier_dataset_consistency
 from small_text.utils.context import build_pbar_context
 
 
@@ -288,6 +289,7 @@ class CategoryVectorInconsistencyAndRanking(ScoringMixin, QueryStrategy):
               y: Union[npt.NDArray[np.uint], csr_matrix],
               n: int = 10) -> np.ndarray:
         self._validate_query_input(indices_unlabeled, n)
+        _check_classifier_dataset_consistency(clf, dataset, dataset_name_in_error='dataset')
 
         scores = self.score(clf, dataset, indices_unlabeled, indices_labeled, y)
 
@@ -308,7 +310,7 @@ class CategoryVectorInconsistencyAndRanking(ScoringMixin, QueryStrategy):
     def _compute_vector_inconsistency(self, y, y_pred_unlabeled, num_classes):
         y_arr = y.toarray()
 
-        num_batches = int(np.ceil(len(y_pred_unlabeled) / self.batch_size))
+        num_batches = int(np.ceil(y_pred_unlabeled.shape[0] / self.batch_size))
 
         vector_inconsistency = np.array([], dtype=np.float32)
         num_unlabeled = y_pred_unlabeled.shape[0]
@@ -316,6 +318,7 @@ class CategoryVectorInconsistencyAndRanking(ScoringMixin, QueryStrategy):
         with build_pbar_context(self.pbar, tqdm_kwargs={'total': num_unlabeled}) as pbar:
             for batch_idx in np.array_split(np.arange(num_unlabeled), num_batches, axis=0):
                 y_pred_unlabeled_sub = y_pred_unlabeled[batch_idx]
+
                 # as an exception the variables a,b,c,d of the contingency table are adopted
                 a = y_pred_unlabeled_sub.dot(y_arr.T)
                 b = np.logical_not(y_pred_unlabeled_sub).dot(y_arr.T)

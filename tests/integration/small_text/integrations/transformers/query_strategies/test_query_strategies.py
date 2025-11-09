@@ -54,49 +54,49 @@ class QueryStrategiesTestTransformer(QueryStrategiesExhaustiveIntegrationTest, u
 
     def test_breaking_ties(self):
         query_strategy = BreakingTies()
-        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=3)
+        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=6)
 
     def test_category_vector_inconsistency_and_ranking(self):
         query_strategy = CategoryVectorInconsistencyAndRanking()
         self._simple_exhaustive_active_learning_test(query_strategy, multi_label=True,
-                                                     num_classes=3)
+                                                     num_classes=6)
 
     def test_contrastive_active_learning(self):
         query_strategy = ContrastiveActiveLearning()
-        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=3)
+        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=6)
 
     @pytest.mark.skip(reason='not yet supported')
     def test_discriminative_active_learning(self):
         transformer_model = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         classifier_factory = TransformerBasedClassificationFactory(transformer_model, 6)
         query_strategy = DiscriminativeActiveLearning(classifier_factory, 2)
-        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=3)
+        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=6)
 
     def test_embedding_kmeans(self):
         query_strategy = EmbeddingKMeans()
-        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=3)
+        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=6)
 
     def test_greedy_coreset(self):
         query_strategy = GreedyCoreset()
-        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=3)
+        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=6)
 
     def test_lightweight_coreset(self):
         query_strategy = LightweightCoreset()
-        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=3)
+        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=6)
 
     @pytest.mark.optional
     def test_seals(self):
         query_strategy = SEALS(LeastConfidence(), k=5)
-        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=3)
+        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=6)
 
     @pytest.mark.optional
     def test_anchor_subsampling(self):
         query_strategy = AnchorSubsampling(LeastConfidence(), k=5)
-        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=3)
+        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=6)
 
     def test_subsampling_query_strategy(self):
         query_strategy = SubsamplingQueryStrategy(LeastConfidence(), subsample_size=10)
-        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=3)
+        self._simple_exhaustive_active_learning_test(query_strategy, num_classes=6)
 
     # --- additional query strategies from the integration package ---
 

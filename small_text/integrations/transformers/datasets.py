@@ -2,7 +2,12 @@ import numpy as np
 
 from scipy.sparse import csr_matrix
 from small_text.base import LABEL_UNLABELED
-from small_text.data.datasets import check_size, check_target_labels, get_updated_target_labels
+from small_text.data.datasets import (
+    _get_flattened_labels as _get_flattened_labels_from_array,
+    check_size,
+    check_target_labels,
+    get_updated_target_labels
+)
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.labels import csr_to_list, get_num_labels, list_to_csr
 
@@ -88,12 +93,13 @@ class TransformersDataset(PytorchDataset):
         self._data = data
         self.multi_label = multi_label
 
+        self._target_labels = None
         if target_labels is not None:
             self.track_target_labels = False
             self._target_labels = np.array(target_labels)
         else:
             self.track_target_labels = True
-            self.target_labels = _infer_target_labels(self._data, multi_label=self.multi_label)
+            self._target_labels = _infer_target_labels(self._data, multi_label=self.multi_label)
 
     @property
     def x(self):
@@ -115,11 +121,10 @@ class TransformersDataset(PytorchDataset):
         if self.multi_label:
             label_list = [d[self.INDEX_LABEL] if d[self.INDEX_LABEL] is not None else []
                           for d in self._data]
-            if self.track_target_labels:
-                # TODO: int() cast should not be necessary here
-                num_classes = int(self.target_labels.max()) + 1
-            else:
-                num_classes = len(self.target_labels)
+            flattened_list = [label
+                              for sub_label_list in label_list
+                              for label in sub_label_list if len(sub_label_list) > 0]
+            num_classes = np.array(flattened_list).max() + 1
             return list_to_csr(label_list, shape=(len(self.data), num_classes))
         else:
             return np.array([d[self.INDEX_LABEL] if d[self.INDEX_LABEL] is not None
@@ -128,6 +133,12 @@ class TransformersDataset(PytorchDataset):
 
     @y.setter
     def y(self, y):
+
+        if self.track_target_labels:
+            target_labels = get_updated_target_labels(self.is_multi_label,
+                                                      y,
+                                                      self.target_labels)
+
         expected_num_samples = len(self.data)
         if self.multi_label:
             num_samples = y.indptr.shape[0] - 1
@@ -147,9 +158,7 @@ class TransformersDataset(PytorchDataset):
                                  _y)
 
         if self.track_target_labels:
-            self.target_labels = get_updated_target_labels(self.is_multi_label,
-                                                           y,
-                                                           self.target_labels)
+            self.target_labels = target_labels
         else:
             max_label_id = get_num_labels(y) - 1
             max_target_labels_id = self.target_labels.max()
@@ -180,7 +189,8 @@ class TransformersDataset(PytorchDataset):
 
     @target_labels.setter
     def target_labels(self, target_labels):
-        encountered_labels = np.unique(_get_flattened_labels(self.data, multi_label=self.multi_label))
+        encountered_labels = _get_flattened_labels_from_array(self.y, multi_label=self.multi_label)
+        encountered_labels = np.setdiff1d(encountered_labels, np.array([LABEL_UNLABELED]))
         if np.setdiff1d(encountered_labels, target_labels).shape[0] > 0:
             raise ValueError('Cannot remove existing labels from target_labels as long as they '
                              'still exists in the data. Create a new dataset instead.')

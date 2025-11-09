@@ -328,21 +328,21 @@ class TestTransformerBasedClassification(unittest.TestCase):
         self.assertEqual(cache_dir, classifier.cache_dir)
 
     def test_fit_where_y_train_contains_unlabeled(self):
-        train_set = random_transformer_dataset(10)
-        train_set.y = np.array([LABEL_UNLABELED] * 10)
+        train_set = random_transformer_dataset(10, num_classes=3)
+        train_set.y = np.array([0, 1] + [LABEL_UNLABELED] * 8)
 
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
-        classifier = TransformerBasedClassification(model_args, 2)
+        classifier = TransformerBasedClassification(model_args, 3)
         with self.assertRaisesRegex(ValueError, 'Training set labels must be labeled'):
             classifier.fit(train_set)
 
     def test_fit_where_y_valid_contains_unlabeled(self):
-        train_set = random_transformer_dataset(8)
-        validation_set = random_transformer_dataset(2)
+        train_set = random_transformer_dataset(8, num_classes=3)
+        validation_set = random_transformer_dataset(2, num_classes=3)
         validation_set.y = np.array([LABEL_UNLABELED] * 2)
 
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
-        classifier = TransformerBasedClassification(model_args, 2)
+        classifier = TransformerBasedClassification(model_args, 3)
         with self.assertRaisesRegex(ValueError, 'Validation set labels must be labeled'):
             classifier.fit(train_set, validation_set=validation_set)
 
@@ -369,13 +369,13 @@ class TestTransformerBasedClassification(unittest.TestCase):
         validation_set = random_transformer_dataset(2)
 
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
-        classifier = TransformerBasedClassification(model_args, 2, multi_label=True)
+        classifier = TransformerBasedClassification(model_args, 3, multi_label=True)
 
         with self.assertRaisesRegex(ValueError, 'The classifier is configured for single-label classification'):
             classifier.fit(train_set, validation_set=validation_set)
 
     def test_fit_with_validation_set_mismatch_multi_and_single(self):
-        train_set = random_transformer_dataset(10)
+        train_set = random_transformer_dataset(10, num_classes=3)
         validation_set = random_transformer_dataset(2, num_classes=3, multi_label=True)
 
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
@@ -474,7 +474,8 @@ class TestTransformerBasedClassification(unittest.TestCase):
 
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         clf = TransformerBasedClassification(model_args, 2)
-        # here would be a clf.fit call, which omit due to the runtime costs
+
+        # here would be a clf.fit call, which is omitted to decrease the runtime costs
 
         predictions = clf.predict(test_set)
         self.assertEqual(0, predictions.shape[0])
@@ -485,7 +486,8 @@ class TestTransformerBasedClassification(unittest.TestCase):
 
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         clf = TransformerBasedClassification(model_args, 2)
-        # here would be a clf.fit call, which omit due to the runtime costs
+
+        # here would be a clf.fit call, which is omitted to decrease the runtime costs
 
         proba = clf.predict_proba(test_set)
         self.assertEqual(0, proba.shape[0])

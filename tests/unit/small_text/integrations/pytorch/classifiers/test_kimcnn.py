@@ -216,7 +216,7 @@ class KimCNNTest(unittest.TestCase):
 
     def test_fit_where_y_train_contains_unlabeled(self):
         train_set = random_text_classification_dataset(10)
-        train_set.y = np.array([LABEL_UNLABELED] * 10)
+        train_set.y = np.array([0, 1] + [LABEL_UNLABELED] * 8)
 
         classifier = self._get_clf()
 
@@ -226,7 +226,7 @@ class KimCNNTest(unittest.TestCase):
     def test_fit_where_y_valid_contains_unlabeled(self):
         train_set = random_text_classification_dataset(8)
         validation_set = random_text_classification_dataset(8)
-        validation_set.y = np.array([LABEL_UNLABELED] * 8)
+        validation_set.y = np.array([0, 1] + [LABEL_UNLABELED] * 6)
 
         classifier = self._get_clf()
 

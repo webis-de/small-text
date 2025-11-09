@@ -394,7 +394,7 @@ class _PytorchDatasetViewTest(object):
         if self.multi_label:
             # get first row which has at least one label
             indptr_deltas = np.array([ds.y.indptr[i + 1] - ds.y.indptr[i]
-                                      for i in range(ds.y.indptr.shape[0] - 1)])
+                                      for i in range(ds.y.indptr.shape[0])])
             index = np.where(indptr_deltas > 0)[0][0]
             index = int(index)
         else:
@@ -694,11 +694,8 @@ class _NestedPytorchTextClassificationDatasetViewTest(_PytorchDatasetViewTest):
             y_tmp = ds_cloned.y.todense()
             y_tmp = (y_tmp + 1) % 2
             ds_cloned.y = csr_matrix(y_tmp, shape=ds_view.y.shape)
-            try:
-                assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
-            except (AssertionError, ValueError):
-                print()
-                assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
+
+            assert_csr_matrix_not_equal(ds_view.y, ds_cloned.y)
         else:
             ds_cloned = increase_dense_labels_safe(ds_cloned)
             assert_array_not_equal(ds_view.y, ds_cloned.y)

@@ -8,7 +8,7 @@ This is the first release with breaking changes, coming sooner than we would hav
 
 The need for this came from relying on some legacy interfaces in torchtext for too long, which now have been dropped. The result was that with never PyTorch Versions, which also requires a matching torchtext version, which in turn broke some parts of the PyTorch integration.
 
-On the other hand, this also allowed us to deal with further issues that contain breaking changes but needed to be done eventually. **All of this should not cause you too much trouble**, but still to make the transition as easy as possible there is a [migration guide](https://github.com/webis-de/small-text/blob/v2.0.0.dev2/MIGRATION_GUIDE.md), which lists all breaking changes.
+On the other hand, this also allowed us to deal with further issues that contain breaking changes but needed to be done eventually. **All of this should not cause you too much trouble**, but still to make the transition as easy as possible there is a [migration guide](https://github.com/webis-de/small-text/blob/v2.0.0.dev3/MIGRATION_GUIDE.md), which lists all breaking changes.
 
 ### Added
 
@@ -27,7 +27,7 @@ On the other hand, this also allowed us to deal with further issues that contain
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support `torch.compile()` which can be enabled on demand. (Requires PyTorch >= 2.0.0). 
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support Automatic Mixed Precision. 
   - All classifiers have gained an additional convenience check that raises an error on single-/multi-label.
-  - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v2.0.0.dev2/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.
+  - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v2.0.0.dev3/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.
   - TransformerBasedClassification:
     - Removed unnecessary `token_type_ids` keyword argument in model call.
     - Additional keyword args for config, tokenizer, and model can now be configured.
@@ -54,6 +54,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 - Fixed a bug where the `clone()` operation wrapped the labels, which then raised an error. This affected the single-label scenario for PytorchTextClassificationDataset and TransformersDataset. ([#35](https://github.com/webis-de/small-text/issues/35))
 - Fixed a bug where the batching in `greedy_coreset()` and `lightweight_coreset()` resulted in incorrect batch sizes. ([#50](https://github.com/webis-de/small-text/issues/50))
 - Fixed a bug where `lightweight_coreset()` failed when computing the norm of the elementwise mean vector.
+- Fixed a bug where the datasets' `target_labels` included the unlabeled label (`-1`).
 
 ### Changed
 

@@ -116,3 +116,9 @@ def _check_classifier_dataset_consistency(classifier, dataset, dataset_name_in_e
         raise ValueError(f'The classifier is configured for single-label classification, '
                          f'but the {dataset_name_in_error} data is labeled for multi-label classification. '
                          f'Please update the classifier settings or adjust the dataset accordingly.')
+
+    if classifier.num_classes != dataset.target_labels.shape[0]:
+        raise ValueError(f'The classifier is set up to handle {classifier.num_classes} classes, '
+                         f'but the {dataset_name_in_error} data contains {dataset.target_labels.shape[0]} classes. '
+                         f'Please update the classifier settings or adjust the dataset accordingly so that the '
+                         f'number of classes match.')

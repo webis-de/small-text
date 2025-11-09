@@ -62,6 +62,8 @@ def get_updated_target_labels(is_multi_label, y, target_labels):
     else:
         new_labels = np.setdiff1d(np.unique(y), target_labels)
 
+    new_labels = np.setdiff1d(new_labels, [LABEL_UNLABELED])
+
     if new_labels.shape[0] > 0:
         target_labels = np.unique(np.union1d(target_labels, new_labels))
 
@@ -434,10 +436,10 @@ class SklearnDataset(Dataset[VIEW, SKLEARN_DATA, SKLEARN_DATA]):
 
         if target_labels is not None:
             self.track_target_labels = False
-            self.target_labels = target_labels
+            self._target_labels = target_labels
         else:
             self.track_target_labels = True
-            self.target_labels = _infer_target_labels(self._x, self._y, multi_label=self.multi_label)
+            self._target_labels = _infer_target_labels(self._x, self._y, multi_label=self.multi_label)
 
     @property
     def x(self):
@@ -492,8 +494,8 @@ class SklearnDataset(Dataset[VIEW, SKLEARN_DATA, SKLEARN_DATA]):
 
     @target_labels.setter
     def target_labels(self, target_labels):
-        labels = _get_flattened_labels(self._y, multi_label=self.multi_label)
-        encountered_labels = np.setdiff1d(labels, np.array([LABEL_UNLABELED]))
+        encountered_labels = _get_flattened_labels(self.y, multi_label=self.multi_label)
+        encountered_labels = np.setdiff1d(encountered_labels, np.array([LABEL_UNLABELED]))
         if np.setdiff1d(encountered_labels, target_labels).shape[0] > 0:
             raise ValueError('Cannot remove existing labels from target_labels as long as they '
                              'still exists in the data. Create a new dataset instead.')
@@ -592,10 +594,10 @@ class TextDataset(Dataset):
 
         if target_labels is not None:
             self.track_target_labels = False
-            self.target_labels = target_labels
+            self._target_labels = target_labels
         else:
             self.track_target_labels = True
-            self.target_labels = _infer_target_labels(self._x, self._y, multi_label=self.multi_label)
+            self._target_labels = _infer_target_labels(self._x, self._y, multi_label=self.multi_label)
 
     @property
     def x(self):
@@ -651,8 +653,8 @@ class TextDataset(Dataset):
 
     @target_labels.setter
     def target_labels(self, target_labels):
-        labels = _get_flattened_labels(self._y, multi_label=self.multi_label)
-        encountered_labels = np.setdiff1d(labels, np.array([LABEL_UNLABELED]))
+        encountered_labels = _get_flattened_labels(self.y, multi_label=self.multi_label)
+        encountered_labels = np.setdiff1d(encountered_labels, np.array([LABEL_UNLABELED]))
         if np.setdiff1d(encountered_labels, target_labels).shape[0] > 0:
             raise ValueError('Cannot remove existing labels from target_labels as long as they '
                              'still exists in the data. Create a new dataset instead.')
