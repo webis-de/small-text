@@ -35,18 +35,25 @@ class AbstractPoolBasedActiveLearner(ActiveLearner):
 
     @abstractmethod
     def initialize(self, clf_or_indices=None, indices_validation=None, retrain=True):
-        """(Re-)Initializes the current labeled pool.
+        """Initializes the current active learner.
 
-        This method initializes the active learner. It needs to be called whenever the underlying data changes,
-        in particularly before the active learning first loop.
+        Initializes the current active learner by either supplying an existing model or by using
+        the set of given indices to train a new model. This is required once before the first `query()` call for
+        query strategies that rely on the current response, which is the majority.
 
         Parameters
         ----------
-        indices_initial : np.ndarray[int]
-            Positional indices pointing at training examples. This is the initially labelled set
-            for training an initial classifier.
-        y_initial : numpy.ndarray[int] or scipy.sparse.csr_matrix
-            The respective labels belonging to the examples referenced by `x_indices_initial`.
+        clf_or_indices : Classifier or numpy.ndarray or None
+            By default you will provide indices relative to `self.dataset`, which are then used to train the initial
+            model. Alternatively, you can provide a classifier to be used as initial model. You can also pass `None`
+            to initialize the active learning without having an initial model. `None` will not work with most
+            query strategies and is only intended for cold start active learning.
+        indices_validation : numpy.ndarray, default=None
+            The given indices (relative to `self.indices_labeled`) define a custom validation set
+            if provided. Otherwise, each classifier that uses a validation set will be responsible
+            for creating a validation set. Only used if `initial_clf` is not None and `retrain=True`.
+        retrain : bool, default=True
+            Retrains the model after the update if True.
         """
         pass
 
