@@ -12,13 +12,10 @@ try:
     from small_text.integrations.transformers.classifiers.base import (
         ModelLoadingStrategy
     )
-    from small_text.integrations.transformers.classifiers.classification import (
-        TransformerModelArguments, FineTuningArguments
-    )
+    from small_text.integrations.transformers.classifiers.classification import TransformerModelArguments
     from small_text.integrations.transformers.utils.classification import (
         _get_arguments_for_from_pretrained_model,
         _initialize_transformer_components,
-        _build_layer_specific_params
     )
 except (PytorchNotFoundError, ModuleNotFoundError):
     pass
@@ -132,59 +129,3 @@ class ClassificationUtilsTest(unittest.TestCase):
                 self.assertEqual(config, kwargs['config'])
                 self.assertFalse(kwargs['force_download'])
                 self.assertTrue(kwargs['local_files_only'])
-
-
-@pytest.mark.pytorch
-class BuildLayerSpecificParamsTest(unittest.TestCase):
-
-    def test_build_layer_specific_params(self):
-        model = AutoModelForSequenceClassification.from_pretrained('sshleifer/tiny-distilroberta-base')
-
-        base_lr = 2e-5
-        fine_tuning_arguments = FineTuningArguments(base_lr, 0.95)
-        params = _build_layer_specific_params(model, base_lr, fine_tuning_arguments)
-
-        self._assert_params(params, base_lr, 4)
-
-    def test_build_layer_specific_params_gradual_unfreezing(self):
-        model = AutoModelForSequenceClassification.from_pretrained('sshleifer/tiny-distilroberta-base')
-
-        base_lr = 2e-5
-        gradual_unfreezing = 2
-        fine_tuning_arguments = FineTuningArguments(base_lr, 0.95, gradual_unfreezing=gradual_unfreezing)
-
-        params = _build_layer_specific_params(model, base_lr, fine_tuning_arguments)
-
-        self._assert_params(params, base_lr, 2)
-
-    def test_build_layer_specific_params_invalid_gradual_unfreezing_args(self):
-        model = AutoModelForSequenceClassification.from_pretrained('sshleifer/tiny-distilroberta-base')
-
-        base_lr = 2e-5
-        gradual_unfreezing = 4
-        fine_tuning_arguments = FineTuningArguments(base_lr, 0.95, gradual_unfreezing=gradual_unfreezing)
-
-        with self.assertRaisesRegex(ValueError, 'Invalid gradual unfreezing parameters: No trainable layers left.'):
-            _build_layer_specific_params(model, base_lr, fine_tuning_arguments)
-
-    def test_build_layer_specific_params_additional_module(self):
-        model = AutoModelForSequenceClassification.from_pretrained('sshleifer/tiny-distilroberta-base')
-        # This additional module is not even used by forward() but it triggers the check that prevents
-        #  this unknown setting from being used together with the layer-specific fine-tuning functionality.
-        model.additional_unused_module = nn.Linear(model.config.hidden_size, model.config.num_labels)
-
-        base_lr = 2e-5
-        fine_tuning_arguments = FineTuningArguments(base_lr, 0.95)
-
-        with self.assertRaisesRegex(ValueError, 'Fine-tuning arguments are not supported'):
-            _build_layer_specific_params(model, base_lr, fine_tuning_arguments)
-
-    def _assert_params(self, params, base_lr, num_different_lrs):
-        self.assertIsNotNone(params)
-        different_lrs = []
-        for param in params:
-            self.assertTrue(isinstance(param, dict))
-            self.assertTrue(param['lr'] > 0)
-            self.assertTrue(param['lr'] <= base_lr)
-            different_lrs.append(param['lr'])
-        self.assertEqual(num_different_lrs, np.unique(different_lrs).shape[0])

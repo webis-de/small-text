@@ -23,15 +23,12 @@ try:
         TransformerBasedClassification,
         TransformerModelArguments
     )
-    from small_text.integrations.transformers.classifiers.classification import FineTuningArguments
 
     from tests.utils.datasets import random_transformer_dataset
 except (ImportError, PytorchNotFoundError):
     # prevent "NameError: name 'TransformerBasedClassification' is not defined" in patch.object
     class TransformerBasedClassification(object):
         pass
-
-from tests.integration.small_text.integrations.pytorch.classifiers.test_base import _AMPArgumentsTest
 
 
 class _TransformerBasedClassificationTest(object):
@@ -83,23 +80,6 @@ class _TransformerBasedClassificationTest(object):
 
         clf.fit(train_set, weights=weights)
         self.assertIsNotNone(clf.model)
-
-    def test_fit_with_finetuning_args_and_scheduler_kwargs(self):
-        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
-        finetuning_args = FineTuningArguments(5e-2, 0.99)
-        clf = TransformerBasedClassification(model_args,
-                                             4,
-                                             multi_label=self.multi_label,
-                                             class_weight='balanced',
-                                             num_epochs=1,
-                                             fine_tuning_arguments=finetuning_args)
-
-        train_set = self._get_dataset(num_samples=20)
-
-        scheduler = Mock()
-
-        with self.assertRaisesRegex(ValueError, 'When fine_tuning_arguments are provided'):
-            clf.fit(train_set, scheduler=scheduler)
 
     def test_fit_with_scheduler_but_without_optimizer(self):
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')

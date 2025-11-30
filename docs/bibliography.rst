@@ -60,10 +60,6 @@ Active Learning
    In Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining (KDD '18).
    Association for Computing Machinery, New York, NY, USA, 1119–1127.
 
-.. [HR18] Jeremy Howard and Sebastian Ruder. 2008.
-   `Universal Language Model Fine-tuning for Text Classification <https://doi.org/10.18653/v1/P18-1031>`_.
-   In Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics, pages 328–339.
-
 .. [RCV18] Oscar Reyes, Carlos Morell, and Sebastián Ventura. 2018.
    `Effective Active Learning Strategy for Multi-Label Learning <https://doi.org/10.1016/j.neucom.2017.08.001>`_.
    Neurocomputing 273, pages 494–508.

@@ -23,16 +23,11 @@ except (ImportError, PytorchNotFoundError):
 class _EmbeddingTest(object):
 
     def test_embed_model_not_fitted(self):
-        classifier_kwargs = {
-            'fine_tuning_arguments': FineTuningArguments(0.2, 0.95)
-        }
         clf_factory = TransformerBasedClassificationFactory(
             'sshleifer/tiny-distilroberta-base',
-            self.num_classes,
-            classification_kwargs=classifier_kwargs)
+            self.num_classes)
 
         train_set = twenty_news_transformers(20, num_labels=self.num_classes)
-
         clf = clf_factory.new()
 
         with self.assertRaises(ValueError):
@@ -40,7 +35,6 @@ class _EmbeddingTest(object):
 
     def test_embed(self):
         classifier_kwargs = {
-            'fine_tuning_arguments': FineTuningArguments(0.2, 0.95),
             'num_epochs': 1
         }
         clf_factory = TransformerBasedClassificationFactory(
@@ -66,7 +60,6 @@ class _EmbeddingTest(object):
 
     def test_embed_with_layer_index(self):
         classifier_kwargs = {
-            'fine_tuning_arguments': FineTuningArguments(0.2, 0.95),
             'num_epochs': 1
         }
         clf_factory = TransformerBasedClassificationFactory(
@@ -103,7 +96,6 @@ class _EmbeddingTest(object):
 
     def test_embed_with_proba(self):
         classifier_kwargs = {
-            'fine_tuning_arguments': FineTuningArguments(0.2, 0.95),
             'num_epochs': 1
         }
         clf_factory = TransformerBasedClassificationFactory(

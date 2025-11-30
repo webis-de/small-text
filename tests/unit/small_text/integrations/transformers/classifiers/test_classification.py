@@ -20,30 +20,15 @@ try:
     from small_text.integrations.transformers.classifiers.base import (
         ModelLoadingStrategy
     )
-    from small_text.integrations.transformers.classifiers.classification import \
-        FineTuningArguments, TransformerModelArguments, TransformerBasedClassification
+    from small_text.integrations.transformers.classifiers.classification import (
+        TransformerModelArguments,
+        TransformerBasedClassification
+    )
     from small_text.integrations.pytorch.datasets import PytorchDatasetView
     from small_text.integrations.transformers.datasets import TransformersDataset
     from tests.utils.datasets import random_transformer_dataset
 except (ModuleNotFoundError, PytorchNotFoundError):
     pass
-
-
-@pytest.mark.pytorch
-class TestFineTuningArguments(unittest.TestCase):
-
-    def test_fine_tuning_arguments_init(self):
-        FineTuningArguments(0.2, 0.9)
-        FineTuningArguments(0.2, -1)
-
-    def test_fine_tuning_arguments_invalid_lr(self):
-        with self.assertRaises(ValueError):
-            FineTuningArguments(0, 0)
-
-    def test_fine_tuning_arguments_invalid_decay_factor(self):
-        for invalid_decay_factor in [0, 1]:
-            with self.assertRaises(ValueError):
-                FineTuningArguments(0, invalid_decay_factor)
 
 
 @pytest.mark.pytorch
@@ -290,7 +275,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
         mini_batch_size = 24
         validation_set_size = 0.05
         validations_per_epoch = 5
-        fine_tuning_arguments = FineTuningArguments(5e-5, 0.99)
         device = 'cuda'
         memory_fix = 1
         class_weight = 'balanced'
@@ -305,7 +289,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
             mini_batch_size=mini_batch_size,
             validation_set_size=validation_set_size,
             validations_per_epoch=validations_per_epoch,
-            fine_tuning_arguments=fine_tuning_arguments,
             device=device,
             memory_fix=memory_fix,
             class_weight=class_weight,

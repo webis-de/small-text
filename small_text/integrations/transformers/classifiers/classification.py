@@ -47,8 +47,7 @@ try:
         _check_for_managed_config_kwargs,
         _check_for_managed_tokenizer_kwargs,
         _check_for_managed_model_kwargs,
-        _initialize_transformer_components,
-        _build_layer_specific_params
+        _initialize_transformer_components
     )
 except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
@@ -75,39 +74,16 @@ def transformers_collate_fn(batch, multi_label=None, num_classes=None, use_sampl
     return text, masks, label, weights
 
 
-class FineTuningArguments(object):
-    """
-    Arguments to enable and configure gradual unfreezing and discriminative learning rates as used
-    in Universal Language Model Fine-tuning (ULMFiT) [HR18]_.
-    """
-
-    def __init__(self, base_lr, layerwise_gradient_decay, gradual_unfreezing=-1, cut_fraction=0.1):
-
-        if base_lr <= 0:
-            raise ValueError('FineTuningArguments: base_lr must be greater than zero')
-        if layerwise_gradient_decay:
-            if not (0 < layerwise_gradient_decay < 1 or layerwise_gradient_decay == -1):
-                raise ValueError('FineTuningArguments: valid values for layerwise_gradient_decay '
-                                 'are between 0 and 1 (or set it to -1 to disable it)')
-
-        self.base_lr = base_lr
-        self.layerwise_gradient_decay = layerwise_gradient_decay
-
-        self.gradual_unfreezing = gradual_unfreezing
-        # deprecated: This will be removed in the next version
-        _unused = cut_fraction
-
-
-class TransformerModelArguments(object):
+class TransformerModelArguments:
     """Model arguments for :py:class:`TransformerBasedClassification`.
     """
     def __init__(self,
                  model,
                  tokenizer=None,
                  config=None,
-                 model_kwargs={},
-                 tokenizer_kwargs={},
-                 config_kwargs={},
+                 model_kwargs : dict = {},
+                 tokenizer_kwargs : dict = {},
+                 config_kwargs : dict = {},
                  show_progress_bar : Union[None, bool] = None,
                  model_loading_strategy: ModelLoadingStrategy = get_default_model_loading_strategy(),
                  compile_model: bool = False):
@@ -293,7 +269,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                  mini_batch_size: int = 12,
                  validation_set_size: float = 0.1,
                  validations_per_epoch: int = 1,
-                 fine_tuning_arguments=None,
                  device=None,
                  memory_fix=1,
                  class_weight=None,
@@ -320,8 +295,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             The size of the validation set as a fraction of the training set.
         validations_per_epoch : int, default=1
             Defines how of the validation set is evaluated during the training of a single epoch.
-        fine_tuning_arguments : FineTuningArguments or None, default=None
-            Fine-tuning arguments.
         device : str or torch.device, default=None
             Torch device on which the computation will be performed.
         memory_fix : int, default=1
@@ -365,8 +338,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         # Other
         self.class_weight = class_weight
 
-        self.fine_tuning_arguments = fine_tuning_arguments
-
         self.memory_fix = memory_fix
         self.verbosity = verbosity
         self.cache_dir = cache_dir
@@ -405,11 +376,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         _check_classifier_dataset_consistency(self, train_set, dataset_name_in_error='training')
         _check_classifier_dataset_consistency(self, validation_set, dataset_name_in_error='validation')
         check_training_data(train_set, validation_set, weights=weights)
-
-        optimizer_or_scheduler_given = optimizer is not None or scheduler is not None
-        if self.fine_tuning_arguments is not None and optimizer_or_scheduler_given:
-            raise ValueError('When fine_tuning_arguments are provided you cannot pass '
-                             'optimizer and scheduler to fit()')
 
         if weights is not None:
             sub_train, sub_valid, sub_train_weights = get_splits(
@@ -475,11 +441,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
     def _default_optimizer(self, base_lr):
 
-        if self.fine_tuning_arguments is not None:
-            params = _build_layer_specific_params(self.model, self.lr, self.fine_tuning_arguments)
-        else:
-            params = [param for param in self.model.parameters() if param.requires_grad]
-
+        params = [param for param in self.model.parameters() if param.requires_grad]
         return params, AdamW(params, lr=base_lr, eps=1e-8)
 
     def _train(self, sub_train, sub_valid, weights, early_stopping, model_selection, optimizer,

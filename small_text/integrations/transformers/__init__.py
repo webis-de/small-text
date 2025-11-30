@@ -7,7 +7,6 @@ try:
     )
     from small_text.integrations.transformers.classifiers.classification import (
         transformers_collate_fn,
-        FineTuningArguments,
         TransformerModelArguments,
         TransformerBasedClassification,
         TransformerBasedEmbeddingMixin
@@ -29,7 +28,6 @@ try:
         'ModelLoadingStrategy',
         'get_default_model_loading_strategy',
         'transformers_collate_fn',
-        'FineTuningArguments',
         'TransformerModelArguments',
         'TransformerBasedClassification',
         'TransformerBasedEmbeddingMixin',

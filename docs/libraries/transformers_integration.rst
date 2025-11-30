@@ -91,21 +91,6 @@ Sentence Transformers
 Compatible Model Weights
 ------------------------
 
-----
-
-TransformerBasedClassification: Extended Functionality
-======================================================
-
-Layer-specific Fine-tuning
---------------------------
-
-Layer-specific fine-tuning can be enabled by setting :py:class:`~small_text.integrations.transformers.classifiers.classification.FineTuningArguments` during the construction of :py:class:`~small_text.integrations.transformers.classifiers.classification.TransformerBasedClassification`. With this, you can enable layerwise gradient decay and gradual unfreezing:
-
-- Layerwise gradient decay: learning rates decrease the lower the layer's level is.
-- Gradual unfreezing: lower layers are frozen at the start of the training and become gradually unfrozen with each epoch.
-
-See [HR18]_ for more details on these methods.
-
 -----
 
 Examples
