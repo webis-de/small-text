@@ -1,7 +1,7 @@
 import os
 
 from transformers import logging as transformers_logging
-from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer, PreTrainedModel
+from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
 
 from small_text.integrations.transformers.classifiers.base import (
     ModelLoadingStrategy,
