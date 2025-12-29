@@ -25,7 +25,8 @@ On the other hand, this also allowed us to deal with further issues that contain
   - Validation has been added to prevent TextDataset objects from containing None items (instead of str) either during initialization or when setting the x property. ([#73](https://github.com/webis-de/small-text/pull/73))
 - Classification:
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support `torch.compile()` which can be enabled on demand. (Requires PyTorch >= 2.0.0). 
-  - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support Automatic Mixed Precision. 
+  - All PyTorch-classifiers now support Automatic Mixed Precision.
+  - The `mini_batch_size` argument has been separated into `train_batch_size` and `predict_batch_size` for all PyTorch-classifiers.
   - All classifiers have gained an additional convenience check that raises an error on single-/multi-label.
   - `SetFitClassification.__init__() <https://github.com/webis-de/small-text/blob/v2.0.0.dev3/small_text/integrations/transformers/classifiers/setfit.py>`__ now has a verbosity parameter (similar to `TransformerBasedClassification`) through which you can control the progress bar output of `SetFitClassification.fit()`.
   - TransformerBasedClassification:

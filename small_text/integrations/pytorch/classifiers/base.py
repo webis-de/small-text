@@ -104,10 +104,16 @@ class PytorchModelSelectionMixin(object):
 
 class PytorchClassifier(PytorchModelSelectionMixin, AMPMixin, Classifier):
 
-    def __init__(self, multi_label=False, device=None, mini_batch_size=32, amp_args=None):
+    def __init__(self,
+                 multi_label=False,
+                 device=None,
+                 train_batch_size: int = 32,
+                 predict_batch_size: int = 32,
+                 amp_args=None):
 
         self.multi_label = multi_label
-        self.mini_batch_size = mini_batch_size
+        self.train_batch_size = train_batch_size
+        self.predict_batch_size = predict_batch_size
 
         if device is None:
             self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -181,7 +187,9 @@ class PytorchClassifier(PytorchModelSelectionMixin, AMPMixin, Classifier):
                                 return_proba=True)
 
         self.model.eval()
-        dataset_iter = dataloader(dataset.data, self.mini_batch_size, self._create_collate_fn(),
+        dataset_iter = dataloader(dataset.data,
+                                  self.predict_batch_size,
+                                  self._create_collate_fn(),
                                   train=False)
 
         logits_transform = torch.sigmoid if self.multi_label else partial(F.softmax, dim=1)
@@ -261,8 +269,8 @@ class PytorchClassifier(PytorchModelSelectionMixin, AMPMixin, Classifier):
     def _initialize_optimizer_and_scheduler(self, optimizer, scheduler, num_epochs,
                                             sub_train, base_lr):
 
-        steps = (len(sub_train) // self.mini_batch_size) \
-                + int(len(sub_train) % self.mini_batch_size != 0)
+        steps = (len(sub_train) // self.train_batch_size) \
+                + int(len(sub_train) % self.train_batch_size != 0)
 
         if optimizer is None:
             params, optimizer = self._default_optimizer(base_lr) if optimizer is None else optimizer

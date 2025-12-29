@@ -37,7 +37,8 @@ class KimCNNTest(unittest.TestCase):
         self.assertFalse(classifier.multi_label)
         self.assertIsNotNone(classifier.device)
         self.assertEqual(10, classifier.num_epochs)
-        self.assertEqual(25, classifier.mini_batch_size)
+        self.assertEqual(25, classifier.train_batch_size)
+        self.assertEqual(25, classifier.predict_batch_size)
         self.assertIsNone(classifier.criterion)
         self.assertIsNone(classifier.optimizer)
         self.assertIsNone(classifier.scheduler)
@@ -60,7 +61,8 @@ class KimCNNTest(unittest.TestCase):
         multi_label = True
         device = 'cpu'
         num_epochs = 5
-        mini_batch_size = 30
+        train_batch_size = 30
+        predict_batch_size = 40
         max_seq_len = 100
         out_channels = 80
         filter_padding = 0
@@ -73,7 +75,8 @@ class KimCNNTest(unittest.TestCase):
         compile_model = False
 
         classifier = KimCNNClassifier(num_classes, multi_label=multi_label, device='cpu',
-                                      num_epochs=num_epochs, mini_batch_size=mini_batch_size,
+                                      num_epochs=num_epochs, train_batch_size=train_batch_size,
+                                      predict_batch_size=predict_batch_size,
                                       max_seq_len=max_seq_len, out_channels=out_channels,
                                       filter_padding=filter_padding, dropout=dropout,
                                       validation_set_size=validation_set_size,
@@ -85,7 +88,8 @@ class KimCNNTest(unittest.TestCase):
         self.assertEqual(multi_label, classifier.multi_label)
         self.assertEqual(device, classifier.device)
         self.assertEqual(num_epochs, classifier.num_epochs)
-        self.assertEqual(mini_batch_size, classifier.mini_batch_size)
+        self.assertEqual(train_batch_size, classifier.train_batch_size)
+        self.assertEqual(predict_batch_size, classifier.predict_batch_size)
         self.assertIsNone(classifier.criterion)
         self.assertIsNone(classifier.optimizer)
         self.assertIsNone(classifier.scheduler)
@@ -105,7 +109,8 @@ class KimCNNTest(unittest.TestCase):
     def test_init_without_embedding_matrix(self):
         num_classes = 2
         num_epochs = 5
-        mini_batch_size = 30
+        train_batch_size = 30
+        predict_batch_size = 40
         max_seq_len = 100
         out_channels = 80
         dropout = 0.4
@@ -115,7 +120,8 @@ class KimCNNTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             KimCNNClassifier(num_classes, embedding_matrix=embedding_matrix, device='cpu',
-                             num_epochs=num_epochs, mini_batch_size=mini_batch_size,
+                             num_epochs=num_epochs, train_batch_size=train_batch_size,
+                             predict_batch_size=predict_batch_size,
                              max_seq_len=max_seq_len, out_channels=out_channels,
                              dropout=dropout, validation_set_size=validation_set_size,
                              padding_idx=padding_idx)

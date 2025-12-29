@@ -78,13 +78,15 @@ class TransformerModelArguments:
     """Model arguments for :py:class:`TransformerBasedClassification`.
     """
     def __init__(self,
-                 model,
+                 model: str,
                  tokenizer=None,
                  config=None,
-                 model_kwargs : dict = {},
-                 tokenizer_kwargs : dict = {},
-                 config_kwargs : dict = {},
-                 show_progress_bar : Union[None, bool] = None,
+                 model_kwargs: dict = {},
+                 tokenizer_kwargs: dict = {},
+                 config_kwargs: dict = {},
+                 train_batch_size: int = 12,
+                 predict_batch_size: int = 12,
+                 show_progress_bar: Union[None, bool] = None,
                  model_loading_strategy: ModelLoadingStrategy = get_default_model_loading_strategy(),
                  compile_model: bool = False):
         """
@@ -126,6 +128,10 @@ class TransformerModelArguments:
                 `AutoConfig.from_pretrained()
                 <https://huggingface.co/docs/transformers/en/model_doc/auto#transformers.AutoConfig>`_ in transformers.
 
+        train_batch_size : int, default=12
+            Batch size during training.
+        predict_batch_size : int, default=12
+            Batch size during prediction.
         show_progress_bar : None or bool, default=None
             Determines whether progress bars are shown. If none, the small-text default is used.
         model_loading_strategy: ModelLoadingStrategy, default=ModelLoadingStrategy.DEFAULT
@@ -150,6 +156,9 @@ class TransformerModelArguments:
             self.tokenizer = model
         if self.config is None:
             self.config = model
+
+        self.train_batch_size = train_batch_size
+        self.predict_batch_size = predict_batch_size
 
         if show_progress_bar is None:
             self.show_progress_bar = get_show_progress_bar_default()
@@ -204,7 +213,10 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
         self.model.eval()
 
-        train_iter = dataloader(data_set.data, self.mini_batch_size, self._create_collate_fn(), train=False)
+        dataset_iter = dataloader(data_set.data,
+                                  self.transformer_model_args.predict_batch_size,
+                                  self._create_collate_fn(),
+                                  train=False)
 
         tensors = []
         proba = []
@@ -214,7 +226,7 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
                                 enabled=self.amp_args.use_amp):
                 with build_pbar_context(self.transformer_model.show_progress_bar,
                                         tqdm_kwargs={'total': len(data_set)}) as pbar:
-                    for batch in train_iter:
+                    for batch in dataset_iter:
                         batch_len, logits, embeddings = self._create_embeddings(batch,
                                                                                 embedding_method=embedding_method,
                                                                                 hidden_layer_index=hidden_layer_index)
@@ -261,12 +273,11 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClassifier):
 
     def __init__(self,
-                 transformer_model: TransformerModelArguments,
+                 transformer_model_args: TransformerModelArguments,
                  num_classes: int,
                  multi_label: bool = False,
                  num_epochs: int = 10,
                  lr: float = 2e-5,
-                 mini_batch_size: int = 12,
                  validation_set_size: float = 0.1,
                  validations_per_epoch: int = 1,
                  device=None,
@@ -278,7 +289,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         """
         Parameters
         ----------
-        transformer_model : TransformerModelArguments
+        transformer_model_args : TransformerModelArguments
             Settings for transformer model, tokenizer and config.
         num_classes : int
             Number of classes.
@@ -289,8 +300,6 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             Epochs to train.
         lr : float, default=2e-5
             Learning rate.
-        mini_batch_size : int, default=12
-            Size of mini batches during training.
         validation_set_size : float, default=0.1
             The size of the validation set as a fraction of the training set.
         validations_per_epoch : int, default=1
@@ -314,7 +323,10 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
             Controls the verbosity of logging messages. Lower values result in less log messages.
             Set this to `VERBOSITY_QUIET` or `0` for the minimum amount of logging.
         """
-        super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size,
+        super().__init__(multi_label=multi_label,
+                         device=device,
+                         train_batch_size=transformer_model_args.train_batch_size,
+                         predict_batch_size=transformer_model_args.predict_batch_size,
                          amp_args=amp_args)
 
         with verbosity_logger():
@@ -333,7 +345,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         self.validation_set_size = validation_set_size
         self.validations_per_epoch = validations_per_epoch
 
-        self.transformer_model = transformer_model
+        self.transformer_model_args = transformer_model_args
 
         # Other
         self.class_weight = class_weight
@@ -432,11 +444,11 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
     def initialize(self):
         self.config, self.tokenizer, self.model = _initialize_transformer_components(
-            self.transformer_model,
+            self.transformer_model_args,
             self.num_classes,
             self.cache_dir,
         )
-        self.model = _compile_if_possible(self.model, self.transformer_model.compile_model)
+        self.model = _compile_if_possible(self.model, self.transformer_model_args.compile_model)
         return self.model
 
     def _default_optimizer(self, base_lr):
@@ -479,8 +491,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
 
         self.model.train()
         if self.validations_per_epoch > 1:
-            num_batches = len(sub_train) // self.mini_batch_size \
-                          + int(len(sub_train) % self.mini_batch_size > 0)
+            num_batches = len(sub_train) // self.transformer_model_args.train_batch_size \
+                          + int(len(sub_train) % self.transformer_model_args.train_batch_size > 0)
             if self.validations_per_epoch > num_batches:
                 warnings.warn(
                     f'validations_per_epoch={self.validations_per_epoch} is greater than '
@@ -519,7 +531,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         if weights is not None:
             data = [d + (weights[i],) for i, d in enumerate(data)]
 
-        train_iter = dataloader(data, self.mini_batch_size,
+        train_iter = dataloader(data,
+                                self.transformer_model_args.train_batch_size,
                                 self._create_collate_fn(use_sample_weights=weights is not None))
 
         stop = False
@@ -634,7 +647,8 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                 acc = torch.tensor(0., dtype=torch.float32, device=self.device)
 
                 self.model.eval()
-                valid_iter = dataloader(validation_set.data, self.mini_batch_size,
+                valid_iter = dataloader(validation_set.data,
+                                        self.transformer_model_args.predict_batch_size,
                                         self._create_collate_fn(),
                                         train=False)
 

@@ -37,7 +37,8 @@ class TestSetFitModelArguments(unittest.TestCase):
         args = SetFitModelArguments(sentence_transformer_model)
         self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
         self.assertIsNone(args.max_length)
-        self.assertEqual((16, 2), args.mini_batch_size)
+        self.assertEqual((16, 2), args.train_batch_size)
+        self.assertEqual(16, args.predict_batch_size)
         self.assertEqual((1, 16), args.num_epochs)
         self.assertEqual(-1, args.max_steps)
         self.assertEqual('oversampling', args.sampling_strategy)
@@ -50,7 +51,8 @@ class TestSetFitModelArguments(unittest.TestCase):
         self.assertIsNotNone(args.model_kwargs)
         self.assertEqual(0, len(args.model_kwargs))
         self.assertIsNotNone(args.trainer_kwargs)
-        self.assertEqual(0, len(args.trainer_kwargs))
+        self.assertEqual(1, len(args.trainer_kwargs))
+        self.assertEqual({'save_strategy': 'no'}, args.trainer_kwargs)
         self.assertIsNotNone(args.model_loading_strategy)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, args.model_loading_strategy)
         self.assertFalse(args.compile_model)
@@ -59,7 +61,8 @@ class TestSetFitModelArguments(unittest.TestCase):
         sentence_transformer_model = 'sentence-transformers/all-MiniLM-L6-v2'
         args = SetFitModelArguments(sentence_transformer_model,
                                     max_length=512,
-                                    mini_batch_size=(32, 4),
+                                    train_batch_size=(32, 4),
+                                    predict_batch_size=64,
                                     num_epochs=(2, 32),
                                     max_steps=10,
                                     sampling_strategy='undersampling',
@@ -76,7 +79,8 @@ class TestSetFitModelArguments(unittest.TestCase):
 
         self.assertEqual(sentence_transformer_model, args.sentence_transformer_model)
         self.assertEqual(512, args.max_length)
-        self.assertEqual((32, 4), args.mini_batch_size)
+        self.assertEqual((32, 4), args.train_batch_size)
+        self.assertEqual(64, args.predict_batch_size)
         self.assertEqual((2, 32), args.num_epochs)
         self.assertEqual(10, args.max_steps)
         self.assertEqual('undersampling', args.sampling_strategy)
@@ -87,7 +91,7 @@ class TestSetFitModelArguments(unittest.TestCase):
         self.assertEqual(42, args.seed)
         self.assertEqual('/tmp/small-text', args.output_dir)
         self.assertEqual({'cache_dir': '/tmp/cache'}, args.model_kwargs)
-        self.assertEqual({'margin': 0.26}, args.trainer_kwargs)
+        self.assertEqual({'margin': 0.26, 'save_strategy': 'no'}, args.trainer_kwargs)
         self.assertEqual(ModelLoadingStrategy.ALWAYS_DOWNLOAD, args.model_loading_strategy)
         self.assertTrue(args.compile_model)
 
@@ -99,7 +103,8 @@ class TestSetFitModelArguments(unittest.TestCase):
         self.assertIsNotNone(args.model_kwargs)
         self.assertEqual(1, len(args.model_kwargs))
         self.assertIsNotNone(args.trainer_kwargs)
-        self.assertEqual(0, len(args.trainer_kwargs))
+        self.assertEqual(1, len(args.trainer_kwargs))
+        self.assertEqual({'save_strategy': 'no'}, args.trainer_kwargs)
         self.assertIsNotNone(args.model_loading_strategy)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, args.model_loading_strategy)
         self.assertFalse(args.compile_model)
@@ -179,8 +184,8 @@ class TestTrainingArgumentsConversion(unittest.TestCase):
 
     def test_defaults(self):
 
-        ds = random_text_dataset(10)
         num_classes = 5
+        ds = random_text_dataset(10, num_classes=num_classes)
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
         clf = SetFitClassification(setfit_model_args, num_classes)
@@ -197,7 +202,8 @@ class TestTrainingArgumentsConversion(unittest.TestCase):
             model_args = call_args[0]
 
             self.assertIsNone(model_args.max_length)
-            self.assertEqual((16, 2), model_args.mini_batch_size)
+            self.assertEqual((16, 2), model_args.train_batch_size)
+            self.assertEqual(16, model_args.predict_batch_size)
             self.assertEqual((1, 16), model_args.num_epochs)
             self.assertEqual(-1, model_args.max_steps)
             self.assertEqual('oversampling', model_args.sampling_strategy)
@@ -212,12 +218,13 @@ class TestTrainingArgumentsConversion(unittest.TestCase):
 
     def test_non_defaults(self):
 
-        ds = random_text_dataset(10)
         num_classes = 5
+        ds = random_text_dataset(10, num_classes=num_classes)
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2',
                                                  max_length=1024,
-                                                 mini_batch_size=(8, 4),
+                                                 train_batch_size=(8, 4),
+                                                 predict_batch_size=32,
                                                  num_epochs=(2, 4),
                                                  max_steps=100,
                                                  sampling_strategy='undersampling',
@@ -241,7 +248,8 @@ class TestTrainingArgumentsConversion(unittest.TestCase):
             model_args = call_args[0]
 
             self.assertEqual(1024, model_args.max_length)
-            self.assertEqual((8, 4), model_args.mini_batch_size)
+            self.assertEqual((8, 4), model_args.train_batch_size)
+            self.assertEqual(32, model_args.predict_batch_size)
             self.assertEqual((2, 4), model_args.num_epochs)
             self.assertEqual(100, model_args.max_steps)
             self.assertEqual('undersampling', model_args.sampling_strategy)
@@ -389,11 +397,12 @@ class _SetFitClassification(object):
             classifier.fit(train_set)
 
     def test_fit_with_validation_set_mismatch(self):
-        train_set = random_text_dataset(10, multi_label=self.multi_label)
+        num_classes = 5
+        train_set = random_text_dataset(10, multi_label=self.multi_label, num_classes=num_classes)
         validation_set = random_text_dataset(2,
                                              multi_label=not self.multi_label,
                                              assure_all_labels_occur=False)
-        num_classes = 5
+
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
         classifier = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
@@ -402,8 +411,8 @@ class _SetFitClassification(object):
             classifier.fit(train_set, validation_set=validation_set)
 
     def test_fit_without_train_kwargs(self):
-        ds = random_text_dataset(10, multi_label=self.multi_label)
         num_classes = 5
+        ds = random_text_dataset(10, multi_label=self.multi_label, num_classes=num_classes)
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
 
@@ -419,8 +428,8 @@ class _SetFitClassification(object):
             self.assertTrue('args' in trainer_mock.return_value.train.call_args.kwargs)
 
     def test_fit_with_amp(self):
-        ds = random_text_dataset(10, multi_label=self.multi_label)
         num_classes = 5
+        ds = random_text_dataset(10, multi_label=self.multi_label, num_classes=num_classes)
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
         amp_args = AMPArguments(use_amp=True)
@@ -434,8 +443,8 @@ class _SetFitClassification(object):
             self.assertTrue(trainer_mock.call_args_list[0].kwargs['args'].use_amp)
 
     def test_fit_with_show_progress_bar(self):
-        ds = random_text_dataset(10, multi_label=self.multi_label)
         num_classes = 5
+        ds = random_text_dataset(10, multi_label=self.multi_label, num_classes=num_classes)
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2', show_progress_bar=False)
 
@@ -459,8 +468,8 @@ class TestSetFitClassificationRegressionSingleLabel(unittest.TestCase, _SetFitCl
     def test_fit(self):
         import datasets
 
-        ds = random_text_dataset(10, multi_label=self.multi_label)
         num_classes = 5
+        ds = random_text_dataset(10, multi_label=self.multi_label, num_classes=num_classes)
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
         clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
@@ -488,8 +497,8 @@ class TestSetFitClassificationRegressionMultiLabel(unittest.TestCase, _SetFitCla
     def test_fit(self):
         import datasets
 
-        ds = random_text_dataset(10, multi_label=self.multi_label)
         num_classes = 5
+        ds = random_text_dataset(10, multi_label=self.multi_label, num_classes=num_classes)
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
         clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)
@@ -517,10 +526,11 @@ class TestSetFitClassificationDifferentiableSingleLabel(unittest.TestCase,  _Set
     def test_fit_with_differentiable_head(self):
         import datasets
 
-        ds = random_text_dataset(10, multi_label=self.multi_label)
+        num_classes = 5
+
+        ds = random_text_dataset(10, multi_label=self.multi_label, num_classes=num_classes)
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2',
                                                  output_dir='/tmp')
-        num_classes = 5
 
         clf = SetFitClassification(setfit_model_args,
                                    num_classes,
@@ -550,10 +560,11 @@ class TestSetFitClassificationDifferentiableMultiLabel(unittest.TestCase,  _SetF
     def test_fit_with_differentiable_head(self):
         import datasets
 
-        ds = random_text_dataset(10, multi_label=self.multi_label)
+        num_classes = 5
+
+        ds = random_text_dataset(10, multi_label=self.multi_label, num_classes=num_classes)
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2',
                                                  output_dir='/tmp')
-        num_classes = 5
 
         clf = SetFitClassification(setfit_model_args,
                                    num_classes,

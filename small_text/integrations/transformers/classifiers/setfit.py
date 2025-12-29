@@ -79,8 +79,9 @@ class SetFitModelArguments(object):
 
     def __init__(self,
                  sentence_transformer_model: str,
-                 max_length : Union[None, int] = None,
-                 mini_batch_size: Union[int, Tuple[int, int]] = (16, 2),
+                 max_length: Union[None, int] = None,
+                 train_batch_size: Union[int, Tuple[int, int]] = (16, 2),
+                 predict_batch_size: int = 16,
                  num_epochs: Union[int, Tuple[int, int]] = (1, 16),
                  max_steps: int = -1,
                  sampling_strategy: str = 'oversampling',
@@ -102,9 +103,11 @@ class SetFitModelArguments(object):
             Name of a sentence transformer model.
         max_length : int or None, default=None
             Maximum number of tokens (size of context window). This should match the underlying model.
-        mini_batch_size : Tuple[int, int] or int, default=(16, 2)
-            Size of mini batches during training. Corresponds to setfit's batch_size parameter.
-        num_epochs : Tuple[int, int] or int, default=12
+        train_batch_size : Tuple[int, int] or int, default=(16, 2)
+            Batch size during training. Corresponds to setfit's batch_size parameter.
+        predict_batch_size : int, default=16
+            Batch size during prediction.
+        num_epochs : Tuple[int, int] or int, default=(1, 16)
             Number of epochs for model body and head. If only a single value is passed it will be used
             for body and head. The head value will only be used if the model has a differentiable head.
         max_steps : int, default=-1
@@ -163,7 +166,8 @@ class SetFitModelArguments(object):
         """
         self.sentence_transformer_model = sentence_transformer_model
         self.max_length = max_length
-        self.mini_batch_size = mini_batch_size
+        self.train_batch_size = train_batch_size
+        self.predict_batch_size = predict_batch_size
         self.num_epochs = num_epochs
         self.max_steps = max_steps
         self.sampling_strategy = sampling_strategy
@@ -180,6 +184,8 @@ class SetFitModelArguments(object):
 
         self.model_kwargs = _check_model_kwargs(model_kwargs)
         self.trainer_kwargs = _check_trainer_kwargs(trainer_kwargs)
+        if not 'save_strategy' in self.trainer_kwargs:
+            self.trainer_kwargs['save_strategy'] = 'no'
         self.model_loading_strategy = model_loading_strategy
         self.compile_model = compile_model
 
@@ -277,8 +283,15 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
     .. versionchanged:: 2.0.0
     """
 
-    def __init__(self, setfit_model_args, num_classes, multi_label=False, max_length=512,
-                 use_differentiable_head=False, mini_batch_size=32, amp_args=None, device=None):
+    def __init__(self,
+                 setfit_model_args,
+                 num_classes,
+                 multi_label=False,
+                 max_length=512,
+                 use_differentiable_head=False,
+                 mini_batch_size=32,
+                 amp_args=None,
+                 device=None):
         """
         sentence_transformer_model : SetFitModelArguments
             Settings for the sentence transformer model to be used.
@@ -395,7 +408,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
             seed = self.setfit_model_args.seed
 
         train_args = TrainingArguments(max_length=setfit_model_args.max_length,
-                                       batch_size=setfit_model_args.mini_batch_size,
+                                       batch_size=setfit_model_args.train_batch_size,
                                        num_epochs=setfit_model_args.num_epochs,
                                        max_steps=setfit_model_args.max_steps,
                                        sampling_strategy=setfit_model_args.sampling_strategy,
@@ -531,7 +544,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
     def _predict_proba(self, dataset, multi_label_threshold: float = 0.5):
         proba = np.empty((0, self.num_classes), dtype=float)
 
-        num_batches = int(np.ceil(len(dataset) / self.mini_batch_size))
+        num_batches = int(np.ceil(len(dataset) / self.predict_batch_size))
         for batch in np.array_split(dataset.x, num_batches, axis=0):
             proba_tmp = self.model.predict_proba(batch).cpu().detach().numpy()
             proba = np.append(proba, proba_tmp, axis=0)
@@ -555,7 +568,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         proba[:, :, :] = np.inf
 
         with enable_dropout(self.model.model_body):
-            num_batches = int(np.ceil(len(dataset) / self.mini_batch_size))
+            num_batches = int(np.ceil(len(dataset) / self.predict_batch_size))
             for batch in np.array_split(dataset.x, num_batches, axis=0):
                 samples = np.empty((dropout_samples, len(batch), self.num_classes), dtype=float)
                 for i in range(dropout_samples):

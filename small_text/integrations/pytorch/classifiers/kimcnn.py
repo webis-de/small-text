@@ -112,7 +112,10 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
         self.model.eval()
 
-        dataset_iter = dataloader(data_set.data, self.mini_batch_size, self._create_collate_fn(), train=False)
+        dataset_iter = dataloader(data_set.data,
+                                  self.predict_batch_size,
+                                  self._create_collate_fn(),
+                                  train=False)
 
         tensors = []
         proba = []
@@ -215,11 +218,27 @@ class KimCNNEmbeddingMixin(EmbeddingMixin):
 
 class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
-    def __init__(self, num_classes, multi_label=False, embedding_matrix=None, device=None,
-                 num_epochs=10, mini_batch_size=25, lr=0.001, max_seq_len=60, out_channels=100,
-                 filter_padding=0, dropout=0.5, validation_set_size=0.1, padding_idx=0,
-                 kernel_heights=[3, 4, 5], show_progress_bar=None, class_weight=None, amp_args=None,
-                 compile_model=False, verbosity=VERBOSITY_MORE_VERBOSE):
+    def __init__(self,
+                 num_classes,
+                 multi_label=False,
+                 embedding_matrix=None,
+                 device=None,
+                 num_epochs: int = 10,
+                 train_batch_size: int = 25,
+                 predict_batch_size: int = 25,
+                 lr=0.001,
+                 max_seq_len=60,
+                 out_channels=100,
+                 filter_padding=0,
+                 dropout=0.5,
+                 validation_set_size=0.1,
+                 padding_idx=0,
+                 kernel_heights=[3, 4, 5],
+                 show_progress_bar=None,
+                 class_weight=None,
+                 amp_args=None,
+                 compile_model=False,
+                 verbosity=VERBOSITY_MORE_VERBOSE):
         """
         num_classes : int
             Number of classes.
@@ -232,8 +251,10 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
             Torch device on which the computation will be performed.
         num_epochs : int, default=10
             Epochs to train.
-        mini_batch_size : int, default=12
-            Size of mini batches during training.
+        train_batch_size : int, default=25
+            Batch size during training.
+        predict_batch_size : int, default=25
+            Batch size during prediction.
         lr : float, default=2e-5
             Learning rate.
         max_seq_len : int
@@ -266,7 +287,10 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
 
             .. versionadded:: 2.0.0
         """
-        super().__init__(multi_label=multi_label, device=device, mini_batch_size=mini_batch_size,
+        super().__init__(multi_label=multi_label,
+                         device=device,
+                         train_batch_size=train_batch_size,
+                         predict_batch_size=predict_batch_size,
                          amp_args=amp_args)
 
         with verbosity_logger():
@@ -469,7 +493,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
         if weights is not None:
             data = [d + (weights[i],) for i, d in enumerate(data)]
 
-        train_iter = dataloader(data, self.mini_batch_size,
+        train_iter = dataloader(data, self.train_batch_size,
                                 self._create_collate_fn(use_sample_weights=weights is not None))
 
         for i, (text, cls, weight) in enumerate(train_iter):
@@ -540,7 +564,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                 acc = torch.tensor(0., dtype=torch.float32, device=self.device)
 
                 self.model.eval()
-                valid_iter = dataloader(validation_set.data, self.mini_batch_size, self._create_collate_fn(),
+                valid_iter = dataloader(validation_set.data, self.predict_batch_size, self._create_collate_fn(),
                                         train=False)
 
                 for x, cls, weight, *_ in valid_iter:

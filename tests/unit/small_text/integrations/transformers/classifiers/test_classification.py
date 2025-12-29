@@ -40,6 +40,8 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual('bert-base-uncased', model_args.config)
         self.assertEqual('bert-base-uncased', model_args.tokenizer)
         self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertEqual(12, model_args.train_batch_size)
+        self.assertEqual(12, model_args.predict_batch_size)
         self.assertTrue(model_args.show_progress_bar)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
         self.assertFalse(model_args.compile_model)
@@ -55,6 +57,8 @@ class TestTransformerModelArguments(unittest.TestCase):
         self.assertEqual(tokenizer, model_args.tokenizer)
         self._assert_empty_kwargs(model_args)
         self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertEqual(12, model_args.train_batch_size)
+        self.assertEqual(12, model_args.predict_batch_size)
         self.assertTrue(model_args.show_progress_bar)
         self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
         self.assertFalse(model_args.compile_model)
@@ -67,6 +71,20 @@ class TestTransformerModelArguments(unittest.TestCase):
     def _assert_dict_not_none_and_empty(self, dict_to_check):
         self.assertIsNotNone(dict_to_check)
         self.assertEqual(0, len(dict_to_check))
+
+    def test_transformer_model_arguments_init_batch_sizes(self):
+        model_args = TransformerModelArguments('bert-base-uncased',
+                                               train_batch_size=24,
+                                               predict_batch_size=36)
+        self.assertEqual('bert-base-uncased', model_args.model)
+        self.assertEqual('bert-base-uncased', model_args.config)
+        self.assertEqual('bert-base-uncased', model_args.tokenizer)
+        self.assertIsNotNone(model_args.model_loading_strategy)
+        self.assertEqual(24, model_args.train_batch_size)
+        self.assertEqual(36, model_args.predict_batch_size)
+        self.assertTrue(model_args.show_progress_bar)
+        self.assertEqual(ModelLoadingStrategy.DEFAULT, model_args.model_loading_strategy)
+        self.assertFalse(model_args.compile_model)
 
     def test_transformer_model_arguments_init_show_progress_bar(self):
         tokenizer = '/path/to/tokenizer/'
@@ -255,11 +273,9 @@ class TestTransformerBasedClassification(unittest.TestCase):
         self.assertFalse(classifier.multi_label)
         self.assertEqual(10, classifier.num_epochs)
         self.assertEqual(2e-5, classifier.lr)
-        self.assertEqual(12, classifier.mini_batch_size)
         self.assertIsNone(classifier.criterion)
         self.assertEqual(0.1, classifier.validation_set_size)
         self.assertEqual(1, classifier.validations_per_epoch)
-        self.assertIsNone(classifier.fine_tuning_arguments)
         self.assertIsNotNone(classifier.device)
         self.assertEqual(1, classifier.memory_fix)
         self.assertIsNone(classifier.class_weight)
@@ -272,7 +288,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
         multi_label = False
         num_epochs = 20
         lr = 1e-5
-        mini_batch_size = 24
         validation_set_size = 0.05
         validations_per_epoch = 5
         device = 'cuda'
@@ -286,7 +301,6 @@ class TestTransformerBasedClassification(unittest.TestCase):
             num_classes,
             num_epochs=num_epochs,
             lr=lr,
-            mini_batch_size=mini_batch_size,
             validation_set_size=validation_set_size,
             validations_per_epoch=validations_per_epoch,
             device=device,
@@ -300,10 +314,8 @@ class TestTransformerBasedClassification(unittest.TestCase):
         self.assertEqual(multi_label, classifier.multi_label)
         self.assertEqual(num_epochs, classifier.num_epochs)
         self.assertEqual(lr, classifier.lr)
-        self.assertEqual(mini_batch_size, classifier.mini_batch_size)
         self.assertEqual(validation_set_size, classifier.validation_set_size)
         self.assertEqual(validations_per_epoch, classifier.validations_per_epoch)
-        self.assertEqual(fine_tuning_arguments, classifier.fine_tuning_arguments)
         self.assertEqual(device, classifier.device)
         self.assertEqual(memory_fix, classifier.memory_fix)
         self.assertEqual(class_weight, classifier.class_weight)
@@ -436,8 +448,8 @@ class TestTransformerBasedClassification(unittest.TestCase):
                   if param.requires_grad]
 
         optimizer = AdamW(params, lr=5e-5)
-        steps = (len(dataset) // classifier.mini_batch_size) \
-            + int(len(dataset) % classifier.mini_batch_size != 0)
+        steps = (len(dataset) // classifier.train_batch_size) \
+            + int(len(dataset) % classifier.train_batch_size != 0)
 
         scheduler = get_linear_schedule_with_warmup(optimizer, 0.1 * steps, steps)
 
