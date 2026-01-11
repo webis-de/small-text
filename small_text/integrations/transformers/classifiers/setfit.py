@@ -149,8 +149,8 @@ class SetFitModelArguments(object):
                 in the SetFit documentation.
         trainer_kwargs : dict, default={}
             Keyword arguments used for the SetFit model. The keyword `batch_size` is excluded and
-            is instead controlled by the keyword `mini_batch_size` of this class. The other
-            keywords are directly passed to `SetFitTrainer.__init__()`.
+            is instead controlled by the keywords `train_batch_size` and `predict_batch_size` of this class.
+            The other keywords are directly passed to `SetFitTrainer.__init__()`.
 
             .. seealso:: `Trainer
                          <https://huggingface.co/docs/setfit/en/reference/trainer>`_
@@ -234,7 +234,7 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
         embeddings = []
         predictions = []
 
-        num_batches = int(np.ceil(len(data_set) / self.mini_batch_size))
+        num_batches = int(np.ceil(len(data_set) / self.predict_batch_size))
         with inference_mode():
             with build_pbar_context(self.setfit_model_args.show_progress_bar,
                                     tqdm_kwargs={'total': len(data_set)}) as pbar:
@@ -289,7 +289,6 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
                  multi_label=False,
                  max_length=512,
                  use_differentiable_head=False,
-                 mini_batch_size=32,
                  amp_args=None,
                  device=None):
         """
@@ -325,7 +324,6 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
 
         self.max_length = max_length
         self.use_differentiable_head = use_differentiable_head
-        self.mini_batch_size = mini_batch_size
         self._amp_args = amp_args
         self.device = device
 
@@ -544,7 +542,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
     def _predict_proba(self, dataset, multi_label_threshold: float = 0.5):
         proba = np.empty((0, self.num_classes), dtype=float)
 
-        num_batches = int(np.ceil(len(dataset) / self.predict_batch_size))
+        num_batches = int(np.ceil(len(dataset) / self.setfit_model_args.predict_batch_size))
         for batch in np.array_split(dataset.x, num_batches, axis=0):
             proba_tmp = self.model.predict_proba(batch).cpu().detach().numpy()
             proba = np.append(proba, proba_tmp, axis=0)
@@ -568,7 +566,7 @@ class SetFitClassification(SetFitClassificationEmbeddingMixin, Classifier):
         proba[:, :, :] = np.inf
 
         with enable_dropout(self.model.model_body):
-            num_batches = int(np.ceil(len(dataset) / self.predict_batch_size))
+            num_batches = int(np.ceil(len(dataset) / self.setfit_model_args.predict_batch_size))
             for batch in np.array_split(dataset.x, num_batches, axis=0):
                 samples = np.empty((dropout_samples, len(batch), self.num_classes), dtype=float)
                 for i in range(dropout_samples):
