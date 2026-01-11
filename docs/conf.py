@@ -26,7 +26,7 @@ from small_text.version import __version__ as version
 # -- Project information -----------------------------------------------------
 
 project = 'small-text'
-copyright = '2020–2025, Christopher Schröder'
+copyright = '2020–2026, Christopher Schröder'
 author = 'Christopher Schröder'
 
 
