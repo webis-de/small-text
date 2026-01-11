@@ -234,7 +234,7 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
         embeddings = []
         predictions = []
 
-        num_batches = int(np.ceil(len(data_set) / self.predict_batch_size))
+        num_batches = int(np.ceil(len(data_set) / self.setfit_model_args.predict_batch_size))
         with inference_mode():
             with build_pbar_context(self.setfit_model_args.show_progress_bar,
                                     tqdm_kwargs={'total': len(data_set)}) as pbar:
