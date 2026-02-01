@@ -265,7 +265,7 @@ class TransformersDataset(PytorchDataset):
             y = csr_to_list(y)
 
         for i, doc in enumerate(texts):
-            encoded_dict = tokenizer.encode_plus(
+            encoded_dict = tokenizer(
                 doc,
                 add_special_tokens=True,
                 padding='max_length',
