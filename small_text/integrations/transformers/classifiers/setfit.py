@@ -48,12 +48,20 @@ except ImportError:
     raise PytorchNotFoundError('Could not import pytorch')
 
 
+SetFitModel = None
+SetFitTrainer = None
+TrainingArguments = None
+
+
 if importlib.util.find_spec('setfit') is not None:
-    from setfit import SetFitModel, Trainer, TrainingArguments
-else:
-    SetFitModel = None
-    SetFitTrainer = None
-    TrainingArguments = None
+    try:
+        from setfit import SetFitModel, Trainer, TrainingArguments
+    except ImportError as e:
+        import warnings
+        warnings.warn(
+            f'Importing SetFit failed despite the library being present: {e}',
+            ImportWarning
+        )
 
 
 class SetFitModelArguments(object):
