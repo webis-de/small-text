@@ -3,7 +3,6 @@ import numpy.typing as npt
 
 from typing import Union
 
-from numpy.ma.core import indices
 from scipy.sparse import csr_matrix
 from sklearn.preprocessing import normalize
 
@@ -31,8 +30,15 @@ class AnchorSubsampling(QueryStrategy):
     .. versionchanged:: 2.0.0
 
     """
-    def __init__(self, base_query_strategy, subsample_size=500, vector_index_factory=VectorIndexFactory(HNSWIndex),
-                 num_anchors=10, k=50, embed_kwargs={}, normalize=True, batch_size=32):
+    def __init__(self,
+                 base_query_strategy: QueryStrategy,
+                 subsample_size: int = 500,
+                 vector_index_factory: VectorIndexFactory = VectorIndexFactory(HNSWIndex),
+                 num_anchors: int = 10,
+                 k: int = 50,
+                 embed_kwargs: dict = {},
+                 normalize: bool = True,
+                 batch_size: int = 32):
         """
         base_query_strategy : small_text.query_strategy.QueryStrategy
             A base query strategy which operates on the subset that is selected by SEALS.
@@ -66,7 +72,7 @@ class AnchorSubsampling(QueryStrategy):
             return self.base_query_strategy.query(clf, dataset, indices_unlabeled, indices_labeled,
                                                   y, n=n)
 
-        embeddings = clf.embed(dataset, pbar=pbar)
+        embeddings = clf.embed(dataset)
         if self.normalize:
             embeddings = normalize(embeddings, axis=1)
 
@@ -186,18 +192,16 @@ class SEALS(ScoringMixin, QueryStrategy):
         indices_subset = self.get_subset_indices(clf,
                                                  dataset,
                                                  indices_unlabeled,
-                                                 indices_labeled,
-                                                 pbar=pbar)
+                                                 indices_labeled)
         return self.base_query_strategy.query(clf, dataset, indices_subset, indices_labeled, y, n=n)
 
     def get_subset_indices(self,
                            clf: Classifier,
                            dataset: Dataset,
                            indices_unlabeled: npt.NDArray[np.uint],
-                           indices_labeled: npt.NDArray[np.uint],
-                           pbar: str = 'tqdm'):
+                           indices_labeled: npt.NDArray[np.uint]):
         if self.vector_index is None:
-            self.embeddings = clf.embed(dataset, pbar=pbar)
+            self.embeddings = clf.embed(dataset)
             if self.normalize:
                 self.embeddings = normalize(self.embeddings, axis=1)
 
