@@ -224,7 +224,7 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
         with inference_mode():
             with torch.autocast(device_type=self.amp_args.device_type, dtype=self.amp_args.dtype,
                                 enabled=self.amp_args.use_amp):
-                with build_pbar_context(self.transformer_model.show_progress_bar,
+                with build_pbar_context(self.transformer_model_args.show_progress_bar,
                                         tqdm_kwargs={'total': len(data_set)}) as pbar:
                     for batch in dataset_iter:
                         batch_len, logits, embeddings = self._create_embeddings(batch,
