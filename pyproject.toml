@@ -37,17 +37,17 @@ dependencies = [
   "scikit-learn>=0.24.1",
   "tqdm",
   "packaging",
-  "tokenizers>=0.11.5",
+  "tokenizers>=0.22.0",
   "tomli"
 ]
 
 [project.optional-dependencies]
 pytorch = [
-  "torch>=1.6.0"
+  "torch>=2.0.0"
 ]
 transformers = [
   "small-text[pytorch]",
-  "transformers>=4.0.0,<5.0.0"
+  "transformers>=4.57.6"
 ]
 
 [project.urls]
