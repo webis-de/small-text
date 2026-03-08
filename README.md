@@ -52,6 +52,10 @@ See [the showcase section][documentation_showcase] specifically for previous act
 
 ## News
 
+**Community Survey** - March 8th, 2026
+  - How is active learning used in NLP today? Our EACL 2026 paper, "[Reassessing Active Learning Adoption in Contemporary NLP: A Community Survey](https://arxiv.org/abs/2503.09701v4)",
+    investigates this question and presents new insights into its contemporary use.
+
 **Version 2.0.0 dev3** ([v2.0.0.dev3][changelog_2.0.0dev3]) - August 17th, 2025
   - This is a development release with the most changes so far. You can consider it an alpha release, which does not guarantee you stable interfaces yet, 
     but is otherwise ready to use.
@@ -59,10 +63,6 @@ See [the showcase section][documentation_showcase] specifically for previous act
 
 **Version 1.4.1** ([v1.4.1][changelog_1.4.1]) - August 18th, 2024
   - Bugfix release.
-
-**Version 1.4.0** ([v1.4.0][changelog_1.4.0]) - June 9th, 2024
-  - New query strategy: [AnchorSubsampling](https://small-text.readthedocs.io/en/v1.3.3/components/query_strategies.html#small_text.query_strategies.subsampling.AnchorSubsampling) (aka [AnchorAL](https://arxiv.org/abs/2404.05623)).  
-    Special thanks to [Pietro Lesci](https://github.com/pietrolesci) for the correspondence and code review. 
 
 **Paper published at EACL 2023 🎉**
   - The [paper][paper_published] introducing small-text has been accepted at [EACL 2023](https://2023.eacl.org/). Meet us at the conference in May!
