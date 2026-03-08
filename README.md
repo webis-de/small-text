@@ -17,11 +17,11 @@
 [Installation](#installation) | [Quick Start](#quick-start) | [Contribution](CONTRIBUTING.md) | [Changelog][changelog] | [**Docs**][documentation_main]
 
 Small-Text provides state-of-the-art **Active Learning** for Text Classification. 
-Several pre-implemented Query Strategies, Initialization Strategies, and Stopping Criteria are provided, 
+Several pre-implemented query strategies, initialization strategies, and stopping criteria are provided, 
 which can be easily mixed and matched to build active learning experiments or applications.
 
 ## What is Active Learning?
-[Active Learning](https://small-text.readthedocs.io/en/latest/active_learning.html) allows you to efficiently label training data for supervised learning when you have little to no labeled data.
+[Active learning](https://small-text.readthedocs.io/en/latest/active_learning.html) allows you to efficiently label training data for supervised learning when you have little to no labeled data.
 
 <p align="center">
 
@@ -29,6 +29,14 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 </p>
 
+For example, Active Learning has previously been used for:
+
+- [Bootstrapping a biomedical corpus of digenic variant combinations](https://pubmed.ncbi.nlm.nih.gov/38805753/)
+- [Detecting disclosures of individuals' employment status on social media](https://aclanthology.org/2022.acl-long.453/)
+- [Accelerating systematic literature reviews](https://www.nature.com/articles/s42256-020-00287-7)
+- [Topic categorization of citizen contributions](https://link.springer.com/chapter/10.1007/978-3-031-15086-9_24)
+
+See [the showcase section][documentation_showcase] specifically for previous active learning applications where small-text was used.
 
 ## Features
 
