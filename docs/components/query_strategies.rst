@@ -2,83 +2,214 @@
 Query Strategies
 ================
 
-Query strategies select data samples from the set of unlabeled data, i.e. they decide which samples
-should be labeled next.
+Query strategies decide which samples from the unlabeled pool should be labeled next.
+small-text provides a broad set of strategies, ranging from simple baselines to
+embedding-based, multi-label, and gradient-based methods.
 
-Overview
-========
+----
 
-You can use the following pre-implemented query strategies:
+Choosing a Strategy
+===================
 
-General
--------
+When you compare or build active learning setups, it helps to first decide which signal a
+strategy should rely on:
 
-.. py:currentmodule:: small_text.query_strategies.strategies
+- Prediction uncertainty:
+  :py:class:`~small_text.query_strategies.strategies.LeastConfidence`,
+  :py:class:`~small_text.query_strategies.strategies.PredictionEntropy`,
+  :py:class:`~small_text.query_strategies.strategies.BreakingTies`, and
+  :py:class:`~small_text.query_strategies.bayesian.BALD` use model predictions to find
+  uncertain instances.
+- Embedding structure:
+  :py:class:`~small_text.query_strategies.strategies.EmbeddingKMeans`,
+  :py:class:`~small_text.query_strategies.coresets.GreedyCoreset`,
+  :py:class:`~small_text.query_strategies.coresets.LightweightCoreset`,
+  :py:class:`~small_text.query_strategies.strategies.ContrastiveActiveLearning`,
+  and :py:class:`~small_text.query_strategies.vector_space.ProbCover` rely on dense
+  representations to encourage diversity or coverage.
+- Labeled-vs-unlabeled pool separation:
+  :py:class:`~small_text.query_strategies.strategies.DiscriminativeActiveLearning`
+  explicitly learns to distinguish the labeled pool from the unlabeled pool and selects
+  instances that look most like the remaining unlabeled data.
+- Pool reduction and balancing:
+  :py:class:`~small_text.query_strategies.class_balancing.ClassBalancer`,
+  :py:class:`~small_text.query_strategies.subsampling.SEALS`, and
+  :py:class:`~small_text.query_strategies.subsampling.AnchorSubsampling` wrap another
+  strategy or reduce the candidate pool before querying.
+- Multi-label specific selection:
+  :py:class:`~small_text.query_strategies.multi_label.CategoryVectorInconsistencyAndRanking`,
+  :py:class:`~small_text.query_strategies.multi_label.LabelCardinalityInconsistency`, and
+  :py:class:`~small_text.query_strategies.multi_label.AdaptiveActiveLearning` are tailored
+  to multi-label data.
+- PyTorch-specific methods:
+  :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLength`,
+  :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLengthMaxWord`,
+  :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLengthLayer`,
+  :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.BADGE`, and
+  :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.DiscriminativeRepresentationLearning`
+  are available through the PyTorch integration.
 
-* :py:class:`LeastConfidence`
-* :py:class:`PredictionEntropy`
-* :py:class:`BreakingTies`
-* :py:class:`~small_text.query_strategies.bayesian.BALD`
-* :py:class:`EmbeddingKMeans`
-* :py:class:`~small_text.query_strategies.coresets.GreedyCoreset`
-* :py:class:`~small_text.query_strategies.coresets.LightweightCoreset`
-* :py:class:`~small_text.query_strategies.vector_space.ProbCover`
-* :py:class:`ContrastiveActiveLearning`
-* :py:class:`DiscriminativeActiveLearning`
-* :py:class:`~small_text.query_strategies.multi_label.CategoryVectorInconsistencyAndRanking`
-* :py:class:`~small_text.query_strategies.multi_label.LabelCardinalityInconsistency`
-* :py:class:`~small_text.query_strategies.multi_label.AdaptiveActiveLearning`
-* :py:class:`~small_text.query_strategies.class_balancing.ClassBalancer`
-* :py:class:`SEALS`
-* :py:class:`~small_text.query_strategies.subsampling.AnchorSubsampling`
-* :py:class:`RandomSampling`
+If you are unsure where to start, a practical progression is:
 
+1. Begin with :py:class:`~small_text.query_strategies.strategies.RandomSampling` as a baseline.
+2. Compare it against one or two uncertainty-based strategies.
+3. Add an embedding-based strategy when your classifier exposes useful embeddings.
+4. Introduce wrappers such as :py:class:`~small_text.query_strategies.subsampling.SEALS` or
+   :py:class:`~small_text.query_strategies.class_balancing.ClassBalancer` if runtime or class
+   distribution becomes a bottleneck.
 
-Pytorch
--------
+Quick Overview
+==============
 
-.. py:currentmodule:: small_text.integrations.pytorch.query_strategies.strategies
+.. list-table::
+   :header-rows: 1
+   :widths: 22 38 40
 
-* :py:class:`ExpectedGradientLength`
-* :py:class:`ExpectedGradientLengthMaxWord`
-* :py:class:`ExpectedGradientLengthLayer`
-* :py:class:`BADGE`
-* :py:class:`DiscriminativeRepresentationLearning`
+   * - Family
+     - Strategies
+     - Typical use
+   * - Baselines and uncertainty
+     - :py:class:`~small_text.query_strategies.strategies.RandomSampling`,
+       :py:class:`~small_text.query_strategies.strategies.LeastConfidence`,
+       :py:class:`~small_text.query_strategies.strategies.PredictionEntropy`,
+       :py:class:`~small_text.query_strategies.strategies.BreakingTies`,
+       :py:class:`~small_text.query_strategies.bayesian.BALD`
+     - Strong starting points for benchmarking or for setups where model predictions are the
+       main signal.
+   * - Embedding-based
+     - :py:class:`~small_text.query_strategies.strategies.EmbeddingKMeans`,
+       :py:class:`~small_text.query_strategies.coresets.GreedyCoreset`,
+       :py:class:`~small_text.query_strategies.coresets.LightweightCoreset`,
+       :py:class:`~small_text.query_strategies.strategies.ContrastiveActiveLearning`,
+       :py:class:`~small_text.query_strategies.vector_space.ProbCover`
+     - Useful when diversity, representation coverage, or pool structure matters and the
+       classifier can provide embeddings.
+   * - Pool-structure based
+     - :py:class:`~small_text.query_strategies.strategies.DiscriminativeActiveLearning`
+     - Useful when selection should focus on the separation between the labeled and
+       unlabeled pools rather than only uncertainty or embedding coverage.
+   * - Wrappers and pool reduction
+     - :py:class:`~small_text.query_strategies.class_balancing.ClassBalancer`,
+       :py:class:`~small_text.query_strategies.subsampling.SEALS`,
+       :py:class:`~small_text.query_strategies.subsampling.AnchorSubsampling`
+     - Useful when you want to rebalance selections or limit a more expensive base strategy to a
+       smaller candidate subset.
+   * - Multi-label
+     - :py:class:`~small_text.query_strategies.multi_label.CategoryVectorInconsistencyAndRanking`,
+       :py:class:`~small_text.query_strategies.multi_label.LabelCardinalityInconsistency`,
+       :py:class:`~small_text.query_strategies.multi_label.AdaptiveActiveLearning`
+     - Use these when the task is inherently multi-label and the query signal should reflect
+       label cardinality or per-label ranking behavior.
+   * - PyTorch integration
+     - :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLength`,
+       :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLengthMaxWord`,
+       :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLengthLayer`,
+       :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.BADGE`,
+       :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.DiscriminativeRepresentationLearning`
+     - Useful for PyTorch-based models when gradient information or embedding-derived gradient
+       surrogates are part of the acquisition logic.
+
+Pre-implemented Strategies
+==========================
+
+General-Purpose Baselines
+-------------------------
+
+These strategies are easy to compare and often serve as the first baselines in an experiment.
+
+- :py:class:`~small_text.query_strategies.strategies.RandomSampling`
+
+Uncertainty-Based Strategies
+----------------------------
+
+These strategies rank instances by uncertainty derived from model predictions.
+
+- :py:class:`~small_text.query_strategies.strategies.LeastConfidence`
+- :py:class:`~small_text.query_strategies.strategies.PredictionEntropy`
+- :py:class:`~small_text.query_strategies.strategies.BreakingTies`
+- :py:class:`~small_text.query_strategies.bayesian.BALD`
+
+Embedding-Based Strategies
+--------------------------
+
+These strategies rely on vector representations and are useful when coverage, diversity, or
+neighborhood structure matters.
+
+- :py:class:`~small_text.query_strategies.strategies.EmbeddingKMeans`
+- :py:class:`~small_text.query_strategies.coresets.GreedyCoreset`
+- :py:class:`~small_text.query_strategies.coresets.LightweightCoreset`
+- :py:class:`~small_text.query_strategies.vector_space.ProbCover`
+- :py:class:`~small_text.query_strategies.strategies.ContrastiveActiveLearning`
+
+Pool-Structure-Based Strategies
+-------------------------------
+
+These strategies reason about the relation between the labeled and unlabeled pools directly.
+
+- :py:class:`~small_text.query_strategies.strategies.DiscriminativeActiveLearning`
+
+Wrappers and Pool Reduction
+---------------------------
+
+These strategies delegate to a base strategy or restrict the set of candidates before querying.
+
+- :py:class:`~small_text.query_strategies.class_balancing.ClassBalancer`
+- :py:class:`~small_text.query_strategies.subsampling.SEALS`
+- :py:class:`~small_text.query_strategies.subsampling.AnchorSubsampling`
+
+Multi-Label Strategies
+----------------------
+
+These strategies are designed specifically for multi-label classification.
+
+- :py:class:`~small_text.query_strategies.multi_label.CategoryVectorInconsistencyAndRanking`
+- :py:class:`~small_text.query_strategies.multi_label.LabelCardinalityInconsistency`
+- :py:class:`~small_text.query_strategies.multi_label.AdaptiveActiveLearning`
+
+PyTorch Integration
+-------------------
+
+These strategies live in the PyTorch integration and extend the general query strategy
+interface with gradient-based or embedding-based methods for neural models.
+
+- :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLength`
+- :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLengthMaxWord`
+- :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLengthLayer`
+- :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.BADGE`
+- :py:class:`~small_text.integrations.pytorch.query_strategies.strategies.DiscriminativeRepresentationLearning`
 
 Interface
 =========
 
-The query strategy interface revolves around the :code:`query()` method.
-A query strategy can make use of any of the given positional arguments but does not need to.
+All query strategies revolve around the :code:`query()` method. Implementations may use all of
+its positional arguments, but they are free to focus only on the parts they actually need.
 
 .. literalinclude:: ../../small_text/query_strategies/base.py
    :pyobject: QueryStrategy
 
+- `clf` provides the model-side signal, such as predictions, probabilities, embeddings, or
+  gradients.
+- `dataset` contains the full pool, regardless of whether individual samples are currently
+  labeled or unlabeled.
+- `indices_unlabeled` and `indices_labeled` describe the active learning state as index
+  partitions over `dataset`.
+- `y` contains the labels for the labeled pool.
+- `n` controls how many instances should be queried in the current step.
 
-- A query strategy can use the classifier :code:`clf` to make a decision.
-- The **full** dataset (i.e. all samples regardless of whether they are labeled or not) is given by :code:`dataset`.
-- The partition into labeled and unlabeled data is handled indirectly via indices (:code:`indices_unlabeled` and :code:`indices_labeled`).
-
-  .. note:: All indices together must not necessarily be complete,
-            i.e. they full set of indices {1, 2, ..., len(dataset)} is not always without gaps.
-            This allows the active learner to ignore samples which should remain part of the dataset
-            but are not suited for active learning.
-- The argument :code:`y` represent the current labels.
-- The number of samples to query can be controlled with the keyword argument :code:`n`.
-
+.. note:: The union of `indices_unlabeled` and `indices_labeled` does not need to cover all
+          samples in `dataset`. This makes it possible to keep instances in the dataset while
+          excluding them from the active learning loop.
 
 Helpers
 =======
 
-Some query strategies may be formulated so that are only applicable to either single-label or
-multi-label data. As a safeguard against using such strategies on data which is not supported,
-the `constraints()` decorator intercepts the `query()`. If the given labels cannot be handled,
-`RuntimeError` is raised.
+Some query strategies are only meaningful for single-label or multi-label data. The
+`constraints()` decorator can be used to enforce that a strategy is only called in supported
+settings.
 
-.. note:: For all pre-implemented query strategies, don't equate an absence of an constraint
-          as an indicator of capibility, since we will sparingly use this in the main library
-          in order to not restrict the user unnecessarily.
-          For your own projects and applications, however, this is highly recommended.
+.. note:: Not every strategy in the library uses explicit constraints. The absence of a declared
+          constraint should therefore not be interpreted as a guarantee that every possible setup
+          is supported.
 
 Constraints
 -----------
@@ -92,13 +223,15 @@ Constraints
         pass
 
 
-Classes
-=======
+API Reference
+=============
 
-Base
-----
+Baselines and Uncertainty
+-------------------------
 
 .. py:module:: small_text.query_strategies.strategies
+
+.. autoclass:: RandomSampling
 
 .. autoclass:: LeastConfidence
 
@@ -106,12 +239,21 @@ Base
 
 .. autoclass:: BreakingTies
 
-.. autoclass:: EmbeddingKMeans
-    :special-members: __init__
-
 .. py:module:: small_text.query_strategies.bayesian
 
 .. autoclass:: BALD
+    :special-members: __init__
+
+Embedding-Based
+---------------
+
+.. py:module:: small_text.query_strategies.strategies
+    :noindex:
+
+.. autoclass:: EmbeddingKMeans
+    :special-members: __init__
+
+.. autoclass:: ContrastiveActiveLearning
     :special-members: __init__
 
 .. py:module:: small_text.query_strategies.coresets
@@ -127,33 +269,24 @@ Base
 .. autoclass:: ProbCover
     :special-members: __init__
 
+Pool-Structure-Based
+--------------------
+
 .. py:module:: small_text.query_strategies.strategies
     :noindex:
-
-.. autoclass:: ContrastiveActiveLearning
-    :special-members: __init__
 
 .. autoclass:: DiscriminativeActiveLearning
     :special-members: __init__
 
-.. py:module:: small_text.query_strategies.multi_label
-    :noindex:
-
-.. autoclass:: CategoryVectorInconsistencyAndRanking
-    :special-members: __init__
-
-.. autoclass:: LabelCardinalityInconsistency
-
-.. autoclass:: AdaptiveActiveLearning
+Wrappers and Pool Reduction
+---------------------------
 
 .. py:module:: small_text.query_strategies.class_balancing
-    :noindex:
 
 .. autoclass:: ClassBalancer
     :special-members: __init__
 
 .. py:module:: small_text.query_strategies.subsampling
-    :noindex:
 
 .. autoclass:: SEALS
     :special-members: __init__
@@ -161,14 +294,21 @@ Base
 .. autoclass:: AnchorSubsampling
     :special-members: __init__
 
-.. py:module:: small_text.query_strategies.strategies
-    :noindex:
+Multi-Label
+-----------
 
-.. autoclass:: RandomSampling
+.. py:module:: small_text.query_strategies.multi_label
 
-----
+.. autoclass:: CategoryVectorInconsistencyAndRanking
+    :special-members: __init__
 
-Pytorch Integration
+.. autoclass:: LabelCardinalityInconsistency
+    :special-members: __init__
+
+.. autoclass:: AdaptiveActiveLearning
+    :special-members: __init__
+
+PyTorch Integration
 -------------------
 
 .. py:module:: small_text.integrations.pytorch.query_strategies.strategies
