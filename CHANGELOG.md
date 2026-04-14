@@ -56,6 +56,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 - Fixed a bug where the batching in `greedy_coreset()` and `lightweight_coreset()` resulted in incorrect batch sizes. ([#50](https://github.com/webis-de/small-text/issues/50))
 - Fixed a bug where `lightweight_coreset()` failed when computing the norm of the elementwise mean vector.
 - Fixed a bug where the datasets' `target_labels` included the unlabeled label (`-1`).
+- Fixed the BADGE query strategy.
 
 ### Changed
 
