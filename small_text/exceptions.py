@@ -14,8 +14,7 @@ class LearnerNotInitializedException(ActiveLearnerException):
 
 
 class ConstraintViolationError(RuntimeError):
-    """Raised when there is a mismatch between the passed arguments and the capabilities of
-    a query strategy.
+    """Raised when there is a mismatch between the passed arguments and the capabilities of a query strategy.
 
     This means a query strategy is not capable of handling the passed arguments, for example
     when you pass multi-label data to a query strategy that requires single-label data.
@@ -26,4 +25,9 @@ class ConstraintViolationError(RuntimeError):
 class MissingOptionalDependencyError(RuntimeError):
     """Raised when an optional dependency is required but cannot be imported.
     """
+    pass
+
+
+class SerializationException(ActiveLearnerException):
+    """Raised when saving or loading of the learner fails."""
     pass

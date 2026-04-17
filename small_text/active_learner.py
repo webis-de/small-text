@@ -7,10 +7,13 @@ from scipy.sparse import csr_matrix
 
 from small_text.base import LABEL_IGNORED
 from small_text.classifiers.classification import Classifier
-from small_text.exceptions import LearnerNotInitializedException
+from small_text.exceptions import LearnerNotInitializedException, SerializationException
 from small_text.utils.data import list_length
 from small_text.utils.labels import concatenate, get_ignored_labels_mask, remove_by_index
 from small_text.version import __version__ as version
+
+
+ACTIVE_LEARNER_CONFIG_FILE = 'active_learning.json'
 
 
 class ActiveLearner(ABC):
@@ -235,8 +238,7 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
             Labels provided in response to the previous query. Each label at index i corresponds
             to the sample x[i] for single-label data (ndarray) and each row of labels at index i
             corresponds to the sample x[i] for multi-label data (csr_matrix). Setting the label /
-            row of labels to ` small_text.base import LABEL_IGNORED` will ignore the respective
-            sample.
+            row of labels to `small_text.base.LABEL_IGNORED` will ignore the respective sample.
         indices_validation : numpy.ndarray, default=None
             The given indices (relative to `self.indices_labeled`) define a custom validation set
             if provided. Otherwise, each classifier that uses a validation set will be responsible
@@ -353,45 +355,95 @@ class PoolBasedActiveLearner(AbstractPoolBasedActiveLearner):
         if labeling_exists and retrain:
             self._retrain(indices_validation=indices_validation)
 
-    def save(self, file):
-        """Serializes the current active learner object into a single file for later re-use.
+    def save(self, folder, create_folder: bool = False):
+        """Serializes the current active learner object into a single folder for later re-use.
 
         Parameters
         ----------
-        file : str or path or file
-            Serialized output file to be written.
-        """
-        if isinstance(file, (str, Path)):
-            with open(file, 'wb+') as f:
-                self._save(f)
-        else:
-            self._save(file)
+        folder : str or Path
+            Folder where the active learner object will be saved.
+        create_folder : bool, default=False
+            Indicates how a non-existent folder should be handled. If `True` the folder will be created,
+            otherwise a `FileNotFoundError` will be raised.
 
-    def _save(self, file_handle):
+        Raises
+        ------
+        FileNotFoundError
+            Raised if target folder does not exist and `create_folder` is `False`.
+        SerializationException
+            Raised if serialization fails.
+        """
+        output_path = folder if isinstance(folder, Path) else Path(folder)
+
+        if not output_path.exists():
+            if create_folder:
+                output_path.mkdir(parents=True)
+            else:
+                raise FileNotFoundError(f'Output folder "{output_path}" does not exist.')
+
+        if any(output_path.iterdir()):
+            raise ValueError(f'Output folder "{output_path}" is not empty.')
+
+        self._save(output_path)
+
+    def _save(self, folder: Path):
+        import json
         import dill as pickle
-        pickle.dump(version, file_handle)
-        pickle.dump(self, file_handle)
+
+        try:
+            active_learner_file = folder / 'active_learner.bin'
+            with open(active_learner_file, 'wb') as f:
+                pickle.dump(self, f)
+
+            config_file = folder / ACTIVE_LEARNER_CONFIG_FILE
+            config_dict = {
+                'small_text_version': version,
+            }
+
+            with open(config_file, 'w+', encoding='utf-8') as f:
+                json.dump(config_dict, f, indent=4, sort_keys=True)
+        except Exception as e:
+            raise SerializationException(f'Failed to save active learner folder "{folder}".') from e
 
     @classmethod
-    def load(cls, file):
-        """Deserializes a serialized active learner.
+    def load(cls, folder):
+        """Loads a serialized active learner from the given folder.
 
         Parameters
         ----------
-        file : str or path or file
-            File to be loaded.
+        folder : str or Path
+            Folder from which the active learner object will be loaded.
+
+        Raises
+        ------
+        FileNotFoundError
+            Raised if target folder does not exist and `create_folder` is `False`.
+        SerializationException
+            Raised if deserialization fails.
         """
-        if isinstance(file, (str, Path)):
-            with open(file, 'rb') as f:
-                return cls._load(f)
-        else:
-            return cls._load(file)
+        input_path = folder if isinstance(folder, Path) else Path(folder)
+        return cls._load(input_path)
 
     @classmethod
-    def _load(cls, file_handle):
+    def _load(cls, folder: Path):
+        import json
         import dill as pickle
-        _ = pickle.load(file_handle)  # version, will be used in the future
-        return pickle.load(file_handle)
+
+        config_file = folder / ACTIVE_LEARNER_CONFIG_FILE
+        with open(config_file, 'r', encoding='utf-8') as f:
+            config_dict = json.load(f)
+
+        if not 'small_text_version' in config_dict:
+            raise SerializationException(f'Invalid {ACTIVE_LEARNER_CONFIG_FILE} file: '
+                                         f'key "small_text_version" does not exist.')
+        else:
+            version_str = config_dict['small_text_version']
+            if version_str != version:
+                raise SerializationException(f'Version mismatch: expected "{version}" got "{version_str}".')
+
+        active_learner_file = folder / 'active_learner.bin'
+        with open(active_learner_file, 'rb') as f:
+            return pickle.load(f)
 
     @property
     def classifier(self):
