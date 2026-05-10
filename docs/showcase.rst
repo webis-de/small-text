@@ -16,6 +16,28 @@ In this section, we collect publications, tutorials, and other resources that ha
 Papers
 ------
 
+2026
+^^^^
+
+- | Brielen Madureira, Mariana Madruga de Brito, and Andreas Niekler. 2026.
+  | `Retrieving Floods without Floodlights: Topic Models as Binary Classifiers for Extreme Climate Events in German News <https://arxiv.org/pdf/2605.03450>`_
+  | ArXiv, abs/2605.03450
+
+- | Jakob Steglich and Stephan Poppe. 2026.
+  | `Active Learning for Corpus Refinement: Cost-Effective Preprocessing to Improve Validity of Applied Quantitative Text Analysis <https://aclanthology.org/2026.eacl-srw.70/>`_
+  | In: Proceedings of the 19th Conference of the European Chapter of the Association for Computational Linguistics (Volume 4: Student Research Workshop), pages 952–966.
+
+2025
+^^^^
+
+- | Juliana Silva Barbosa, Ulhas Gondhali, Gohar Petrossian, Kinshuk Sharma, Sunandan Chakraborty, Jennifer Jacquet, and Juliana Freire. 2025.
+  | `A Cost-Effective LLM-based Approach to Identify Wildlife Trafficking in Online Marketplaces <https://dl.acm.org/doi/10.1145/3725256>`_
+  | Proc. ACM Manag. Data 3, 3, Article 119 (June 2025), pages 1–23.
+
+- | Aida Halitaj and Arkaitz Zubiaga. 2025.
+  | `ALPET: Active few-shot learning for citation worthiness detection in low-resource Wikipedia languages <https://doi.org/10.1016/j.eswa.2025.127503>`_
+  | In: Expert Systems with Applications, Volume 281, 2025.
+
 2024
 ^^^^
 
@@ -30,6 +52,10 @@ Papers
 - | Muhammad Afzal, Jamil Hussain, Asim Abbas, Maqbool Hussain, Muhammad Attique, and Sungyoung Lee. 2024.
   | `Transformer-based active learning for multi-class text annotation and classification. <https://doi.org/10.1177/20552076241287357>`_
   | In: DIGITAL HEALTH Volume 10.
+
+- | Christopher Schröder and Gerhard Heyer. 2024.
+  | `Self-Training for Sample-Efficient Active Learning for Text Classification with Pre-Trained Language Models <https://aclanthology.org/2024.emnlp-main.669.pdf>`_
+  | In Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing, pages 11987–12004. Association for Computational Linguistics.
 
 2023
 ^^^^
