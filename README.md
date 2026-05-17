@@ -29,12 +29,15 @@ which can be easily mixed and matched to build active learning experiments or ap
 
 </p>
 
-For example, Active Learning has previously been used for:
+## Active Learning in Practice
+
+Active Learning for Text Classification has been applied across diverse fields, including biomedical research, social science, information science, computer science, and political communication:
 
 - [Bootstrapping a biomedical corpus of digenic variant combinations](https://pubmed.ncbi.nlm.nih.gov/38805753/)
 - [Detecting disclosures of individuals' employment status on social media](https://aclanthology.org/2022.acl-long.453/)
 - [Accelerating systematic literature reviews](https://www.nature.com/articles/s42256-020-00287-7)
 - [Topic categorization of citizen contributions](https://link.springer.com/chapter/10.1007/978-3-031-15086-9_24)
+- [Classifying Speech Acts in Political Communication](http://doi.org/10.15439/2023F3485)
 
 See [the showcase section][documentation_showcase] specifically for previous active learning applications where small-text was used.
 
@@ -87,7 +90,7 @@ For a full installation via pip, you just need to include the `transformers` ext
 pip install small-text[transformers]
 ```
 
-The library requires Python 3.9 or newer. For using the GPU, CUDA 10.1 or newer is required. 
+The library requires Python 3.10 or newer. For using the GPU, CUDA 10.1 or newer is required. 
 More information regarding the installation can be found in the 
 [documentation][documentation_install].
 
@@ -119,7 +122,7 @@ or check out the notebooks.
 
 A full list of showcases can be found [in the docs][documentation_showcase].
 
-🎀 **Would you like to share your use case?** Regardless if it is a paper, an experiment, a practical application, a thesis, a dataset, or other, let us know and we will add you to the [showcase section][documentation_showcase] or even here.
+**Would you like to share your use case?** Regardless if it is a paper, an experiment, a practical application, a thesis, a dataset, or other, let us know and we will add you to the [showcase section][documentation_showcase] or even here.
 
 ## Documentation
 
