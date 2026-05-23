@@ -244,7 +244,7 @@ def twenty_news_transformers(n, num_labels=10, subset='train', device='cpu'):
 
     data = []
     for i, doc in enumerate(train_x):
-        encoded_dict = tokenizer.encode_plus(
+        encoded_dict = tokenizer(
             doc,
             add_special_tokens=True,
             max_length=20,

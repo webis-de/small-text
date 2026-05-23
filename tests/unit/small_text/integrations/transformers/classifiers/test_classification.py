@@ -324,7 +324,7 @@ class TestTransformerBasedClassification(unittest.TestCase):
 
     def test_fit_where_y_train_contains_unlabeled(self):
         train_set = random_transformer_dataset(10, num_classes=3)
-        train_set.y = np.array([0, 1] + [LABEL_UNLABELED] * 8)
+        train_set.y = np.array([0, 1, 2] + [LABEL_UNLABELED] * 7)
 
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         classifier = TransformerBasedClassification(model_args, 3)
@@ -333,8 +333,8 @@ class TestTransformerBasedClassification(unittest.TestCase):
 
     def test_fit_where_y_valid_contains_unlabeled(self):
         train_set = random_transformer_dataset(8, num_classes=3)
-        validation_set = random_transformer_dataset(2, num_classes=3)
-        validation_set.y = np.array([LABEL_UNLABELED] * 2)
+        validation_set = random_transformer_dataset(5, num_classes=3)
+        validation_set.y = np.array([0, 1, 2] + [LABEL_UNLABELED] * 2)
 
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         classifier = TransformerBasedClassification(model_args, 3)
