@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 2.0.0.dev4 - unreleased
+## Version 2.0.0.dev4 - 2026-05-23
 
 *This section is going to be updated and will become v2.0.0 eventually.*
 
