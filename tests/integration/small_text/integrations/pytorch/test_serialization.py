@@ -34,7 +34,7 @@ class SerializationTest(unittest.TestCase):
         query_strategy = RandomSampling()
 
         with tempfile.TemporaryDirectory() as tmp_dir_name:
-            file_str = tmp_dir_name + 'active_learner.ser'
+            file_str = tmp_dir_name + '/active_learner.ser'
 
             active_learner = get_initialized_active_learner(clf_factory, query_strategy, dataset,
                                                             num_classes=num_classes)
@@ -44,7 +44,7 @@ class SerializationTest(unittest.TestCase):
             active_learner.update(np.random.randint(num_classes, size=10))
             weights_before = list(active_learner.classifier.model.parameters())
 
-            active_learner.save(file_str)
+            active_learner.save(file_str, create_folder=True)
             del active_learner
 
             active_learner = PoolBasedActiveLearner.load(file_str)
