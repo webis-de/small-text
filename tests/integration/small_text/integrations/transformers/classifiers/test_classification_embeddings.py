@@ -23,8 +23,9 @@ except (ImportError, PytorchNotFoundError):
 class _EmbeddingTest(object):
 
     def test_embed_model_not_fitted(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         clf_factory = TransformerBasedClassificationFactory(
-            'sshleifer/tiny-distilroberta-base',
+            model_args,
             self.num_classes)
 
         train_set = twenty_news_transformers(20, num_labels=self.num_classes)
@@ -34,11 +35,10 @@ class _EmbeddingTest(object):
             clf.embed(train_set)
 
     def test_embed(self):
-        classifier_kwargs = {
-            'num_epochs': 1
-        }
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier_kwargs = {'num_epochs': 1}
         clf_factory = TransformerBasedClassificationFactory(
-            TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
+            model_args,
             self.num_classes,
             classification_kwargs=classifier_kwargs)
 
@@ -59,11 +59,10 @@ class _EmbeddingTest(object):
         self.assertEqual(clf.model.config.hidden_size, embeddings.shape[1])
 
     def test_embed_with_layer_index(self):
-        classifier_kwargs = {
-            'num_epochs': 1
-        }
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier_kwargs = {'num_epochs': 1}
         clf_factory = TransformerBasedClassificationFactory(
-            TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
+            model_args,
             self.num_classes,
             classification_kwargs=classifier_kwargs)
 
@@ -95,11 +94,10 @@ class _EmbeddingTest(object):
         self.assertEqual(clf.model.config.hidden_size, embedding_two.shape[1])
 
     def test_embed_with_proba(self):
-        classifier_kwargs = {
-            'num_epochs': 1
-        }
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier_kwargs = {'num_epochs': 1}
         clf_factory = TransformerBasedClassificationFactory(
-            TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
+            model_args,
             self.num_classes,
             classification_kwargs=classifier_kwargs)
 
@@ -117,12 +115,13 @@ class _EmbeddingTest(object):
         self.assertEqual(len(train_set), proba.shape[0])
 
     def test_embed_with_amp_args(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         classifier_kwargs = {
             'amp_args': AMPArguments(use_amp=True, device_type='cuda', dtype=torch.bfloat16),
             'num_epochs': 1
         }
         clf_factory = TransformerBasedClassificationFactory(
-            TransformerModelArguments('sshleifer/tiny-distilroberta-base'),
+            model_args,
             self.num_classes,
             classification_kwargs=classifier_kwargs)
 
