@@ -12,6 +12,8 @@ from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.utils.logging import VERBOSITY_QUIET, VERBOSITY_MORE_VERBOSE
 from small_text.utils.system import OFFLINE_MODE_VARIABLE
 
+import numpy as np
+
 try:
     import torch
 
@@ -276,7 +278,6 @@ class _SetFitClassification(object):
         self.assertEqual(num_classes, clf.num_classes)
 
         self.assertEqual(self.use_differentiable_head, clf.use_differentiable_head)
-        self.assertEqual(32, clf.mini_batch_size)
         self.assertIsNone(clf.device)
         self.assertIsNone(clf.model)
         # self.assertEqual(VERBOSITY_MORE_VERBOSE, clf.verbosity)
@@ -294,7 +295,6 @@ class _SetFitClassification(object):
         self.assertEqual(num_classes, clf.num_classes)
 
         self.assertEqual(self.use_differentiable_head, clf.use_differentiable_head)
-        self.assertEqual(32, clf.mini_batch_size)
         self.assertEqual(clf.device, device)
         self.assertIsNone(clf.model)
         # self.assertEqual(VERBOSITY_MORE_VERBOSE, clf.verbosity)
@@ -401,6 +401,7 @@ class _SetFitClassification(object):
         train_set = random_text_dataset(10, multi_label=self.multi_label, num_classes=num_classes)
         validation_set = random_text_dataset(2,
                                              multi_label=not self.multi_label,
+                                             num_classes=num_classes,
                                              assure_all_labels_occur=False)
 
 
@@ -413,6 +414,7 @@ class _SetFitClassification(object):
     def test_fit_without_train_kwargs(self):
         num_classes = 5
         ds = random_text_dataset(10, multi_label=self.multi_label, num_classes=num_classes)
+        ds.target_labels = np.arange(num_classes)
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
 
@@ -430,6 +432,7 @@ class _SetFitClassification(object):
     def test_fit_with_amp(self):
         num_classes = 5
         ds = random_text_dataset(10, multi_label=self.multi_label, num_classes=num_classes)
+        ds.target_labels = np.arange(num_classes)
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
         amp_args = AMPArguments(use_amp=True)
@@ -445,6 +448,7 @@ class _SetFitClassification(object):
     def test_fit_with_show_progress_bar(self):
         num_classes = 5
         ds = random_text_dataset(10, multi_label=self.multi_label, num_classes=num_classes)
+        ds.target_labels = np.arange(num_classes)
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2', show_progress_bar=False)
 
@@ -470,6 +474,7 @@ class TestSetFitClassificationRegressionSingleLabel(unittest.TestCase, _SetFitCl
 
         num_classes = 5
         ds = random_text_dataset(10, multi_label=self.multi_label, num_classes=num_classes)
+        ds.target_labels = np.arange(num_classes)
 
         setfit_model_args = SetFitModelArguments('sentence-transformers/all-MiniLM-L6-v2')
         clf = SetFitClassification(setfit_model_args, num_classes, multi_label=self.multi_label)

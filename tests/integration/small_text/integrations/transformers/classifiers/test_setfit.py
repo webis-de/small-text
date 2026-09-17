@@ -164,18 +164,17 @@ class _ClassificationTest(object):
                 clf.validate(valid_set)
 
     def test_fit_with_non_default_settings(self):
-        # in particularly we test max_length and mini_batch_size here
-        mini_batch_size = 8
+        # in particularly we test max_length and predict_batch_size here
+        predict_batch_size = 8
         max_length = 32
         device = 'cuda:0'
         classification_kwargs = {
             'use_differentiable_head': self.use_differentiable_head,
             'multi_label': self.multi_label,
             'device': device,
-            'mini_batch_size': mini_batch_size,
             'max_length': max_length
         }
-        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
+        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2', predict_batch_size=predict_batch_size)
         clf_factory = SetFitClassificationFactory(
             setfit_model_args,
             self.num_classes,
