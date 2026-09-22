@@ -464,7 +464,7 @@ class TestTransformerBasedClassification(unittest.TestCase):
             self.assertEqual(optimizer, call_args[5])
             self.assertEqual(scheduler, call_args[6])
 
-    def test_embed_returns_float32(self):
+    def test_returns_float32(self):
         test_set = random_transformer_dataset(10)
         model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
         clf = TransformerBasedClassification(model_args, 2)
