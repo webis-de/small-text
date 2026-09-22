@@ -239,6 +239,13 @@ class KimCNNTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Validation set labels must be labeled'):
             classifier.fit(train_set, validation_set=validation_set)
 
+    def test_embed_returns_float32(self):
+        train_set = random_text_classification_dataset(10)
+        clf = self._get_clf()
+        clf.fit(train_set)
+        embeddings = clf.embed(train_set)
+        self.assertEqual(np.float32, embeddings.dtype)
+
     def test_predict_on_empty_data(self):
         train_set = random_text_classification_dataset(10)
         test_set = PytorchTextClassificationDataset(np.array([]), None)
