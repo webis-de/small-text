@@ -237,7 +237,7 @@ class EmbeddingMixin(ABC):
 
     @abstractmethod
     def embed(self, data_set, return_proba=False, multi_label_threshold: float = 0.5, **kwargs) \
-            -> "Union[npt.NDArray[np.double]]":
+            -> "Union[npt.NDArray[np.float32]]":
         """
         Parameters
         ----------
