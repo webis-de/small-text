@@ -202,7 +202,7 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
 
         Returns
         -------
-        embeddings : np.ndarray
+        embeddings : np.ndarray[np.float32]
             Embeddings in the shape (N, hidden_layer_dimensionality).
         proba : np.ndarray
             Class probabilities in the shape (N, num_classes) for `data_set` (only if `return_predictions` is `True`).
@@ -241,9 +241,9 @@ class TransformerBasedEmbeddingMixin(EmbeddingMixin):
                                          self.num_classes,
                                          return_proba=return_proba,
                                          multi_label_threshold=multi_label_threshold)
-            return np.array(tensors), proba
+            return np.array(tensors, dtype=np.float32), proba
 
-        return np.array(tensors)
+        return np.array(tensors, dtype=np.float32)
 
     def _create_embeddings(self, batch, embedding_method='avg', hidden_layer_index=-1):
 

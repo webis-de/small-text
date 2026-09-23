@@ -222,7 +222,7 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
 
         Returns
         -------
-        embeddings : np.ndarray
+        embeddings : np.ndarray[np.float32]
             Embeddings in the shape (N, hidden_layer_dimensionality).
         proba : np.ndarray or csr_matrix
             Class probabilities for `data_set` (only if `return_proba` is `True`).
@@ -262,9 +262,9 @@ class SetFitClassificationEmbeddingMixin(EmbeddingMixin):
                                          self.num_classes,
                                          return_proba=return_proba,
                                          multi_label_threshold=multi_label_threshold)
-            return np.array(embeddings), proba
+            return np.array(embeddings, dtype=np.float32), proba
 
-        return np.array(embeddings)
+        return np.array(embeddings, dtype=np.float32)
 
     def _create_embeddings(self, texts):
 

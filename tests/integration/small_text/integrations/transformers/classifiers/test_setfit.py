@@ -72,6 +72,23 @@ class _ClassificationTest(object):
             self.assertTrue(np.all([isinstance(y, np.float64) for row in y_pred_proba for y in row]))
             self.assertTrue(np.logical_or(y_pred_proba.all() >= 0.0, y_pred_proba.all() <= 1.0))
 
+    def test_returns_float32(self):     # verify the return clf.embed() returns float32
+        classification_kwargs = {
+            'use_differentiable_head': self.use_differentiable_head,
+            'multi_label': self.multi_label,
+        }
+        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2',
+                                                 output_dir='/tmp')
+        clf_factory = SetFitClassificationFactory(
+            setfit_model_args,
+            self.num_classes,
+            classification_kwargs=classification_kwargs)
+        train_set = twenty_news_text(30, num_classes=self.num_classes, multi_label=self.multi_label)
+        clf = clf_factory.new()
+        clf.fit(train_set)
+        embeddings = clf.embed(train_set)
+        self.assertEqual(np.float32, embeddings.dtype)
+
     def test_fit_and_predict_proba_dropout(self, dropout_sampling=3):
         classification_kwargs = {
             'use_differentiable_head': self.use_differentiable_head,
@@ -164,18 +181,17 @@ class _ClassificationTest(object):
                 clf.validate(valid_set)
 
     def test_fit_with_non_default_settings(self):
-        # in particularly we test max_length and mini_batch_size here
-        mini_batch_size = 8
+        # in particularly we test max_length and predict_batch_size here
+        predict_batch_size = 8
         max_length = 32
         device = 'cuda:0'
         classification_kwargs = {
             'use_differentiable_head': self.use_differentiable_head,
             'multi_label': self.multi_label,
             'device': device,
-            'mini_batch_size': mini_batch_size,
             'max_length': max_length
         }
-        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2')
+        setfit_model_args = SetFitModelArguments('sentence-transformers/paraphrase-MiniLM-L3-v2', predict_batch_size=predict_batch_size)
         clf_factory = SetFitClassificationFactory(
             setfit_model_args,
             self.num_classes,
