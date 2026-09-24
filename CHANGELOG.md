@@ -38,6 +38,7 @@ On the other hand, this also allowed us to deal with further issues that contain
     - Using a differentiable head no longer requires a validation set.
 
 - Embeddings:
+  - Unified interface to consistently return np.float32 ([#85](https://github.com/webis-de/small-text/pull/85)).
   - Prevented unnecessary gradient computations for some embedding types and unified code structure.
 - Pytorch:
   - Added an `inference_mode()` context manager that applies `torch.inference_mode` or `torch.no_grad` for older Pytorch versions.
