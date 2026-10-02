@@ -109,8 +109,8 @@ def _check_classifier_dataset_consistency(classifier, dataset, dataset_name_in_e
         return
 
     if classifier.multi_label and not dataset.is_multi_label:
-        raise ValueError(f'The classifier is configured for single-label classification, '
-                         f'but the {dataset_name_in_error} data is labeled for multi-label classification. '
+        raise ValueError(f'The classifier is configured for multi-label classification, '
+                         f'but the {dataset_name_in_error} data is labeled for single-label classification. '
                          f'Please update the classifier settings or adjust the dataset accordingly.')
     elif not classifier.multi_label and dataset.is_multi_label:
         raise ValueError(f'The classifier is configured for single-label classification, '
