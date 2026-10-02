@@ -95,6 +95,9 @@ An overview of such dependencies is given in table below:
      - :py:class:`~small_text.query_strategies.strategies.SEALS`, :py:class:`~small_text.query_strategies.subsampling.AnchorSubsampling`,
        :doc:`Vector Indexes<api/vector_indexes>`
      -
+   * - `faiss-cpu`_
+     - :doc:`Vector Indexes<api/vector_indexes>`
+     -
    * - `scikit-learn`_
      - :py:class:`~small_text.utils.clustering.init_kmeans_plusplus_safe()`
      - >= 1.3.0
@@ -107,6 +110,8 @@ An overview of such dependencies is given in table below:
 
 
 .. _hnswlib: https://pypi.org/project/hnswlib/
+
+.. _faiss-cpu: https://pypi.org/project/faiss-cpu/
 
 .. _`scikit-learn`: https://pypi.org/project/scikit-learn/
 
