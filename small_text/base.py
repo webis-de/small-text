@@ -19,7 +19,7 @@ This can be used to create a completely unlabeled dataset.
 OPTIONAL_DEPENDENCIES = dict({
     'hnswlib': 'hnswlib',
     'setfit': 'setfit',
-    'faiss': 'faiss-cpu'
+    'faiss': 'faiss-cpu'     # CPU package by default; GPU support requires a GPU-enabled FAISS installation
 })
 
 
