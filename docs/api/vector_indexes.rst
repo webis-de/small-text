@@ -43,3 +43,11 @@ Implementations
    :member-order: bysource
    :special-members: __init__
    :noindex:
+
+.. currentmodule:: small_text.vector_indexes.faiss
+
+.. autoclass:: FaissIndex
+   :members: build, remove, search, index
+   :member-order: bysource
+   :special-members: __init__
+   :noindex:
