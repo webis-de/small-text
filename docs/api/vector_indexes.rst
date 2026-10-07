@@ -49,5 +49,5 @@ Implementations
 .. autoclass:: FaissIndex
    :members: build, remove, search, index
    :member-order: bysource
-   :special-members: \_\_init\_\_
+   :special-members: __init__
    :noindex:

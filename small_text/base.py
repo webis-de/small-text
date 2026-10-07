@@ -18,8 +18,7 @@ This can be used to create a completely unlabeled dataset.
 # map from requirement specifier to name of the module that should be tested for importing
 OPTIONAL_DEPENDENCIES = dict({
     'hnswlib': 'hnswlib',
-    'setfit': 'setfit',
-    'faiss': 'faiss-cpu'     # CPU package by default; GPU support requires a GPU-enabled FAISS installation
+    'setfit': 'setfit'
 })
 
 
