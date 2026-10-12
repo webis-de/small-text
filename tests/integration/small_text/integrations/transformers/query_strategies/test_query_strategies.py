@@ -1,6 +1,7 @@
 import unittest
-
 import pytest
+
+import numpy as np
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
 from small_text.query_strategies import (
@@ -83,6 +84,11 @@ class QueryStrategiesTestTransformer(QueryStrategiesExhaustiveIntegrationTest, u
     def test_lightweight_coreset(self):
         query_strategy = LightweightCoreset()
         self._simple_exhaustive_active_learning_test(query_strategy, num_classes=6)
+
+    def test_lightweight_coreset_batch_sizes(self):
+        self._simple_batch_sizes_test(LightweightCoreset(batch_size=10),
+                                      batch_sizes=[10, 17, 100],
+                                      num_classes=6)
 
     @pytest.mark.optional
     def test_seals(self):

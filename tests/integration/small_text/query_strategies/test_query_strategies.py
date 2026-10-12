@@ -47,8 +47,13 @@ class QueryStrategiesExhaustiveIntegrationTest(object):
         raise NotImplementedError('This method must be implemented by the subclass. '
                                   'It should return a ClassifierFactory.')
 
-    def _simple_exhaustive_active_learning_test(self, query_strategy, query_size=10,
-                                                num_classes=6, num_initial=30, multi_label=False):
+    def _simple_exhaustive_active_learning_test(self,
+                                                query_strategy,
+                                                num_queries=3,
+                                                query_size=10,
+                                                num_classes=6,
+                                                num_initial=30,
+                                                multi_label=False):
         dataset = self._get_dataset(num_classes, multi_label=multi_label)
         clf_factory = self._get_factory(num_classes, multi_label=multi_label)
         active_learner = get_initialized_active_learner(clf_factory, query_strategy, dataset,
@@ -56,8 +61,11 @@ class QueryStrategiesExhaustiveIntegrationTest(object):
                                                         num_classes=num_classes,
                                                         multi_label=multi_label)
 
-        for _ in range(3):
-            active_learner.query()
+        indices_result = []
+
+        for _ in range(num_queries):
+            indices = active_learner.query()
+            indices_result.append(indices)
             if multi_label:
                 _, y_new = random_matrix_data('dense', 'sparse', num_samples=10,
                                               num_labels=num_classes)
@@ -69,7 +77,43 @@ class QueryStrategiesExhaustiveIntegrationTest(object):
         with self.assertRaises(EmptyPoolException):
             active_learner.query()
 
-        self.assertEqual(query_size * 3 + num_initial, active_learner.indices_labeled.shape[0])
+        self.assertEqual(query_size * num_queries + num_initial, active_learner.indices_labeled.shape[0])
+
+        return indices_result
+
+    # TODO: adapt the class name or move this somewhere
+    def _simple_batch_sizes_test(self,
+                                 query_strategy,
+                                 batch_sizes=[5, 10],
+                                 query_size=10,
+                                 num_classes=6,
+                                 num_initial=30,
+                                 multi_label=False,):
+
+        dataset = self._get_dataset(num_classes, multi_label=multi_label)
+        clf_factory = self._get_factory(num_classes, multi_label=multi_label)
+        active_learner = get_initialized_active_learner(clf_factory, query_strategy, dataset,
+                                                        initial_indices=num_initial,
+                                                        num_classes=num_classes,
+                                                        multi_label=multi_label)
+
+        indices_result = []
+
+        for batch_size in batch_sizes:
+            active_learner.query_strategy.batch_size = batch_size
+            # we need to fix the random seed here
+            np.random.seed(0)
+            indices = active_learner.query(num_samples=query_size)
+            indices_result.append(indices)
+
+        result = np.array(indices_result)
+
+        for row in result[1:]:
+            np.testing.assert_array_equal(row,
+                                          result[0],
+                                          err_msg="lightweight coreset result was different across batch sizes")
+
+        return indices_result
 
 
 class QueryStrategiesTestSklearnClassifier(QueryStrategiesExhaustiveIntegrationTest, unittest.TestCase):

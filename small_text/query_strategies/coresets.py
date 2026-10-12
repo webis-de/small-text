@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.typing as npt
 
 from sklearn.metrics import pairwise_distances
 from small_text.query_strategies.strategies import EmbeddingBasedQueryStrategy
@@ -7,16 +8,22 @@ from small_text.query_strategies.strategies import EmbeddingBasedQueryStrategy
 _DISTANCE_METRICS = ['cosine', 'euclidean']
 
 
-def _check_coreset_size(x, n):
+def _check_coreset_size(x: npt.NDArray[np.double], n: int):
     if n > x.shape[0]:
         raise ValueError(f'n (n={n}) is greater the number of available samples (num_samples={x.shape[0]})')
 
 
-def _cosine_distance(a, b, normalized=False):
+def _cosine_distance(a: npt.NDArray[np.double],
+                     b: npt.NDArray[np.double],
+                     normalized: bool = False):
     sim = np.matmul(a, b.T)
     if not normalized:
         sim = sim / np.dot(np.linalg.norm(a, axis=1)[:, np.newaxis],
                            np.linalg.norm(b, axis=1)[np.newaxis, :])
+
+    # floating point rounding errors can cause sim to exceed the  [-1.0, 1.0] range
+    sim = np.clip(sim, -1.0, 1.0)
+
     return np.arccos(sim) / np.pi
 
 
@@ -26,7 +33,7 @@ def _euclidean_distance(a, b, normalized=False):
 
 
 def greedy_coreset(x, indices_unlabeled, indices_labeled, n, distance_metric='cosine',
-                   batch_size=100, normalized=False):
+                   batch_size=100, normalized=False) -> npt.NDArray[np.int64]:
     """Computes a greedy coreset [SS17]_ over `x` with size `n`.
 
     Parameters
@@ -137,7 +144,7 @@ class GreedyCoreset(EmbeddingBasedQueryStrategy):
 
 
 def lightweight_coreset(x, x_mean, n, batch_size=100, distance_metric='cosine',
-                        normalized=False, proba=None):
+                        normalized=False, proba=None, eps=1e-8) -> npt.NDArray[np.int64]:
     """Computes a lightweight coreset [BLK18]_ of `x` with size `n`.
 
     Parameters
@@ -157,7 +164,7 @@ def lightweight_coreset(x, x_mean, n, batch_size=100, distance_metric='cosine',
         otherwise it will be normalized where necessary.
     proba : np.ndarray or None
         A probability distribution over `x`, which makes up half of the probability mass
-        of the sampling distribution. If `proba` is not `None` a uniform distribution is used.
+        of the sampling distribution. If `proba` is `None` a uniform distribution is used.
 
     Returns
     -------
@@ -176,27 +183,29 @@ def lightweight_coreset(x, x_mean, n, batch_size=100, distance_metric='cosine',
     x_mean = np.expand_dims(x_mean, axis=0)
 
     num_batches = int(np.ceil(x.shape[0] / batch_size))
-    indices = np.array([], dtype=int)
+    x_proba = np.array([], dtype=float)
+    x_dists = np.array([], dtype=float)
 
-    for x_batch in np.array_split(x, num_batches, axis=0):
+    for indices_batch in np.array_split(np.arange(x.shape[0]), num_batches, axis=0):
+
+        x_batch = x[indices_batch]
 
         dists = dist_func(x_batch, x_mean, normalized=normalized)
         dists = np.square(dists.ravel())
 
-        sum_dists = dists.sum()
-
         if proba is None:
-            uniform = 0.5 * 1 / x_batch.shape[0]
-            proba = uniform + 0.5 * dists / sum_dists
+            uniform = 1 / x.shape[0]
+            proba_local = np.array([uniform] * indices_batch.shape[0])
         else:
-            proba = 0.5 * proba / proba.sum() + 0.5 * dists / sum_dists
+            proba_local = proba[indices_batch]
 
-        proba = proba / np.linalg.norm(proba, ord=1)
+        x_proba = np.concatenate([x_proba, proba_local])
+        x_dists = np.concatenate([x_dists, dists])
 
-        indices_batch = np.random.choice(np.arange(x_batch.shape[0]), n, replace=False, p=proba)
-        indices = np.concatenate((indices, indices_batch))
+    x_proba = 0.5 * x_proba + 0.5 * x_dists / (x_dists.sum() + eps)
+    x_proba = x_proba / np.linalg.norm(x_proba, ord=1)
 
-    return indices
+    return np.random.choice(np.arange(x.shape[0]), n, replace=False, p=x_proba)
 
 
 class LightweightCoreset(EmbeddingBasedQueryStrategy):

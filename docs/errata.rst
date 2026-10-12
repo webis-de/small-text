@@ -21,6 +21,11 @@ Query Strategies
 ================
 
 - BADGE: the initial implementation was incorrect (fixed in v2.0.0.dev4).
+- LightweightCoreset:
+  - distances were normalized within the loop which invalidates the result (fixed in v2.0.0).
+  - cosine distances could get nan due to floating point rounding (fixed in v2.0.0).
+- GreedyCoreset:
+  - cosine distances could get nan due to floating point rounding (fixed in v2.0.0).
 
 Stopping Critera
 ================

@@ -178,6 +178,16 @@ class _LightweightCoresetFunctionTest(object):
         with self.assertRaises(ValueError):
             lightweight_coreset(x, np.mean(x, axis=0), num_samples+1)
 
+    def test_query_with_batch_size_and_no_remainder(self, num_samples=21, num_features=100):
+        x = np.random.rand(num_samples, num_features)
+        coreset = lightweight_coreset(x, np.mean(x, axis=0), num_samples, batch_size=7)
+        self.assertEqual(coreset.shape, (num_samples,))
+
+    def test_query_with_batch_size_and_remainder(self, num_samples=20, num_features=100):
+        x = np.random.rand(num_samples, num_features)
+        coreset = lightweight_coreset(x, np.mean(x, axis=0), num_samples, batch_size=7)
+        self.assertEqual(coreset.shape, (num_samples,))
+
 
 class LightweightCoresetWitdhCodineDistanceMetricFunctionTest(_LightweightCoresetFunctionTest, unittest.TestCase):
 
@@ -270,7 +280,7 @@ class LightweightCoresetSamplingStrategyUnnormalizedTest(_LightweightCoresetSamp
 
     def setUp(self):
         self.distance_metric = 'cosine'
-        self.normalize = True
+        self.normalize = False
 
     def _get_clf(self):
         return ConfidenceEnhancedLinearSVC()
