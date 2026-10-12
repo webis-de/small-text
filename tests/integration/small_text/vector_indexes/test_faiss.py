@@ -1,10 +1,19 @@
-import faiss
+# faiss package crashes if not imported first
+# https://github.com/webis-de/small-text/pull/89
+try:
+    import faiss
+except ImportError:
+    faiss = None
+
+    import warnings
+    warnings.warn('faiss could not be imported. Skipping tests in TestFaissIndex.', RuntimeWarning)
 
 import unittest
 
 from small_text.vector_indexes.faiss import FaissIndex
 from tests.integration.small_text.vector_indexes.test_base import VectorIndexesTest
 from tests.utils.pytest import mark_optional_dependency_test
+
 
 @mark_optional_dependency_test('faiss')
 class TestFaissIndex(unittest.TestCase, VectorIndexesTest):
