@@ -173,6 +173,14 @@ class ArgselectTest(unittest.TestCase):
         indices = argselect(arr, n, maximum=True)
         assert_array_almost_equal(np.array([0.3, 0.3, 0.3, 0.3, 0.5]), np.sort(arr[indices]))
 
+    def test_argselect_n_greater_n_half(self):
+        arr = np.array([0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5, 0.9])
+        np.random.shuffle(arr)
+
+        n_half_plus_one = int(arr.shape[0]/2+1)
+        indices = argselect(arr, n_half_plus_one, maximum=False)
+        assert_array_almost_equal( np.array([0.1, 0.1, 0.2, 0.2, 0.3, 0.3]), arr[indices])
+
     def test_argselect_n_equals_input_size(self):
         arr = np.array([0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5, 0.9])
         np.random.shuffle(arr)

@@ -199,7 +199,7 @@ def argselect(arr, n, maximum=True, tiebreak=True):
 
 
 def _argselect_tiebreak(arr, n, maximum=True):
-
+    n = int(n)
     indices_argpartitioned_window = _argpartition(arr, n, maximum=maximum)
     if maximum:
         tiebreak_value = np.sort(-arr[indices_argpartitioned_window[:n]])[n-1]
@@ -207,6 +207,8 @@ def _argselect_tiebreak(arr, n, maximum=True):
         tiebreak_value = np.sort(arr[indices_argpartitioned_window[:n]])[n-1]
 
     k = 2 * n
+    k = min(k, arr.shape[0])
+
     while k < arr.shape[0] and arr[indices_argpartitioned_window][k-1] == tiebreak_value:
         indices_argpartitioned_window = _argpartition(arr, k, maximum=maximum)
         k = min(k+n, arr.shape[0])
