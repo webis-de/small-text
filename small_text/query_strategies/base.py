@@ -200,36 +200,23 @@ def argselect(arr, n, maximum=True, tiebreak=True):
 
 def _argselect_tiebreak(arr, n, maximum=True):
     n = int(n)
-    indices_argpartitioned_window = _argpartition(arr, n, maximum=maximum)
+    indices_window = _argpartition(arr, n, maximum=maximum)[:n]
 
-    if maximum:
-        tiebreak_value = np.sort(-arr[indices_argpartitioned_window[:n]])[n-1]
-        tiebreak_value = -tiebreak_value
-    else:
-        tiebreak_value = np.sort(arr[indices_argpartitioned_window[:n]])[n-1]
+    tiebreak_value = np.min(arr[indices_window]) if maximum else np.max(arr[indices_window])
+    is_tied = arr == tiebreak_value
+    if is_tied.sum() <= 1:
+        return indices_window
 
-    k = 2 * n
-    k = min(k, arr.shape[0])
+    is_tied_in_window = arr[indices_window] == tiebreak_value
+    indices_valid = indices_window[~is_tied_in_window]
+    num_tied = is_tied_in_window.sum()
 
-    while k < arr.shape[0] and arr[indices_argpartitioned_window][k-1] == tiebreak_value:
-        indices_argpartitioned_window = _argpartition(arr, k, maximum=maximum)
-        k = min(k+n, arr.shape[0])
+    indices_tied = np.flatnonzero(is_tied)
+    indices_selected = np.random.choice(indices_tied, size=num_tied, replace=False)
 
-    indices_argpartitioned_window = indices_argpartitioned_window[:k]
-    indices_tiebreak_value = np.isclose(arr[indices_argpartitioned_window], np.array([tiebreak_value] * k))
-    if indices_tiebreak_value.sum() <= 1:
-        # no tiebreak necessary
-        return _argpartition(arr, n, maximum=maximum)[:n]
+    logging.debug(f'Tie breaking applied on {is_tied.sum()} equal scores.')
 
-    # randomize the "tiebreak value's" occurrences
-    indices_tiebreak_value_shuffled = np.copy(indices_argpartitioned_window[indices_tiebreak_value])
-    np.random.shuffle(indices_tiebreak_value_shuffled)
-
-    logging.debug(f'Tie breaking applied on {indices_tiebreak_value.sum()} equal scores.')
-    indices_argpartitioned_window[indices_tiebreak_value] = indices_tiebreak_value_shuffled
-    indices_argpartioned_n = _argpartition(arr[indices_argpartitioned_window], n, maximum=maximum)
-
-    return indices_argpartitioned_window[indices_argpartioned_n[:n]]
+    return np.concatenate([indices_valid, indices_selected])
 
 
 def _argpartition(arr, k, maximum=True):
