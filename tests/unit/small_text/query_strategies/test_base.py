@@ -123,6 +123,26 @@ class ConstraintTest(unittest.TestCase):
 
 class ArgselectTest(unittest.TestCase):
 
+    def test_argselect_randomized_maximum(self, k=100, n=5):
+        """
+        Tests a previous silent error where not all indices were used due to a wrong tiebreak value.
+        """
+        arr = np.array([0.1, 0.1] + [0.2] * 10 + [0.3] * 2)
+        np.random.shuffle(arr)
+
+        selected_sets = {frozenset(argselect(arr, n, maximum=True)) for _ in range(k)}
+        self.assertGreater(len(selected_sets), 1)
+
+    def test_argselect_randomized_minimum(self, k=100, n=5):
+        """
+        Tests a previous silent error where not all indices were used due to a wrong tiebreak value.
+        """
+        arr = np.array([0.1, 0.1] + [0.2] * 10 + [0.3] * 2)
+        np.random.shuffle(arr)
+
+        selected_sets = {frozenset(argselect(arr, n, maximum=False)) for _ in range(k)}
+        self.assertGreater(len(selected_sets), 1)
+
     def test_argselect_without_ties_maximum(self, n=5):
 
         arr = np.arange(0.1, 1.1, step=0.1)

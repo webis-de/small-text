@@ -201,8 +201,10 @@ def argselect(arr, n, maximum=True, tiebreak=True):
 def _argselect_tiebreak(arr, n, maximum=True):
     n = int(n)
     indices_argpartitioned_window = _argpartition(arr, n, maximum=maximum)
+
     if maximum:
         tiebreak_value = np.sort(-arr[indices_argpartitioned_window[:n]])[n-1]
+        tiebreak_value = -tiebreak_value
     else:
         tiebreak_value = np.sort(arr[indices_argpartitioned_window[:n]])[n-1]
 
