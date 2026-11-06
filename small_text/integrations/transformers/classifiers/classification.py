@@ -688,7 +688,11 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
         probas : np.ndarray[np.float32], optional
             List of probabilities (or confidence estimates) if `return_proba` is True.
         """
-        return super().predict(dataset, return_proba=return_proba)
+        return super().predict(
+            dataset,
+            return_proba=return_proba,
+            multi_label_threshold=multi_label_threshold
+        )
 
     def predict_proba(self, dataset, multi_label_threshold: float = 0.5, dropout_sampling = 1):
         """Predicts the label distributions.

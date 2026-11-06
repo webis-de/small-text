@@ -404,6 +404,25 @@ class TransformerBasedClassificationMultiLabelTest(unittest.TestCase,
     def setUp(self):
         self.multi_label = True
 
+    def test_predict_respects_multi_label_threshold(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        clf = TransformerBasedClassification(model_args, 3, multi_label=True)
+
+        test_set = self._get_dataset(num_samples=10, num_classes=3)
+        probabilities = csr_matrix(
+            np.tile([[0.6, 0.7, 0.8]], (len(test_set), 1))
+        )
+
+        with mock.patch.object(clf, 'predict_proba', return_value=probabilities):
+            predictions = clf.predict(test_set, multi_label_threshold=0.75)
+
+        np.testing.assert_array_equal(
+            predictions.toarray(),
+            np.tile([[0, 0, 1]], (len(test_set), 1))
+        )
+
+
+
 
 @pytest.mark.pytorch
 class CompileTest(unittest.TestCase):
