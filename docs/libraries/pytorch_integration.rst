@@ -28,9 +28,10 @@ With the integration you will have access to the following additional components
 +------------------+--------------------------------------------------------------------------------------------+
 | Components       | Resources                                                                                  |
 +==================+============================================================================================+
-| Datasets         | :ref:`KimCNNClassifier <api-classifiers-kimcnn-classifier>`                                |
+| Datasets         | :ref:`PytorchTextClassificationDataset <api-datasets-pytorch-text-classification-dataset>` |
 +------------------+--------------------------------------------------------------------------------------------+
-| Classifiers      | :ref:`PytorchTextClassificationDataset <api-datasets-pytorch-text-classification-dataset>` |
+| Classifiers      | :ref:`KimCNNClassifier <api-classifiers-kimcnn-classifier>`                                |
+|                  | :ref:`LSTMClassifier <api-classifiers-lstm-classifier>`                                    |
 +------------------+--------------------------------------------------------------------------------------------+
 | Query Strategies | (See :doc:`Query Strategies </components/query_strategies>`)                               |
 +------------------+--------------------------------------------------------------------------------------------+
