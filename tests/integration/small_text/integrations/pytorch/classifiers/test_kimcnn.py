@@ -17,6 +17,7 @@ from small_text.training.model_selection import ModelSelection, NoopModelSelecti
 
 try:
     import torch
+    import torch.nn.functional as F
 
     from torch.optim import AdamW
     from torch.optim.lr_scheduler import LambdaLR
@@ -324,6 +325,57 @@ class _KimCNNClassifierTest(object):
 
             self.assertEqual(optimizer, call_args[5])
             self.assertEqual(scheduler, call_args[6])
+
+    def test_train_loss(self):
+        ds = self._get_dataset()
+
+        num_classes = 4
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        classifier = KimCNNClassifier(num_classes,
+                                      multi_label=self.multi_label,
+                                      embedding_matrix=embedding_matrix)
+
+        classifier.fit(ds)
+
+        weights = None
+        optimizer = torch.optim.SGD(classifier.model.parameters(), lr=0.0)
+        scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda _: 1.0)
+        scaler = torch.amp.GradScaler(enabled=False)
+        amp_args = AMPArguments(use_amp=False, device_type='cpu', dtype=torch.bfloat16)
+
+        expected_loss = self._get_expected_loss(classifier, ds)
+        encountered_loss, _ = classifier._train_func(ds, weights, optimizer, scheduler, scaler, amp_args)
+        self.assertAlmostEqual(expected_loss, encountered_loss, places=5)
+
+    def test_validation_loss(self):
+        ds = self._get_dataset()
+
+        num_classes = 4
+        embedding_matrix = torch.FloatTensor(np.random.rand(10, 100))
+        classifier = KimCNNClassifier(num_classes,
+                                      multi_label=self.multi_label,
+                                      embedding_matrix=embedding_matrix)
+
+        classifier.fit(ds)
+
+        expected_loss = self._get_expected_loss(classifier, ds)
+        encountered_loss, _ = classifier.validate(ds)
+        self.assertAlmostEqual(expected_loss, encountered_loss, places=5)
+
+    def _get_expected_loss(self, clf, ds, weights=None):
+        collate_fn = clf._create_collate_fn(use_sample_weights=weights is not None)
+        data = ds.data
+        if weights is not None:
+            data = [d + (weights[i],) for i, d in enumerate(data)]
+        x, cls, weights = collate_fn(data)
+
+        clf.model.eval()
+        with torch.no_grad():
+            output = clf.model(x.to(clf.device))
+            target = F.one_hot(cls, 2).float() if clf.num_classes == 2 else cls
+            loss = clf.criterion(output, target.to(clf.device)) * weights.to(clf.device)
+
+            return loss.mean().item()
 
 
 @pytest.mark.pytorch

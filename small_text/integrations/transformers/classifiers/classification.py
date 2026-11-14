@@ -542,12 +542,13 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                 with torch.autocast(enabled=self.amp_args.use_amp, device_type=self.amp_args.device_type,
                                     dtype=self.amp_args.dtype):
                     loss, logits, cls = self._train_forward(x, masks, cls, weight, optimizer)
+                    batch_size = x.size(0)
                 del x, masks
                 self._train_backward(loss, optimizer, scaler)
 
                 scheduler.step()
 
-                train_loss += loss.detach()
+                train_loss += loss.detach() * batch_size
                 train_acc += self.sum_up_accuracy_(logits, cls).detach()
                 del cls
 
@@ -661,7 +662,7 @@ class TransformerBasedClassification(TransformerBasedEmbeddingMixin, PytorchClas
                     loss = loss * weight
                     loss = loss.mean()
 
-                    valid_loss += loss.detach()
+                    valid_loss += loss.detach() * x.size(0)
                     acc += self.sum_up_accuracy_(outputs.logits, cls).detach()
                     del outputs, x, masks, cls
 

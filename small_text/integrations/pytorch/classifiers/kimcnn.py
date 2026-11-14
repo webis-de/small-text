@@ -502,7 +502,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                 loss, acc = self._train_single_batch(text, cls, weight, optimizer, scaler)
                 scheduler.step()
 
-                train_loss += loss.detach()
+                train_loss += loss.detach() * text.size(0)
                 train_acc += acc.detach()
 
         return train_loss.item() / len(sub_train_), train_acc.item() / len(sub_train_)
@@ -581,7 +581,7 @@ class KimCNNClassifier(KimCNNEmbeddingMixin, PytorchClassifier):
                         loss = loss * weight
                         loss = loss.mean()
 
-                        valid_loss += loss.detach()
+                        valid_loss += loss.detach() * x.size(0)
 
                         acc += self.sum_up_accuracy_(output, cls)
                         del output, x, cls

@@ -17,6 +17,10 @@ from small_text.training.model_selection import ModelSelection, NoopModelSelecti
 
 try:
     import torch
+    import torch.nn.functional as F
+
+    from torch.optim import AdamW
+    from torch.optim.lr_scheduler import LambdaLR
 
     from small_text.integrations.pytorch.classifiers.base import AMPArguments
     from small_text.integrations.transformers import (
@@ -387,6 +391,71 @@ class _TransformerBasedClassificationTest(object):
 
             self.assertEqual(1, fit_main_spy.call_count)
             self.assertTrue(isinstance(fit_main_spy.call_args_list[0].args[4], ModelSelection))
+
+    def test_train_loss(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args,
+                                                    4,
+                                                    multi_label=self.multi_label,
+                                                    num_epochs=1)
+
+        ds = self._get_dataset(num_samples=10)
+
+        classifier.fit(ds)
+
+        weights = None
+
+        early_stopping = classifier._get_default_early_stopping(None, classifier.validations_per_epoch)
+        model_selection = classifier._get_default_model_selection(None)
+        optimizer = torch.optim.SGD(classifier.model.parameters(), lr=0.0)
+        scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda _: 1.0)
+        scaler = torch.amp.GradScaler(enabled=False)
+        amp_args = AMPArguments(use_amp=False, device_type='cpu', dtype=torch.bfloat16)
+
+        expected_loss = self._get_expected_loss(classifier, ds)
+
+        encountered_loss, _, valid_loss, _, _ = classifier._train_loop_process_batches(1,
+                                                                                       ds,
+                                                                                       ds,
+                                                                                       weights,
+                                                                                       early_stopping,
+                                                                                       model_selection,
+                                                                                       optimizer,
+                                                                                       scheduler,
+                                                                                       scaler,
+                                                                                       amp_args)
+        self.assertAlmostEqual(expected_loss, encountered_loss, places=5)
+        self.assertAlmostEqual(expected_loss, valid_loss, places=5)
+
+    def test_validation_loss(self):
+        model_args = TransformerModelArguments('sshleifer/tiny-distilroberta-base')
+        classifier = TransformerBasedClassification(model_args,
+                                                    4,
+                                                    multi_label=self.multi_label,
+                                                    num_epochs=1)
+
+        ds = self._get_dataset(num_samples=10)
+
+        classifier.fit(ds)
+
+        expected_loss = self._get_expected_loss(classifier, ds)
+        encountered_loss, _ = classifier.validate(ds)
+        self.assertAlmostEqual(expected_loss, encountered_loss, places=5)
+
+    def _get_expected_loss(self, clf, ds, weights=None):
+        collate_fn = clf._create_collate_fn(use_sample_weights=weights is not None)
+        data = ds.data
+        if weights is not None:
+            data = [d + (weights[i],) for i, d in enumerate(data)]
+        x, _, cls, weights = collate_fn(data)
+
+        clf.model.eval()
+        with torch.no_grad():
+            output = clf.model(x.to(clf.device)).logits
+            target = F.one_hot(cls, 2).float() if clf.num_classes == 2 else cls
+            loss = clf.criterion(output, target.to(clf.device)) * weights.to(clf.device)
+
+            return loss.mean().item()
 
 
 @pytest.mark.pytorch
