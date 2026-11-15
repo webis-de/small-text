@@ -11,6 +11,7 @@
 - PD Hall ([@pdhall99](https://github.com/pdhall99))
 - PeterK-end ([@PeterK-end](https://github.com/PeterK-end))
 - 5ammy29 ([@5ammy29](https://github.com/5ammy29))
+- kasheeesh08 ([@kasheeesh08](https://github.com/kasheeesh08))
 
 ## Acknowledgments
 
