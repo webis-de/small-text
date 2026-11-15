@@ -17,6 +17,9 @@ class ImportTest(unittest.TestCase):
         from small_text import kimcnn_collate_fn
         from small_text import KimCNNEmbeddingMixin
         from small_text import KimCNNClassifier
+        from small_text import lstm_collate_fn
+        from small_text import LSTMEmbeddingMixin
+        from small_text import LSTMClassifier
         from small_text import ExpectedGradientLength
         from small_text import ExpectedGradientLengthLayer
         from small_text import ExpectedGradientLengthMaxWord
@@ -24,6 +27,7 @@ class ImportTest(unittest.TestCase):
     def test_import_factories_module(self):
         from small_text import AbstractClassifierFactory
         from small_text import KimCNNClassifierFactory
+        from small_text import LSTMClassifierFactory
 
     def test_import_datasets_module(self):
         from small_text import PytorchDataset
@@ -33,6 +37,7 @@ class ImportTest(unittest.TestCase):
 
     def test_import_models_module(self):
         from small_text import KimCNN
+        from small_text import LSTM
 
     def test_import_query_strategies_module(self):
         from small_text import DiscriminativeRepresentationLearning

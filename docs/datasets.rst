@@ -28,7 +28,8 @@ dataset and classifier have to match, since the underlying representations can b
    +========================================================================================+=============================================================================================================+
    | :py:class:`~small_text.data.datasets.SklearnDataset`                                   | :py:class:`~small_text.classifiers.classification.SklearnClassifier`                                        |
    +----------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+
-   | :py:class:`~small_text.integrations.pytorch.datasets.PytorchTextClassificationDataset` | :py:class:`~small_text.integrations.pytorch.classifiers.kimcnn.KimCNNClassifier`                            |
+   | :py:class:`~small_text.integrations.pytorch.datasets.PytorchTextClassificationDataset` | :py:class:`~small_text.integrations.pytorch.classifiers.kimcnn.KimCNNClassifier`,                           |
+   |                                                                                        | :py:class:`~small_text.integrations.pytorch.classifiers.lstm.LSTMClassifier`                                |
    +----------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+
    | :py:class:`~small_text.data.datasets.TextDataset`                                      | :py:class:`~small_text.integrations.transformers.classifiers.setfit.SetFitClassification`                   |
    +----------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+

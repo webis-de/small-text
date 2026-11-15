@@ -41,6 +41,13 @@ Pytorch Integration
     :member-order: bysource
     :special-members: __init__
 
+.. _api-classifiers-lstm-classifier:
+
+.. autoclass:: LSTMClassifier
+    :members: fit, predict, predict_proba, validate
+    :member-order: bysource
+    :special-members: __init__
+
 Transformers Integration
 ------------------------
 
@@ -85,6 +92,11 @@ Pytorch Integration
 .. currentmodule:: small_text.integrations.pytorch.classifiers.factories
 
 .. autoclass:: KimCNNClassifierFactory
+    :members: new
+    :member-order: bysource
+    :special-members: __init__
+
+.. autoclass:: LSTMClassifierFactory
     :members: new
     :member-order: bysource
     :special-members: __init__

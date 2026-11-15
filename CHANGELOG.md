@@ -24,6 +24,7 @@ On the other hand, this also allowed us to deal with further issues that contain
 - Datasets
   - Validation has been added to prevent TextDataset objects from containing None items (instead of str) either during initialization or when setting the x property. ([#73](https://github.com/webis-de/small-text/pull/73))
 - Classification:
+  - Added `LSTMClassifier`, backed by a PyTorch LSTM model, including pooled and gradient embeddings. ([#67](https://github.com/webis-de/small-text/issues/67))
   - All PyTorch-classifiers (KimCNN, TransformerBasedClassification, SetFitClassification) now support `torch.compile()` which can be enabled on demand. (Requires PyTorch >= 2.0.0). 
   - All PyTorch-classifiers now support Automatic Mixed Precision.
   - The `mini_batch_size` argument has been separated into `train_batch_size` and `predict_batch_size` for all PyTorch-classifiers.
